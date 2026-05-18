@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Voice Reach CRM - Professional Recording Studio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#bec6e0",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "info": "#0EA5E9",
+                        "danger": "#EF4444",
+                        "tertiary": "#000000",
+                        "on-primary-fixed": "#131b2e",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#565e74",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-primary-container": "#7c839b",
+                        "primary-container": "#131b2e",
+                        "primary-fixed-dim": "#bec6e0",
+                        "outline": "#76777d",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "error": "#ba1a1a",
+                        "background": "#f7f9fb",
+                        "secondary-container": "#6063ee",
+                        "secondary-fixed-dim": "#c0c1ff",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#4648d4",
+                        "on-background": "#191c1e",
+                        "surface-variant": "#e0e3e5",
+                        "warning": "#F59E0B",
+                        "on-primary": "#ffffff",
+                        "primary-fixed": "#dae2fd",
+                        "tertiary-container": "#002113",
+                        "slate-text": "#475569",
+                        "on-secondary-fixed": "#07006c",
+                        "surface": "#f7f9fb",
+                        "on-secondary-container": "#fffbff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-dim": "#d8dadc",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "primary": "#000000",
+                        "surface-bright": "#f7f9fb",
+                        "on-surface-variant": "#45464d",
+                        "outline-variant": "#c6c6cd",
+                        "on-secondary-fixed-variant": "#2f2ebe",
+                        "on-surface": "#191c1e",
+                        "secondary-fixed": "#e1e0ff",
+                        "on-tertiary-container": "#009668",
+                        "surface-container-low": "#f2f4f6",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#6ffbbe",
+                        "surface-container-high": "#e6e8ea",
+                        "ink": "#1A1A1A",
+                        "surface-container": "#eceef0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "xs": "8px",
+                        "xl": "48px",
+                        "base": "4px",
+                        "md": "24px",
+                        "margin-mobile": "16px",
+                        "lg": "32px",
+                        "sm": "16px",
+                        "margin-desktop": "52px"
+                    },
+                    "fontFamily": {
+                        "caption": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "caption": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "display-lg": ["56px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .waveform-bar {
+            width: 3px;
+            background: #4edea3;
+            border-radius: 9999px;
+            transition: height 0.2s ease;
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-background">
+<!-- SideNavBar Shell -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-primary-container shadow-md flex flex-col py-6 px-4 z-50">
+<div class="mb-10 px-4">
+<h1 class="font-headline-md text-headline-md font-bold text-on-primary-fixed">Voice Reach</h1>
+<p class="font-label-md text-label-md text-on-primary-container">CRM Enterprise</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container/70 hover:text-on-primary-container hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container/70 hover:text-on-primary-container hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Contacts</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container/70 hover:text-on-primary-container hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">campaign</span>
+<span class="font-label-md text-label-md">Campaigns</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-tertiary-fixed-dim font-bold bg-white/5 rounded-full" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-label-md text-label-md">Voice Scripts</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container/70 hover:text-on-primary-container hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">auto_mode</span>
+<span class="font-label-md text-label-md">Automations</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container/70 hover:text-on-primary-container hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-label-md text-label-md">Activity Logs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container/70 hover:text-on-primary-container hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container/70 hover:text-on-primary-container hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<button class="mt-auto bg-secondary text-on-secondary px-6 py-4 rounded-full font-label-md text-label-md font-bold shadow-lg hover:scale-95 transition-transform active:scale-90">
+            Quick Connect
+        </button>
+</aside>
+<!-- TopNavBar Shell -->
+<header class="h-16 fixed top-0 right-0 w-[calc(100%-16rem)] bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 z-40 flex justify-between items-center px-gutter">
+<div class="flex items-center gap-6 w-1/2">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full h-10 pl-12 pr-4 bg-surface-container-low border-none rounded-full font-label-md text-label-md focus:ring-2 focus:ring-secondary/20" placeholder="Search recordings or scripts..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="bg-primary text-on-primary px-6 py-2 rounded-full font-label-md text-label-md hover:opacity-80 transition-opacity">Quick Create</button>
+<div class="flex gap-4 items-center">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="pt-16 pl-64 min-h-screen">
+<div class="p-8 max-w-[1224px] mx-auto space-y-8">
+<!-- Studio Interface: Bento Layout -->
+<div class="grid grid-cols-12 gap-6 items-start">
+<!-- Left: Controls (2 Cols) -->
+<div class="col-span-2 space-y-4">
+<div class="bg-white rounded-[24px] p-6 shadow-[0px_20px_40px_-12px_rgba(0,0,0,0.08)] flex flex-col items-center gap-6">
+<button class="w-16 h-16 rounded-full bg-error flex items-center justify-center text-white shadow-lg active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">mic</span>
+</button>
+<button class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">pause</span>
+</button>
+<button class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">stop</span>
+</button>
+<div class="h-[1px] w-full bg-outline-variant/30 my-2"></div>
+<button class="w-12 h-12 rounded-full border border-outline-variant flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">play_arrow</span>
+</button>
+</div>
+<div class="bg-white rounded-[24px] p-4 shadow-[0px_20px_40px_-12px_rgba(0,0,0,0.08)] space-y-2">
+<div class="text-center">
+<span class="font-caption text-caption text-outline uppercase tracking-wider">Level</span>
+<div class="h-32 w-4 bg-surface-container rounded-full mx-auto relative overflow-hidden">
+<div class="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-secondary to-tertiary-fixed-dim"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Center: Waveform Visualization (7 Cols) -->
+<div class="col-span-7 bg-primary-container rounded-[24px] p-8 h-[400px] shadow-lg relative overflow-hidden flex flex-col justify-center">
+<div class="absolute top-6 left-8 flex items-center gap-3">
+<span class="w-2 h-2 bg-error rounded-full animate-pulse"></span>
+<span class="font-headline-md text-headline-md text-white tabular-nums">02:14:45</span>
+</div>
+<div class="absolute top-6 right-8">
+<span class="font-label-md text-label-md text-on-primary-container">48kHz / 24-bit WAV</span>
+</div>
+<!-- Simulated Waveform -->
+<div class="flex items-center justify-center gap-1 h-48 w-full">
+<!-- High density bars with varying heights -->
+<div class="waveform-bar h-12"></div><div class="waveform-bar h-24"></div><div class="waveform-bar h-32"></div><div class="waveform-bar h-16"></div><div class="waveform-bar h-40"></div><div class="waveform-bar h-48"></div><div class="waveform-bar h-32"></div><div class="waveform-bar h-20"></div><div class="waveform-bar h-36"></div><div class="waveform-bar h-24"></div><div class="waveform-bar h-12"></div><div class="waveform-bar h-28"></div><div class="waveform-bar h-44"></div><div class="waveform-bar h-32"></div><div class="waveform-bar h-16"></div><div class="waveform-bar h-24"></div><div class="waveform-bar h-40"></div><div class="waveform-bar h-20"></div><div class="waveform-bar h-32"></div><div class="waveform-bar h-48"></div><div class="waveform-bar h-12"></div><div class="waveform-bar h-36"></div><div class="waveform-bar h-24"></div><div class="waveform-bar h-12"></div><div class="waveform-bar h-44"></div><div class="waveform-bar h-28"></div><div class="waveform-bar h-16"></div><div class="waveform-bar h-32"></div><div class="waveform-bar h-40"></div><div class="waveform-bar h-12"></div><div class="waveform-bar h-24"></div><div class="waveform-bar h-32"></div><div class="waveform-bar h-16"></div><div class="waveform-bar h-40"></div><div class="waveform-bar h-48"></div><div class="waveform-bar h-32"></div>
+</div>
+<div class="absolute bottom-8 left-0 right-0 px-8 flex justify-between items-center">
+<div class="flex gap-2">
+<span class="px-3 py-1 rounded-full bg-white/10 text-white font-caption text-caption">Take 04</span>
+<span class="px-3 py-1 rounded-full bg-white/10 text-white font-caption text-caption">Project: Zenith Alpha</span>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-white/50 cursor-pointer hover:text-white">settings_voice</span>
+<span class="material-symbols-outlined text-white/50 cursor-pointer hover:text-white">equalizer</span>
+</div>
+</div>
+</div>
+<!-- Right: Script Metadata (3 Cols) -->
+<div class="col-span-3 space-y-6">
+<div class="bg-white rounded-[24px] p-6 shadow-[0px_20px_40px_-12px_rgba(0,0,0,0.08)]">
+<h3 class="font-label-md text-label-md font-bold mb-4">Current Script</h3>
+<div class="p-4 bg-surface-container-low rounded-xl text-on-surface-variant font-body-md text-body-md italic leading-relaxed border-l-4 border-secondary">
+                            "Hello, and welcome to Voice Reach CRM. We're excited to help you automate your client communications with high-fidelity precision..."
+                        </div>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="px-3 py-1 rounded-lg bg-secondary-container text-on-secondary-container font-caption text-caption font-bold">OUTBOUND</span>
+<span class="px-3 py-1 rounded-lg bg-surface-container text-on-surface-variant font-caption text-caption font-bold">ENGLISH</span>
+</div>
+</div>
+<div class="bg-white rounded-[24px] p-6 shadow-[0px_20px_40px_-12px_rgba(0,0,0,0.08)]">
+<h3 class="font-label-md text-label-md font-bold mb-3">Recording Setup</h3>
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<span class="font-caption text-caption text-outline">Input</span>
+<span class="font-caption text-caption font-bold">Focusrite Scarlett 4i4</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-caption text-caption text-outline">Monitoring</span>
+<span class="font-caption text-caption font-bold">Enabled</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-caption text-caption text-outline">Noise Gate</span>
+<span class="font-caption text-caption font-bold text-on-tertiary-container">-42dB</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Library Section -->
+<div class="space-y-6">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline-md text-headline-md font-bold">Saved Recordings</h2>
+<p class="font-label-md text-label-md text-outline">Manage and review your recent studio sessions</p>
+</div>
+<button class="bg-surface-container hover:bg-surface-container-high px-4 py-2 rounded-full font-label-md text-label-md transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filters
+                    </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Library Card 1 -->
+<div class="bg-white rounded-xl border border-outline-variant/30 p-5 shadow-[0px_20px_40px_-12px_rgba(0,0,0,0.08)] hover:shadow-lg transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] font-bold bg-on-tertiary-container/10 text-on-tertiary-container px-2 py-0.5 rounded-sm uppercase">Optimized</span>
+<span class="font-caption text-caption text-outline mt-1">Oct 24, 2023</span>
+</div>
+</div>
+<h4 class="font-label-md text-label-md font-bold mb-1">Onboarding_Intro_V2.wav</h4>
+<p class="font-caption text-caption text-outline mb-4">00:45 • 12.4 MB</p>
+<div class="flex items-center justify-between border-t border-outline-variant/20 pt-4">
+<div class="flex gap-3">
+<div class="text-center">
+<span class="font-caption text-caption block font-bold">1.2k</span>
+<span class="text-[10px] text-outline uppercase">Uses</span>
+</div>
+<div class="text-center">
+<span class="font-caption text-caption block font-bold">98%</span>
+<span class="text-[10px] text-outline uppercase">Clarity</span>
+</div>
+</div>
+<button class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">more_vert</button>
+</div>
+</div>
+<!-- Library Card 2 -->
+<div class="bg-white rounded-xl border border-outline-variant/30 p-5 shadow-[0px_20px_40px_-12px_rgba(0,0,0,0.08)] hover:shadow-lg transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-outline">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] font-bold bg-warning/10 text-warning px-2 py-0.5 rounded-sm uppercase">Reviewing</span>
+<span class="font-caption text-caption text-outline mt-1">Oct 23, 2023</span>
+</div>
+</div>
+<h4 class="font-label-md text-label-md font-bold mb-1">Cold_Call_Script_A.wav</h4>
+<p class="font-caption text-caption text-outline mb-4">01:12 • 18.9 MB</p>
+<div class="flex items-center justify-between border-t border-outline-variant/20 pt-4">
+<div class="flex gap-3">
+<div class="text-center">
+<span class="font-caption text-caption block font-bold">0</span>
+<span class="text-[10px] text-outline uppercase">Uses</span>
+</div>
+<div class="text-center">
+<span class="font-caption text-caption block font-bold">92%</span>
+<span class="text-[10px] text-outline uppercase">Clarity</span>
+</div>
+</div>
+<button class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">more_vert</button>
+</div>
+</div>
+<!-- Library Card 3 (Empty State / Upload) -->
+<div class="bg-surface-container-low border-2 border-dashed border-outline-variant/50 rounded-xl p-5 flex flex-col items-center justify-center text-center group cursor-pointer hover:bg-surface-container transition-colors">
+<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-outline mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">upload</span>
+</div>
+<h4 class="font-label-md text-label-md font-bold mb-1">Import Audio</h4>
+<p class="font-caption text-caption text-outline">Drag &amp; Drop WAV or MP3</p>
+</div>
+</div>
+</div>
+<!-- Promotion / Feature Section -->
+<div class="bg-primary text-on-primary rounded-[24px] p-10 overflow-hidden relative min-h-[280px] flex flex-col justify-center">
+<div class="relative z-10 max-w-lg space-y-4">
+<h2 class="font-headline-lg text-headline-lg leading-tight">AI Voice Cloning<br/><span class="text-tertiary-fixed-dim">Engine is Ready.</span></h2>
+<p class="font-body-md text-body-md opacity-80">Synthesize your voice in seconds. Use our premium enterprise model to generate scripts instantly without recording a single word.</p>
+<button class="bg-white text-primary px-8 py-3 rounded-full font-label-md text-label-md font-bold hover:bg-tertiary-fixed transition-colors">Enable Engine</button>
+</div>
+<!-- Abstract visual representation -->
+<div class="absolute right-0 top-0 bottom-0 w-1/2 overflow-hidden opacity-30">
+<img class="w-full h-full object-cover" data-alt="A professional high-end studio microphone standing in a soundproof booth. The lighting is dramatic and cinematic, with deep navy and sharp indigo highlights. The atmosphere is quiet and focused, representing precision and professional recording standards. The image has a clean, minimalist corporate aesthetic that aligns with a high-fidelity SaaS brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEsII7N_9QH2eTzxbgvRcgSD2wTujFf2L3LJRsZHYZDNSe9CHqICJ-JPmKxHcfEY7gEfDdzwPciXG-d9So3OjOZ_LdLkLIBs25EErJe-_UROc2s4eFkFxhLefhqjSWJGGRpIxRRHOGQ1GRZfryCNt1OxbF9l4Xw9P6hiPmR2gwW86Fyfwc0UXFrlfAmGK38Z6hQu6-F4zVEgYGMDGE8Vpcz70Lv8yipHBa2xsSapfLo_JRO4b3K6XpiVuNeyfJaPpCb5-FDyPJG17m"/>
+</div>
+</div>
+</div>
+</main>
+</body></html>

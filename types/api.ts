@@ -1,0 +1,20 @@
+export type ContactImportRow = {
+  firstName?: string;
+  first_name?: string;
+  lastName?: string;
+  last_name?: string;
+  phone?: string;
+  email?: string;
+  type?: string;
+  source?: string;
+  consent?: string;
+  consentDate?: string;
+  consent_date?: string;
+  consentSource?: string;
+  consent_source?: string;
+  proof?: string;
+  consentProof?: string;
+  consent_proof?: string;
+  dnc?: string | boolean;
+  notes?: string;
+};
