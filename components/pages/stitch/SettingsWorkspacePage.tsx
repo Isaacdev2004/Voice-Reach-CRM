@@ -1,315 +1,981 @@
-/* Auto-converted from stitch HTML */
 "use client";
 
-import { useState } from "react";
+import { ApiKeyModal } from "@/components/settings/api-key-modal";
+import { IntegrationConfigModal } from "@/components/settings/integration-config-modal";
+import { InviteMemberModal } from "@/components/settings/invite-member-modal";
+import { TeamMemberModal } from "@/components/settings/team-member-modal";
+import { useUpgradePlan } from "@/components/billing/upgrade-plan-provider";
+import { LuxuryCard } from "@/components/crm/luxury-card";
+import { Icon } from "@/components/ui/icon";
+import { cn } from "@/lib/cn";
+import { formatRelativeTime } from "@/lib/activity/format";
+import { TIMEZONE_OPTIONS } from "@/lib/settings/defaults";
+import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
+import {
+  fetchSettings,
+  generateApiKey,
+  persistSettings,
+  saveSettingsLocal,
+} from "@/lib/settings/storage";
+import type {
+  IntegrationConfig,
+  SettingsTab,
+  TeamMember,
+  UserSettings,
+} from "@/lib/settings/types";
+import { useUser } from "@clerk/nextjs";
+import Image from "next/image";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+type Toast = { message: string; tone: "success" | "error" };
+
+const TABS: { id: SettingsTab; label: string }[] = [
+  { id: "profile", label: "Profile" },
+  { id: "workspace", label: "Workspace" },
+  { id: "api", label: "API keys" },
+  { id: "team", label: "Team" },
+  { id: "billing", label: "Billing" },
+];
+
+const ROLE_LABELS: Record<TeamMember["role"], string> = {
+  owner: "Workspace owner",
+  admin: "Admin",
+  billing: "Billing manager",
+  user: "User",
+};
 
 export function SettingsWorkspacePage() {
-  const [fullName, setFullName] = useState("Marcus Sterling");
-  const [email, setEmail] = useState("marcus.s@voicereach.io");
-  const [phone, setPhone] = useState("+1 (555) 000-1234");
-  const [timezone, setTimezone] = useState("Eastern Standard Time (EST)");
+  const { user } = useUser();
+  const { openUpgrade, billing: sharedBilling, lastUpgradedAt } = useUpgradePlan();
+  const [tab, setTab] = useState<SettingsTab>("profile");
+  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [savedSnapshot, setSavedSnapshot] = useState<string>("");
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<Toast | null>(null);
+  const [search, setSearch] = useState("");
+  const [profileEditing, setProfileEditing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [integrationModal, setIntegrationModal] = useState<IntegrationConfig | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [apiKeyOpen, setApiKeyOpen] = useState(false);
+  const [createdApiKey, setCreatedApiKey] = useState<string | null>(null);
+  const [teamMemberModal, setTeamMemberModal] = useState<TeamMember | null>(null);
+
+  const showToast = (message: string, tone: Toast["tone"] = "success") => {
+    setToast({ message, tone });
+    window.setTimeout(() => setToast(null), 4000);
+  };
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetchSettings();
+      setSettings(data.settings);
+      setSavedSnapshot(JSON.stringify(data.settings));
+      setEmail(data.email || user?.primaryEmailAddress?.emailAddress || "");
+      saveSettingsLocal(data.settings);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Could not load settings", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.primaryEmailAddress?.emailAddress]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const headerQuery = useDashboardSearch();
+  useEffect(() => {
+    if (headerQuery) setSearch(headerQuery);
+  }, [headerQuery]);
+
+  useEffect(() => {
+    if (!lastUpgradedAt || !settings) return;
+    setSettings((prev) =>
+      prev
+        ? {
+            ...prev,
+            billing: {
+              ...sharedBilling,
+              voiceMinutesUsed: prev.billing.voiceMinutesUsed,
+            },
+          }
+        : prev,
+    );
+    setSavedSnapshot((snap) => {
+      if (!snap) return snap;
+      try {
+        const parsed = JSON.parse(snap) as UserSettings;
+        return JSON.stringify({
+          ...parsed,
+          billing: { ...sharedBilling, voiceMinutesUsed: parsed.billing.voiceMinutesUsed },
+        });
+      } catch {
+        return snap;
+      }
+    });
+  }, [lastUpgradedAt, sharedBilling]);
+
+  const dirty = useMemo(
+    () => settings !== null && JSON.stringify(settings) !== savedSnapshot,
+    [settings, savedSnapshot],
+  );
+
+  const update = useCallback((patch: Partial<UserSettings> | ((s: UserSettings) => UserSettings)) => {
+    setSettings((prev) => {
+      if (!prev) return prev;
+      return typeof patch === "function" ? patch(prev) : { ...prev, ...patch };
+    });
+  }, []);
+
+  const handleSave = async () => {
+    if (!settings) return;
+    setSaving(true);
+    try {
+      if (user) {
+        const parts = settings.profile.fullName.trim().split(/\s+/);
+        await user.update({
+          firstName: parts[0] ?? "",
+          lastName: parts.slice(1).join(" ") || "",
+        });
+      }
+      const data = await persistSettings(settings);
+      setSettings(data.settings);
+      setSavedSnapshot(JSON.stringify(data.settings));
+      saveSettingsLocal(data.settings);
+      setProfileEditing(false);
+      showToast("All changes saved");
+    } catch (e) {
+      saveSettingsLocal(settings);
+      showToast(
+        e instanceof Error ? `${e.message} — saved on this device` : "Saved locally",
+        "error",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDiscard = () => {
+    if (!savedSnapshot) return;
+    setSettings(JSON.parse(savedSnapshot) as UserSettings);
+    setProfileEditing(false);
+    showToast("Changes discarded");
+  };
+
+  const avatarUrl =
+    settings?.profile.avatarUrl || user?.imageUrl || settings?.team[0]?.avatarUrl;
+
+  const connectedCount = settings?.integrations.filter((i) => i.connected).length ?? 0;
+
+  const filteredTeam = useMemo(() => {
+    if (!settings) return [];
+    const q = search.trim().toLowerCase();
+    return settings.team.filter(
+      (m) =>
+        !q ||
+        m.name.toLowerCase().includes(q) ||
+        m.email.toLowerCase().includes(q) ||
+        m.role.includes(q),
+    );
+  }, [settings, search]);
+
+  if (loading && !settings) {
+    return (
+      <div className="luxury-page mx-auto max-w-[1224px] p-8">
+        <p className="text-center text-taupe">Loading settings…</p>
+      </div>
+    );
+  }
+
+  if (!settings) return null;
 
   return (
-    <>
-      <div className="max-w-[1224px] mx-auto px-gutter py-lg">
+    <div className="luxury-page mx-auto w-full max-w-[1224px] space-y-6 p-8 pb-24">
+      {toast ? (
+        <div
+          className={cn(
+            "fixed bottom-6 right-6 z-[150] flex max-w-sm items-center gap-2 rounded-xl border px-4 py-3 shadow-card",
+            toast.tone === "success" ? "border-emerald-muted/30 bg-ivory" : "border-error/30",
+          )}
+          role="status"
+        >
+          <Icon
+            name={toast.tone === "success" ? "check_circle" : "error"}
+            className={toast.tone === "success" ? "text-emerald-muted" : "text-error"}
+          />
+          <span className="text-[14px] text-ink">{toast.message}</span>
+        </div>
+      ) : null}
 
-      <div className="mb-xl">
-      <h2 className="font-headline-lg text-headline-lg mb-2">Settings</h2>
-      <p className="font-body-md text-body-md text-on-surface-variant">Manage your account preferences, team workspace, and API integrations.</p>
+      <header>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Settings</p>
+        <h1 className="font-serif text-[36px] font-semibold text-ink">Account & workspace</h1>
+        <p className="mt-1 text-[15px] text-slate-text">
+          Manage profile, team, integrations, API keys, and billing.
+        </p>
+        <div className="relative mt-4 max-w-md">
+          <Icon
+            name="search"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-taupe"
+          />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search settings, team, integrations…"
+            className="h-10 w-full rounded-full border border-outline-variant/20 bg-champagne/50 pl-10 pr-4 text-[14px] outline-none"
+          />
+        </div>
+      </header>
+
+      <div className="flex gap-6 overflow-x-auto border-b border-outline-variant/20 whitespace-nowrap">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={cn(
+              "pb-3 text-[14px] font-medium transition-colors",
+              tab === t.id
+                ? "border-b-2 border-rose-gold-deep text-ink"
+                : "text-taupe hover:text-ink",
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      <div className="flex gap-8 mb-lg border-b border-outline-variant/30 overflow-x-auto whitespace-nowrap">
-      <button className="font-label-md text-label-md pb-4 text-primary font-bold border-b-2 border-primary">Profile</button>
-      <button className="font-label-md text-label-md pb-4 text-on-surface-variant hover:text-primary transition-colors">Workspace</button>
-      <button className="font-label-md text-label-md pb-4 text-on-surface-variant hover:text-primary transition-colors">API Keys</button>
-      <button className="font-label-md text-label-md pb-4 text-on-surface-variant hover:text-primary transition-colors">Team Management</button>
-      <button className="font-label-md text-label-md pb-4 text-on-surface-variant hover:text-primary transition-colors">Billing</button>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="space-y-6 lg:col-span-8">
+          {tab === "profile" ? (
+            <LuxuryCard padding="lg">
+              <div className="mb-6 flex items-start justify-between">
+                <h2 className="font-serif text-[22px] font-semibold text-ink">Personal information</h2>
+                <button
+                  type="button"
+                  onClick={() => setProfileEditing((e) => !e)}
+                  className="rounded-full px-4 py-2 text-[13px] font-medium text-rose-gold-deep hover:bg-rose-gold/10"
+                >
+                  {profileEditing ? "Done editing" : "Edit profile"}
+                </button>
+              </div>
+              <div className="mb-8 flex items-center gap-6">
+                <div className="relative">
+                  {avatarUrl ? (
+                    <Image
+                      src={avatarUrl}
+                      alt="Profile"
+                      width={96}
+                      height={96}
+                      className="h-24 w-24 rounded-full border-4 border-champagne object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-champagne text-ink">
+                      <Icon name="person" className="text-[40px]" />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={!profileEditing}
+                    className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border border-outline-variant/30 bg-ivory shadow-sm disabled:opacity-50"
+                    aria-label="Change photo"
+                  >
+                    <Icon name="photo_camera" className="text-[18px]" />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const url = URL.createObjectURL(file);
+                      update({
+                        profile: { ...settings.profile, avatarUrl: url },
+                      });
+                    }}
+                  />
+                </div>
+                <div>
+                  <h3 className="font-serif text-[20px] font-semibold text-ink">
+                    {settings.profile.fullName}
+                  </h3>
+                  <p className="text-[14px] text-slate-text">{settings.profile.jobTitle}</p>
+                  <p className="text-[13px] text-taupe">{email}</p>
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {[
+                  {
+                    label: "Full name",
+                    value: settings.profile.fullName,
+                    onChange: (v: string) =>
+                      update({ profile: { ...settings.profile, fullName: v } }),
+                  },
+                  {
+                    label: "Email address",
+                    value: email,
+                    onChange: () => {},
+                    readOnly: true,
+                    hint: "Managed by your sign-in provider",
+                  },
+                  {
+                    label: "Phone number",
+                    value: settings.profile.phone,
+                    onChange: (v: string) =>
+                      update({ profile: { ...settings.profile, phone: v } }),
+                  },
+                  {
+                    label: "Job title",
+                    value: settings.profile.jobTitle,
+                    onChange: (v: string) =>
+                      update({ profile: { ...settings.profile, jobTitle: v } }),
+                  },
+                ].map((field) => (
+                  <div key={field.label} className="space-y-2">
+                    <label className="text-[13px] font-medium text-taupe">{field.label}</label>
+                    <input
+                      className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px] outline-none focus:border-rose-gold-deep/40 disabled:bg-champagne/50"
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      readOnly={field.readOnly || !profileEditing}
+                      disabled={field.readOnly}
+                    />
+                    {"hint" in field && field.hint ? (
+                      <p className="text-[12px] text-taupe">{field.hint}</p>
+                    ) : null}
+                  </div>
+                ))}
+                <div className="space-y-2">
+                  <label className="text-[13px] font-medium text-taupe">Timezone</label>
+                  <select
+                    className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px] outline-none disabled:bg-champagne/50"
+                    value={settings.profile.timezone}
+                    onChange={(e) =>
+                      update({ profile: { ...settings.profile, timezone: e.target.value } })
+                    }
+                    disabled={!profileEditing}
+                  >
+                    {TIMEZONE_OPTIONS.map((tz) => (
+                      <option key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </LuxuryCard>
+          ) : null}
+
+          {tab === "workspace" ? (
+            <>
+              <LuxuryCard padding="lg">
+                <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">Workspace</h2>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-medium text-taupe">Workspace name</label>
+                    <input
+                      className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
+                      value={settings.workspace.name}
+                      onChange={(e) =>
+                        update({ workspace: { ...settings.workspace, name: e.target.value } })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-medium text-taupe">URL slug</label>
+                    <input
+                      className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
+                      value={settings.workspace.slug}
+                      onChange={(e) =>
+                        update({
+                          workspace: {
+                            ...settings.workspace,
+                            slug: e.target.value.toLowerCase().replace(/\s+/g, "-"),
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-medium text-taupe">Industry</label>
+                    <input
+                      className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
+                      value={settings.workspace.industry}
+                      onChange={(e) =>
+                        update({ workspace: { ...settings.workspace, industry: e.target.value } })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-medium text-taupe">Default sender name</label>
+                    <input
+                      className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
+                      value={settings.workspace.defaultSenderName}
+                      onChange={(e) =>
+                        update({
+                          workspace: { ...settings.workspace, defaultSenderName: e.target.value },
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </LuxuryCard>
+
+              <LuxuryCard padding="lg">
+                <h2 className="mb-2 font-serif text-[22px] font-semibold text-ink">
+                  Compliance defaults
+                </h2>
+                <p className="mb-6 text-[14px] text-slate-text">
+                  TCPA quiet hours and consent requirements for outbound campaigns.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-medium text-taupe">Quiet hours start</label>
+                    <input
+                      type="time"
+                      className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
+                      value={settings.workspace.quietHoursStart}
+                      onChange={(e) =>
+                        update({
+                          workspace: { ...settings.workspace, quietHoursStart: e.target.value },
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[13px] font-medium text-taupe">Quiet hours end</label>
+                    <input
+                      type="time"
+                      className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
+                      value={settings.workspace.quietHoursEnd}
+                      onChange={(e) =>
+                        update({
+                          workspace: { ...settings.workspace, quietHoursEnd: e.target.value },
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+                <label className="mt-4 flex cursor-pointer items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={settings.workspace.requireConsentProof}
+                    onChange={(e) =>
+                      update({
+                        workspace: {
+                          ...settings.workspace,
+                          requireConsentProof: e.target.checked,
+                        },
+                      })
+                    }
+                    className="rounded border-outline-variant"
+                  />
+                  <span className="text-[14px] text-ink">Require consent proof before sending</span>
+                </label>
+                <Link
+                  href="/dashboard/contacts"
+                  className="mt-4 inline-flex items-center gap-1 text-[14px] font-medium text-rose-gold-deep hover:underline"
+                >
+                  Review contact consent <Icon name="arrow_forward" className="text-[16px]" />
+                </Link>
+              </LuxuryCard>
+
+              <LuxuryCard padding="lg">
+                <div className="mb-6 flex items-center justify-between">
+                  <h2 className="font-serif text-[22px] font-semibold text-ink">API integrations</h2>
+                  <span className="text-[13px] text-taupe">{connectedCount} connected</span>
+                </div>
+                <div className="space-y-3">
+                  {settings.integrations
+                    .filter(
+                      (i) =>
+                        !search.trim() ||
+                        i.name.toLowerCase().includes(search.toLowerCase()),
+                    )
+                    .map((integration) => (
+                      <div
+                        key={integration.id}
+                        className="flex items-center justify-between rounded-xl border border-outline-variant/15 bg-champagne/30 p-4"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-ivory text-rose-gold-deep">
+                            <Icon name={integration.icon} />
+                          </div>
+                          <div>
+                            <p className="font-medium text-ink">{integration.name}</p>
+                            <p className="flex items-center gap-2 text-[12px] text-taupe">
+                              <span
+                                className={cn(
+                                  "h-2 w-2 rounded-full",
+                                  integration.connected ? "bg-emerald-muted" : "bg-taupe/40",
+                                )}
+                              />
+                              {integration.connected ? "Connected" : "Not connected"}
+                              {integration.lastSync
+                                ? ` · ${formatRelativeTime(integration.lastSync)}`
+                                : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setIntegrationModal(integration)}
+                          className={cn(
+                            "rounded-full px-5 py-2 text-[13px] font-medium transition-colors",
+                            integration.connected
+                              ? "border border-outline-variant/30 text-ink hover:bg-ivory"
+                              : "bg-rose-gold text-ivory hover:opacity-95",
+                          )}
+                        >
+                          {integration.connected ? "Configure" : "Connect"}
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              </LuxuryCard>
+
+              <LuxuryCard padding="lg">
+                <h2 className="mb-4 font-serif text-[22px] font-semibold text-ink">Notifications</h2>
+                {(
+                  [
+                    { key: "emailDigest" as const, label: "Weekly email digest" },
+                    { key: "smsAlerts" as const, label: "SMS delivery alerts" },
+                    { key: "loginAlerts" as const, label: "Login alerts" },
+                  ] as const
+                ).map((item) => (
+                  <label
+                    key={item.key}
+                    className="flex cursor-pointer items-center justify-between border-b border-outline-variant/10 py-3 last:border-0"
+                  >
+                    <span className="text-[14px] text-ink">{item.label}</span>
+                    <input
+                      type="checkbox"
+                      checked={settings.notifications[item.key]}
+                      onChange={(e) =>
+                        update({
+                          notifications: {
+                            ...settings.notifications,
+                            [item.key]: e.target.checked,
+                          },
+                        })
+                      }
+                      className="rounded border-outline-variant"
+                    />
+                  </label>
+                ))}
+              </LuxuryCard>
+            </>
+          ) : null}
+
+          {tab === "api" ? (
+            <LuxuryCard padding="lg">
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="font-serif text-[22px] font-semibold text-ink">API keys</h2>
+                  <p className="text-[14px] text-slate-text">
+                    Authenticate server requests to VoiceReach APIs.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCreatedApiKey(null);
+                    setApiKeyOpen(true);
+                  }}
+                  className="flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory"
+                >
+                  <Icon name="add" />
+                  Create key
+                </button>
+              </div>
+              <div className="space-y-3">
+                {settings.apiKeys.length === 0 ? (
+                  <p className="py-8 text-center text-taupe">No API keys yet.</p>
+                ) : (
+                  settings.apiKeys.map((key) => (
+                    <div
+                      key={key.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline-variant/15 bg-champagne/30 px-4 py-3"
+                    >
+                      <div>
+                        <p className="font-medium text-ink">{key.label}</p>
+                        <p className="font-mono text-[12px] text-taupe">{key.prefix}••••••••</p>
+                        <p className="text-[11px] text-taupe">
+                          Created {formatRelativeTime(key.createdAt)}
+                          {key.lastUsed ? ` · Used ${formatRelativeTime(key.lastUsed)}` : ""}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`Revoke "${key.label}"?`)) {
+                            update({
+                              apiKeys: settings.apiKeys.filter((k) => k.id !== key.id),
+                            });
+                            showToast("API key revoked");
+                          }
+                        }}
+                        className="text-[13px] font-medium text-error hover:underline"
+                      >
+                        Revoke
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </LuxuryCard>
+          ) : null}
+
+          {tab === "team" ? (
+            <LuxuryCard padding="lg">
+              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="font-serif text-[22px] font-semibold text-ink">Team management</h2>
+                  <p className="text-[14px] text-slate-text">
+                    Roles, permissions, and member status for {settings.workspace.name}.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setInviteOpen(true)}
+                  className="flex items-center gap-2 rounded-full bg-rose-gold px-6 py-2.5 text-[14px] font-medium text-ivory"
+                >
+                  <Icon name="add" />
+                  Invite member
+                </button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-outline-variant/15 text-[11px] font-semibold uppercase tracking-wider text-taupe">
+                      <th className="pb-3 pr-4">User</th>
+                      <th className="pb-3 pr-4">Role</th>
+                      <th className="pb-3 pr-4">Status</th>
+                      <th className="pb-3 pr-4">Last active</th>
+                      <th className="pb-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/10">
+                    {filteredTeam.map((member) => (
+                      <tr key={member.id} className="hover:bg-champagne/30">
+                        <td className="py-4 pr-4">
+                          <div className="flex items-center gap-3">
+                            {member.avatarUrl ? (
+                              <Image
+                                src={member.avatarUrl}
+                                alt=""
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-champagne">
+                                <Icon name="person" />
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-medium text-ink">{member.name}</p>
+                              <p className="text-[12px] text-taupe">{member.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 pr-4 text-[14px] text-slate-text">
+                          {ROLE_LABELS[member.role]}
+                        </td>
+                        <td className="py-4 pr-4">
+                          <span
+                            className={cn(
+                              "rounded-md px-2 py-0.5 text-[10px] font-bold uppercase",
+                              member.status === "active" && "bg-sage-light text-emerald-muted",
+                              member.status === "pending" && "bg-champagne text-bronze",
+                              member.status === "inactive" && "bg-champagne text-taupe",
+                            )}
+                          >
+                            {member.status}
+                          </span>
+                        </td>
+                        <td className="py-4 pr-4 text-[14px] text-taupe">
+                          {member.lastActive
+                            ? formatRelativeTime(member.lastActive)
+                            : member.status === "pending"
+                              ? "—"
+                              : "—"}
+                        </td>
+                        <td className="py-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setTeamMemberModal(member)}
+                            className="rounded-full p-2 text-taupe hover:bg-champagne hover:text-ink"
+                            aria-label={`Manage ${member.name}`}
+                          >
+                            <Icon name="more_vert" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </LuxuryCard>
+          ) : null}
+
+          {tab === "billing" ? (
+            <LuxuryCard padding="lg">
+              <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">Billing & usage</h2>
+              <div className="mb-6 rounded-2xl border border-outline-variant/15 bg-champagne/40 p-6">
+                <p className="font-serif text-[24px] font-semibold text-ink">
+                  {settings.billing.planName}
+                </p>
+                <p className="text-[15px] text-slate-text">
+                  ${settings.billing.monthlyPrice.toFixed(2)} / month
+                </p>
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-champagne">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-rose-gold to-sage"
+                    style={{
+                      width: `${Math.min(100, (settings.billing.voiceMinutesUsed / settings.billing.voiceMinutesLimit) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <p className="mt-2 text-[13px] text-taupe">
+                  {settings.billing.voiceMinutesUsed.toLocaleString()} /{" "}
+                  {settings.billing.voiceMinutesLimit.toLocaleString()} voice minutes used
+                </p>
+                <button
+                  type="button"
+                  onClick={openUpgrade}
+                  className="mt-4 rounded-full bg-rose-gold px-6 py-2.5 text-[14px] font-medium text-ivory"
+                >
+                  Upgrade plan
+                </button>
+              </div>
+              <p className="text-[14px] text-slate-text">
+                Usage syncs from campaign deliveries. View detailed metrics in{" "}
+                <Link href="/dashboard/analytics" className="text-rose-gold-deep hover:underline">
+                  Analytics
+                </Link>
+                .
+              </p>
+            </LuxuryCard>
+          ) : null}
+        </div>
+
+        <div className="space-y-6 lg:col-span-4">
+          <LuxuryCard padding="lg">
+            <h3 className="mb-4 font-serif text-[20px] font-semibold text-ink">Workspace team</h3>
+            <div className="mb-4 flex -space-x-3">
+              {settings.team.slice(0, 3).map((m) =>
+                m.avatarUrl ? (
+                  <Image
+                    key={m.id}
+                    src={m.avatarUrl}
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 rounded-full border-2 border-ivory object-cover"
+                  />
+                ) : (
+                  <div
+                    key={m.id}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-ivory bg-champagne text-[12px]"
+                  >
+                    {m.name[0]}
+                  </div>
+                ),
+              )}
+              {settings.team.length > 3 ? (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-ivory bg-champagne text-[12px] font-medium">
+                  +{settings.team.length - 3}
+                </div>
+              ) : null}
+            </div>
+            <p className="mb-4 text-[14px] text-slate-text">
+              {settings.team.filter((m) => m.status === "active").length} active members in{" "}
+              <strong>{settings.workspace.name}</strong>.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setTab("team");
+                setInviteOpen(true);
+              }}
+              className="w-full rounded-full border border-outline-variant/30 py-3 text-[14px] font-medium text-ink hover:bg-champagne"
+            >
+              Manage team
+            </button>
+          </LuxuryCard>
+
+          <LuxuryCard padding="lg" className="bg-ink text-ivory">
+            <div className="mb-4 flex items-center gap-3">
+              <Icon name="verified_user" className="text-[24px] text-rose-gold" />
+              <h3 className="font-serif text-[20px] font-semibold">Security</h3>
+            </div>
+            <ul className="space-y-4 text-[14px]">
+              <li className="flex items-center justify-between">
+                <span>Two-factor auth</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    update({
+                      security: {
+                        ...settings.security,
+                        twoFactorEnabled: !settings.security.twoFactorEnabled,
+                      },
+                    })
+                  }
+                  className={cn(
+                    "rounded-full px-3 py-1 text-[11px] font-bold uppercase",
+                    settings.security.twoFactorEnabled
+                      ? "bg-sage text-ivory"
+                      : "bg-champagne/20 text-champagne",
+                  )}
+                >
+                  {settings.security.twoFactorEnabled ? "Enabled" : "Off"}
+                </button>
+              </li>
+              <li className="flex items-center justify-between">
+                <span>Login alerts</span>
+                <span className="rounded-full bg-sage/80 px-3 py-1 text-[11px] font-bold uppercase">
+                  {settings.notifications.loginAlerts ? "Active" : "Off"}
+                </span>
+              </li>
+              <li className="flex items-center justify-between text-taupe">
+                <span>Last login</span>
+                <span className="text-[13px]">
+                  {user?.lastSignInAt
+                    ? formatRelativeTime(new Date(user.lastSignInAt).toISOString())
+                    : "Just now"}
+                </span>
+              </li>
+            </ul>
+            <Link
+              href="/dashboard/activity"
+              className="mt-4 inline-block text-[13px] text-rose-gold hover:underline"
+            >
+              View security activity →
+            </Link>
+          </LuxuryCard>
+
+          <LuxuryCard padding="lg">
+            <h3 className="mb-4 text-[12px] font-semibold uppercase tracking-widest text-taupe">
+              Plan details
+            </h3>
+            <p className="font-serif text-[20px] font-semibold text-ink">
+              {settings.billing.planName}
+            </p>
+            <p className="text-[14px] text-slate-text">
+              ${settings.billing.monthlyPrice} / month
+            </p>
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-champagne">
+              <div
+                className="h-full bg-sage"
+                style={{
+                  width: `${Math.min(100, (settings.billing.voiceMinutesUsed / settings.billing.voiceMinutesLimit) * 100)}%`,
+                }}
+              />
+            </div>
+            <p className="mt-2 text-[12px] text-taupe">
+              {settings.billing.voiceMinutesUsed.toLocaleString()} /{" "}
+              {settings.billing.voiceMinutesLimit.toLocaleString()} minutes
+            </p>
+            <button
+              type="button"
+              onClick={openUpgrade}
+              className="mt-4 w-full rounded-full bg-rose-gold py-3 text-[14px] font-medium text-ivory"
+            >
+              Upgrade plan
+            </button>
+          </LuxuryCard>
+        </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-gutter">
+      <div className="fixed bottom-0 left-64 right-0 z-30 flex justify-end gap-3 border-t border-outline-variant/15 bg-ivory/95 px-8 py-4 backdrop-blur-md">
+        <button
+          type="button"
+          onClick={handleDiscard}
+          disabled={!dirty || saving}
+          className="rounded-full px-6 py-3 text-[14px] font-medium text-taupe hover:text-ink disabled:opacity-40"
+        >
+          Discard changes
+        </button>
+        <button
+          type="button"
+          onClick={() => void handleSave()}
+          disabled={!dirty || saving}
+          className="rounded-full bg-rose-gold px-8 py-3 text-[14px] font-medium text-ivory shadow-sm hover:opacity-95 disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save all changes"}
+        </button>
+      </div>
 
-      <div className="col-span-12 lg:col-span-8 space-y-gutter">
-
-      <div className="bg-surface-container-lowest rounded-[24px] p-lg shadow-card border border-outline-variant/10">
-      <div className="flex justify-between items-start mb-lg">
-      <h3 className="font-headline-md text-headline-md">Personal Information</h3>
-      <button className="font-label-md text-label-md text-secondary px-4 py-2 hover:bg-secondary/5 rounded-full transition-colors">Edit Profile</button>
-      </div>
-      <div className="flex items-center gap-lg mb-xl">
-      <div className="relative">
-      <img alt="User Profile" className="w-24 h-24 rounded-full object-cover border-4 border-surface-container-high" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWp1qIkBZjXiBRwbhi1cqbITpYK90OvSFOxW68-fHjF7GxTBDLLfZg_jDt_Pcha9L0sHC5J-_exYwfkemyd9ZIxO4v7wVmjbNrH5QVe-92uBlhQiA4y4RKqHro83BSuZB1ZLobJ35HJvCzD8mGZNOTHrZscVaI9UtY_IrgEFmDqPLBp2reStgqWhhuutPwLUKtIDzpP-bJGIQQtIsoKQJ4S58Ip4mQL_YLn0eXlGseRd7x8oDLNCG7EXrfaXc2Ez2HH_Y-VoIZrcIT" />
-      <button className="absolute bottom-0 right-0 p-1.5 bg-white border border-outline-variant shadow-sm rounded-full flex items-center justify-center">
-      <span className="material-symbols-outlined text-[18px]">photo_camera</span>
-      </button>
-      </div>
-      <div>
-      <h4 className="font-headline-md text-[20px]">Marcus Sterling</h4>
-      <p className="font-body-md text-body-md text-on-surface-variant">Senior CRM Administrator</p>
-      </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-lg">
-      <div className="space-y-2">
-      <label className="font-label-md text-label-md text-slate-text">Full Name</label>
-      <input
-        className="w-full h-14 px-6 bg-white border border-outline-variant/30 rounded-full font-body-md text-body-md focus:ring-2 focus:ring-secondary/20 transition-all outline-none"
-        type="text"
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
+      <IntegrationConfigModal
+        integration={integrationModal}
+        open={!!integrationModal}
+        onClose={() => setIntegrationModal(null)}
+        onSave={(integration) => {
+          update({
+            integrations: settings.integrations.map((i) =>
+              i.id === integration.id ? integration : i,
+            ),
+          });
+          showToast(`${integration.name} ${integration.connected ? "connected" : "disconnected"}`);
+        }}
       />
-      </div>
-      <div className="space-y-2">
-      <label className="font-label-md text-label-md text-slate-text">Email Address</label>
-      <input
-        className="w-full h-14 px-6 bg-white border border-outline-variant/30 rounded-full font-body-md text-body-md focus:ring-2 focus:ring-secondary/20 transition-all outline-none"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+
+      <InviteMemberModal
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        onInvite={(member) => {
+          update({ team: [...settings.team, member] });
+          showToast(`Invitation sent to ${member.email}`);
+        }}
       />
-      </div>
-      <div className="space-y-2">
-      <label className="font-label-md text-label-md text-slate-text">Phone Number</label>
-      <input
-        className="w-full h-14 px-6 bg-white border border-outline-variant/30 rounded-full font-body-md text-body-md focus:ring-2 focus:ring-secondary/20 transition-all outline-none"
-        type="tel"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+
+      <ApiKeyModal
+        open={apiKeyOpen}
+        onClose={() => {
+          setApiKeyOpen(false);
+          setCreatedApiKey(null);
+        }}
+        createdKey={createdApiKey}
+        onCreate={(label) => {
+          const { fullKey, record } = generateApiKey();
+          record.label = label;
+          update({ apiKeys: [...settings.apiKeys, record] });
+          setCreatedApiKey(fullKey);
+          showToast("API key created — copy it now");
+        }}
       />
-      </div>
-      <div className="space-y-2">
-      <label className="font-label-md text-label-md text-slate-text">Timezone</label>
-      <select
-        className="w-full h-14 px-6 bg-white border border-outline-variant/30 rounded-full font-body-md text-body-md focus:ring-2 focus:ring-secondary/20 transition-all outline-none appearance-none"
-        value={timezone}
-        onChange={(e) => setTimezone(e.target.value)}
-      >
-      <option>Eastern Standard Time (EST)</option>
-      <option>Pacific Standard Time (PST)</option>
-      <option>Greenwich Mean Time (GMT)</option>
-      </select>
-      </div>
-      </div>
-      </div>
 
-      <div className="bg-surface-container-lowest rounded-[24px] p-lg shadow-card border border-outline-variant/10">
-      <div className="flex justify-between items-center mb-lg">
-      <h3 className="font-headline-md text-headline-md">API Integrations</h3>
-      <span className="font-label-md text-label-md text-on-surface-variant">2 Connected</span>
-      </div>
-      <div className="space-y-sm">
-
-      <div className="flex items-center justify-between p-sm bg-surface-container-low rounded-[12px] border border-outline-variant/20">
-      <div className="flex items-center gap-4">
-      <div className="w-12 h-12 flex items-center justify-center bg-red-100 rounded-lg text-red-600">
-      <span className="material-symbols-outlined">call</span>
-      </div>
-      <div>
-      <p className="font-label-md text-label-md font-bold">Twilio</p>
-      <div className="flex items-center gap-2">
-      <div className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></div>
-      <p className="font-caption text-caption text-on-tertiary-container">Connected</p>
-      </div>
-      </div>
-      </div>
-      <button className="font-label-md text-label-md px-6 py-2 border border-outline-variant/50 rounded-full hover:bg-surface-container-highest transition-colors">Configure</button>
-      </div>
-
-      <div className="flex items-center justify-between p-sm bg-surface-container-low rounded-[12px] border border-outline-variant/20">
-      <div className="flex items-center gap-4">
-      <div className="w-12 h-12 flex items-center justify-center bg-blue-100 rounded-lg text-blue-600">
-      <span className="material-symbols-outlined">mail</span>
-      </div>
-      <div>
-      <p className="font-label-md text-label-md font-bold">SendGrid</p>
-      <div className="flex items-center gap-2">
-      <div className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></div>
-      <p className="font-caption text-caption text-on-tertiary-container">Connected</p>
-      </div>
-      </div>
-      </div>
-      <button className="font-label-md text-label-md px-6 py-2 border border-outline-variant/50 rounded-full hover:bg-surface-container-highest transition-colors">Configure</button>
-      </div>
-
-      <div className="flex items-center justify-between p-sm bg-white rounded-[12px] border border-outline-variant/20">
-      <div className="flex items-center gap-4">
-      <div className="w-12 h-12 flex items-center justify-center bg-purple-50 rounded-lg text-purple-600">
-      <span className="material-symbols-outlined">chat</span>
-      </div>
-      <div>
-      <p className="font-label-md text-label-md font-bold">Slack Notifications</p>
-      <p className="font-caption text-caption text-on-surface-variant">Not connected</p>
-      </div>
-      </div>
-      <button className="bg-primary text-on-primary font-label-md text-label-md px-6 py-2 rounded-full hover:opacity-90 transition-opacity">Connect</button>
-      </div>
-      </div>
-      </div>
-      </div>
-
-      <div className="col-span-12 lg:col-span-4 space-y-gutter">
-
-      <div className="bg-surface-container-lowest rounded-[24px] p-lg shadow-card border border-outline-variant/10">
-      <h3 className="font-headline-md text-headline-md mb-lg">Workspace Team</h3>
-      <div className="space-y-lg">
-      <div className="flex -space-x-3">
-      <img alt="Team member" className="w-10 h-10 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBd7IQKKt5DGNNK7im2DeUX01UVqhYwFjTK5vYsFctrMnYbdmmMy1EpBU_EMqxRT8ZdWOr497Vrm-txtkm0oiYGgrMU6kS-7CF1nlWbmUYzN98Mx1J351fHuID9AhjvG3VXrfwCeWFeR3Mva8Pl1YdAJKh0XHGGHq5iu9dm6DrnfhXuHYYGeSH8B4X6HU1PM_t5dJ1LM2GYZqpfourPNikct0U_NwGTQC8CJUzvG8iSKMgPkJMriT9GmjHuN4FIRtEE8eeufYaWoSR5" />
-      <img alt="Team member" className="w-10 h-10 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDh3HT-4npGZoDbyB4DOcbMGhG5YloR44jNUtCmQ4Dik-AgUQXnQIJAUTP3AY9MxggMmEUr_OTonByA_pRi_4PEOznTBVgLH11efwl2Wyeul9uFkzvRlOAo6UBoBHPbtq0WpuOyhQyttio7mZ2pox6rdx0SetpfKjw5kFFCXNEtythEdrcAbmrrUFD8itmJgBjUR29IeQOREMj7qkOzlFEaynjJ10JOqsyNauNurHRxhyVgbNkkprCExlAdbYn-VECzOojEG1-p5755" />
-      <img alt="Team member" className="w-10 h-10 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8rNUHSUQ48yB2qatVIa_TLzm-gFt0TSxWnhviqmykmIwxHomPPjAew3uCzofkxHYBR7nFyzlk5ukyXrD5MxDKWwEs3Ez6pChKfyJZWvfFNsK2CyVAE14xZVvLlg2YshBociIhckJfM7ToFATuuRH-gVzJ7Kzuura7UvOPaFxHUq_iPnFgkkz_y9A0mwGf2SGEnyJ7wUBiDWAopVIQoVCx-pr2bPiP1VSgFDWhBFyCQyhPBnkU3vJC1x8_Nc1u8IQ-tlAehBir4BBi" />
-      <div className="w-10 h-10 rounded-full border-2 border-white bg-surface-container-highest flex items-center justify-center font-label-md text-caption">+12</div>
-      </div>
-      <p className="font-body-md text-body-md text-on-surface-variant">There are currently 15 active members in the 'Enterprise CRM' workspace.</p>
-      <button className="w-full py-4 px-6 border border-outline-variant/50 rounded-full font-label-md text-label-md hover:bg-surface-container-low transition-colors">Manage Team</button>
-      </div>
-      </div>
-
-      <div className="bg-primary-container text-on-primary-fixed rounded-[24px] p-lg shadow-card">
-      <div className="flex items-center gap-3 mb-lg">
-      <span className="material-symbols-outlined text-tertiary-fixed-dim">verified_user</span>
-      <h3 className="font-headline-md text-headline-md text-white">Security</h3>
-      </div>
-      <ul className="space-y-lg">
-      <li className="flex items-center justify-between">
-      <span className="font-label-md text-label-md text-on-primary-container">Two-factor Auth</span>
-      <span className="bg-tertiary-fixed-dim text-on-tertiary-fixed px-3 py-1 rounded-full font-caption text-caption uppercase font-bold tracking-wider">Enabled</span>
-      </li>
-      <li className="flex items-center justify-between">
-      <span className="font-label-md text-label-md text-on-primary-container">Login Alerts</span>
-      <span className="bg-tertiary-fixed-dim text-on-tertiary-fixed px-3 py-1 rounded-full font-caption text-caption uppercase font-bold tracking-wider">Active</span>
-      </li>
-      <li className="flex items-center justify-between">
-      <span className="font-label-md text-label-md text-on-primary-container">Last Login</span>
-      <span className="font-caption text-caption text-on-primary-fixed-variant">2 hours ago</span>
-      </li>
-      </ul>
-      </div>
-
-      <div className="bg-white rounded-[24px] p-lg shadow-card border border-outline-variant/10">
-      <h3 className="font-label-md text-label-md font-bold mb-lg text-slate-text uppercase tracking-widest">Plan Details</h3>
-      <div className="mb-lg">
-      <p className="font-headline-md text-[20px] mb-1">Enterprise Plus</p>
-      <p className="font-body-md text-body-md text-on-surface-variant">$499.00 / month</p>
-      </div>
-      <div className="w-full bg-surface-container-low h-2 rounded-full mb-2 overflow-hidden">
-      <div className="bg-secondary h-full w-[72%]"></div>
-      </div>
-      <p className="font-caption text-caption text-on-surface-variant mb-xl">72,000 / 100,000 Voice Minutes used</p>
-      <button className="w-full py-4 px-6 bg-secondary text-on-secondary rounded-full font-label-md text-label-md hover:bg-secondary-container transition-colors shadow-sm">Upgrade Plan</button>
-      </div>
-      </div>
-
-      <div className="col-span-12">
-      <div className="bg-surface-container-lowest rounded-[24px] p-lg shadow-card border border-outline-variant/10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-xl">
-      <div>
-      <h3 className="font-headline-md text-headline-md mb-2">Team Management</h3>
-      <p className="font-body-md text-body-md text-on-surface-variant">Manage roles, permissions, and status of your workspace members.</p>
-      </div>
-      <button className="bg-primary text-on-primary font-label-md text-label-md px-8 py-3 rounded-full flex items-center gap-2 hover:opacity-90 transition-opacity">
-      <span className="material-symbols-outlined text-[20px]">add</span>
-                                      Invite Member
-                                  </button>
-      </div>
-      <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-      <thead>
-      <tr className="border-b border-outline-variant/30">
-      <th className="text-left py-4 px-4 font-label-md text-label-md text-slate-text uppercase tracking-wider">User</th>
-      <th className="text-left py-4 px-4 font-label-md text-label-md text-slate-text uppercase tracking-wider">Role</th>
-      <th className="text-left py-4 px-4 font-label-md text-label-md text-slate-text uppercase tracking-wider">Status</th>
-      <th className="text-left py-4 px-4 font-label-md text-label-md text-slate-text uppercase tracking-wider">Last Active</th>
-      <th className="text-right py-4 px-4 font-label-md text-label-md text-slate-text uppercase tracking-wider">Action</th>
-      </tr>
-      </thead>
-      <tbody className="divide-y divide-outline-variant/10">
-      <tr>
-      <td className="py-6 px-4">
-      <div className="flex items-center gap-3">
-      <img alt="Marcus" className="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCm3S3egIq2IOQ_Kf9MFaN3lJpE7bAZzTu_WU2IyH12ovexfXNMT91goGMB42UA2zlfdXzJbk08bVNQKjl3gGxFhvkmDk08ZJnudZZjbYbH7v8Ve8siqxBc5rfV7zjno69MQx9dE7VPAxCPUtOfeNabIosI0AQO6xZNpW1tm_LtoJyyGFvkqtMwqOh-3WSAdgJadkVtriMpPSzWNagT9m5wK6fWUkwTH2A6OLV8I-3u03BqC0bvGJaiYDhdJJMZQZyYQi_FF-Im6V03" />
-      <div>
-      <p className="font-label-md text-label-md font-bold">Marcus Sterling</p>
-      <p className="font-caption text-caption text-on-surface-variant">marcus.s@voicereach.io</p>
-      </div>
-      </div>
-      </td>
-      <td className="py-6 px-4 font-body-md text-body-md">Workspace Owner</td>
-      <td className="py-6 px-4">
-      <span className="bg-tertiary-fixed-dim/20 text-on-tertiary-container px-3 py-1 rounded-[10px] font-caption text-caption uppercase font-bold">Active</span>
-      </td>
-      <td className="py-6 px-4 font-body-md text-body-md text-on-surface-variant">Now</td>
-      <td className="py-6 px-4 text-right">
-      <button className="material-symbols-outlined text-outline hover:text-primary">more_vert</button>
-      </td>
-      </tr>
-      <tr>
-      <td className="py-6 px-4">
-      <div className="flex items-center gap-3">
-      <img alt="Elena" className="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9W1fAXkSeb-CXdYlvOYf-5nZozM299kEuePxfTVQUEn3M8mvBB_qiOo2yGV5kTkY5QaZylhv2JN3JsIkw4mgHFjyRn--85JkpaLTl4LLnLYGxZNKefU7p6LHQ_lGcMsrhoAOhWqSeuuBq1E8NsdG9zbPpaCqNwILjggLDsfZ2Q59fF6byykUX_20GbjK15wkS_kD_I_q8X498taxddImIZXNRdP0CvgYKA33z136-9V12ZxI3hltLjvl0DeLqWKqvRv3X1fsJGmBg" />
-      <div>
-      <p className="font-label-md text-label-md font-bold">Elena Rodriguez</p>
-      <p className="font-caption text-caption text-on-surface-variant">elena.r@voicereach.io</p>
-      </div>
-      </div>
-      </td>
-      <td className="py-6 px-4 font-body-md text-body-md">Admin</td>
-      <td className="py-6 px-4">
-      <span className="bg-tertiary-fixed-dim/20 text-on-tertiary-container px-3 py-1 rounded-[10px] font-caption text-caption uppercase font-bold">Active</span>
-      </td>
-      <td className="py-6 px-4 font-body-md text-body-md text-on-surface-variant">45 mins ago</td>
-      <td className="py-6 px-4 text-right">
-      <button className="material-symbols-outlined text-outline hover:text-primary">more_vert</button>
-      </td>
-      </tr>
-      <tr>
-      <td className="py-6 px-4">
-      <div className="flex items-center gap-3">
-      <img alt="James" className="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP0pISUobue9AnFV0pRfxRpXPfGTNNIHpUaB0yYbuQ3m9sSodzN7BYORKaMAn5WisVyAuN54Utn1FhXhlLPoGSnlnytIyn8p-sJpcAL1aFbA-RBHOvokU-TIV9BtO6aMFygWxNqH2930RshKv5OvI9U8Jx9gg4iPwW5JNCjUF8mN6rada6XMCjFVPQ1XhUbDZm4PjdVzqvqjpiDNoXrP5y7KHPLBjJsWHZbxYX7t_vQtxlIB4CVaP6BTw2uIBzFKZzWRmYLgTJ9KYD" />
-      <div>
-      <p className="font-label-md text-label-md font-bold">James Wilson</p>
-      <p className="font-caption text-caption text-on-surface-variant">j.wilson@voicereach.io</p>
-      </div>
-      </div>
-      </td>
-      <td className="py-6 px-4 font-body-md text-body-md">Billing Manager</td>
-      <td className="py-6 px-4">
-      <span className="bg-tertiary-fixed-dim/20 text-on-tertiary-container px-3 py-1 rounded-[10px] font-caption text-caption uppercase font-bold">Active</span>
-      </td>
-      <td className="py-6 px-4 font-body-md text-body-md text-on-surface-variant">Yesterday</td>
-      <td className="py-6 px-4 text-right">
-      <button className="material-symbols-outlined text-outline hover:text-primary">more_vert</button>
-      </td>
-      </tr>
-      <tr>
-      <td className="py-6 px-4">
-      <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center">
-      <span className="material-symbols-outlined text-on-surface-variant">person_outline</span>
-      </div>
-      <div>
-      <p className="font-label-md text-label-md font-bold">Sarah Chen</p>
-      <p className="font-caption text-caption text-on-surface-variant">sarah.c@voicereach.io</p>
-      </div>
-      </div>
-      </td>
-      <td className="py-6 px-4 font-body-md text-body-md">User</td>
-      <td className="py-6 px-4">
-      <span className="bg-warning/20 text-warning px-3 py-1 rounded-[10px] font-caption text-caption uppercase font-bold">Pending</span>
-      </td>
-      <td className="py-6 px-4 font-body-md text-body-md text-on-surface-variant">-</td>
-      <td className="py-6 px-4 text-right">
-      <button className="material-symbols-outlined text-outline hover:text-primary">more_vert</button>
-      </td>
-      </tr>
-      </tbody>
-      </table>
-      </div>
-      </div>
-      </div>
-      </div>
-
-      <div className="mt-xl flex justify-end gap-4">
-      <button className="px-8 py-4 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">Discard Changes</button>
-      <button className="px-10 py-4 bg-primary text-on-primary rounded-full font-label-md text-label-md hover:opacity-90 shadow-lg transition-all">Save All Changes</button>
-      </div>
-      </div>
-    </>
+      <TeamMemberModal
+        member={teamMemberModal}
+        open={!!teamMemberModal}
+        onClose={() => setTeamMemberModal(null)}
+        onUpdate={(member) => {
+          update({
+            team: settings.team.map((m) => (m.id === member.id ? member : m)),
+          });
+          setTeamMemberModal(member);
+          showToast("Member updated");
+        }}
+        onRemove={(id) => {
+          update({ team: settings.team.filter((m) => m.id !== id) });
+          showToast("Member removed");
+        }}
+        onResendInvite={(member) => {
+          showToast(`Invitation resent to ${member.email}`);
+        }}
+      />
+    </div>
   );
 }

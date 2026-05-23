@@ -1,182 +1,269 @@
-/* Auto-converted from stitch HTML */
 "use client";
 
+import { AddCampaignStepModal } from "@/components/crm/add-campaign-step-modal";
+import { ActivateCampaignModal } from "@/components/crm/activate-campaign-modal";
+import { CampaignEditorStrip } from "@/components/crm/campaign-editor-strip";
+import { CampaignFlow } from "@/components/crm/campaign-flow-step";
+import { LuxuryCard } from "@/components/crm/luxury-card";
+import { Icon } from "@/components/ui/icon";
+import { cn } from "@/lib/cn";
+import { saveCampaignBuilder, saveTemplateLocally } from "@/lib/crm/campaign-storage";
+import { campaignDurationFromSteps, reorderSteps } from "@/lib/crm/campaign-steps";
+import { DEFAULT_CAMPAIGN } from "@/lib/crm/mock-data";
+import type { CampaignDefinition, CampaignStep } from "@/lib/crm/types";
+import { useCallback, useMemo, useState } from "react";
+
+type Toast = { message: string; tone: "success" | "error" };
+
 export function CampaignBuilderPage() {
+  const [campaign, setCampaign] = useState<CampaignDefinition>(() => ({
+    ...DEFAULT_CAMPAIGN,
+    steps: [...DEFAULT_CAMPAIGN.steps],
+  }));
+  const [dbCampaignId, setDbCampaignId] = useState<string | null>(null);
+  const [campaignStatus, setCampaignStatus] = useState<"editing" | "draft" | "queued">("editing");
+  const [addStepOpen, setAddStepOpen] = useState(false);
+  const [activateOpen, setActivateOpen] = useState(false);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [activating, setActivating] = useState(false);
+  const [toast, setToast] = useState<Toast | null>(null);
+
+  const durationDays = useMemo(
+    () => campaignDurationFromSteps(campaign.steps),
+    [campaign.steps],
+  );
+
+  const showToast = (message: string, tone: Toast["tone"] = "success") => {
+    setToast({ message, tone });
+    window.setTimeout(() => setToast(null), 4500);
+  };
+
+  const handleAddStep = useCallback((step: CampaignStep) => {
+    setCampaign((prev) => {
+      const steps = reorderSteps([...prev.steps, step]);
+      return {
+        ...prev,
+        steps,
+        durationDays: campaignDurationFromSteps(steps),
+      };
+    });
+    if (campaignStatus === "queued") setCampaignStatus("editing");
+    showToast("Step added to your sequence");
+  }, [campaignStatus]);
+
+  const scrollToSequence = () => {
+    document.getElementById("automation-sequence")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleSaveTemplate = async () => {
+    if (campaign.steps.length === 0) {
+      showToast("Add at least one step before saving.", "error");
+      return;
+    }
+
+    setSavingTemplate(true);
+    try {
+      const result = await saveCampaignBuilder("template", campaign, dbCampaignId);
+      setDbCampaignId(result.campaignId);
+      setCampaignStatus("draft");
+      saveTemplateLocally(campaign, result.campaignId);
+      showToast(result.message || "Template saved successfully.");
+    } catch (err) {
+      saveTemplateLocally(campaign, dbCampaignId ?? undefined);
+      showToast(
+        err instanceof Error
+          ? `${err.message} — saved locally on this device.`
+          : "Saved locally on this device.",
+        "error",
+      );
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  const handleActivate = async () => {
+    if (campaign.steps.length === 0) {
+      showToast("Add at least one automation step to activate.", "error");
+      setActivateOpen(false);
+      return;
+    }
+
+    setActivating(true);
+    try {
+      const result = await saveCampaignBuilder("activate", campaign, dbCampaignId);
+      setDbCampaignId(result.campaignId);
+      setCampaignStatus("queued");
+      setActivateOpen(false);
+      showToast(result.message || "Campaign activated and queued.");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Could not activate campaign", "error");
+    } finally {
+      setActivating(false);
+    }
+  };
+
+  const statusBadge =
+    campaignStatus === "queued"
+      ? { label: "Queued", className: "bg-sage-light text-emerald-muted" }
+      : campaignStatus === "draft"
+        ? { label: "Draft saved", className: "bg-champagne text-taupe" }
+        : null;
+
   return (
-    <>
+    <div className="luxury-page p-8 max-w-[1400px] w-full mx-auto space-y-8">
+      {toast ? (
+        <div
+          className={cn(
+            "fixed bottom-6 right-6 z-[150] flex max-w-sm items-center gap-2 rounded-xl border px-4 py-3 shadow-card",
+            toast.tone === "success"
+              ? "border-emerald-muted/30 bg-ivory"
+              : "border-error/30 bg-ivory",
+          )}
+          role="status"
+        >
+          <Icon
+            name={toast.tone === "success" ? "check_circle" : "error"}
+            className={toast.tone === "success" ? "text-emerald-muted" : "text-error"}
+          />
+          <span className="text-[14px] font-medium text-ink">{toast.message}</span>
+        </div>
+      ) : null}
 
+      <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-taupe">
+              Campaign builder
+            </p>
+            {statusBadge ? (
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                  statusBadge.className,
+                )}
+              >
+                {statusBadge.label}
+              </span>
+            ) : null}
+          </div>
+          <h1 className="mt-2 font-serif text-[32px] font-semibold text-ink md:text-[40px]">
+            {campaign.name}
+          </h1>
+          <p className="mt-2 max-w-2xl text-body-lg text-slate-text">{campaign.description}</p>
+          <div className="mt-4 flex flex-wrap gap-6 text-[14px] text-taupe">
+            <span className="flex items-center gap-2">
+              <Icon name="groups" className="text-[18px]" />
+              Audience: {campaign.audience}
+            </span>
+            <span className="flex items-center gap-2">
+              <Icon name="schedule" className="text-[18px]" />
+              Estimated duration: {durationDays} days
+            </span>
+            <span className="flex items-center gap-2">
+              <Icon name="linear_scale" className="text-[18px]" />
+              {campaign.steps.length} steps
+            </span>
+          </div>
+        </div>
 
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="flex gap-4">
+            {[
+              { label: "Total reach", value: campaign.stats.reach.toLocaleString(), icon: "visibility" },
+              { label: "Replies", value: campaign.stats.replies.toLocaleString(), icon: "send" },
+              {
+                label: "Response rate",
+                value: `${campaign.stats.responseRate}%`,
+                icon: "trending_up",
+              },
+            ].map((stat) => (
+              <LuxuryCard key={stat.label} padding="sm" className="min-w-[120px] text-center">
+                <Icon name={stat.icon} className="mx-auto text-[20px] text-rose-gold-deep" />
+                <p className="mt-2 font-serif text-[24px] font-semibold text-ink">{stat.value}</p>
+                <p className="text-[11px] uppercase tracking-wider text-taupe">{stat.label}</p>
+              </LuxuryCard>
+            ))}
+          </div>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <button
+              type="button"
+              onClick={handleSaveTemplate}
+              disabled={savingTemplate || activating}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant/40 bg-ivory px-6 py-2.5 text-[14px] font-medium text-ink transition-colors hover:bg-champagne disabled:opacity-50"
+            >
+              <Icon name="bookmark" className="text-[18px]" />
+              {savingTemplate ? "Saving…" : "Save as template"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActivateOpen(true)}
+              disabled={savingTemplate || activating || campaignStatus === "queued"}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-rose-gold px-6 py-2.5 text-[14px] font-medium text-ivory shadow-card transition-opacity hover:opacity-90 disabled:opacity-50"
+            >
+              <Icon name="rocket_launch" className="text-[18px]" />
+              {campaignStatus === "queued" ? "Campaign queued" : "Activate campaign"}
+            </button>
+          </div>
+        </div>
+      </header>
 
-      <section className="mt-16 p-lg max-w-[1224px] mx-auto w-full">
-      <div className="mb-lg flex items-center justify-between">
-      <div>
-      <h2 className="font-headline-md text-headline-md text-primary">New Voice Campaign</h2>
-      <p className="font-body-md text-slate-text">Create and launch an automated outbound reach-out program.</p>
-      </div>
-      <div className="flex items-center gap-3">
-      <button className="px-6 py-2.5 rounded-full border border-outline-variant text-primary font-label-md hover:bg-surface-container transition-colors">Save as Draft</button>
-      <button className="px-6 py-2.5 rounded-full bg-primary text-on-primary font-label-md hover:bg-ink transition-colors">Next Step</button>
-      </div>
-      </div>
-
-      <nav className="flex items-center justify-between bg-surface-container-lowest rounded-2xl p-sm card-shadow mb-xl">
-      <div className="flex-1 flex flex-col items-center gap-2 border-b-2 border-primary pb-3">
-      <span className="font-label-md text-primary">01</span>
-      <span className="font-label-md text-primary">Campaign Details</span>
-      </div>
-      <div className="flex-1 flex flex-col items-center gap-2 border-b-2 border-outline-variant/30 pb-3 opacity-50">
-      <span className="font-label-md text-on-surface-variant">02</span>
-      <span className="font-label-md text-on-surface-variant">Voice Script</span>
-      </div>
-      <div className="flex-1 flex flex-col items-center gap-2 border-b-2 border-outline-variant/30 pb-3 opacity-50">
-      <span className="font-label-md text-on-surface-variant">03</span>
-      <span className="font-label-md text-on-surface-variant">Select Contacts</span>
-      </div>
-      <div className="flex-1 flex flex-col items-center gap-2 border-b-2 border-outline-variant/30 pb-3 opacity-50">
-      <span className="font-label-md text-on-surface-variant">04</span>
-      <span className="font-label-md text-on-surface-variant">Eligibility Review</span>
-      </div>
-      <div className="flex-1 flex flex-col items-center gap-2 border-b-2 border-outline-variant/30 pb-3 opacity-50">
-      <span className="font-label-md text-on-surface-variant">05</span>
-      <span className="font-label-md text-on-surface-variant">Schedule</span>
-      </div>
-      </nav>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-
-      <div className="lg:col-span-8 space-y-md">
-
-      <div className="bg-surface-container-lowest rounded-[24px] p-lg card-shadow">
-      <div className="flex items-center gap-4 mb-lg">
-      <div className="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
-      <span className="material-symbols-outlined">settings_suggest</span>
-      </div>
-      <h3 className="font-headline-md text-primary">Step 1: Campaign Information</h3>
-      </div>
-      <div className="space-y-sm">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-sm">
-      <div className="flex flex-col gap-xs">
-      <label className="font-label-md text-slate-text">Campaign Name</label>
-      <input className="h-14 px-6 rounded-full border border-outline-variant/50 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all" placeholder="e.g. Q4 Renewal Outreach" type="text" />
-      </div>
-      <div className="flex flex-col gap-xs">
-      <label className="font-label-md text-slate-text">Campaign Type</label>
-      <select className="h-14 px-6 rounded-full border border-outline-variant/50 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none appearance-none bg-no-repeat bg-[right_1.5rem_center]">
-      <option>Automated Outreach</option>
-      <option>Direct Response</option>
-      <option>Survey / Feedback</option>
-      </select>
-      </div>
-      </div>
-      <div className="flex flex-col gap-xs">
-      <label className="font-label-md text-slate-text">Description</label>
-      <textarea className="p-6 rounded-[24px] border border-outline-variant/50 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all resize-none" placeholder="Briefly describe the objective..." rows={3}></textarea>
-      </div>
-      </div>
-      </div>
-
-      <div className="bg-surface-container-lowest rounded-[24px] p-lg card-shadow opacity-60">
-      <div className="flex items-center justify-between mb-lg">
-      <div className="flex items-center gap-4">
-      <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
-      <span className="material-symbols-outlined">verified_user</span>
-      </div>
-      <h3 className="font-headline-md text-primary">Eligibility Review</h3>
-      </div>
-      <span className="bg-surface-container text-on-surface-variant text-[10px] px-3 py-1 rounded-[10px] font-bold tracking-widest">PENDING</span>
-      </div>
-      <div className="grid grid-cols-2 gap-md">
-      <div className="p-md rounded-[20px] bg-tertiary-fixed/10 border border-tertiary-fixed/20 flex flex-col items-center text-center">
-      <span className="text-[32px] font-bold text-on-tertiary-container">1,402</span>
-      <span className="font-label-md text-on-tertiary-container">Eligible Contacts</span>
-      </div>
-      <div className="p-md rounded-[20px] bg-error-container/30 border border-error-container/50 flex flex-col items-center text-center">
-      <span className="text-[32px] font-bold text-error">248</span>
-      <span className="font-label-md text-error">Blocked</span>
-      </div>
-      </div>
-      </div>
-      </div>
-
-      <div className="lg:col-span-4 space-y-md">
-
-      <div className="bg-surface-container-lowest rounded-[24px] p-lg card-shadow">
-      <h4 className="font-label-md text-primary mb-sm">Active Voice Script</h4>
-      <div className="bg-surface-container-low rounded-xl p-sm border border-outline-variant/20 mb-md">
-      <div className="flex items-center gap-3 mb-sm">
-      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white cursor-pointer hover:bg-ink transition-all">
-      <span className="material-symbols-outlined filled">play_arrow</span>
-      </div>
-      <div>
-      <p className="font-label-md font-bold">Standard Welcome v2</p>
-      <p className="text-caption text-slate-text">0:45 • Male Voice AI</p>
-      </div>
-      </div>
-
-      <div className="h-8 flex items-end gap-[2px] px-2 opacity-40">
-      <div className="w-1 h-4 bg-primary rounded-full"></div>
-      <div className="w-1 h-6 bg-primary rounded-full"></div>
-      <div className="w-1 h-3 bg-primary rounded-full"></div>
-      <div className="w-1 h-8 bg-primary rounded-full"></div>
-      <div className="w-1 h-5 bg-primary rounded-full"></div>
-      <div className="w-1 h-7 bg-primary rounded-full"></div>
-      <div className="w-1 h-4 bg-primary rounded-full"></div>
-      <div className="w-1 h-6 bg-primary rounded-full"></div>
-      <div className="w-1 h-2 bg-primary rounded-full"></div>
-      <div className="w-1 h-5 bg-primary rounded-full"></div>
-      <div className="w-1 h-8 bg-primary rounded-full"></div>
-      <div className="w-1 h-4 bg-primary rounded-full"></div>
-      <div className="w-1 h-6 bg-primary rounded-full"></div>
-      <div className="w-1 h-3 bg-primary rounded-full"></div>
-      <div className="w-1 h-7 bg-primary rounded-full"></div>
-      </div>
-      </div>
-      <p className="text-caption text-slate-text italic">"Hello, this is a message regarding your recent inquiry..."</p>
-      </div>
-
-      <div className="bg-white rounded-[24px] p-lg card-shadow border border-outline-variant/10">
-      <h4 className="font-label-md text-primary mb-md">Blocking Distribution</h4>
-      <div className="space-y-4">
-      <div>
-      <div className="flex justify-between text-caption mb-1">
-      <span>National DNC Registry</span>
-      <span className="font-bold">142</span>
-      </div>
-      <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
-      <div className="bg-error w-[60%] h-full"></div>
-      </div>
-      </div>
-      <div>
-      <div className="flex justify-between text-caption mb-1">
-      <span>No Express Consent</span>
-      <span className="font-bold">86</span>
-      </div>
-      <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
-      <div className="bg-warning w-[35%] h-full"></div>
-      </div>
-      </div>
-      <div>
-      <div className="flex justify-between text-caption mb-1">
-      <span>Invalid Phone Number</span>
-      <span className="font-bold">20</span>
-      </div>
-      <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
-      <div className="bg-outline w-[10%] h-full"></div>
-      </div>
-      </div>
-      </div>
-      </div>
-
-      <div className="relative h-48 rounded-[24px] overflow-hidden group cursor-pointer">
-      <img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTfT--N2SvNNDT-DEVICwNEwkQHw5P9NTcdxjRjC9AUEYYW4Z3VdL6y-yOjg5CDKmTA7Agd7YNeuS-juaWVrHCuTf8ohAGCw2au99p2YH_hWfsyReqO8_OxkisX9sitlVBLm206Nv1ohIKce2kfg8UbTg4n9IbegSXh8icuzOFXIhfL7Cx9LuhbD8EDM-TmrU_9wmvYHyegqsnXnUKob7KmGTfKng0pYc_fdrRX6Gx9eSJ72R7oCDu_lN3lCjbYmEViU5_tCz32H2z" />
-      <div className="absolute inset-0 bg-gradient-to-t from-primary-container/80 to-transparent flex flex-col justify-end p-md">
-      <span className="text-white font-bold font-headline-md">Enterprise Ready</span>
-      <span className="text-on-primary-container/80 text-caption">Scale your reach effortlessly with VR CRM AI integration.</span>
-      </div>
-      </div>
-      </div>
-      </div>
+      <section id="automation-sequence">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-serif text-[22px] font-semibold text-ink">Automation sequence</h2>
+            <p className="text-[14px] text-slate-text">
+              Visual storytelling for luxury relationship automation — each touch builds trust.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAddStepOpen(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory shadow-sm transition-opacity hover:opacity-90"
+          >
+            <Icon name="add" className="text-[20px]" />
+            Add step
+          </button>
+        </div>
+        <CampaignFlow steps={campaign.steps} />
       </section>
-    </>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <LuxuryCard padding="lg" className="lg:col-span-1">
+          <div className="mb-4 flex items-center gap-2">
+            <Icon name="track_changes" className="text-rose-gold-deep" />
+            <h3 className="font-serif text-[20px] font-semibold text-ink">Campaign goals</h3>
+          </div>
+          <ul className="space-y-3">
+            {campaign.goals.map((goal) => (
+              <li key={goal} className="flex items-start gap-2 text-[14px] text-slate-text">
+                <Icon name="check_circle" className="mt-0.5 shrink-0 text-emerald-muted" />
+                {goal}
+              </li>
+            ))}
+          </ul>
+        </LuxuryCard>
+
+        <CampaignEditorStrip />
+      </div>
+
+      <AddCampaignStepModal
+        open={addStepOpen}
+        onClose={() => setAddStepOpen(false)}
+        existingSteps={campaign.steps}
+        onAdd={(step) => {
+          handleAddStep(step);
+          window.setTimeout(scrollToSequence, 150);
+        }}
+      />
+
+      <ActivateCampaignModal
+        open={activateOpen}
+        onClose={() => setActivateOpen(false)}
+        campaign={campaign}
+        durationDays={durationDays}
+        onConfirm={handleActivate}
+        loading={activating}
+      />
+    </div>
   );
 }

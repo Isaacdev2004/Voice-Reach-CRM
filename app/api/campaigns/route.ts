@@ -4,6 +4,19 @@ import { requireUserId } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { writeAuditLog } from "@/lib/audit";
 
+export async function GET() {
+  const ownerId = await requireUserId();
+
+  const { data, error } = await supabaseAdmin
+    .from("campaigns")
+    .select("id, name, status, script_id, created_at")
+    .eq("owner_id", ownerId)
+    .order("created_at", { ascending: false });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ campaigns: data ?? [] });
+}
+
 const BodySchema = z.object({
   name: z.string().min(1),
   scriptId: z.string().min(1),

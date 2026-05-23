@@ -3,6 +3,20 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+
+  /* Luxury palette — warm, relationship-first */
+  --color-cream: #faf7f2;
+  --color-ivory: #fffef9;
+  --color-champagne: #f3ebe0;
+  --color-rose-gold: #c4a484;
+  --color-rose-gold-deep: #a67c5b;
+  --color-sage: #8fa68e;
+  --color-sage-light: #e8efe6;
+  --color-bronze: #9a7b4f;
+  --color-bronze-light: #f5efe4;
+  --color-taupe: #8b7d6b;
+  --color-emerald-muted: #5c7a6a;
 
   --color-inverse-primary: #bec6e0;
   --color-on-error: #ffffff;
@@ -20,7 +34,7 @@
   --color-outline: #76777d;
   --color-on-tertiary-fixed-variant: #005236;
   --color-error: #ba1a1a;
-  --color-background: #f7f9fb;
+  --color-background: #faf7f2;
   --color-secondary-container: #6063ee;
   --color-secondary-fixed-dim: #c0c1ff;
   --color-on-secondary: #ffffff;
@@ -130,8 +144,69 @@
   }
 
   .node-connector {
-  background: linear-gradient(to bottom, #4648d4 50%, transparent 50%);
-  background-size: 2px 8px;
+    background: linear-gradient(to bottom, #c4a484 50%, transparent 50%);
+    background-size: 2px 8px;
+  }
+
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+
+  .luxury-page {
+    @apply bg-cream min-h-full;
+  }
+
+  .luxury-card {
+    @apply rounded-[24px] border border-outline-variant/10 bg-ivory;
+    box-shadow: 0px 20px 40px -12px rgba(0, 0, 0, 0.08);
+  }
+
+  .luxury-gradient-hero {
+    background:
+      radial-gradient(ellipse 80% 60% at 90% 10%, rgba(196, 164, 132, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 50% at 10% 90%, rgba(143, 166, 142, 0.1) 0%, transparent 45%),
+      linear-gradient(180deg, #fffef9 0%, #faf7f2 100%);
+  }
+
+  @keyframes modal-overlay-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes modal-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .modal-overlay {
+    animation: modal-overlay-in 0.22s ease-out forwards;
+  }
+
+  .modal-panel {
+    animation: modal-panel-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .campaign-flow-line {
+    background-image: repeating-linear-gradient(
+      90deg,
+      #c4a484 0,
+      #c4a484 6px,
+      transparent 6px,
+      transparent 12px
+    );
+    background-size: 12px 2px;
+    background-repeat: repeat-x;
+    background-position: center;
   }
 }
 

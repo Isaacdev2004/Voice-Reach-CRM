@@ -1,5 +1,6 @@
 "use client";
 
+import { useUpgradePlan } from "@/components/billing/upgrade-plan-provider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
@@ -8,16 +9,13 @@ import { dashboardNav, isActiveNav } from "@/lib/navigation";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const { openUpgrade, billing } = useUpgradePlan();
 
   return (
-    <aside className="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col bg-primary-container py-6 shadow-xl">
+    <aside className="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-outline-variant/10 bg-ivory py-6 shadow-nav">
       <div className="px-6 mb-10">
-        <h1 className="text-headline-md font-semibold text-on-primary-container">
-          Voice Reach CRM
-        </h1>
-        <p className="text-label-md text-on-primary-container/60">
-          Enterprise Automation
-        </p>
+        <h1 className="font-serif text-[26px] font-semibold text-ink">Voice Reach</h1>
+        <p className="text-[13px] italic text-taupe">Relationships that open doors</p>
       </div>
 
       <nav className="flex-1 overflow-y-auto">
@@ -30,8 +28,8 @@ export function DashboardSidebar() {
               className={cn(
                 "mx-2 my-1 flex items-center gap-3 rounded-full px-4 py-3 transition-all",
                 active
-                  ? "bg-secondary text-on-secondary scale-[0.98]"
-                  : "text-on-primary-container hover:bg-surface-variant/10",
+                  ? "bg-champagne text-ink shadow-sm"
+                  : "text-taupe hover:bg-cream",
               )}
             >
               <Icon name={item.icon} />
@@ -41,12 +39,18 @@ export function DashboardSidebar() {
         })}
       </nav>
 
-      <div className="px-4 mt-auto">
+      <div className="mt-auto space-y-3 px-4">
+        <p className="text-center text-[11px] text-taupe">
+          {billing.planName} · {billing.voiceMinutesUsed.toLocaleString()}/
+          {billing.voiceMinutesLimit.toLocaleString()} min
+        </p>
         <button
           type="button"
-          className="w-full rounded-full bg-secondary py-4 text-label-md font-bold text-on-secondary transition-all hover:opacity-90 active:scale-95"
+          onClick={openUpgrade}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-rose-gold py-4 text-label-md font-medium text-ivory transition-all hover:opacity-90 active:scale-95"
         >
-          Upgrade Plan
+          <Icon name="workspace_premium" className="text-[20px]" />
+          Upgrade plan
         </button>
       </div>
     </aside>

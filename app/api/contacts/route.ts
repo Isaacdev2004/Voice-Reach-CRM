@@ -1,27 +1,14 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { requireUserId } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { normalizePhone } from "@/lib/phone";
 import { writeAuditLog } from "@/lib/audit";
+import { CreateContactSchema, filterContactsByQuery } from "@/lib/contacts/schemas";
+import { normalizePhone } from "@/lib/phone";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-const CreateContactSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: z.string().optional().default(""),
-  phone: z.string().min(7),
-  email: z.string().email().optional().or(z.literal("")),
-  type: z.string().optional().default("Imported Contact"),
-  source: z.string().optional().default("Manual entry"),
-  dnc: z.boolean().optional().default(false),
-  notes: z.string().optional().default(""),
-  consent: z.enum(["Yes", "No", "Unknown"]).optional().default("Unknown"),
-  consentDate: z.string().optional().default(""),
-  consentSource: z.string().optional().default(""),
-  proof: z.string().optional().default(""),
-});
-
-export async function GET() {
+export async function GET(request: Request) {
   const ownerId = await requireUserId();
+  const { searchParams } = new URL(request.url);
+  const q = searchParams.get("q")?.trim() ?? "";
 
   const { data, error } = await supabaseAdmin
     .from("contacts")
@@ -30,7 +17,10 @@ export async function GET() {
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ contacts: data });
+
+  const contacts = q ? filterContactsByQuery(data ?? [], q) : (data ?? []);
+
+  return NextResponse.json({ contacts, total: (data ?? []).length, filtered: contacts.length, q });
 }
 
 export async function POST(request: Request) {
@@ -67,7 +57,13 @@ export async function POST(request: Request) {
 
   if (consentError) return NextResponse.json({ error: consentError.message }, { status: 500 });
 
-  await writeAuditLog({ ownerId, action: "CONTACT_CREATED", entityType: "contact", entityId: contact.id, metadata: { phone: contact.phone, consent: body.consent } });
+  await writeAuditLog({
+    ownerId,
+    action: "CONTACT_CREATED",
+    entityType: "contact",
+    entityId: contact.id,
+    metadata: { phone: contact.phone, consent: body.consent },
+  });
 
   return NextResponse.json({ contact }, { status: 201 });
 }
