@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { writeAuditLog } from "@/lib/audit";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { z } from "zod";
 
 const PatchSchema = z.object({
   title: z.string().min(1).optional(),
@@ -11,7 +11,7 @@ const PatchSchema = z.object({
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function PATCH(request: Request, context: RouteContext) {
+export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   const ownerId = await requireUserId();
   const { id } = await context.params;
   const body = PatchSchema.parse(await request.json());
@@ -21,7 +21,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   if (body.scriptId) updates.script_id = body.scriptId;
 
   if (Object.keys(updates).length === 0) {
-    return NextResponse.json({ error: "No updates provided" }, { status: 400 });
+    return apiError("No updates provided", { status: 400 });
   }
 
   const { data, error } = await supabaseAdmin
@@ -32,7 +32,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     .select("*")
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
 
   await writeAuditLog({
     ownerId,
@@ -42,5 +42,5 @@ export async function PATCH(request: Request, context: RouteContext) {
     metadata: updates,
   });
 
-  return NextResponse.json({ voiceAsset: data });
-}
+  return apiOk({ voiceAsset: data });
+});

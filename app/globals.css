@@ -208,6 +208,83 @@
     background-repeat: repeat-x;
     background-position: center;
   }
+
+  /* ===== Milestone 3 — Premium UX polish ===== */
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.4s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2.4s ease-in-out infinite;
+  }
+
+  .luxury-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(196, 164, 132, 0.18) 50%,
+      transparent 100%
+    );
+    background-size: 800px 100%;
+    animation: shimmer 2.2s linear infinite;
+  }
+
+  .luxury-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+  .luxury-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 28px 50px -16px rgba(166, 124, 91, 0.18);
+  }
+
+  .luxury-pressable {
+    @apply transition-transform duration-150 ease-out;
+  }
+  .luxury-pressable:active {
+    transform: scale(0.97);
+  }
+
+  .text-gradient-rose-gold {
+    background: linear-gradient(135deg, #a67c5b 0%, #c4a484 60%, #9a7b4f 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Subtle, calmer focus ring matching the palette */
+  *:focus-visible {
+    outline: none;
+  }
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible {
+    box-shadow: 0 0 0 3px rgba(196, 164, 132, 0.28);
+    border-radius: inherit;
+  }
 }
 
 .material-symbols-outlined {

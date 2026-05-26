@@ -11,6 +11,7 @@ import { saveCampaignBuilder, saveTemplateLocally } from "@/lib/crm/campaign-sto
 import { campaignDurationFromSteps, reorderSteps } from "@/lib/crm/campaign-steps";
 import { DEFAULT_CAMPAIGN } from "@/lib/crm/mock-data";
 import type { CampaignDefinition, CampaignStep } from "@/lib/crm/types";
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 
 type Toast = { message: string; tone: "success" | "error" };
@@ -109,6 +110,8 @@ export function CampaignBuilderPage() {
         ? { label: "Draft saved", className: "bg-champagne text-taupe" }
         : null;
 
+  const liveCampaignHref = dbCampaignId ? `/dashboard/campaigns/${dbCampaignId}` : null;
+
   return (
     <div className="luxury-page p-8 max-w-[1400px] w-full mx-auto space-y-8">
       {toast ? (
@@ -203,6 +206,15 @@ export function CampaignBuilderPage() {
               <Icon name="rocket_launch" className="text-[18px]" />
               {campaignStatus === "queued" ? "Campaign queued" : "Activate campaign"}
             </button>
+            {liveCampaignHref ? (
+              <Link
+                href={liveCampaignHref}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-gold/40 bg-rose-gold/10 px-6 py-2.5 text-[14px] font-medium text-rose-gold-deep transition-colors hover:bg-rose-gold/20"
+              >
+                Open campaign
+                <Icon name="arrow_forward" className="text-[18px]" />
+              </Link>
+            ) : null}
           </div>
         </div>
       </header>

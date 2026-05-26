@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/campaigns/runner",
+      "schedule": "* * * * *"
+    }
+  ],
+  "functions": {
+    "app/api/campaigns/runner/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/campaigns/[campaignId]/send/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/webhooks/voice/route.ts": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+      ]
+    }
+  ]
+}

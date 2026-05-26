@@ -1,3 +1,4 @@
+import { safeFetch } from "@/lib/api-response";
 import type { CampaignDefinition } from "./types";
 
 const TEMPLATES_KEY = "voicereach-campaign-templates";
@@ -22,12 +23,20 @@ export function saveTemplateLocally(campaign: CampaignDefinition, dbCampaignId?:
   localStorage.setItem(TEMPLATES_KEY, JSON.stringify(filtered.slice(0, 20)));
 }
 
+export type CampaignBuilderResult = {
+  campaignId: string;
+  status: string;
+  message: string;
+  enrollment?: { enrolled: number; eligible: number; total: number };
+  schedule?: { scheduled: number };
+};
+
 export async function saveCampaignBuilder(
   action: "template" | "activate",
   campaign: CampaignDefinition,
   campaignId?: string | null,
-) {
-  const res = await fetch("/api/campaigns/builder", {
+): Promise<CampaignBuilderResult> {
+  const envelope = await safeFetch<CampaignBuilderResult>("/api/campaigns/builder", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -45,13 +54,14 @@ export async function saveCampaignBuilder(
     }),
   });
 
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "Request failed");
-  return data as {
-    ok: boolean;
-    campaignId: string;
-    status: string;
-    message: string;
-    enrollment?: { enrolled: number; eligible: number; total: number };
-  };
+  if (envelope.success) return envelope.data;
+  if (envelope.code === "no_eligible_contacts" && envelope.details) {
+    const details = envelope.details as { campaignId?: string };
+    return {
+      campaignId: details.campaignId ?? "",
+      status: "queued",
+      message: envelope.error,
+    };
+  }
+  throw new Error(envelope.error);
 }

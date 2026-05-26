@@ -13,3 +13,7 @@
 # debug
 npm-debug.log*
 .DS_Store
+
+# build artifacts
+tsconfig.tsbuildinfo
+dev-server.log

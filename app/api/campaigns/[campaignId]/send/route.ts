@@ -1,11 +1,14 @@
-import { NextResponse } from "next/server";
+import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { writeAuditLog } from "@/lib/audit";
 import { evaluateEligibility } from "@/lib/compliance";
-import { sendVoicemail } from "@/lib/providerAdapter";
+import { recordEngagementEvent } from "@/lib/engagement/record";
+import { dispatch } from "@/lib/providers/registry";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-export async function POST(_request: Request, context: { params: Promise<{ campaignId: string }> }) {
+type RouteContext = { params: Promise<{ campaignId: string }> };
+
+export const POST = withApiHandler<RouteContext>(async (_request, context) => {
   const ownerId = await requireUserId();
   const { campaignId } = await context.params;
 
@@ -16,10 +19,15 @@ export async function POST(_request: Request, context: { params: Promise<{ campa
     .eq("owner_id", ownerId)
     .single();
 
-  if (campaignError || !campaign) return NextResponse.json({ error: campaignError?.message || "Campaign not found" }, { status: 404 });
+  if (campaignError || !campaign) {
+    return apiError(campaignError?.message || "Campaign not found", { status: 404 });
+  }
 
   if (!campaign.voice_assets?.approved) {
-    return NextResponse.json({ error: "Campaign voice asset must be approved before sending." }, { status: 400 });
+    return apiError("Campaign voice asset must be approved before sending.", {
+      status: 400,
+      code: "voice_asset_not_approved",
+    });
   }
 
   const bucket = process.env.SUPABASE_STORAGE_BUCKET || "voice-assets";
@@ -28,7 +36,7 @@ export async function POST(_request: Request, context: { params: Promise<{ campa
     .createSignedUrl(campaign.voice_assets.storage_path, 60 * 60);
 
   if (signedError || !signedAudio?.signedUrl) {
-    return NextResponse.json({ error: signedError?.message || "Unable to sign audio URL" }, { status: 500 });
+    return apiError(signedError?.message || "Unable to sign audio URL", { status: 500 });
   }
 
   const { data: recipients, error: recipientsError } = await supabaseAdmin
@@ -37,57 +45,106 @@ export async function POST(_request: Request, context: { params: Promise<{ campa
     .eq("campaign_id", campaignId)
     .eq("owner_id", ownerId);
 
-  if (recipientsError) return NextResponse.json({ error: recipientsError.message }, { status: 500 });
+  if (recipientsError) return apiError(recipientsError.message, { status: 500 });
 
-  await supabaseAdmin.from("campaigns").update({ status: "sending" }).eq("id", campaignId).eq("owner_id", ownerId);
+  await supabaseAdmin
+    .from("campaigns")
+    .update({ status: "sending" })
+    .eq("id", campaignId)
+    .eq("owner_id", ownerId);
 
-  const results = [];
+  const results: { recipientId: string; contactId: string; status: string; issues?: string[] }[] = [];
 
   for (const recipient of recipients || []) {
     const contact = recipient.contacts;
     const check = evaluateEligibility(contact);
 
     if (!check.eligible) {
-      await supabaseAdmin.from("campaign_recipients").update({
-        eligibility_status: "blocked",
-        eligibility_issues: check.issues,
-        delivery_status: "blocked",
-      }).eq("id", recipient.id).eq("owner_id", ownerId);
+      await supabaseAdmin
+        .from("campaign_recipients")
+        .update({
+          eligibility_status: "blocked",
+          eligibility_issues: check.issues,
+          delivery_status: "blocked",
+        })
+        .eq("id", recipient.id)
+        .eq("owner_id", ownerId);
 
-      results.push({ recipientId: recipient.id, contactId: contact.id, status: "blocked", issues: check.issues });
+      results.push({
+        recipientId: recipient.id,
+        contactId: contact.id,
+        status: "blocked",
+        issues: check.issues,
+      });
       continue;
     }
 
-    const providerResult = await sendVoicemail({
-      to: contact.phone,
-      from: process.env.VOICE_PROVIDER_FROM_NUMBER || "",
-      audioUrl: signedAudio.signedUrl,
-      campaignId,
-      recipientId: recipient.id,
-    });
+    const providerResult = await dispatch(
+      {
+        channel: "voicemail",
+        to: contact.phone,
+        from: process.env.VOICE_PROVIDER_FROM_NUMBER,
+        audioUrl: signedAudio.signedUrl,
+        campaignId,
+        recipientId: recipient.id,
+      },
+      campaign.provider,
+    );
 
-    await supabaseAdmin.from("campaign_recipients").update({
-      eligibility_status: "eligible",
-      eligibility_issues: [],
-      delivery_status: providerResult.status,
-      provider_message_id: providerResult.providerMessageId || null,
-      provider_response: providerResult.raw || {},
-    }).eq("id", recipient.id).eq("owner_id", ownerId);
+    await supabaseAdmin
+      .from("campaign_recipients")
+      .update({
+        eligibility_status: "eligible",
+        eligibility_issues: [],
+        delivery_status: providerResult.status,
+        provider_message_id: providerResult.providerMessageId || null,
+        provider_response: providerResult.rawResponse || {},
+      })
+      .eq("id", recipient.id)
+      .eq("owner_id", ownerId);
 
     if (providerResult.ok) {
-      await supabaseAdmin.from("contacts").update({ last_contacted: new Date().toISOString().slice(0, 10) }).eq("id", contact.id).eq("owner_id", ownerId);
+      await supabaseAdmin
+        .from("contacts")
+        .update({ last_contacted: new Date().toISOString().slice(0, 10) })
+        .eq("id", contact.id)
+        .eq("owner_id", ownerId);
+
+      await recordEngagementEvent({
+        ownerId,
+        contactId: contact.id,
+        campaignId,
+        eventType: "delivered",
+        channel: "voicemail",
+        metadata: { provider: campaign.provider, providerMessageId: providerResult.providerMessageId },
+      }).catch(() => undefined);
     }
 
-    results.push({ recipientId: recipient.id, contactId: contact.id, status: providerResult.status });
+    results.push({
+      recipientId: recipient.id,
+      contactId: contact.id,
+      status: providerResult.status,
+    });
   }
 
-  const sentCount = results.filter((item) => item.status === "sent" || item.status === "mock_sent").length;
+  const sentCount = results.filter((item) => item.status === "sent" || item.status === "mock_sent" || item.status === "queued").length;
   const blockedCount = results.filter((item) => item.status === "blocked").length;
   const failedCount = results.filter((item) => item.status === "failed").length;
   const finalStatus = failedCount > 0 || blockedCount > 0 ? "partial" : "sent";
 
-  await supabaseAdmin.from("campaigns").update({ status: finalStatus }).eq("id", campaignId).eq("owner_id", ownerId);
-  await writeAuditLog({ ownerId, action: "CAMPAIGN_SEND_ATTEMPTED", entityType: "campaign", entityId: campaignId, metadata: { sentCount, blockedCount, failedCount } });
+  await supabaseAdmin
+    .from("campaigns")
+    .update({ status: finalStatus })
+    .eq("id", campaignId)
+    .eq("owner_id", ownerId);
 
-  return NextResponse.json({ campaignId, finalStatus, sentCount, blockedCount, failedCount, results });
-}
+  await writeAuditLog({
+    ownerId,
+    action: "CAMPAIGN_SEND_ATTEMPTED",
+    entityType: "campaign",
+    entityId: campaignId,
+    metadata: { sentCount, blockedCount, failedCount },
+  });
+
+  return apiOk({ campaignId, finalStatus, sentCount, blockedCount, failedCount, results });
+});

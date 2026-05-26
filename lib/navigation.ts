@@ -10,6 +10,7 @@ export const dashboardNav: NavItem[] = [
   { label: "Campaigns", href: "/dashboard/campaigns", icon: "campaign" },
   { label: "Voice Scripts", href: "/dashboard/voice-scripts", icon: "description" },
   { label: "Automations", href: "/dashboard/automations", icon: "auto_mode" },
+  { label: "Partners", href: "/dashboard/partners", icon: "handshake" },
   { label: "Activity Logs", href: "/dashboard/activity", icon: "history" },
   { label: "Analytics", href: "/dashboard/analytics", icon: "analytics" },
   { label: "Settings", href: "/dashboard/settings", icon: "settings" },

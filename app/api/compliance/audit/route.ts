@@ -1,18 +1,20 @@
-import { NextResponse } from "next/server";
+import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { scanContactsForCompliance } from "@/lib/compliance/scan";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-export async function GET() {
+export const GET = withApiHandler(async () => {
   const ownerId = await requireUserId();
 
   const { data, error } = await supabaseAdmin
     .from("contacts")
-    .select("id, phone, dnc, consent_records(status, consent_date, source, proof_reference, created_at)")
+    .select(
+      "id, phone, dnc, consent_records(status, consent_date, source, proof_reference, created_at)",
+    )
     .eq("owner_id", ownerId);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
 
   const result = scanContactsForCompliance(data ?? []);
 
@@ -28,5 +30,5 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json(result);
-}
+  return apiOk(result as unknown as Record<string, unknown>);
+});

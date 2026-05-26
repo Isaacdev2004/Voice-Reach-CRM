@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { AiLauncherButton } from "@/components/ai/ai-launcher-button";
 import { AiSuggestionPanel } from "@/components/crm/ai-suggestion-panel";
 import { ComplianceBadge } from "@/components/crm/compliance-badge";
 import { EditContactModal } from "@/components/crm/edit-contact-modal";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { RelationshipTag } from "@/components/crm/relationship-tag";
 import { Timeline } from "@/components/crm/timeline";
+import { EngagementTimeline } from "@/components/engagement/engagement-timeline";
 import { Icon } from "@/components/ui/icon";
 import { contactProfileFromApi, DEMO_CONTACT } from "@/lib/crm/mock-data";
 import type { ContactProfile } from "@/lib/crm/types";
@@ -145,13 +147,20 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
-                className="rounded-full bg-bronze px-6 py-2.5 text-[14px] font-medium text-ivory"
+                onClick={() => setEditOpen(true)}
+                className="rounded-full bg-bronze px-6 py-2.5 text-[14px] font-medium text-ivory transition-opacity hover:opacity-90"
               >
                 Edit contact
               </button>
+              <AiLauncherButton
+                contactName={`${profile.firstName} ${profile.lastName}`}
+                contactNotes={profile.notes}
+                goal={profile.leadStatus}
+                label="AI follow-up"
+              />
               <button
                 type="button"
-                className="rounded-full border border-outline-variant/40 px-4 py-2.5 text-taupe"
+                className="rounded-full border border-outline-variant/40 px-4 py-2.5 text-taupe transition-colors hover:bg-champagne"
                 aria-label="More options"
               >
                 <Icon name="more_horiz" />
@@ -170,8 +179,19 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <LuxuryCard padding="lg" className="lg:col-span-5">
-          <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">Relationship timeline</h2>
-          <Timeline events={profile.timeline} />
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="font-serif text-[22px] font-semibold text-ink">Relationship timeline</h2>
+            {apiContact ? (
+              <span className="rounded-full bg-emerald-muted/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-muted">
+                Live engagement
+              </span>
+            ) : null}
+          </div>
+          {apiContact ? (
+            <EngagementTimeline contactId={apiContact.id} />
+          ) : (
+            <Timeline events={profile.timeline} />
+          )}
         </LuxuryCard>
 
         <div className="lg:col-span-4 space-y-6">

@@ -1,19 +1,25 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
-import { evaluateEligibility } from "@/lib/compliance";
 import { writeAuditLog } from "@/lib/audit";
+import {
+  persistSteps,
+  scheduleStepRunsForCampaign,
+  type CampaignBlueprintStep,
+} from "@/lib/campaigns/engine";
+import { evaluateEligibility } from "@/lib/compliance";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { z } from "zod";
 
 const StepSchema = z.object({
   id: z.string(),
   order: z.number(),
-  type: z.enum(["voicemail", "avatar_video", "email", "sms", "retargeting", "callback"]),
+  type: z.enum(["voicemail", "sms", "email", "avatar_video", "task", "callback", "wait", "retargeting"]),
   title: z.string(),
-  description: z.string(),
-  dayLabel: z.string(),
-  timeLabel: z.string(),
-  status: z.enum(["sent", "active", "pending", "draft"]),
+  description: z.string().optional().default(""),
+  delayMinutes: z.number().int().nonnegative().optional(),
+  dayLabel: z.string().optional(),
+  timeLabel: z.string().optional(),
+  status: z.enum(["sent", "active", "pending", "draft"]).optional(),
 });
 
 const BlueprintSchema = z.object({
@@ -23,7 +29,8 @@ const BlueprintSchema = z.object({
   audience: z.string(),
   durationDays: z.number(),
   steps: z.array(StepSchema).min(1, "Add at least one automation step"),
-  goals: z.array(z.string()),
+  goals: z.array(z.string()).optional().default([]),
+  provider: z.string().optional(),
 });
 
 const BodySchema = z.object({
@@ -46,6 +53,7 @@ async function upsertCampaign(
       .update({
         name: blueprint.name,
         script_id: scriptId,
+        provider: blueprint.provider ?? "mock",
         status,
         updated_at: new Date().toISOString(),
       })
@@ -64,7 +72,7 @@ async function upsertCampaign(
       owner_id: ownerId,
       name: blueprint.name,
       script_id: scriptId,
-      provider: "mock",
+      provider: blueprint.provider ?? "mock",
       status,
     })
     .select("*")
@@ -111,62 +119,83 @@ async function enrollEligibleContacts(ownerId: string, campaignId: string) {
   };
 }
 
-export async function POST(request: Request) {
-  try {
-    const ownerId = await requireUserId();
-    const body = BodySchema.parse(await request.json());
-    const { action, campaign: blueprint, campaignId: existingId } = body;
+function mapStepsToBlueprint(steps: z.infer<typeof StepSchema>[]): CampaignBlueprintStep[] {
+  return steps.map((step) => ({
+    id: step.id,
+    order: step.order,
+    type: (step.type === "retargeting" ? "email" : step.type) as CampaignBlueprintStep["type"],
+    title: step.title,
+    description: step.description,
+    delayMinutes: step.delayMinutes ?? guessDelay(step),
+    dayLabel: step.dayLabel,
+    timeLabel: step.timeLabel,
+  }));
+}
 
-    if (action === "template") {
-      const record = await upsertCampaign(ownerId, blueprint, "draft", existingId);
+function guessDelay(step: { dayLabel?: string }): number {
+  const match = step.dayLabel?.match(/day\s*(\d+)/i);
+  if (!match) return 0;
+  const day = Number(match[1]);
+  if (Number.isNaN(day)) return 0;
+  return Math.max(0, (day - 1) * 24 * 60);
+}
 
-      await writeAuditLog({
-        ownerId,
-        action: "CAMPAIGN_TEMPLATE_SAVED",
-        entityType: "campaign",
-        entityId: record.id,
-        metadata: { blueprint, audience: blueprint.audience, stepCount: blueprint.steps.length },
-      });
+export const POST = withApiHandler(async (request: Request) => {
+  const ownerId = await requireUserId();
+  const body = BodySchema.parse(await request.json());
+  const { action, campaign: blueprint, campaignId: existingId } = body;
 
-      return NextResponse.json({
-        ok: true,
-        campaignId: record.id,
-        status: "draft",
-        message: "Template saved. You can activate when ready.",
-      });
-    }
-
-    const record = await upsertCampaign(ownerId, blueprint, "queued", existingId);
-    const enrollment = await enrollEligibleContacts(ownerId, record.id);
+  if (action === "template") {
+    const record = await upsertCampaign(ownerId, blueprint, "draft", existingId);
+    await persistSteps(ownerId, record.id, mapStepsToBlueprint(blueprint.steps));
 
     await writeAuditLog({
       ownerId,
-      action: "CAMPAIGN_ACTIVATED",
+      action: "CAMPAIGN_TEMPLATE_SAVED",
       entityType: "campaign",
       entityId: record.id,
-      metadata: {
-        blueprint,
-        enrollment,
-        stepCount: blueprint.steps.length,
-        durationDays: blueprint.durationDays,
-      },
+      metadata: { blueprint, audience: blueprint.audience, stepCount: blueprint.steps.length },
     });
 
-    return NextResponse.json({
-      ok: true,
+    return apiSuccess({
       campaignId: record.id,
-      status: "queued",
-      enrollment,
-      message:
-        enrollment.enrolled > 0
-          ? `Campaign queued for ${enrollment.enrolled} eligible contact${enrollment.enrolled === 1 ? "" : "s"}.`
-          : "Campaign queued. Add contacts with valid consent to enroll recipients.",
+      status: "draft",
+      message: "Template saved. You can activate when ready.",
     });
-  } catch (err) {
-    if (err instanceof z.ZodError) {
-      return NextResponse.json({ error: err.issues[0]?.message ?? "Invalid request" }, { status: 400 });
-    }
-    const message = err instanceof Error ? err.message : "Request failed";
-    return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+
+  const record = await upsertCampaign(ownerId, blueprint, "queued", existingId);
+  await persistSteps(ownerId, record.id, mapStepsToBlueprint(blueprint.steps));
+  const enrollment = await enrollEligibleContacts(ownerId, record.id);
+  const schedule = await scheduleStepRunsForCampaign(ownerId, record.id);
+
+  await writeAuditLog({
+    ownerId,
+    action: "CAMPAIGN_ACTIVATED",
+    entityType: "campaign",
+    entityId: record.id,
+    metadata: {
+      blueprint,
+      enrollment,
+      schedule,
+      stepCount: blueprint.steps.length,
+      durationDays: blueprint.durationDays,
+    },
+  });
+
+  if (enrollment.enrolled === 0) {
+    return apiError("Campaign queued, but no eligible contacts to enroll. Add contacts with consent.", {
+      status: 200,
+      code: "no_eligible_contacts",
+      details: { campaignId: record.id, enrollment, schedule },
+    });
+  }
+
+  return apiSuccess({
+    campaignId: record.id,
+    status: "queued",
+    enrollment,
+    schedule,
+    message: `Campaign queued — ${schedule.scheduled} step runs scheduled for ${enrollment.enrolled} contact${enrollment.enrolled === 1 ? "" : "s"}.`,
+  });
+});

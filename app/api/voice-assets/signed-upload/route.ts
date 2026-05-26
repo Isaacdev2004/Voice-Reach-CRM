@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { writeAuditLog } from "@/lib/audit";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { z } from "zod";
 
 const BodySchema = z.object({
   scriptId: z.string().min(1),
@@ -11,25 +11,44 @@ const BodySchema = z.object({
   contentType: z.string().optional().default("audio/webm"),
 });
 
-export async function POST(request: Request) {
+export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const body = BodySchema.parse(await request.json());
   const bucket = process.env.SUPABASE_STORAGE_BUCKET || "voice-assets";
   const safeFileName = body.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   const storagePath = `${ownerId}/${crypto.randomUUID()}-${safeFileName}`;
 
-  const { data, error } = await supabaseAdmin.storage.from(bucket).createSignedUploadUrl(storagePath);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const { data, error } = await supabaseAdmin.storage
+    .from(bucket)
+    .createSignedUploadUrl(storagePath);
+  if (error) return apiError(error.message, { status: 500 });
 
   const { data: voiceAsset, error: insertError } = await supabaseAdmin
     .from("voice_assets")
-    .insert({ owner_id: ownerId, script_id: body.scriptId, title: body.title, storage_path: storagePath, approved: false })
+    .insert({
+      owner_id: ownerId,
+      script_id: body.scriptId,
+      title: body.title,
+      storage_path: storagePath,
+      approved: false,
+    })
     .select("*")
     .single();
 
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+  if (insertError) return apiError(insertError.message, { status: 500 });
 
-  await writeAuditLog({ ownerId, action: "VOICE_SIGNED_UPLOAD_CREATED", entityType: "voice_asset", entityId: voiceAsset.id, metadata: { storagePath } });
+  await writeAuditLog({
+    ownerId,
+    action: "VOICE_SIGNED_UPLOAD_CREATED",
+    entityType: "voice_asset",
+    entityId: voiceAsset.id,
+    metadata: { storagePath },
+  });
 
-  return NextResponse.json({ voiceAsset, signedUrl: data.signedUrl, path: data.path, token: data.token });
-}
+  return apiOk({
+    voiceAsset,
+    signedUrl: data.signedUrl,
+    path: data.path,
+    token: data.token,
+  });
+});

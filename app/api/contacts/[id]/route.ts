@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { PatchContactSchema } from "@/lib/contacts/schemas";
@@ -7,7 +7,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_request: Request, context: RouteContext) {
+export const GET = withApiHandler<RouteContext>(async (_request, context) => {
   const ownerId = await requireUserId();
   const { id } = await context.params;
 
@@ -18,13 +18,13 @@ export async function GET(_request: Request, context: RouteContext) {
     .eq("id", id)
     .maybeSingle();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!data) return NextResponse.json({ error: "Contact not found" }, { status: 404 });
+  if (error) return apiError(error.message, { status: 500 });
+  if (!data) return apiError("Contact not found", { status: 404, code: "not_found" });
 
-  return NextResponse.json({ contact: data });
-}
+  return apiOk({ contact: data });
+});
 
-export async function PATCH(request: Request, context: RouteContext) {
+export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   const ownerId = await requireUserId();
   const { id } = await context.params;
   const body = PatchContactSchema.parse(await request.json());
@@ -36,8 +36,8 @@ export async function PATCH(request: Request, context: RouteContext) {
     .eq("id", id)
     .maybeSingle();
 
-  if (findError) return NextResponse.json({ error: findError.message }, { status: 500 });
-  if (!existing) return NextResponse.json({ error: "Contact not found" }, { status: 404 });
+  if (findError) return apiError(findError.message, { status: 500 });
+  if (!existing) return apiError("Contact not found", { status: 404, code: "not_found" });
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (body.firstName !== undefined) updates.first_name = body.firstName;
@@ -57,7 +57,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     .select("*, consent_records(*)")
     .single();
 
-  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+  if (updateError) return apiError(updateError.message, { status: 500 });
 
   if (body.consent !== undefined) {
     const { error: consentError } = await supabaseAdmin.from("consent_records").insert({
@@ -70,9 +70,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       notes: body.notes ?? null,
     });
 
-    if (consentError) {
-      return NextResponse.json({ error: consentError.message }, { status: 500 });
-    }
+    if (consentError) return apiError(consentError.message, { status: 500 });
 
     const { data: refreshed } = await supabaseAdmin
       .from("contacts")
@@ -89,7 +87,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       metadata: { fields: Object.keys(updates), consent: body.consent },
     });
 
-    return NextResponse.json({ contact: refreshed ?? contact });
+    return apiOk({ contact: refreshed ?? contact });
   }
 
   await writeAuditLog({
@@ -100,10 +98,10 @@ export async function PATCH(request: Request, context: RouteContext) {
     metadata: { fields: Object.keys(updates) },
   });
 
-  return NextResponse.json({ contact });
-}
+  return apiOk({ contact });
+});
 
-export async function DELETE(_request: Request, context: RouteContext) {
+export const DELETE = withApiHandler<RouteContext>(async (_request, context) => {
   const ownerId = await requireUserId();
   const { id } = await context.params;
 
@@ -114,8 +112,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
     .eq("id", id)
     .maybeSingle();
 
-  if (findError) return NextResponse.json({ error: findError.message }, { status: 500 });
-  if (!existing) return NextResponse.json({ error: "Contact not found" }, { status: 404 });
+  if (findError) return apiError(findError.message, { status: 500 });
+  if (!existing) return apiError("Contact not found", { status: 404, code: "not_found" });
 
   const { error: deleteError } = await supabaseAdmin
     .from("contacts")
@@ -123,7 +121,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     .eq("owner_id", ownerId)
     .eq("id", id);
 
-  if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 });
+  if (deleteError) return apiError(deleteError.message, { status: 500 });
 
   await writeAuditLog({
     ownerId,
@@ -136,5 +134,5 @@ export async function DELETE(_request: Request, context: RouteContext) {
     },
   });
 
-  return NextResponse.json({ ok: true });
-}
+  return apiOk({ ok: true });
+});

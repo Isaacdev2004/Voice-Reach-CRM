@@ -1,18 +1,18 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { requireUserId } from "@/lib/auth";
-import { writeAuditLog } from "@/lib/audit";
+import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { mapAuditRow, mapDeliveryRow } from "@/lib/activity/map-audit";
 import { SEED_ACTIVITY } from "@/lib/activity/seed";
 import type { ActivityLogEntry } from "@/lib/activity/types";
+import { requireUserId } from "@/lib/auth";
+import { writeAuditLog } from "@/lib/audit";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { z } from "zod";
 
 const PostSchema = z.object({
   ids: z.array(z.string()).min(1),
   action: z.enum(["read", "dismiss", "acknowledge"]),
 });
 
-export async function GET() {
+export const GET = withApiHandler(async () => {
   const ownerId = await requireUserId();
 
   const [auditRes, deliveryRes] = await Promise.all([
@@ -34,9 +34,7 @@ export async function GET() {
       .limit(40),
   ]);
 
-  if (auditRes.error) {
-    return NextResponse.json({ error: auditRes.error.message }, { status: 500 });
-  }
+  if (auditRes.error) return apiError(auditRes.error.message, { status: 500 });
 
   const auditEntries: ActivityLogEntry[] = [];
   for (const row of auditRes.data ?? []) {
@@ -74,13 +72,12 @@ export async function GET() {
   const seen = new Set(merged.map((e) => e.id));
   const includeSeed = merged.length < 8;
   const entries = includeSeed
-    ? [
-        ...merged,
-        ...SEED_ACTIVITY.filter((s) => !seen.has(s.id)),
-      ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    ? [...merged, ...SEED_ACTIVITY.filter((s) => !seen.has(s.id))].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
     : merged;
 
-  return NextResponse.json({
+  return apiOk({
     entries,
     counts: {
       total: entries.length,
@@ -89,9 +86,9 @@ export async function GET() {
       seed: includeSeed ? SEED_ACTIVITY.length : 0,
     },
   });
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const { ids, action } = PostSchema.parse(await request.json());
 
@@ -105,5 +102,5 @@ export async function POST(request: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true, ids, action });
-}
+  return apiOk({ ok: true, ids, action });
+});

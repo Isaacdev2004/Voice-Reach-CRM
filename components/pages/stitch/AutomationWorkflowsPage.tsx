@@ -249,6 +249,13 @@ export function AutomationWorkflowsPage() {
               </button>
             )}
             <Link
+              href="/dashboard/automations/rules"
+              className="inline-flex items-center gap-2 rounded-full border border-rose-gold/40 bg-rose-gold/10 px-4 py-2 text-[13px] font-medium text-rose-gold-deep transition-colors hover:bg-rose-gold/20"
+            >
+              <Icon name="bolt" className="text-[16px]" />
+              Trigger rules
+            </Link>
+            <Link
               href="/dashboard/campaigns"
               className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-4 py-2 text-[13px] text-rose-gold-deep"
             >

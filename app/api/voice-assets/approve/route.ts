@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { writeAuditLog } from "@/lib/audit";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { z } from "zod";
 
 const BodySchema = z.object({ voiceAssetId: z.string().uuid() });
 
-export async function POST(request: Request) {
+export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const { voiceAssetId } = BodySchema.parse(await request.json());
 
@@ -18,7 +18,14 @@ export async function POST(request: Request) {
     .select("*")
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  await writeAuditLog({ ownerId, action: "VOICE_APPROVED", entityType: "voice_asset", entityId: voiceAssetId });
-  return NextResponse.json({ voiceAsset: data });
-}
+  if (error) return apiError(error.message, { status: 500 });
+
+  await writeAuditLog({
+    ownerId,
+    action: "VOICE_APPROVED",
+    entityType: "voice_asset",
+    entityId: voiceAssetId,
+  });
+
+  return apiOk({ voiceAsset: data });
+});

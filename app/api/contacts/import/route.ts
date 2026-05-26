@@ -1,33 +1,37 @@
-import { NextResponse } from "next/server";
-import Papa from "papaparse";
+import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { normalizePhone } from "@/lib/phone";
 import { writeAuditLog } from "@/lib/audit";
+import { normalizePhone } from "@/lib/phone";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import type { ContactImportRow } from "@/types/api";
+import Papa from "papaparse";
 
 function normalizeBoolean(value: unknown) {
   return ["true", "yes", "1"].includes(String(value || "").toLowerCase());
 }
 
-export async function POST(request: Request) {
+export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const form = await request.formData();
   const file = form.get("file");
 
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "CSV file is required under form field 'file'." }, { status: 400 });
+    return apiError("CSV file is required under form field 'file'.", { status: 400 });
   }
 
   const text = await file.text();
   const parsed = Papa.parse<ContactImportRow>(text, { header: true, skipEmptyLines: true });
 
   if (parsed.errors.length) {
-    return NextResponse.json({ error: "CSV parse error", details: parsed.errors }, { status: 400 });
+    return apiError("CSV parse error", {
+      status: 400,
+      code: "csv_parse_error",
+      details: parsed.errors,
+    });
   }
 
   const imported = [];
-  const errors = [];
+  const errors: { row: number; error: string }[] = [];
 
   for (const [index, row] of parsed.data.entries()) {
     const firstName = row.firstName || row.first_name || "";
@@ -78,7 +82,12 @@ export async function POST(request: Request) {
     imported.push(contact);
   }
 
-  await writeAuditLog({ ownerId, action: "CSV_IMPORTED", entityType: "contacts", metadata: { fileName: file.name, imported: imported.length, errors: errors.length } });
+  await writeAuditLog({
+    ownerId,
+    action: "CSV_IMPORTED",
+    entityType: "contacts",
+    metadata: { fileName: file.name, imported: imported.length, errors: errors.length },
+  });
 
-  return NextResponse.json({ imported: imported.length, errors });
-}
+  return apiOk({ imported: imported.length, errors });
+});

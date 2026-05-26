@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { z } from "zod";
 
 const NodeSchema = z.object({
   id: z.string(),
@@ -29,7 +29,7 @@ const WorkflowSchema = z.object({
 
 const PostSchema = z.object({ workflow: WorkflowSchema });
 
-export async function GET() {
+export const GET = withApiHandler(async () => {
   const ownerId = await requireUserId();
 
   const { data, error } = await supabaseAdmin
@@ -41,7 +41,7 @@ export async function GET() {
     .order("created_at", { ascending: false })
     .limit(100);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
 
   const byId = new Map<string, z.infer<typeof WorkflowSchema>>();
   for (const row of data ?? []) {
@@ -49,10 +49,10 @@ export async function GET() {
     if (wf?.id && !byId.has(wf.id)) byId.set(wf.id, wf);
   }
 
-  return NextResponse.json({ workflows: Array.from(byId.values()) });
-}
+  return apiOk({ workflows: Array.from(byId.values()) });
+});
 
-export async function POST(request: Request) {
+export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const { workflow } = PostSchema.parse(await request.json());
 
@@ -76,5 +76,5 @@ export async function POST(request: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true, workflow: saved });
-}
+  return apiOk({ ok: true, workflow: saved });
+});

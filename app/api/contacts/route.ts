@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server";
+import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import { evaluateTriggers } from "@/lib/automations/engine";
 import { CreateContactSchema, filterContactsByQuery } from "@/lib/contacts/schemas";
 import { normalizePhone } from "@/lib/phone";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-export async function GET(request: Request) {
+export const GET = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim() ?? "";
@@ -16,14 +17,13 @@ export async function GET(request: Request) {
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
 
   const contacts = q ? filterContactsByQuery(data ?? [], q) : (data ?? []);
+  return apiOk({ contacts, total: (data ?? []).length, filtered: contacts.length, q });
+});
 
-  return NextResponse.json({ contacts, total: (data ?? []).length, filtered: contacts.length, q });
-}
-
-export async function POST(request: Request) {
+export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const body = CreateContactSchema.parse(await request.json());
 
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     .select("*")
     .single();
 
-  if (contactError) return NextResponse.json({ error: contactError.message }, { status: 500 });
+  if (contactError) return apiError(contactError.message, { status: 500 });
 
   const { error: consentError } = await supabaseAdmin.from("consent_records").insert({
     owner_id: ownerId,
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     notes: body.notes || null,
   });
 
-  if (consentError) return NextResponse.json({ error: consentError.message }, { status: 500 });
+  if (consentError) return apiError(consentError.message, { status: 500 });
 
   await writeAuditLog({
     ownerId,
@@ -65,5 +65,9 @@ export async function POST(request: Request) {
     metadata: { phone: contact.phone, consent: body.consent },
   });
 
-  return NextResponse.json({ contact }, { status: 201 });
-}
+  await evaluateTriggers({ ownerId, contactId: contact.id, event: "contact_added" }).catch(() =>
+    undefined,
+  );
+
+  return apiOk({ contact }, { status: 201 });
+});

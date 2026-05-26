@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
 import type { UserSettings } from "@/lib/settings/types";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import { z } from "zod";
 
 const IntegrationSchema = z.object({
   id: z.string(),
@@ -98,10 +98,18 @@ async function loadSavedSettings(ownerId: string): Promise<UserSettings | null> 
 
   const settings = (data?.metadata as { settings?: UserSettings })?.settings;
   if (!settings) return null;
-  return SettingsSchema.parse(settings);
+  try {
+    return SettingsSchema.parse(settings);
+  } catch {
+    return null;
+  }
 }
 
-function mergeSettings(base: UserSettings, saved: UserSettings | null, minutesUsed: number): UserSettings {
+function mergeSettings(
+  base: UserSettings,
+  saved: UserSettings | null,
+  minutesUsed: number,
+): UserSettings {
   const merged = saved ? { ...base, ...saved } : base;
   return {
     ...merged,
@@ -113,7 +121,7 @@ function mergeSettings(base: UserSettings, saved: UserSettings | null, minutesUs
   };
 }
 
-export async function GET() {
+export const GET = withApiHandler(async () => {
   const ownerId = await requireUserId();
   const { userId } = await auth();
 
@@ -151,14 +159,10 @@ export async function GET() {
     if (owner) owner.email = email;
   }
 
-  return NextResponse.json({ settings, email, clerkImageUrl } satisfies {
-    settings: UserSettings;
-    email: string;
-    clerkImageUrl?: string;
-  });
-}
+  return apiOk({ settings, email, clerkImageUrl: clerkImageUrl ?? null });
+});
 
-export async function POST(request: Request) {
+export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const { settings: body } = PostSchema.parse(await request.json());
   const minutesUsed = await usageMinutes(ownerId);
@@ -194,5 +198,5 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ settings, email });
-}
+  return apiOk({ settings, email });
+});

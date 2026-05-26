@@ -29,8 +29,8 @@ export function CampaignFlowStep({ step }: { step: CampaignStep }) {
     <LuxuryCard
       padding="md"
       className={cn(
-        "relative flex min-w-[200px] max-w-[220px] flex-col items-center text-center transition-all hover:-translate-y-0.5",
-        step.status === "active" && "ring-2 ring-rose-gold/30",
+        "luxury-hover relative flex min-w-[200px] max-w-[220px] flex-col items-center text-center",
+        step.status === "active" && "ring-2 ring-rose-gold/30 animate-pulse-soft",
         step.status === "draft" && "ring-2 ring-dashed ring-rose-gold/25 border-rose-gold/20",
       )}
     >
