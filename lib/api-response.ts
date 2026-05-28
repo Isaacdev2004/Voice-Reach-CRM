@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { isConfigError } from "@/lib/server-config";
 
 export type ApiSuccess<T> = { success: true; data: T };
 export type ApiFailure = { success: false; error: string; code?: string; details?: unknown };
@@ -60,6 +61,18 @@ export function withApiHandler<TContext = unknown>(
       }
       if (err instanceof Error && err.message === "Unauthorized") {
         return apiError("Sign in required", { status: 401, code: "unauthorized" });
+      }
+      if (isConfigError(err)) {
+        return apiError(
+          "Database not connected yet. Production credentials are being configured — please check back shortly.",
+          { status: 503, code: "service_unconfigured" },
+        );
+      }
+      if (err instanceof Error && err.message.startsWith("Missing ")) {
+        return apiError(
+          "Database not connected yet. Production credentials are being configured — please check back shortly.",
+          { status: 503, code: "service_unconfigured" },
+        );
       }
       const message = err instanceof Error ? err.message : "Request failed";
       console.error("[api]", message, err);

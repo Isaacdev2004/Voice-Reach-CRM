@@ -122,12 +122,16 @@
 
   .hero-gradient {
     background:
-      radial-gradient(circle at 80% 20%, #e1ffe8 0%, transparent 40%),
-      radial-gradient(circle at 20% 80%, #f0f7ff 0%, transparent 40%);
+      radial-gradient(ellipse 80% 60% at 90% 10%, rgba(196, 164, 132, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 50% at 10% 90%, rgba(143, 166, 142, 0.1) 0%, transparent 45%),
+      linear-gradient(180deg, #fffef9 0%, #faf7f2 100%);
   }
 
   .auth-gradient {
-    background: radial-gradient(circle at top left, #dae2fd 0%, #f7f9fb 40%, #ffffff 100%);
+    background:
+      radial-gradient(ellipse 80% 60% at 90% 10%, rgba(196, 164, 132, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 50% at 10% 90%, rgba(143, 166, 142, 0.1) 0%, transparent 45%),
+      linear-gradient(180deg, #fffef9 0%, #faf7f2 100%);
   }
 
   .auth-card-shadow {

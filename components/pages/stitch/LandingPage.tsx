@@ -83,28 +83,28 @@ const HERO_IMAGE =
 
 export function LandingPage() {
   return (
-    <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-outline-variant/30 bg-surface/80 backdrop-blur-md">
+    <div className="min-h-screen bg-cream text-ink">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-outline-variant/15 bg-ivory/90 backdrop-blur-md">
         <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-margin-mobile md:px-margin-desktop">
-          <Link href="/" className="text-headline-md font-black tracking-tight text-ink">
+          <Link href="/" className="font-serif text-[22px] font-semibold tracking-tight text-ink">
             Voice Reach CRM
           </Link>
           <div className="hidden items-center gap-lg md:flex">
             <a
               href="#features"
-              className="text-label-md font-semibold text-secondary transition-colors hover:text-secondary/80"
+              className="text-label-md font-medium text-taupe transition-colors hover:text-rose-gold-deep"
             >
               Solutions
             </a>
             <a
               href="#pricing"
-              className="text-label-md font-medium text-slate-text transition-colors hover:text-secondary"
+              className="text-label-md font-medium text-taupe transition-colors hover:text-rose-gold-deep"
             >
               Pricing
             </a>
             <a
               href="#compliance"
-              className="text-label-md font-medium text-slate-text transition-colors hover:text-secondary"
+              className="text-label-md font-medium text-taupe transition-colors hover:text-rose-gold-deep"
             >
               Compliance
             </a>
@@ -112,13 +112,13 @@ export function LandingPage() {
           <div className="flex items-center gap-sm">
             <Link
               href="/sign-in"
-              className="hidden rounded-full px-4 py-2 text-label-md font-medium text-slate-text transition-colors hover:bg-surface-container-low sm:block"
+              className="hidden rounded-full px-4 py-2 text-label-md font-medium text-taupe transition-colors hover:bg-champagne sm:block"
             >
               Sign In
             </Link>
             <Link
               href="/sign-up"
-              className="rounded-full bg-primary px-6 py-2.5 text-label-md font-semibold text-on-primary shadow-sm transition-all hover:bg-on-primary-fixed-variant active:scale-95"
+              className="rounded-full bg-rose-gold px-6 py-2.5 text-label-md font-semibold text-ivory shadow-card transition-all hover:opacity-95 active:scale-95"
             >
               Start Free Trial
             </Link>
@@ -128,15 +128,15 @@ export function LandingPage() {
 
       <main className="pt-16">
         {/* Hero */}
-        <section className="hero-gradient relative overflow-hidden py-20 md:py-28">
+        <section className="luxury-gradient-hero relative overflow-hidden py-20 md:py-28">
           <div className="relative z-10 mx-auto max-w-7xl px-margin-mobile text-center md:px-margin-desktop">
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full bg-on-tertiary-container/10 px-4 py-1.5 text-caption font-semibold uppercase tracking-wider text-on-tertiary-container">
-              <VerifiedBadgeIcon className="text-on-tertiary-container" />
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full bg-sage-light px-4 py-1.5 text-caption font-semibold uppercase tracking-wider text-emerald-muted">
+              <VerifiedBadgeIcon className="text-emerald-muted" />
               FCC &amp; TCPA compliant platform
             </div>
-            <h1 className="mx-auto mb-6 max-w-4xl text-headline-lg-mobile font-semibold tracking-tight text-ink md:text-display-lg md:leading-[1.1]">
+            <h1 className="mx-auto mb-6 max-w-4xl font-serif text-headline-lg-mobile font-semibold tracking-tight text-ink md:text-display-lg md:leading-[1.1]">
               Automate ringless voicemail campaigns with{" "}
-              <span className="text-secondary">built-in CRM</span>
+              <span className="text-gradient-rose-gold">built-in CRM</span>
             </h1>
             <p className="mx-auto mb-10 max-w-2xl text-body-lg text-slate-text">
               Reach thousands of prospects without ringing their phones. One platform for
@@ -145,19 +145,19 @@ export function LandingPage() {
             <div className="mb-16 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
                 href="/sign-up"
-                className="w-full rounded-full bg-primary px-10 py-4 text-label-md font-semibold text-on-primary shadow-xl transition-all hover:shadow-2xl active:scale-95 sm:w-auto"
+                className="w-full rounded-full bg-rose-gold px-10 py-4 text-label-md font-semibold text-ivory shadow-card transition-all hover:opacity-95 active:scale-95 sm:w-auto"
               >
                 Start Free Trial
               </Link>
               <a
                 href="#pricing"
-                className="w-full rounded-full border border-outline-variant bg-surface px-10 py-4 text-label-md font-semibold text-ink transition-colors hover:bg-surface-container-low sm:w-auto"
+                className="w-full rounded-full border border-outline-variant/30 bg-ivory px-10 py-4 text-label-md font-semibold text-ink transition-colors hover:bg-champagne sm:w-auto"
               >
                 View Pricing
               </a>
             </div>
             <div className="relative mx-auto max-w-5xl">
-              <div className="overflow-hidden rounded-2xl border border-outline-variant/30 bg-white p-2 shadow-2xl">
+              <div className="overflow-hidden rounded-2xl border border-outline-variant/15 bg-ivory p-2 shadow-card">
                 <Image
                   src={HERO_IMAGE}
                   alt="Voice Reach CRM dashboard showing campaign analytics"
@@ -167,14 +167,14 @@ export function LandingPage() {
                   priority
                 />
               </div>
-              <div className="pointer-events-none absolute -right-6 -top-6 h-32 w-32 rounded-full bg-secondary-container/20 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-on-tertiary-container/10 blur-3xl" />
+              <div className="pointer-events-none absolute -right-6 -top-6 h-32 w-32 rounded-full bg-rose-gold/15 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-sage-light/40 blur-3xl" />
             </div>
           </div>
         </section>
 
         {/* Social proof */}
-        <section className="border-b border-outline-variant/20 bg-white py-12">
+        <section className="border-b border-outline-variant/15 bg-ivory py-12">
           <div className="mx-auto max-w-7xl px-margin-mobile md:px-margin-desktop">
             <p className="mb-8 text-center text-label-md font-semibold uppercase tracking-[0.2em] text-slate-text">
               Trusted by growth teams in regulated industries
@@ -193,13 +193,13 @@ export function LandingPage() {
         </section>
 
         {/* Features */}
-        <section id="features" className="bg-surface py-24">
+        <section id="features" className="bg-cream py-24">
           <div className="mx-auto max-w-7xl px-margin-mobile md:px-margin-desktop">
             <div className="mb-16 max-w-2xl">
-              <p className="mb-3 text-label-md font-semibold uppercase tracking-widest text-secondary">
+              <p className="mb-3 text-label-md font-semibold uppercase tracking-widest text-rose-gold-deep">
                 Platform capabilities
               </p>
-              <h2 className="mb-4 text-headline-lg-mobile font-semibold text-ink md:text-headline-lg">
+              <h2 className="mb-4 font-serif text-headline-lg-mobile font-semibold text-ink md:text-headline-lg">
                 Precision workflow automation
               </h2>
               <p className="text-body-lg text-slate-text">
@@ -208,13 +208,13 @@ export function LandingPage() {
               </p>
             </div>
             <div className="grid grid-cols-1 gap-gutter md:grid-cols-12 md:items-stretch">
-              <article className="group relative flex flex-col overflow-hidden rounded-[32px] border border-outline-variant/30 bg-white shadow-sm md:col-span-8 md:min-h-[480px]">
+              <article className="group relative flex flex-col overflow-hidden rounded-[32px] border border-outline-variant/15 bg-ivory shadow-card md:col-span-8 md:min-h-[480px]">
                 <div className="flex flex-1 flex-col gap-8 p-8 md:flex-row md:items-stretch md:gap-10 md:p-10">
                   <div className="flex flex-1 flex-col justify-center md:max-w-[42%]">
                     <FeatureIconBadge>
                       <VoicemailIcon />
                     </FeatureIconBadge>
-                    <h3 className="mt-6 mb-4 text-headline-md font-semibold text-ink">
+                    <h3 className="mt-6 mb-4 font-serif text-headline-md font-semibold text-ink">
                       Ringless Voicemail Delivery
                     </h3>
                     <p className="text-body-md leading-relaxed text-slate-text">
@@ -238,15 +238,15 @@ export function LandingPage() {
 
               <article
                 id="compliance"
-                className="flex flex-col justify-center rounded-[32px] bg-primary-container p-8 shadow-xl md:col-span-4 md:p-10"
+                className="flex flex-col justify-center rounded-[32px] bg-rose-gold-deep p-8 shadow-card md:col-span-4 md:p-10"
               >
                 <FeatureIconBadge variant="dark">
                   <ShieldCheckIcon />
                 </FeatureIconBadge>
-                <h3 className="mt-6 mb-4 text-headline-md font-semibold text-on-primary">
+                <h3 className="mt-6 mb-4 font-serif text-headline-md font-semibold text-ivory">
                   Enterprise Compliance
                 </h3>
-                <p className="text-body-md leading-relaxed text-on-primary/80">
+                <p className="text-body-md leading-relaxed text-ivory/85">
                   Native scrubbing for DNC, TCPA, and FCC rules with audit trails built for
                   high-volume outbound teams.
                 </p>
@@ -254,9 +254,9 @@ export function LandingPage() {
                   {["Automatic DNC scrubbing", "Real-time STIR/SHAKEN"].map((item) => (
                     <li
                       key={item}
-                      className="flex items-center gap-3 text-label-md text-on-primary"
+                      className="flex items-center gap-3 text-label-md text-ivory"
                     >
-                      <CheckCircleIcon className="shrink-0 text-on-tertiary-container" />
+                      <CheckCircleIcon className="shrink-0 text-sage-light" />
                       {item}
                     </li>
                   ))}
@@ -264,7 +264,7 @@ export function LandingPage() {
               </article>
 
               <div className="grid grid-cols-1 gap-gutter md:col-span-12 md:grid-cols-2">
-                <article className="flex h-full flex-col rounded-[32px] border border-outline-variant/30 bg-white p-8 shadow-sm md:p-10">
+                <article className="flex h-full flex-col rounded-[32px] border border-outline-variant/15 bg-ivory p-8 shadow-card md:p-10">
                   <FeatureIconBadge>
                     <HubIcon />
                   </FeatureIconBadge>
@@ -281,14 +281,14 @@ export function LandingPage() {
                         key={item}
                         className="flex items-start gap-3 text-body-md text-slate-text"
                       >
-                        <CheckCircleIcon className="mt-0.5 shrink-0 text-secondary" />
+                        <CheckCircleIcon className="mt-0.5 shrink-0 text-rose-gold-deep" />
                         {item}
                       </li>
                     ))}
                   </ul>
                 </article>
 
-                <article className="flex h-full flex-col rounded-[32px] border border-outline-variant/30 bg-surface-container-low p-8 md:p-10">
+                <article className="flex h-full flex-col rounded-[32px] border border-outline-variant/15 bg-champagne/50 p-8 md:p-10">
                   <FeatureIconBadge>
                     <AutomationIcon />
                   </FeatureIconBadge>
@@ -305,7 +305,7 @@ export function LandingPage() {
                         key={item}
                         className="flex items-start gap-3 text-body-md text-slate-text"
                       >
-                        <CheckCircleIcon className="mt-0.5 shrink-0 text-secondary" />
+                        <CheckCircleIcon className="mt-0.5 shrink-0 text-rose-gold-deep" />
                         {item}
                       </li>
                     ))}
@@ -317,12 +317,12 @@ export function LandingPage() {
         </section>
 
         {/* Pricing */}
-        <section id="pricing" className="bg-white py-24">
+        <section id="pricing" className="bg-ivory py-24">
           <div className="mx-auto max-w-7xl px-margin-mobile text-center md:px-margin-desktop">
-            <p className="text-label-md font-semibold uppercase tracking-widest text-secondary">
+            <p className="text-label-md font-semibold uppercase tracking-widest text-rose-gold-deep">
               Transparent pricing
             </p>
-            <h2 className="mt-4 mb-16 text-headline-lg-mobile font-semibold text-ink md:text-headline-lg">
+            <h2 className="mt-4 mb-16 font-serif text-headline-lg-mobile font-semibold text-ink md:text-headline-lg">
               Scale as you grow
             </h2>
             <div className="grid grid-cols-1 items-stretch gap-8 md:grid-cols-3 md:items-center">
@@ -331,32 +331,32 @@ export function LandingPage() {
                   key={tier.name}
                   className={`relative flex flex-col rounded-[32px] p-8 text-left md:p-10 ${
                     tier.featured
-                      ? "z-10 border-4 border-secondary-container bg-primary-container text-on-primary shadow-2xl md:scale-105"
-                      : "border border-outline-variant/40 bg-surface-container-lowest hover:shadow-xl"
+                      ? "z-10 border-4 border-rose-gold bg-rose-gold-deep text-ivory shadow-card md:scale-105"
+                      : "border border-outline-variant/20 bg-cream hover:shadow-card"
                   }`}
                 >
                   {tier.featured && (
-                    <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-secondary px-6 py-1 text-caption font-bold uppercase tracking-widest text-white">
+                    <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-rose-gold px-6 py-1 text-caption font-bold uppercase tracking-widest text-ivory">
                       Most popular
                     </span>
                   )}
                   <h3
-                    className={`mb-2 text-headline-md font-semibold ${
-                      tier.featured ? "text-on-primary" : "text-ink"
+                    className={`mb-2 font-serif text-headline-md font-semibold ${
+                      tier.featured ? "text-ivory" : "text-ink"
                     }`}
                   >
                     {tier.name}
                   </h3>
                   <p
                     className={`mb-8 text-body-md ${
-                      tier.featured ? "text-on-primary/80" : "text-slate-text"
+                      tier.featured ? "text-ivory/85" : "text-slate-text"
                     }`}
                   >
                     {tier.description}
                   </p>
                   <div
                     className={`mb-8 flex items-baseline gap-1 ${
-                      tier.featured ? "text-on-primary" : "text-ink"
+                      tier.featured ? "text-ivory" : "text-ink"
                     }`}
                   >
                     <span className="text-display-lg font-semibold leading-none">
@@ -365,7 +365,7 @@ export function LandingPage() {
                     {tier.priceSuffix && (
                       <span
                         className={`text-headline-md ${
-                          tier.featured ? "text-on-primary/70" : "text-slate-text"
+                          tier.featured ? "text-ivory/70" : "text-slate-text"
                         }`}
                       >
                         {tier.priceSuffix}
@@ -376,10 +376,10 @@ export function LandingPage() {
                     href="/sign-up"
                     className={`mb-10 w-full rounded-full py-4 text-center text-label-md font-bold transition-all ${
                       tier.ctaStyle === "primary"
-                        ? "bg-secondary text-white shadow-lg hover:bg-secondary/90"
+                        ? "bg-rose-gold text-ivory shadow-card hover:opacity-95"
                         : tier.featured
-                          ? "border border-on-primary/30 text-on-primary hover:bg-on-primary/10"
-                          : "border border-primary text-primary hover:bg-primary hover:text-on-primary"
+                          ? "border border-ivory/30 text-ivory hover:bg-ivory/10"
+                          : "border border-rose-gold text-rose-gold-deep hover:bg-rose-gold hover:text-ivory"
                     }`}
                   >
                     {tier.cta}
@@ -389,12 +389,12 @@ export function LandingPage() {
                       <li
                         key={item}
                         className={`flex items-start gap-3 text-body-md ${
-                          tier.featured ? "text-on-primary/90" : "text-slate-text"
+                          tier.featured ? "text-ivory/90" : "text-slate-text"
                         }`}
                       >
                         <span
                           className={`material-symbols-outlined mt-0.5 shrink-0 text-[20px] ${
-                            tier.featured ? "text-tertiary-fixed" : "text-secondary"
+                            tier.featured ? "text-sage-light" : "text-rose-gold-deep"
                           }`}
                         >
                           check
@@ -410,26 +410,26 @@ export function LandingPage() {
         </section>
 
         {/* CTA */}
-        <section className="bg-surface px-margin-mobile py-24 md:px-margin-desktop">
-          <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[48px] bg-ink p-10 text-center md:p-20">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-secondary/40 via-transparent to-transparent" />
-            <h2 className="relative z-10 mb-6 text-headline-lg-mobile font-semibold text-white md:text-headline-lg">
+        <section className="bg-cream px-margin-mobile py-24 md:px-margin-desktop">
+          <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[48px] bg-rose-gold-deep p-10 text-center md:p-20">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-rose-gold/30 via-transparent to-transparent" />
+            <h2 className="relative z-10 mb-6 font-serif text-headline-lg-mobile font-semibold text-ivory md:text-headline-lg">
               Ready to transform your outreach?
             </h2>
-            <p className="relative z-10 mx-auto mb-10 max-w-2xl text-body-lg text-white/75">
+            <p className="relative z-10 mx-auto mb-10 max-w-2xl text-body-lg text-ivory/85">
               Join high-growth teams using Voice Reach CRM to scale sales conversations
               with compliance built in from day one.
             </p>
             <div className="relative z-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
               <Link
                 href="/sign-up"
-                className="w-full rounded-full bg-white px-12 py-5 text-label-md font-bold text-ink shadow-xl transition-all hover:bg-secondary-fixed active:scale-95 sm:w-auto"
+                className="w-full rounded-full bg-ivory px-12 py-5 text-label-md font-bold text-ink shadow-card transition-all hover:bg-champagne active:scale-95 sm:w-auto"
               >
                 Claim your free trial
               </Link>
               <Link
                 href="/sign-in"
-                className="flex items-center gap-2 text-label-md font-bold text-white transition-all hover:gap-3"
+                className="flex items-center gap-2 text-label-md font-bold text-ivory transition-all hover:gap-3"
               >
                 Sign in to dashboard
                 <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
@@ -439,7 +439,7 @@ export function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-outline-variant/30 bg-white py-20">
+      <footer className="border-t border-outline-variant/15 bg-ivory py-20">
         <div className="mx-auto max-w-7xl px-margin-mobile md:px-margin-desktop">
           <div className="mb-16 grid grid-cols-1 gap-12 md:grid-cols-4">
             <div className="md:col-span-1">
@@ -540,6 +540,6 @@ export function LandingPage() {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }

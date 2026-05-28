@@ -4,6 +4,7 @@ import { AiAssistantProvider } from "@/components/ai/ai-assistant-context";
 import { AiAssistantSidebar } from "@/components/ai/ai-assistant-sidebar";
 import { AiFloatingButton } from "@/components/ai/ai-launcher-button";
 import { UpgradePlanProvider } from "@/components/billing/upgrade-plan-provider";
+import { SetupBanner } from "@/components/layout/setup-banner";
 import { DashboardHeaderProvider } from "@/components/layout/dashboard-header-provider";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
 import { usePathname } from "next/navigation";
@@ -78,7 +79,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           searchPlaceholder={config.searchPlaceholder}
           showQuickCreate={config.showQuickCreate ?? true}
         >
-          <div className="min-h-screen bg-surface text-on-surface">
+          <div className="min-h-screen bg-cream text-on-surface">
             <DashboardSidebar />
             <main
               className={
@@ -87,6 +88,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                   : "ml-64 min-h-screen px-margin-desktop pb-12 pt-24"
               }
             >
+              <SetupBanner />
               {children}
             </main>
             <AiFloatingButton />
