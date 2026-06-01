@@ -61,12 +61,14 @@ type DashboardHeaderProviderProps = {
   children: ReactNode;
   searchPlaceholder?: string;
   showQuickCreate?: boolean;
+  onMenuClick?: () => void;
 };
 
 export function DashboardHeaderProvider({
   children,
   searchPlaceholder = "Search data, contacts, campaigns...",
   showQuickCreate = true,
+  onMenuClick,
 }: DashboardHeaderProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -208,12 +210,21 @@ export function DashboardHeaderProvider({
 
   return (
     <DashboardHeaderContext.Provider value={{ openQuickCreate: () => setQuickCreateOpen(true) }}>
-      <header className="fixed top-0 right-0 z-40 ml-64 flex h-16 w-[calc(100%-16rem)] items-center justify-between border-b border-outline-variant bg-surface/80 px-margin-desktop shadow-sm backdrop-blur-md">
-        <form className="flex flex-1 items-center gap-gutter" onSubmit={handleSearchSubmit}>
+      <header className="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-2 border-b border-outline-variant bg-surface/80 px-4 shadow-sm backdrop-blur-md lg:left-64 lg:w-[calc(100%-16rem)] lg:gap-4 lg:px-margin-desktop">
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="shrink-0 rounded-full p-2 text-ink transition-colors hover:bg-surface-container-low lg:hidden"
+          aria-label="Open navigation menu"
+        >
+          <Icon name="menu" className="text-[24px]" />
+        </button>
+
+        <form className="flex min-w-0 flex-1 items-center" onSubmit={handleSearchSubmit}>
           <div ref={searchRef} className="relative w-full max-w-md">
             <Icon
               name="search"
-              className="absolute left-4 top-1/2 z-10 -translate-y-1/2 text-on-surface-variant"
+              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-on-surface-variant sm:left-4"
             />
             <input
               type="search"
@@ -221,7 +232,7 @@ export function DashboardHeaderProvider({
               onChange={(e) => handleSearchChange(e.target.value)}
               onFocus={() => setSearchOpen(true)}
               placeholder={searchPlaceholder}
-              className="h-10 w-full rounded-full border-none bg-surface-container-low pl-12 pr-4 text-body-md focus:ring-2 focus:ring-rose-gold/20"
+              className="h-10 w-full rounded-full border-none bg-surface-container-low pl-10 pr-3 text-body-md focus:ring-2 focus:ring-rose-gold/20 sm:pl-12 sm:pr-4"
               aria-label="Search dashboard"
               aria-expanded={searchOpen}
               autoComplete="off"
@@ -286,15 +297,25 @@ export function DashboardHeaderProvider({
           </div>
         </form>
 
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-3">
           {showQuickCreate ? (
-            <button
-              type="button"
-              onClick={() => setQuickCreateOpen(true)}
-              className="rounded-full bg-primary px-6 py-2 text-label-md font-bold text-on-primary transition-all hover:bg-primary/90"
-            >
-              Quick Create
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => setQuickCreateOpen(true)}
+                className="hidden rounded-full bg-rose-gold px-5 py-2 text-label-md font-bold text-ivory transition-all hover:opacity-95 sm:inline-flex"
+              >
+                Quick Create
+              </button>
+              <button
+                type="button"
+                onClick={() => setQuickCreateOpen(true)}
+                className="inline-flex rounded-full bg-rose-gold p-2.5 text-ivory transition-all hover:opacity-95 sm:hidden"
+                aria-label="Quick create"
+              >
+                <Icon name="add" className="text-[22px]" />
+              </button>
+            </>
           ) : null}
 
           <div ref={notifRef} className="relative">
@@ -367,11 +388,11 @@ export function DashboardHeaderProvider({
             ) : null}
           </div>
 
-          <div ref={profileRef} className="relative ml-2">
+          <div ref={profileRef} className="relative">
             <button
               type="button"
               onClick={() => setProfileOpen((o) => !o)}
-              className="flex items-center gap-3 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-surface-container-low"
+              className="flex items-center gap-2 rounded-full py-1 pl-1 pr-1 transition-colors hover:bg-surface-container-low sm:pr-2"
               aria-label="Account menu"
               aria-expanded={profileOpen}
             >
@@ -394,7 +415,7 @@ export function DashboardHeaderProvider({
               )}
               <Icon
                 name={profileOpen ? "expand_less" : "expand_more"}
-                className="text-[20px] text-taupe"
+                className="hidden text-[20px] text-taupe sm:block"
               />
             </button>
             {profileOpen ? (

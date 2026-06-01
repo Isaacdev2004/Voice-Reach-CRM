@@ -29,7 +29,7 @@ export function OperationalDashboardPage() {
     hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="luxury-page p-8 max-w-[1400px] w-full mx-auto space-y-6">
+    <div className="luxury-page px-4 py-6 sm:p-8 max-w-[1400px] w-full mx-auto space-y-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-taupe">

@@ -899,7 +899,7 @@ export function SettingsWorkspacePage() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-64 right-0 z-30 flex justify-end gap-3 border-t border-outline-variant/15 bg-ivory/95 px-8 py-4 backdrop-blur-md">
+      <div className="fixed bottom-0 left-0 right-0 z-30 flex justify-end gap-3 border-t border-outline-variant/15 bg-ivory/95 px-4 py-4 backdrop-blur-md lg:left-64">
         <button
           type="button"
           onClick={handleDiscard}
