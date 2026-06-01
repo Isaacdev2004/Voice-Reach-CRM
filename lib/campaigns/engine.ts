@@ -1,7 +1,7 @@
 import { writeAuditLog } from "@/lib/audit";
 import { evaluateEligibility } from "@/lib/compliance";
 import { recordEngagementEvent } from "@/lib/engagement/record";
-import { dispatch } from "@/lib/providers/registry";
+import { sendToContact } from "@/lib/providers/dispatch-message";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export type CampaignStepType =
@@ -177,20 +177,34 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     const channel: "voicemail" | "sms" | "email" =
       step.type === "voicemail" ? "voicemail" : step.type === "sms" ? "sms" : "email";
 
-    const sendResult = await dispatch(
-      {
-        channel,
-        to: contact.phone,
-        from: process.env.VOICE_PROVIDER_FROM_NUMBER,
-        audioUrl: campaign?.voice_assets?.audio_url ?? undefined,
-        body: step.description ?? step.title,
-        subject: step.title,
-        campaignId: campaign?.id ?? recipient.campaign_id,
-        recipientId: recipient.id,
-        stepId: step.id,
+    const voicemailProvider =
+      campaign?.provider && campaign.provider !== "mock"
+        ? campaign.provider
+        : process.env.VOICE_PROVIDER ?? "slybroadcast";
+
+    const sendResult = await sendToContact({
+      ownerId: run.owner_id,
+      contact: {
+        id: contact.id,
+        phone: contact.phone,
+        email: contact.email,
       },
-      campaign?.provider,
-    );
+      channel,
+      campaignId: campaign?.id ?? recipient.campaign_id,
+      recipientId: recipient.id,
+      stepId: step.id,
+      body: step.description ?? step.title,
+      subject: step.title,
+      audioUrl: campaign?.voice_assets?.audio_url ?? undefined,
+      providerId: channel === "voicemail" ? voicemailProvider : undefined,
+      recordEngagement: true,
+    });
+
+    if (sendResult.skipped) {
+      await markRun(run.id, "skipped", { reason: sendResult.skipReason });
+      executed.push({ runId: run.id, status: "skipped" });
+      continue;
+    }
 
     if (sendResult.ok) {
       await markRun(run.id, "sent", { providerMessageId: sendResult.providerMessageId });
@@ -201,25 +215,8 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
           provider_message_id: sendResult.providerMessageId ?? null,
         })
         .eq("id", recipient.id);
-      await recordEngagementEvent({
-        ownerId: run.owner_id,
-        contactId: contact.id,
-        campaignId: campaign?.id,
-        stepId: step.id,
-        eventType: "delivered",
-        channel,
-      });
     } else {
       await markRun(run.id, "failed", { error: sendResult.error });
-      await recordEngagementEvent({
-        ownerId: run.owner_id,
-        contactId: contact.id,
-        campaignId: campaign?.id,
-        stepId: step.id,
-        eventType: "failed",
-        channel,
-        metadata: { error: sendResult.error },
-      });
     }
     executed.push({ runId: run.id, status: sendResult.ok ? "sent" : "failed" });
   }

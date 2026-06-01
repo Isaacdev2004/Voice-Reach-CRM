@@ -79,16 +79,21 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
       continue;
     }
 
+    const voicemailProvider =
+      campaign.provider && campaign.provider !== "mock"
+        ? campaign.provider
+        : process.env.VOICE_PROVIDER ?? "slybroadcast";
+
     const providerResult = await dispatch(
       {
         channel: "voicemail",
         to: contact.phone,
-        from: process.env.VOICE_PROVIDER_FROM_NUMBER,
+        from: process.env.SLYBROADCAST_CALLER_ID ?? process.env.VOICE_PROVIDER_FROM_NUMBER,
         audioUrl: signedAudio.signedUrl,
         campaignId,
         recipientId: recipient.id,
       },
-      campaign.provider,
+      voicemailProvider,
     );
 
     await supabaseAdmin

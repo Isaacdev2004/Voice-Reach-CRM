@@ -61,8 +61,8 @@ export function ActivateCampaignModal({
               text: "Compliance check runs for each enrolled contact",
             },
             {
-              icon: "schedule",
-              text: "Provider delivery connects in a later milestone (queued now)",
+              icon: "send",
+              text: "Live delivery via Slybroadcast, Twilio SMS, and Resend email when configured",
             },
           ].map((row) => (
             <li

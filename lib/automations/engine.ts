@@ -1,4 +1,5 @@
 import { writeAuditLog } from "@/lib/audit";
+import { sendToContact } from "@/lib/providers/dispatch-message";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export type AutomationActionType =
@@ -72,7 +73,10 @@ export async function evaluateTriggers(params: {
 
     for (const action of actions) {
       try {
-        await runAction(params.ownerId, params.contactId, action, params.metadata);
+        await runAction(params.ownerId, params.contactId, action, {
+          ...params.metadata,
+          ruleId: rule.id,
+        });
         executed.push(action);
       } catch (err) {
         console.warn("[automation] action failed:", err);
@@ -107,6 +111,8 @@ async function runAction(
   action: AutomationAction,
   metadata: Record<string, unknown> = {},
 ) {
+  const ruleId = String(metadata.ruleId ?? "rule");
+
   switch (action.type) {
     case "notify_user":
       await writeAuditLog({
@@ -117,16 +123,17 @@ async function runAction(
         metadata: { message: action.config.message ?? "Automation triggered", contactId, ...metadata },
       });
       return;
+
     case "add_tag":
-      // Tags currently held in contact notes/metadata; persisted as audit for now.
       await writeAuditLog({
         ownerId,
         action: "AUTOMATION_TAG_ADDED",
         entityType: "contact",
-        entityId: null,
+        entityId: contactId ?? null,
         metadata: { contactId, tag: action.config.tag },
       });
       return;
+
     case "assign_task":
       await writeAuditLog({
         ownerId,
@@ -136,8 +143,65 @@ async function runAction(
         metadata: { contactId, title: action.config.title },
       });
       return;
+
     case "send_sms":
-    case "send_email":
+    case "send_email": {
+      if (!contactId) return;
+      const { data: contact } = await supabaseAdmin
+        .from("contacts")
+        .select("id, phone, email, dnc")
+        .eq("id", contactId)
+        .eq("owner_id", ownerId)
+        .maybeSingle();
+
+      if (!contact) return;
+      if (contact.dnc) {
+        await writeAuditLog({
+          ownerId,
+          action: "AUTOMATION_BLOCKED",
+          entityType: "contact",
+          entityId: contactId,
+          metadata: { reason: "DNC", action: action.type },
+        });
+        return;
+      }
+
+      const channel = action.type === "send_email" ? "email" : "sms";
+      const body =
+        String(action.config.body ?? action.config.message ?? "") ||
+        (channel === "email"
+          ? "Following up — reply anytime if you have questions."
+          : "Hi — just following up. Reply STOP to opt out.");
+
+      const result = await sendToContact({
+        ownerId,
+        contact,
+        channel,
+        campaignId: `automation-${ruleId}`,
+        recipientId: contactId,
+        body,
+        subject: String(action.config.subject ?? "Message from your agent"),
+        recordEngagement: true,
+      });
+
+      await writeAuditLog({
+        ownerId,
+        action: `AUTOMATION_${action.type.toUpperCase()}`,
+        entityType: "automation_action",
+        entityId: contactId,
+        metadata: {
+          contactId,
+          channel,
+          ok: result.ok,
+          status: result.status,
+          error: result.error,
+          providerMessageId: result.providerMessageId,
+          ...action.config,
+        },
+      });
+      return;
+    }
+
     case "trigger_ai_follow_up":
     case "start_campaign":
       await writeAuditLog({
@@ -148,6 +212,7 @@ async function runAction(
         metadata: { contactId, ...action.config, ...metadata },
       });
       return;
+
     default:
       return;
   }

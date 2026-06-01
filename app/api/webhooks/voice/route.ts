@@ -37,12 +37,19 @@ async function handle(request: Request): Promise<NextResponse> {
       .maybeSingle();
 
     if (recipient) {
+      const channel =
+        event.provider === "resend" || event.provider === "twilio"
+          ? event.provider === "resend"
+            ? "email"
+            : "sms"
+          : "voicemail";
+
       await recordEngagementEvent({
         ownerId: recipient.owner_id,
         contactId: recipient.contact_id,
         campaignId: recipient.campaign_id,
         eventType: event.eventType === "unknown" ? "delivered" : event.eventType,
-        channel: "voicemail",
+        channel,
         metadata: { provider: event.provider, raw: event.raw },
       });
 
