@@ -55,10 +55,18 @@ export function AutomationWorkflowsPage() {
     (async () => {
       const local = loadWorkflowsLocal();
       const remote = await fetchWorkflowsRemote();
-      const merged = remote?.length ? remote : local;
-      persistLocal(merged);
+      // Merge remote + local so unsaved local workflows don't disappear.
+      // Prefer remote values when ids collide.
+      const byId = new Map<string, AutomationWorkflow>();
+      (local ?? []).forEach((w) => byId.set(w.id, w));
+      (remote ?? []).forEach((w) => byId.set(w.id, w));
+      const merged = Array.from(byId.values()).sort(
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      );
+      persistLocal(merged.length ? merged : [DEFAULT_WORKFLOW]);
       const id = loadActiveWorkflowId();
       if (merged.some((w) => w.id === id)) setActiveId(id);
+      else setActiveId((merged[0] ?? DEFAULT_WORKFLOW).id);
     })();
   }, [persistLocal]);
 
