@@ -37,6 +37,8 @@ const BodySchema = z.object({
   action: z.enum(["template", "activate"]),
   campaign: BlueprintSchema,
   campaignId: z.string().uuid().optional(),
+  /** When set, only these contacts are enrolled (must still pass compliance). */
+  contactIds: z.array(z.string().uuid()).optional(),
 });
 
 async function upsertCampaign(
@@ -82,19 +84,33 @@ async function upsertCampaign(
   return data;
 }
 
-async function enrollEligibleContacts(ownerId: string, campaignId: string) {
-  const { data: contacts, error } = await supabaseAdmin
+async function enrollContacts(
+  ownerId: string,
+  campaignId: string,
+  options?: { contactIds?: string[] },
+) {
+  let query = supabaseAdmin
     .from("contacts")
     .select("id, phone, dnc, consent_records(*)")
     .eq("owner_id", ownerId);
 
+  if (options?.contactIds?.length) {
+    query = query.in("id", options.contactIds);
+  }
+
+  const { data: contacts, error } = await query;
   if (error) throw new Error(error.message);
 
   const eligible =
     contacts?.filter((c) => evaluateEligibility(c).eligible).map((c) => c.id) ?? [];
 
   if (eligible.length === 0) {
-    return { enrolled: 0, eligible: 0, total: contacts?.length ?? 0 };
+    return {
+      enrolled: 0,
+      eligible: 0,
+      total: contacts?.length ?? 0,
+      requested: options?.contactIds?.length ?? null,
+    };
   }
 
   const rows = eligible.map((contactId) => ({
@@ -116,6 +132,7 @@ async function enrollEligibleContacts(ownerId: string, campaignId: string) {
     enrolled: eligible.length,
     eligible: eligible.length,
     total: contacts?.length ?? 0,
+    requested: options?.contactIds?.length ?? null,
   };
 }
 
@@ -143,7 +160,7 @@ function guessDelay(step: { dayLabel?: string }): number {
 export const POST = withApiHandler(async (request: Request) => {
   const ownerId = await requireUserId();
   const body = BodySchema.parse(await request.json());
-  const { action, campaign: blueprint, campaignId: existingId } = body;
+  const { action, campaign: blueprint, campaignId: existingId, contactIds } = body;
 
   if (action === "template") {
     const record = await upsertCampaign(ownerId, blueprint, "draft", existingId);
@@ -166,7 +183,9 @@ export const POST = withApiHandler(async (request: Request) => {
 
   const record = await upsertCampaign(ownerId, blueprint, "queued", existingId);
   await persistSteps(ownerId, record.id, mapStepsToBlueprint(blueprint.steps));
-  const enrollment = await enrollEligibleContacts(ownerId, record.id);
+  const enrollment = await enrollContacts(ownerId, record.id, {
+    contactIds: contactIds?.length ? contactIds : undefined,
+  });
   const schedule = await scheduleStepRunsForCampaign(ownerId, record.id);
 
   await writeAuditLog({

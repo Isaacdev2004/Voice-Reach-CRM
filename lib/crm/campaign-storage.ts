@@ -1,5 +1,5 @@
 import { safeFetch } from "@/lib/api-response";
-import type { CampaignDefinition } from "./types";
+import type { ActivateCampaignOptions, CampaignDefinition } from "./types";
 
 const TEMPLATES_KEY = "voicereach-campaign-templates";
 
@@ -35,6 +35,7 @@ export async function saveCampaignBuilder(
   action: "template" | "activate",
   campaign: CampaignDefinition,
   campaignId?: string | null,
+  activateOptions?: ActivateCampaignOptions,
 ): Promise<CampaignBuilderResult> {
   const envelope = await safeFetch<CampaignBuilderResult>("/api/campaigns/builder", {
     method: "POST",
@@ -51,6 +52,10 @@ export async function saveCampaignBuilder(
         goals: campaign.goals,
       },
       campaignId: campaignId ?? undefined,
+      contactIds:
+        action === "activate" && activateOptions && !activateOptions.enrollAllEligible
+          ? activateOptions.contactIds
+          : undefined,
     }),
   });
 

@@ -2,6 +2,7 @@ import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { evaluateTriggers } from "@/lib/automations/engine";
+import { evaluateEligibility } from "@/lib/compliance";
 import { CreateContactSchema, filterContactsByQuery } from "@/lib/contacts/schemas";
 import { normalizePhone } from "@/lib/phone";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -19,8 +20,19 @@ export const GET = withApiHandler(async (request) => {
 
   if (error) return apiError(error.message, { status: 500 });
 
-  const contacts = q ? filterContactsByQuery(data ?? [], q) : (data ?? []);
-  return apiOk({ contacts, total: (data ?? []).length, filtered: contacts.length, q });
+  const raw = q ? filterContactsByQuery(data ?? [], q) : (data ?? []);
+  const contacts = raw.map((contact) => ({
+    ...contact,
+    eligibility: evaluateEligibility(contact),
+  }));
+  const eligibleCount = contacts.filter((c) => c.eligibility.eligible).length;
+  return apiOk({
+    contacts,
+    total: (data ?? []).length,
+    filtered: contacts.length,
+    eligibleCount,
+    q,
+  });
 });
 
 export const POST = withApiHandler(async (request) => {

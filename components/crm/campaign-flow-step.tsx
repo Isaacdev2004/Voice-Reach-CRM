@@ -22,7 +22,13 @@ const statusConfig: Record<
   draft: { label: "Draft", className: "bg-surface-container text-on-surface-variant" },
 };
 
-export function CampaignFlowStep({ step }: { step: CampaignStep }) {
+type CampaignFlowStepProps = {
+  step: CampaignStep;
+  editable?: boolean;
+  onRemove?: (stepId: string) => void;
+};
+
+export function CampaignFlowStep({ step, editable, onRemove }: CampaignFlowStepProps) {
   const status = statusConfig[step.status];
 
   return (
@@ -34,6 +40,16 @@ export function CampaignFlowStep({ step }: { step: CampaignStep }) {
         step.status === "draft" && "ring-2 ring-dashed ring-rose-gold/25 border-rose-gold/20",
       )}
     >
+      {editable && onRemove ? (
+        <button
+          type="button"
+          onClick={() => onRemove(step.id)}
+          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full border border-outline-variant/20 bg-ivory text-taupe transition-colors hover:border-error/40 hover:bg-error/10 hover:text-error"
+          aria-label={`Remove ${step.title}`}
+        >
+          <Icon name="close" className="text-[16px]" />
+        </button>
+      ) : null}
       <span className="absolute -top-3 left-1/2 flex h-7 w-7 -translate-x-1/2 items-center justify-center rounded-full bg-rose-gold text-[13px] font-semibold text-ivory">
         {step.order}
       </span>
@@ -58,13 +74,23 @@ export function CampaignFlowStep({ step }: { step: CampaignStep }) {
   );
 }
 
-export function CampaignFlow({ steps }: { steps: CampaignStep[] }) {
+type CampaignFlowProps = {
+  steps: CampaignStep[];
+  editable?: boolean;
+  onRemoveStep?: (stepId: string) => void;
+};
+
+export function CampaignFlow({ steps, editable, onRemoveStep }: CampaignFlowProps) {
   return (
     <div className="relative overflow-x-auto pb-4">
       <div className="flex min-w-max items-stretch gap-0 px-4">
         {steps.map((step, i) => (
           <div key={step.id} className="flex items-center">
-            <CampaignFlowStep step={step} />
+            <CampaignFlowStep
+              step={step}
+              editable={editable}
+              onRemove={onRemoveStep}
+            />
             {i < steps.length - 1 ? (
               <div className="mx-2 h-0.5 w-12 shrink-0 campaign-flow-line" aria-hidden />
             ) : null}

@@ -51,7 +51,7 @@ export function CampaignListPanel() {
           <h2 className="mt-1 font-serif text-[22px] font-semibold text-ink">All campaigns</h2>
         </div>
         <Link
-          href="#campaign-builder"
+          href="/dashboard/campaigns?new=1#campaign-builder"
           className="text-[13px] font-medium text-rose-gold-deep hover:underline"
         >
           + Build new
@@ -76,18 +76,23 @@ export function CampaignListPanel() {
         <ul className="space-y-2">
           {campaigns.map((c) => (
             <li key={c.id}>
-              <Link
-                href={`/dashboard/campaigns/${c.id}`}
-                className="luxury-hover flex items-center justify-between rounded-2xl border border-outline-variant/15 bg-ivory px-4 py-3"
-              >
-                <div className="min-w-0">
+              <div className="luxury-hover flex items-center justify-between gap-2 rounded-2xl border border-outline-variant/15 bg-ivory px-4 py-3">
+                <Link href={`/dashboard/campaigns/${c.id}`} className="min-w-0 flex-1">
                   <p className="truncate font-medium text-ink">{c.name}</p>
                   <p className="text-[12px] text-taupe">
                     Provider: {c.provider} ·{" "}
                     {new Date(c.created_at).toLocaleDateString()}
                   </p>
-                </div>
-                <div className="flex items-center gap-3">
+                </Link>
+                <div className="flex shrink-0 items-center gap-2">
+                  {(c.status === "draft" || c.status === "queued") && (
+                    <Link
+                      href={`/dashboard/campaigns?edit=${c.id}#campaign-builder`}
+                      className="rounded-full border border-outline-variant/25 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-rose-gold-deep hover:bg-champagne"
+                    >
+                      Edit
+                    </Link>
+                  )}
                   <span
                     className={cn(
                       "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
@@ -96,9 +101,11 @@ export function CampaignListPanel() {
                   >
                     {c.status}
                   </span>
-                  <Icon name="chevron_right" className="text-taupe" />
+                  <Link href={`/dashboard/campaigns/${c.id}`} aria-label="Open campaign">
+                    <Icon name="chevron_right" className="text-taupe" />
+                  </Link>
                 </div>
-              </Link>
+              </div>
             </li>
           ))}
         </ul>

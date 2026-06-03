@@ -1,5 +1,6 @@
 import { CampaignListPanel } from "@/components/campaigns/campaign-list-panel";
 import { CampaignBuilderPage } from "@/components/pages/stitch/CampaignBuilderPage";
+import { Suspense } from "react";
 
 export default function CampaignsPage() {
   return (
@@ -8,7 +9,13 @@ export default function CampaignsPage() {
         <CampaignListPanel />
       </div>
       <div id="campaign-builder">
-        <CampaignBuilderPage />
+        <Suspense
+          fallback={
+            <div className="p-8 text-center text-[14px] text-taupe">Loading campaign builder…</div>
+          }
+        >
+          <CampaignBuilderPage />
+        </Suspense>
       </div>
     </div>
   );

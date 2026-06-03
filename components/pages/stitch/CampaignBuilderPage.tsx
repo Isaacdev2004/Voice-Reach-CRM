@@ -6,27 +6,35 @@ import { CampaignEditorStrip } from "@/components/crm/campaign-editor-strip";
 import { CampaignFlow } from "@/components/crm/campaign-flow-step";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
+import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
+import { campaignFromApi, createBlankCampaign } from "@/lib/crm/campaign-blueprint";
 import { saveCampaignBuilder, saveTemplateLocally } from "@/lib/crm/campaign-storage";
 import { campaignDurationFromSteps, reorderSteps } from "@/lib/crm/campaign-steps";
 import { DEFAULT_CAMPAIGN } from "@/lib/crm/mock-data";
-import type { CampaignDefinition, CampaignStep } from "@/lib/crm/types";
+import type { ActivateCampaignOptions, CampaignDefinition, CampaignStep } from "@/lib/crm/types";
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Toast = { message: string; tone: "success" | "error" };
 
+const inputClass =
+  "w-full rounded-xl border border-outline-variant/20 bg-ivory/80 px-4 py-2 text-ink outline-none transition-colors focus:border-rose-gold/50";
+
 export function CampaignBuilderPage() {
-  const [campaign, setCampaign] = useState<CampaignDefinition>(() => ({
-    ...DEFAULT_CAMPAIGN,
-    steps: [...DEFAULT_CAMPAIGN.steps],
-  }));
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const editId = searchParams.get("edit");
+
+  const [campaign, setCampaign] = useState<CampaignDefinition>(() => createBlankCampaign());
   const [dbCampaignId, setDbCampaignId] = useState<string | null>(null);
   const [campaignStatus, setCampaignStatus] = useState<"editing" | "draft" | "queued">("editing");
   const [addStepOpen, setAddStepOpen] = useState(false);
   const [activateOpen, setActivateOpen] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [activating, setActivating] = useState(false);
+  const [loadingCampaign, setLoadingCampaign] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
 
   const durationDays = useMemo(
@@ -39,9 +47,93 @@ export function CampaignBuilderPage() {
     window.setTimeout(() => setToast(null), 4500);
   };
 
-  const handleAddStep = useCallback((step: CampaignStep) => {
+  const resetToNewCampaign = useCallback(() => {
+    setCampaign(createBlankCampaign());
+    setDbCampaignId(null);
+    setCampaignStatus("editing");
+  }, []);
+
+  const loadSampleTemplate = useCallback(() => {
+    setCampaign({
+      ...DEFAULT_CAMPAIGN,
+      id: `campaign-${crypto.randomUUID()}`,
+      steps: DEFAULT_CAMPAIGN.steps.map((s) => ({
+        ...s,
+        id: `step-${crypto.randomUUID()}`,
+        status: "draft" as const,
+      })),
+    });
+    setDbCampaignId(null);
+    setCampaignStatus("editing");
+    showToast("Sample template loaded — remove any steps you do not need.");
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      resetToNewCampaign();
+      router.replace("/dashboard/campaigns#campaign-builder", { scroll: false });
+      return;
+    }
+
+    if (!editId) return;
+
+    let cancelled = false;
+    (async () => {
+      setLoadingCampaign(true);
+      const envelope = await safeFetch<{
+        campaign: { id: string; name: string; status: string; script_id?: string };
+        steps: Array<{
+          id: string;
+          step_order: number;
+          type: string;
+          title: string;
+          description?: string;
+          day_label?: string;
+          time_label?: string;
+          status?: string;
+        }>;
+      }>(`/api/campaigns/${editId}`);
+
+      if (cancelled) return;
+      setLoadingCampaign(false);
+
+      if (!envelope.success) {
+        showToast(envelope.error, "error");
+        return;
+      }
+
+      const loaded = campaignFromApi(envelope.data.campaign, envelope.data.steps);
+      setCampaign(loaded);
+      setDbCampaignId(envelope.data.campaign.id);
+      setCampaignStatus(
+        envelope.data.campaign.status === "queued" ? "queued" : "draft",
+      );
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [editId, resetToNewCampaign, router, searchParams]);
+
+  const handleAddStep = useCallback(
+    (step: CampaignStep) => {
+      setCampaign((prev) => {
+        const steps = reorderSteps([...prev.steps, step]);
+        return {
+          ...prev,
+          steps,
+          durationDays: campaignDurationFromSteps(steps),
+        };
+      });
+      if (campaignStatus === "queued") setCampaignStatus("editing");
+      showToast("Step added to your sequence");
+    },
+    [campaignStatus],
+  );
+
+  const handleRemoveStep = useCallback((stepId: string) => {
     setCampaign((prev) => {
-      const steps = reorderSteps([...prev.steps, step]);
+      const steps = reorderSteps(prev.steps.filter((s) => s.id !== stepId));
       return {
         ...prev,
         steps,
@@ -49,11 +141,13 @@ export function CampaignBuilderPage() {
       };
     });
     if (campaignStatus === "queued") setCampaignStatus("editing");
-    showToast("Step added to your sequence");
+    showToast("Step removed");
   }, [campaignStatus]);
 
   const scrollToSequence = () => {
-    document.getElementById("automation-sequence")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document
+      .getElementById("automation-sequence")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleSaveTemplate = async () => {
@@ -82,7 +176,7 @@ export function CampaignBuilderPage() {
     }
   };
 
-  const handleActivate = async () => {
+  const handleActivate = async (options: ActivateCampaignOptions) => {
     if (campaign.steps.length === 0) {
       showToast("Add at least one automation step to activate.", "error");
       setActivateOpen(false);
@@ -91,7 +185,12 @@ export function CampaignBuilderPage() {
 
     setActivating(true);
     try {
-      const result = await saveCampaignBuilder("activate", campaign, dbCampaignId);
+      const result = await saveCampaignBuilder(
+        "activate",
+        campaign,
+        dbCampaignId,
+        options,
+      );
       setDbCampaignId(result.campaignId);
       setCampaignStatus("queued");
       setActivateOpen(false);
@@ -133,7 +232,7 @@ export function CampaignBuilderPage() {
       ) : null}
 
       <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-        <div>
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-taupe">
               Campaign builder
@@ -148,50 +247,76 @@ export function CampaignBuilderPage() {
                 {statusBadge.label}
               </span>
             ) : null}
+            {loadingCampaign ? (
+              <span className="text-[12px] text-taupe">Loading campaign…</span>
+            ) : null}
           </div>
-          <h1 className="mt-2 font-serif text-[32px] font-semibold text-ink md:text-[40px]">
-            {campaign.name}
-          </h1>
-          <p className="mt-2 max-w-2xl text-body-lg text-slate-text">{campaign.description}</p>
-          <div className="mt-4 flex flex-wrap gap-6 text-[14px] text-taupe">
-            <span className="flex items-center gap-2">
-              <Icon name="groups" className="text-[18px]" />
-              Audience: {campaign.audience}
-            </span>
-            <span className="flex items-center gap-2">
+
+          <div className="mt-3 space-y-3">
+            <input
+              type="text"
+              value={campaign.name}
+              onChange={(e) =>
+                setCampaign((prev) => ({ ...prev, name: e.target.value }))
+              }
+              className={cn(inputClass, "font-serif text-[28px] font-semibold md:text-[32px]")}
+              aria-label="Campaign name"
+            />
+            <textarea
+              value={campaign.description}
+              onChange={(e) =>
+                setCampaign((prev) => ({ ...prev, description: e.target.value }))
+              }
+              rows={2}
+              className={cn(inputClass, "resize-none text-[15px] text-slate-text")}
+              aria-label="Campaign description"
+            />
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={resetToNewCampaign}
+              className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/30 px-4 py-1.5 text-[13px] font-medium text-ink hover:bg-champagne"
+            >
+              <Icon name="add" className="text-[18px]" />
+              New campaign
+            </button>
+            <button
+              type="button"
+              onClick={loadSampleTemplate}
+              className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/30 px-4 py-1.5 text-[13px] font-medium text-taupe hover:bg-champagne"
+            >
+              <Icon name="content_copy" className="text-[18px]" />
+              Load sample template
+            </button>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-end gap-4">
+            <label className="text-[13px] text-taupe">
+              <span className="mb-1 block font-medium text-ink">Audience label</span>
+              <input
+                type="text"
+                value={campaign.audience}
+                onChange={(e) =>
+                  setCampaign((prev) => ({ ...prev, audience: e.target.value }))
+                }
+                className={cn(inputClass, "max-w-xs text-[14px]")}
+              />
+            </label>
+            <span className="flex items-center gap-2 pb-2 text-[14px] text-taupe">
               <Icon name="schedule" className="text-[18px]" />
-              Estimated duration: {durationDays} days
-            </span>
-            <span className="flex items-center gap-2">
-              <Icon name="linear_scale" className="text-[18px]" />
-              {campaign.steps.length} steps
+              ~{durationDays} days · {campaign.steps.length} steps
             </span>
           </div>
         </div>
 
         <div className="flex flex-wrap items-start gap-4">
-          <div className="flex gap-4">
-            {[
-              { label: "Total reach", value: campaign.stats.reach.toLocaleString(), icon: "visibility" },
-              { label: "Replies", value: campaign.stats.replies.toLocaleString(), icon: "send" },
-              {
-                label: "Response rate",
-                value: `${campaign.stats.responseRate}%`,
-                icon: "trending_up",
-              },
-            ].map((stat) => (
-              <LuxuryCard key={stat.label} padding="sm" className="min-w-[120px] text-center">
-                <Icon name={stat.icon} className="mx-auto text-[20px] text-rose-gold-deep" />
-                <p className="mt-2 font-serif text-[24px] font-semibold text-ink">{stat.value}</p>
-                <p className="text-[11px] uppercase tracking-wider text-taupe">{stat.label}</p>
-              </LuxuryCard>
-            ))}
-          </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <button
               type="button"
               onClick={handleSaveTemplate}
-              disabled={savingTemplate || activating}
+              disabled={savingTemplate || activating || loadingCampaign}
               className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant/40 bg-ivory px-6 py-2.5 text-[14px] font-medium text-ink transition-colors hover:bg-champagne disabled:opacity-50"
             >
               <Icon name="bookmark" className="text-[18px]" />
@@ -200,7 +325,9 @@ export function CampaignBuilderPage() {
             <button
               type="button"
               onClick={() => setActivateOpen(true)}
-              disabled={savingTemplate || activating || campaignStatus === "queued"}
+              disabled={
+                savingTemplate || activating || campaignStatus === "queued" || loadingCampaign
+              }
               className="inline-flex items-center justify-center gap-2 rounded-full bg-rose-gold px-6 py-2.5 text-[14px] font-medium text-ivory shadow-card transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               <Icon name="rocket_launch" className="text-[18px]" />
@@ -224,7 +351,8 @@ export function CampaignBuilderPage() {
           <div>
             <h2 className="font-serif text-[22px] font-semibold text-ink">Automation sequence</h2>
             <p className="text-[14px] text-slate-text">
-              Visual storytelling for luxury relationship automation — each touch builds trust.
+              Add steps you want to send. Click the × on any card to remove it (including AI video or
+              retargeting placeholders).
             </p>
           </div>
           <button
@@ -236,7 +364,21 @@ export function CampaignBuilderPage() {
             Add step
           </button>
         </div>
-        <CampaignFlow steps={campaign.steps} />
+        {campaign.steps.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-outline-variant/30 bg-cream/40 px-6 py-12 text-center">
+            <Icon name="linear_scale" className="mx-auto text-[36px] text-rose-gold-deep" />
+            <p className="mt-3 font-medium text-ink">No steps yet</p>
+            <p className="mt-1 text-[14px] text-slate-text">
+              Add ringless voicemail, email, or SMS — skip AI video until you need it.
+            </p>
+          </div>
+        ) : (
+          <CampaignFlow
+            steps={campaign.steps}
+            editable
+            onRemoveStep={handleRemoveStep}
+          />
+        )}
       </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -245,14 +387,18 @@ export function CampaignBuilderPage() {
             <Icon name="track_changes" className="text-rose-gold-deep" />
             <h3 className="font-serif text-[20px] font-semibold text-ink">Campaign goals</h3>
           </div>
-          <ul className="space-y-3">
-            {campaign.goals.map((goal) => (
-              <li key={goal} className="flex items-start gap-2 text-[14px] text-slate-text">
-                <Icon name="check_circle" className="mt-0.5 shrink-0 text-emerald-muted" />
-                {goal}
-              </li>
-            ))}
-          </ul>
+          {campaign.goals.length > 0 ? (
+            <ul className="space-y-3">
+              {campaign.goals.map((goal) => (
+                <li key={goal} className="flex items-start gap-2 text-[14px] text-slate-text">
+                  <Icon name="check_circle" className="mt-0.5 shrink-0 text-emerald-muted" />
+                  {goal}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-[14px] text-taupe">Optional — add goals in a future update.</p>
+          )}
         </LuxuryCard>
 
         <CampaignEditorStrip />
