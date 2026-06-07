@@ -1,6 +1,7 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import { isUuid } from "@/lib/contacts/is-uuid";
 import { PatchContactSchema } from "@/lib/contacts/schemas";
 import { normalizePhone } from "@/lib/phone";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -10,6 +11,7 @@ type RouteContext = { params: Promise<{ id: string }> };
 export const GET = withApiHandler<RouteContext>(async (_request, context) => {
   const ownerId = await requireUserId();
   const { id } = await context.params;
+  if (!isUuid(id)) return apiError("Contact not found", { status: 404, code: "not_found" });
 
   const { data, error } = await supabaseAdmin
     .from("contacts")

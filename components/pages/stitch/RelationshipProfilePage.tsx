@@ -5,12 +5,15 @@ import Link from "next/link";
 import { AiLauncherButton } from "@/components/ai/ai-launcher-button";
 import { AiSuggestionPanel } from "@/components/crm/ai-suggestion-panel";
 import { ComplianceBadge } from "@/components/crm/compliance-badge";
+import { ContactInfoLinks, ContactQuickActions } from "@/components/crm/contact-quick-actions";
+import { ContactTasksPanel } from "@/components/crm/contact-tasks-panel";
 import { EditContactModal } from "@/components/crm/edit-contact-modal";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { RelationshipTag } from "@/components/crm/relationship-tag";
 import { Timeline } from "@/components/crm/timeline";
 import { EngagementTimeline } from "@/components/engagement/engagement-timeline";
 import { Icon } from "@/components/ui/icon";
+import { isUuid } from "@/lib/contacts/is-uuid";
 import { contactProfileFromApi, DEMO_CONTACT } from "@/lib/crm/mock-data";
 import type { ContactProfile } from "@/lib/crm/types";
 import { useContact } from "@/lib/hooks/use-contacts";
@@ -30,6 +33,7 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
   const { contact: apiContact, loading, error, refresh } = useContact(contactId);
   const [editOpen, setEditOpen] = useState(false);
   const profile = profileFromId(contactId, apiContact);
+  const isDemo = !isUuid(contactId);
   const consentStatus =
     apiContact?.consent_records?.[0]?.status === "Yes"
       ? "valid"
@@ -55,9 +59,13 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
         Back to contacts
       </Link>
 
-      {error ? (
+      {isDemo ? (
         <p className="rounded-2xl bg-champagne px-4 py-3 text-[14px] text-taupe">
-          Showing demo profile — {error}
+          Sample profile for preview.{" "}
+          <Link href="/dashboard/contacts" className="font-medium text-rose-gold-deep hover:underline">
+            Open a real contact
+          </Link>{" "}
+          from your list to save tasks and sync live data.
         </p>
       ) : null}
 
@@ -119,26 +127,17 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
                 {profile.title}
               </p>
             ) : null}
-            <div className="mt-4 flex flex-wrap gap-4 text-[14px] text-slate-text">
-              {profile.email ? (
-                <span className="flex items-center gap-1">
-                  <Icon name="mail" className="text-[18px] text-taupe" />
-                  {profile.email}
-                </span>
-              ) : null}
-              {profile.phone ? (
-                <span className="flex items-center gap-1">
-                  <Icon name="phone" className="text-[18px] text-taupe" />
-                  {profile.phone}
-                </span>
-              ) : null}
-              {profile.location ? (
-                <span className="flex items-center gap-1">
-                  <Icon name="location_on" className="text-[18px] text-taupe" />
-                  {profile.location}
-                </span>
-              ) : null}
-            </div>
+            <ContactInfoLinks
+              email={profile.email}
+              phone={profile.phone}
+              location={profile.location}
+            />
+            <ContactQuickActions
+              email={profile.email}
+              phone={profile.phone}
+              contactName={`${profile.firstName} ${profile.lastName}`}
+              className="mt-5"
+            />
             {profile.quote ? (
               <blockquote className="mt-6 border-l-2 border-rose-gold/40 pl-4 font-serif text-[20px] italic leading-relaxed text-ink/90">
                 &ldquo;{profile.quote}&rdquo;
@@ -219,36 +218,11 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
         </div>
 
         <div className="lg:col-span-3 space-y-6">
-          <LuxuryCard padding="lg">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-serif text-[20px] font-semibold text-ink">Tasks</h2>
-              <button type="button" className="text-[13px] text-rose-gold-deep">
-                + New task
-              </button>
-            </div>
-            <ul className="space-y-3">
-              {profile.tasks.map((task) => (
-                <li key={task.id} className="flex gap-3">
-                  <input
-                    type="checkbox"
-                    checked={task.completed}
-                    readOnly
-                    className="mt-1 rounded border-outline-variant text-rose-gold"
-                  />
-                  <div>
-                    <p
-                      className={
-                        task.completed ? "text-taupe line-through" : "text-[14px] font-medium text-ink"
-                      }
-                    >
-                      {task.title}
-                    </p>
-                    <p className="text-[12px] text-taupe">Due {task.dueDate}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </LuxuryCard>
+          <ContactTasksPanel
+            contactId={contactId}
+            demoTasks={profile.tasks}
+            isDemo={isDemo}
+          />
 
           <LuxuryCard padding="lg">
             <h2 className="mb-4 font-serif text-[20px] font-semibold text-ink">Engagement signals</h2>

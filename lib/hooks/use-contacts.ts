@@ -1,5 +1,6 @@
 "use client";
 
+import { isUuid } from "@/lib/contacts/is-uuid";
 import { useCallback, useEffect, useState } from "react";
 
 export type ApiContact = {
@@ -64,6 +65,12 @@ export function useContact(id: string | undefined) {
 
   const refresh = useCallback(async () => {
     if (!id) return;
+    if (!isUuid(id)) {
+      setContact(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {

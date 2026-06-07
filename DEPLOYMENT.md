@@ -58,6 +58,7 @@ Run in Supabase SQL editor:
 1. `supabase/schema.sql`
 2. `supabase/schema-m3.sql`
 3. `supabase/schema-calendar.sql`
+4. `supabase/schema-contact-tasks.sql`
 
 Create Storage bucket: **`voice-assets`** (private).
 
