@@ -1,8 +1,10 @@
 import { writeAuditLog } from "@/lib/audit";
+import { syncCallbackStepToCalendar } from "@/lib/calendar/sync";
 import { evaluateEligibility } from "@/lib/compliance";
 import { recordEngagementEvent } from "@/lib/engagement/record";
 import { sendToContact } from "@/lib/providers/dispatch-message";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { signVoiceAssetUrl, voiceAssetReady } from "@/lib/voice/signed-audio";
 
 export type CampaignStepType =
   | "voicemail"
@@ -146,8 +148,29 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       continue;
     }
 
-    if (step.type === "wait" || step.type === "task" || step.type === "callback") {
+    if (step.type === "wait") {
       await markRun(run.id, "sent", { channel: step.type });
+      executed.push({ runId: run.id, status: "sent" });
+      continue;
+    }
+
+    if (step.type === "task" || step.type === "callback") {
+      const calendarSync = await syncCallbackStepToCalendar({
+        ownerId: run.owner_id,
+        contact,
+        campaignId: campaign?.id,
+        stepRunId: run.id,
+        stepTitle: step.title,
+        stepDescription: step.description,
+        scheduledAt: run.scheduled_at,
+        timeLabel: step.time_label,
+        stepType: step.type,
+      });
+
+      await markRun(run.id, "sent", {
+        channel: step.type,
+        calendarSync: calendarSync.synced ? "created" : calendarSync.reason,
+      });
       await recordEngagementEvent({
         ownerId: run.owner_id,
         contactId: contact.id,
@@ -155,6 +178,9 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
         stepId: step.id,
         eventType: step.type === "task" ? "task_completed" : "delivered",
         channel: step.type === "callback" ? "callback" : "task",
+        metadata: calendarSync.synced
+          ? { calendarEventId: calendarSync.eventId }
+          : { calendarSkipped: calendarSync.reason },
       });
       executed.push({ runId: run.id, status: "sent" });
       continue;
@@ -182,6 +208,24 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
         ? campaign.provider
         : process.env.VOICE_PROVIDER ?? "slybroadcast";
 
+    let audioUrl: string | undefined;
+    if (channel === "voicemail") {
+      const voiceAsset = campaign?.voice_assets;
+      if (!voiceAssetReady(voiceAsset)) {
+        await markRun(run.id, "failed", {
+          error: "Campaign needs an approved voice recording before voicemail steps can send.",
+        });
+        executed.push({ runId: run.id, status: "failed" });
+        continue;
+      }
+      audioUrl = (await signVoiceAssetUrl(voiceAsset)) ?? undefined;
+      if (!audioUrl) {
+        await markRun(run.id, "failed", { error: "Unable to sign voice recording URL." });
+        executed.push({ runId: run.id, status: "failed" });
+        continue;
+      }
+    }
+
     const sendResult = await sendToContact({
       ownerId: run.owner_id,
       contact: {
@@ -195,7 +239,7 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       stepId: step.id,
       body: step.description ?? step.title,
       subject: step.title,
-      audioUrl: campaign?.voice_assets?.audio_url ?? undefined,
+      audioUrl,
       providerId: channel === "voicemail" ? voicemailProvider : undefined,
       recordEngagement: true,
     });

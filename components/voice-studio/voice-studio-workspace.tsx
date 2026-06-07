@@ -25,7 +25,7 @@ type RecState = "idle" | "recording" | "paused";
 type Toast = { message: string; tone: "success" | "error" };
 
 export function VoiceStudioWorkspace() {
-  const { assets, loading, error, refresh, approve, assignScript } = useVoiceAssets();
+  const { assets, loading, error, refresh, approve, assignToCampaign } = useVoiceAssets();
   const { options: campaigns, loading: campaignsLoading } = useCampaignOptions();
   const [localRecordings, setLocalRecordings] = useState<LocalRecording[]>([]);
   const [scriptText, setScriptText] = useState("");
@@ -215,12 +215,12 @@ export function VoiceStudioWorkspace() {
   const handleCampaignChange = async (id: string) => {
     setCampaignId(id);
     saveCampaignAssignment(id);
-    if (activeAssetId) {
+    if (activeAssetId && id) {
       try {
-        await assignScript(activeAssetId, id);
-        showToast("Assigned to campaign");
-      } catch {
-        showToast("Assignment saved for next upload");
+        await assignToCampaign(activeAssetId, id);
+        showToast("Voice recording linked to campaign");
+      } catch (e) {
+        showToast(e instanceof Error ? e.message : "Could not link to campaign", "error");
       }
     } else {
       showToast("Campaign selected for next recording");
@@ -468,7 +468,11 @@ export function VoiceStudioWorkspace() {
         </div>
       </section>
 
-      <VoiceCloningStrip />
+      <VoiceCloningStrip
+        scriptText={scriptText}
+        assets={assets}
+        onGenerated={() => void refresh()}
+      />
 
       <Modal
         open={saveOpen}

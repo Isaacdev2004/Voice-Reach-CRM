@@ -28,12 +28,36 @@ Add these in **Vercel → Project → Settings → Environment Variables**, then
 | `RESEND_FROM_EMAIL` | e.g. `noreply@knectcrm.com` or `Voice Reach <noreply@knectcrm.com>` (verified domain) |
 | `CAMPAIGN_RUNNER_SECRET` | Random string for cron |
 
+## Voice AI (ElevenLabs)
+
+| Variable | Notes |
+|---|---|
+| `ELEVENLABS_API_KEY` | Script-to-speech + voice clone |
+| `ELEVENLABS_VOICE_ID` | Default premade voice (optional) |
+
+Voice Studio → **Generate audio** creates a `voice_assets` row. Approve it, link to a campaign, then voicemail steps can send via Slybroadcast.
+
+## Google Calendar sync
+
+| Variable | Notes |
+|---|---|
+| `GOOGLE_CLIENT_ID` | Google Cloud OAuth client |
+| `GOOGLE_CLIENT_SECRET` | OAuth secret |
+| `APP_BASE_URL` | Must match authorized redirect |
+
+**Google Cloud console:** create OAuth client (Web), add redirect URI:
+
+`https://voice-reach-crm.vercel.app/api/integrations/google/callback`
+
+Settings → **Google Calendar** → Connect. Callback/task campaign steps create calendar events when connected.
+
 ## Database
 
 Run in Supabase SQL editor:
 
 1. `supabase/schema.sql`
 2. `supabase/schema-m3.sql`
+3. `supabase/schema-calendar.sql`
 
 Create Storage bucket: **`voice-assets`** (private).
 

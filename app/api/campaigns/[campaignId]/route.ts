@@ -1,6 +1,8 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
+import { writeAuditLog } from "@/lib/audit";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { z } from "zod";
 
 type RouteContext = { params: Promise<{ campaignId: string }> };
 
@@ -106,4 +108,58 @@ export const GET = withApiHandler<RouteContext>(async (_request, context) => {
     runCounts,
     blockedReport,
   });
+});
+
+const PatchSchema = z.object({
+  voiceAssetId: z.string().uuid().nullable().optional(),
+  name: z.string().min(1).optional(),
+});
+
+export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
+  const ownerId = await requireUserId();
+  const { campaignId } = await context.params;
+  const body = PatchSchema.parse(await request.json());
+
+  if (body.voiceAssetId) {
+    const { data: asset, error: assetError } = await supabaseAdmin
+      .from("voice_assets")
+      .select("id, approved")
+      .eq("id", body.voiceAssetId)
+      .eq("owner_id", ownerId)
+      .maybeSingle();
+
+    if (assetError) return apiError(assetError.message, { status: 500 });
+    if (!asset) return apiError("Voice asset not found", { status: 404 });
+    if (!asset.approved) {
+      return apiError("Approve the voice recording before linking it to a campaign.", {
+        status: 400,
+        code: "voice_asset_not_approved",
+      });
+    }
+  }
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (body.voiceAssetId !== undefined) updates.voice_asset_id = body.voiceAssetId;
+  if (body.name) updates.name = body.name;
+
+  const { data, error } = await supabaseAdmin
+    .from("campaigns")
+    .update(updates)
+    .eq("id", campaignId)
+    .eq("owner_id", ownerId)
+    .select("*, voice_assets(id, title, approved, storage_path)")
+    .single();
+
+  if (error) return apiError(error.message, { status: 500 });
+  if (!data) return apiError("Campaign not found", { status: 404 });
+
+  await writeAuditLog({
+    ownerId,
+    action: "CAMPAIGN_UPDATED",
+    entityType: "campaign",
+    entityId: campaignId,
+    metadata: body,
+  });
+
+  return apiOk({ campaign: data });
 });

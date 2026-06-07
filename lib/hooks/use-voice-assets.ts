@@ -60,5 +60,17 @@ export function useVoiceAssets() {
     await refresh();
   };
 
-  return { assets, loading, error, refresh, approve, assignScript };
+  const assignToCampaign = async (assetId: string, campaignId: string) => {
+    const res = await fetch(`/api/campaigns/${campaignId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ voiceAssetId: assetId }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ?? "Could not link recording to campaign");
+    await assignScript(assetId, campaignId);
+    await refresh();
+  };
+
+  return { assets, loading, error, refresh, approve, assignScript, assignToCampaign };
 }

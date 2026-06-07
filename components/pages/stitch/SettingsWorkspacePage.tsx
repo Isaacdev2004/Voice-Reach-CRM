@@ -26,6 +26,7 @@ import type {
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Toast = { message: string; tone: "success" | "error" };
@@ -47,6 +48,8 @@ const ROLE_LABELS: Record<TeamMember["role"], string> = {
 
 export function SettingsWorkspacePage() {
   const { user } = useUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { openUpgrade, billing: sharedBilling, lastUpgradedAt } = useUpgradePlan();
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -88,6 +91,58 @@ export function SettingsWorkspacePage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    const requestedTab = searchParams.get("tab");
+    if (
+      requestedTab === "profile" ||
+      requestedTab === "workspace" ||
+      requestedTab === "api" ||
+      requestedTab === "team" ||
+      requestedTab === "billing"
+    ) {
+      setTab(requestedTab);
+    }
+
+    const calendar = searchParams.get("calendar");
+    if (calendar === "connected") {
+      showToast("Google Calendar connected.");
+      router.replace("/dashboard/settings?tab=workspace", { scroll: false });
+    } else if (calendar === "error") {
+      showToast("Google Calendar connection failed. Check OAuth settings.", "error");
+      router.replace("/dashboard/settings?tab=workspace", { scroll: false });
+    }
+  }, [router, searchParams]);
+
+  const syncGoogleCalendarStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/integrations/google/status");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.connected) return;
+      setSettings((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          integrations: prev.integrations.map((item) =>
+            item.id === "google-calendar"
+              ? {
+                  ...item,
+                  connected: true,
+                  accountLabel: data.accountEmail ?? "Google account",
+                  lastSync: data.lastUpdated ?? new Date().toISOString(),
+                }
+              : item,
+          ),
+        };
+      });
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    void syncGoogleCalendarStatus();
+  }, [syncGoogleCalendarStatus]);
 
   const headerQuery = useDashboardSearch();
   useEffect(() => {
@@ -529,7 +584,43 @@ export function SettingsWorkspacePage() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setIntegrationModal(integration)}
+                          onClick={() => {
+                            if (integration.id === "google-calendar" && !integration.connected) {
+                              window.location.href = "/api/integrations/google/authorize";
+                              return;
+                            }
+                            if (integration.id === "google-calendar" && integration.connected) {
+                              void (async () => {
+                                const res = await fetch("/api/integrations/google/status", {
+                                  method: "DELETE",
+                                });
+                                if (res.ok) {
+                                  setSettings((prev) =>
+                                    prev
+                                      ? {
+                                          ...prev,
+                                          integrations: prev.integrations.map((item) =>
+                                            item.id === "google-calendar"
+                                              ? {
+                                                  ...item,
+                                                  connected: false,
+                                                  accountLabel: undefined,
+                                                  lastSync: undefined,
+                                                }
+                                              : item,
+                                          ),
+                                        }
+                                      : prev,
+                                  );
+                                  showToast("Google Calendar disconnected.");
+                                } else {
+                                  showToast("Could not disconnect Google Calendar.", "error");
+                                }
+                              })();
+                              return;
+                            }
+                            setIntegrationModal(integration);
+                          }}
                           className={cn(
                             "rounded-full px-5 py-2 text-[13px] font-medium transition-colors",
                             integration.connected
@@ -537,7 +628,11 @@ export function SettingsWorkspacePage() {
                               : "bg-rose-gold text-ivory hover:opacity-95",
                           )}
                         >
-                          {integration.connected ? "Configure" : "Connect"}
+                          {integration.id === "google-calendar" && integration.connected
+                            ? "Disconnect"
+                            : integration.connected
+                              ? "Configure"
+                              : "Connect"}
                         </button>
                       </div>
                     ))}

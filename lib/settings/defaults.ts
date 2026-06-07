@@ -41,6 +41,12 @@ export const DEFAULT_SETTINGS: UserSettings = {
       icon: "chat",
       connected: false,
     },
+    {
+      id: "google-calendar",
+      name: "Google Calendar",
+      icon: "calendar_today",
+      connected: false,
+    },
   ],
   apiKeys: [
     {
