@@ -88,12 +88,20 @@ export function ImportCsvModal({ open, onClose, onSuccess }: ImportCsvModalProps
         throw new Error(data.error ?? "Import failed");
       }
 
-      setResult({
-        imported: data.imported ?? 0,
-        errors: data.errors ?? [],
-      });
+      const imported = data.imported ?? 0;
+      const rowErrors = data.errors ?? [];
 
-      if ((data.imported ?? 0) > 0) {
+      setResult({ imported, errors: rowErrors });
+
+      if (imported === 0 && rowErrors.length > 0) {
+        setError(
+          `No contacts imported. ${rowErrors.length} row${rowErrors.length === 1 ? "" : "s"} skipped — see details below.`,
+        );
+      } else if (imported === 0) {
+        setError("No contacts were imported. Check that your CSV has firstName and phone columns.");
+      }
+
+      if (imported > 0) {
         onSuccess?.();
       }
     } catch (err) {
@@ -108,7 +116,7 @@ export function ImportCsvModal({ open, onClose, onSuccess }: ImportCsvModalProps
       open={open}
       onClose={handleClose}
       title="Import contacts"
-      description="CSV must include firstName and phone. Optional: lastName, email, consent, source."
+      description="Include firstName and phone. Extra title rows are OK. Consent Yes auto-fills date/source for campaigns."
       icon="upload_file"
       size="lg"
       footer={

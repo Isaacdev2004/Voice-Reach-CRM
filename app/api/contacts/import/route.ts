@@ -1,10 +1,13 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import {
+  enrichConsentForImport,
+  isValidImportPhone,
+  parseContactCsv,
+} from "@/lib/contacts/parse-csv";
 import { normalizePhone } from "@/lib/phone";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import type { ContactImportRow } from "@/types/api";
-import Papa from "papaparse";
 
 function normalizeBoolean(value: unknown) {
   return ["true", "yes", "1"].includes(String(value || "").toLowerCase());
@@ -20,25 +23,38 @@ export const POST = withApiHandler(async (request) => {
   }
 
   const text = await file.text();
-  const parsed = Papa.parse<ContactImportRow>(text, { header: true, skipEmptyLines: true });
+  const { rows, parseErrors, headerIndex } = parseContactCsv(text);
 
-  if (parsed.errors.length) {
+  if (parseErrors.length) {
     return apiError("CSV parse error", {
       status: 400,
       code: "csv_parse_error",
-      details: parsed.errors,
+      details: parseErrors,
     });
+  }
+
+  if (rows.length === 0) {
+    return apiError(
+      "No contact rows found. Make sure your file has a header row with firstName and phone.",
+      { status: 400, code: "empty_csv" },
+    );
   }
 
   const imported = [];
   const errors: { row: number; error: string }[] = [];
+  const rowOffset = headerIndex >= 0 ? headerIndex + 2 : 2;
 
-  for (const [index, row] of parsed.data.entries()) {
-    const firstName = row.firstName || row.first_name || "";
-    const phone = row.phone || "";
+  for (const [index, row] of rows.entries()) {
+    const firstName = (row.firstName || row.first_name || "").trim();
+    const phone = (row.phone || "").trim();
 
     if (!firstName || !phone) {
-      errors.push({ row: index + 2, error: "Missing firstName or phone" });
+      errors.push({ row: index + rowOffset, error: "Missing firstName or phone" });
+      continue;
+    }
+
+    if (!isValidImportPhone(phone)) {
+      errors.push({ row: index + rowOffset, error: "Invalid or missing phone number" });
       continue;
     }
 
@@ -59,26 +75,23 @@ export const POST = withApiHandler(async (request) => {
       .single();
 
     if (contactError) {
-      errors.push({ row: index + 2, error: contactError.message });
+      errors.push({ row: index + rowOffset, error: contactError.message });
       continue;
     }
 
-    const consentStatus = row.consent || "Unknown";
-    const consentDate = row.consentDate || row.consent_date || null;
-    const consentSource = row.consentSource || row.consent_source || null;
-    const proof = row.proof || row.consentProof || row.consent_proof || null;
+    const consent = enrichConsentForImport(row, file.name, index);
 
     const { error: consentError } = await supabaseAdmin.from("consent_records").insert({
       owner_id: ownerId,
       contact_id: contact.id,
-      status: ["Yes", "No", "Unknown"].includes(consentStatus) ? consentStatus : "Unknown",
-      consent_date: consentDate,
-      source: consentSource,
-      proof_reference: proof,
+      status: consent.status,
+      consent_date: consent.consentDate,
+      source: consent.consentSource,
+      proof_reference: consent.proof,
       notes: row.notes || null,
     });
 
-    if (consentError) errors.push({ row: index + 2, error: consentError.message });
+    if (consentError) errors.push({ row: index + rowOffset, error: consentError.message });
     imported.push(contact);
   }
 
