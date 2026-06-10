@@ -18,6 +18,7 @@ export function ContactQuickActions({
   className,
 }: ContactQuickActionsProps) {
   const telUri = phoneToTelUri(phone);
+  const smsUri = telUri ? `sms:${telUri}` : null;
   const mailto = email?.trim()
     ? `mailto:${email.trim()}?subject=${encodeURIComponent(`Following up — ${contactName ?? "VoiceReach"}`)}`
     : null;
@@ -35,6 +36,20 @@ export function ContactQuickActions({
       ) : (
         <span className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-5 py-2.5 text-[14px] text-taupe opacity-60">
           <Icon name="call" className="text-[18px]" />
+          No phone
+        </span>
+      )}
+      {smsUri ? (
+        <a
+          href={smsUri}
+          className="inline-flex items-center gap-2 rounded-full border border-outline-variant/40 bg-ivory px-5 py-2.5 text-[14px] font-medium text-ink transition-colors hover:bg-champagne"
+        >
+          <Icon name="sms" className="text-[18px] text-rose-gold-deep" />
+          Text
+        </a>
+      ) : (
+        <span className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-5 py-2.5 text-[14px] text-taupe opacity-60">
+          <Icon name="sms" className="text-[18px]" />
           No phone
         </span>
       )}
