@@ -2,6 +2,10 @@ import { apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
+import {
+  applyLiveIntegrationStatus,
+  mergeIntegrationLists,
+} from "@/lib/settings/merge-integrations";
 import type { UserSettings } from "@/lib/settings/types";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -113,6 +117,7 @@ function mergeSettings(
   const merged = saved ? { ...base, ...saved } : base;
   return {
     ...merged,
+    integrations: mergeIntegrationLists(base.integrations, saved?.integrations),
     billing: {
       ...merged.billing,
       voiceMinutesUsed: minutesUsed > 0 ? minutesUsed : merged.billing.voiceMinutesUsed,
@@ -152,7 +157,11 @@ export const GET = withApiHandler(async () => {
     },
   };
 
-  const settings = mergeSettings(base, saved, minutesUsed);
+  let settings = mergeSettings(base, saved, minutesUsed);
+  settings = {
+    ...settings,
+    integrations: await applyLiveIntegrationStatus(ownerId, settings.integrations),
+  };
 
   if (email) {
     const owner = settings.team.find((m) => m.role === "owner");

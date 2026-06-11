@@ -92,28 +92,6 @@ export function SettingsWorkspacePage() {
     void load();
   }, [load]);
 
-  useEffect(() => {
-    const requestedTab = searchParams.get("tab");
-    if (
-      requestedTab === "profile" ||
-      requestedTab === "workspace" ||
-      requestedTab === "api" ||
-      requestedTab === "team" ||
-      requestedTab === "billing"
-    ) {
-      setTab(requestedTab);
-    }
-
-    const calendar = searchParams.get("calendar");
-    if (calendar === "connected") {
-      showToast("Google Calendar connected.");
-      router.replace("/dashboard/settings?tab=workspace", { scroll: false });
-    } else if (calendar === "error") {
-      showToast("Google Calendar connection failed. Check OAuth settings.", "error");
-      router.replace("/dashboard/settings?tab=workspace", { scroll: false });
-    }
-  }, [router, searchParams]);
-
   const syncGoogleCalendarStatus = useCallback(async () => {
     try {
       const res = await fetch("/api/integrations/google/status");
@@ -143,6 +121,38 @@ export function SettingsWorkspacePage() {
   useEffect(() => {
     void syncGoogleCalendarStatus();
   }, [syncGoogleCalendarStatus]);
+
+  useEffect(() => {
+    const requestedTab = searchParams.get("tab");
+    if (
+      requestedTab === "profile" ||
+      requestedTab === "workspace" ||
+      requestedTab === "api" ||
+      requestedTab === "team" ||
+      requestedTab === "billing"
+    ) {
+      setTab(requestedTab);
+    }
+
+    const calendar = searchParams.get("calendar");
+    const reason = searchParams.get("reason");
+    if (calendar === "connected") {
+      void load();
+      showToast("Google Calendar connected.");
+      router.replace("/dashboard/settings?tab=workspace", { scroll: false });
+    } else if (calendar === "error") {
+      const message =
+        reason === "database_table_missing"
+          ? "Calendar database not set up yet — we’re fixing this on our side."
+          : reason === "access_denied"
+            ? "Google access was denied. Try Connect again and click Allow."
+            : reason === "missing_code_or_session"
+              ? "Session expired — click Connect again (stay signed in to VoiceReach)."
+              : `Google Calendar connection failed${reason ? `: ${reason}` : ""}.`;
+      showToast(message, "error");
+      router.replace("/dashboard/settings?tab=workspace", { scroll: false });
+    }
+  }, [load, router, searchParams]);
 
   const headerQuery = useDashboardSearch();
   useEffect(() => {

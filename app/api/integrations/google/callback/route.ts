@@ -9,6 +9,12 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+function errorRedirect(base: string, reason: string) {
+  return NextResponse.redirect(
+    `${base}/dashboard/settings?tab=workspace&calendar=error&reason=${encodeURIComponent(reason)}`,
+  );
+}
+
 export async function GET(request: Request) {
   const base = process.env.APP_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
   const settingsUrl = `${base}/dashboard/settings?tab=workspace&calendar=connected`;
@@ -21,7 +27,7 @@ export async function GET(request: Request) {
     const oauthError = url.searchParams.get("error");
 
     if (oauthError) {
-      return NextResponse.redirect(`${base}/dashboard/settings?tab=workspace&calendar=error`);
+      return errorRedirect(base, oauthError);
     }
 
     const cookieStore = await cookies();
@@ -29,12 +35,12 @@ export async function GET(request: Request) {
     cookieStore.delete("google_oauth_state");
 
     if (!code || !state || !stored) {
-      return NextResponse.redirect(`${base}/dashboard/settings?tab=workspace&calendar=error`);
+      return errorRedirect(base, "missing_code_or_session");
     }
 
     const [ownerId, nonce] = stored.split(":");
     if (!ownerId || nonce !== state) {
-      return NextResponse.redirect(`${base}/dashboard/settings?tab=workspace&calendar=error`);
+      return errorRedirect(base, "session_mismatch");
     }
 
     const tokens = await exchangeGoogleCode(code);
@@ -57,7 +63,10 @@ export async function GET(request: Request) {
     );
 
     if (error) {
-      return NextResponse.redirect(`${base}/dashboard/settings?tab=workspace&calendar=error`);
+      const reason = error.message.includes("calendar_connections")
+        ? "database_table_missing"
+        : error.message;
+      return errorRedirect(base, reason);
     }
 
     await writeAuditLog({
@@ -69,7 +78,8 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.redirect(settingsUrl);
-  } catch {
-    return NextResponse.redirect(`${base}/dashboard/settings?tab=workspace&calendar=error`);
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : "unknown";
+    return errorRedirect(base, reason);
   }
 }
