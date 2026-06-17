@@ -2,8 +2,8 @@ import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import {
-  defaultElevenLabsVoiceId,
   isElevenLabsConfigured,
+  resolveOwnerVoiceId,
   synthesizeSpeech,
 } from "@/lib/providers/elevenlabs";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -28,16 +28,10 @@ export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const body = BodySchema.parse(await request.json());
 
-  let voiceId = body.voiceId ?? defaultElevenLabsVoiceId();
-  if (body.voiceProfileId) {
-    const { data: profile } = await supabaseAdmin
-      .from("voice_profiles")
-      .select("provider_voice_id")
-      .eq("id", body.voiceProfileId)
-      .eq("owner_id", ownerId)
-      .maybeSingle();
-    if (profile?.provider_voice_id) voiceId = profile.provider_voice_id;
-  }
+  const voiceId = await resolveOwnerVoiceId(ownerId, {
+    voiceId: body.voiceId,
+    voiceProfileId: body.voiceProfileId,
+  });
 
   const audioBuffer = await synthesizeSpeech({ text: body.script, voiceId });
   const bucket = process.env.SUPABASE_STORAGE_BUCKET || "voice-assets";

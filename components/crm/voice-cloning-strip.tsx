@@ -14,15 +14,23 @@ type VoiceProfile = {
   sample_asset_id: string | null;
 };
 
+type EnvVoice = {
+  voiceId: string;
+  label: string;
+};
+
 type VoiceCloningStripProps = {
   scriptText: string;
   assets: VoiceAsset[];
   onGenerated?: () => void;
 };
 
+const ENV_VOICE_PREFIX = "env:";
+
 export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceCloningStripProps) {
   const [profiles, setProfiles] = useState<VoiceProfile[]>([]);
-  const [selectedProfileId, setSelectedProfileId] = useState("");
+  const [envVoice, setEnvVoice] = useState<EnvVoice | null>(null);
+  const [selectedVoiceKey, setSelectedVoiceKey] = useState("");
   const [title, setTitle] = useState("AI generated voicemail");
   const [generating, setGenerating] = useState(false);
   const [cloneOpen, setCloneOpen] = useState(false);
@@ -34,10 +42,22 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
 
   useEffect(() => {
     (async () => {
-      const envelope = await safeFetch<{ profiles: VoiceProfile[] }>("/api/voice-assets/profiles");
-      if (envelope.success) {
-        setProfiles(envelope.data.profiles);
-        if (envelope.data.profiles[0]) setSelectedProfileId(envelope.data.profiles[0].id);
+      const envelope = await safeFetch<{
+        profiles: VoiceProfile[];
+        envVoice: EnvVoice | null;
+        defaultProfileId: string | null;
+        defaultVoiceId: string | null;
+      }>("/api/voice-assets/profiles");
+      if (!envelope.success) return;
+
+      const { profiles: loaded, envVoice: env, defaultProfileId } = envelope.data;
+      setProfiles(loaded);
+      setEnvVoice(env);
+
+      if (defaultProfileId) {
+        setSelectedVoiceKey(defaultProfileId);
+      } else if (env?.voiceId) {
+        setSelectedVoiceKey(`${ENV_VOICE_PREFIX}${env.voiceId}`);
       }
     })();
   }, []);
@@ -54,14 +74,22 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
     setGenerating(true);
     setError(null);
     setMessage(null);
+
+    const payload: Record<string, string> = {
+      script: scriptText.trim(),
+      title: title.trim() || "AI generated voicemail",
+    };
+
+    if (selectedVoiceKey.startsWith(ENV_VOICE_PREFIX)) {
+      payload.voiceId = selectedVoiceKey.slice(ENV_VOICE_PREFIX.length);
+    } else if (selectedVoiceKey) {
+      payload.voiceProfileId = selectedVoiceKey;
+    }
+
     const envelope = await safeFetch<{ message: string }>("/api/voice-assets/synthesize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        script: scriptText.trim(),
-        title: title.trim() || "AI generated voicemail",
-        voiceProfileId: selectedProfileId || undefined,
-      }),
+      body: JSON.stringify(payload),
     });
     setGenerating(false);
     if (envelope.success) {
@@ -87,13 +115,15 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
     setCloning(false);
     if (envelope.success) {
       setProfiles((prev) => [envelope.data.voiceProfile, ...prev]);
-      setSelectedProfileId(envelope.data.voiceProfile.id);
+      setSelectedVoiceKey(envelope.data.voiceProfile.id);
       setCloneOpen(false);
       setMessage(envelope.data.message);
     } else {
       setError(envelope.error);
     }
   };
+
+  const hasVoice = Boolean(envVoice?.voiceId || profiles.length > 0);
 
   return (
     <>
@@ -105,29 +135,51 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
             </div>
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
-                AI voice (ElevenLabs)
+                AI voice (ElevenCreative)
               </p>
               <p className="mt-0.5 text-[14px] text-slate-text">
-                Generate campaign audio from your script, or clone your voice from an approved
-                recording.
+                Write any script above, then generate audio in your voice. Set up your voice once —
+                every new script uses it automatically.
               </p>
             </div>
           </div>
 
+          <ol className="grid gap-2 text-[13px] text-slate-text sm:grid-cols-3">
+            <li className="rounded-xl bg-cream/80 px-3 py-2">
+              <span className="font-medium text-ink">1.</span> Record or import a sample (optional
+              if voice is already set up)
+            </li>
+            <li className="rounded-xl bg-cream/80 px-3 py-2">
+              <span className="font-medium text-ink">2.</span> Select <strong>My voice</strong>{" "}
+              below
+            </li>
+            <li className="rounded-xl bg-cream/80 px-3 py-2">
+              <span className="font-medium text-ink">3.</span> Click Generate audio — approve, then
+              assign to a campaign
+            </li>
+          </ol>
+
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-[12px] text-taupe">
-              <span className="mb-1 block font-medium text-ink">Voice profile</span>
+              <span className="mb-1 block font-medium text-ink">Speak as</span>
               <select
                 className="w-full rounded-xl border border-outline-variant/25 bg-cream px-3 py-2 text-[13px]"
-                value={selectedProfileId}
-                onChange={(e) => setSelectedProfileId(e.target.value)}
+                value={selectedVoiceKey}
+                onChange={(e) => setSelectedVoiceKey(e.target.value)}
               >
-                <option value="">Default AI voice</option>
+                {envVoice ? (
+                  <option value={`${ENV_VOICE_PREFIX}${envVoice.voiceId}`}>
+                    {envVoice.label}
+                  </option>
+                ) : null}
                 {profiles.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.label}
                   </option>
                 ))}
+                {!hasVoice ? (
+                  <option value="">Default voice (set up My voice first)</option>
+                ) : null}
               </select>
             </label>
             <label className="text-[12px] text-taupe sm:col-span-2">
@@ -151,6 +203,7 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
                 type="button"
                 onClick={() => setCloneOpen(true)}
                 disabled={assets.length === 0}
+                title={assets.length === 0 ? "Save a recording first" : "Clone from a recording"}
                 className="rounded-full border border-outline-variant/30 px-4 py-2 text-[13px] font-medium text-ink hover:bg-champagne disabled:opacity-50"
               >
                 Clone voice
@@ -175,7 +228,7 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
         open={cloneOpen}
         onClose={() => setCloneOpen(false)}
         title="Clone your voice"
-        description="Use an existing recording as a sample. ElevenLabs creates a voice profile for script-to-speech."
+        description="Optional: create a voice profile from a saved recording. If cloning is blocked by your API plan, use ElevenCreative to create your voice and we’ll use it via Generate audio."
         icon="graphic_eq"
         size="md"
         footer={

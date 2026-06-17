@@ -8,6 +8,43 @@ export function defaultElevenLabsVoiceId(): string {
   return process.env.ELEVENLABS_VOICE_ID ?? "21m00Tcm4TlvDq8ikWAM";
 }
 
+export function configuredEnvVoice(): { voiceId: string; label: string } | null {
+  const voiceId = process.env.ELEVENLABS_VOICE_ID?.trim();
+  if (!voiceId) return null;
+  return { voiceId, label: process.env.ELEVENLABS_VOICE_LABEL?.trim() || "My voice" };
+}
+
+export async function resolveOwnerVoiceId(
+  ownerId: string,
+  options?: { voiceProfileId?: string; voiceId?: string },
+): Promise<string> {
+  if (options?.voiceId?.trim()) return options.voiceId.trim();
+
+  if (options?.voiceProfileId) {
+    const { supabaseAdmin } = await import("@/lib/supabaseAdmin");
+    const { data: profile } = await supabaseAdmin
+      .from("voice_profiles")
+      .select("provider_voice_id")
+      .eq("id", options.voiceProfileId)
+      .eq("owner_id", ownerId)
+      .maybeSingle();
+    if (profile?.provider_voice_id) return profile.provider_voice_id;
+  }
+
+  const { supabaseAdmin } = await import("@/lib/supabaseAdmin");
+  const { data: latestProfile } = await supabaseAdmin
+    .from("voice_profiles")
+    .select("provider_voice_id")
+    .eq("owner_id", ownerId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (latestProfile?.provider_voice_id) return latestProfile.provider_voice_id;
+
+  return defaultElevenLabsVoiceId();
+}
+
 export async function synthesizeSpeech(options: {
   text: string;
   voiceId?: string;
@@ -66,6 +103,11 @@ export async function cloneVoiceFromSample(options: {
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
+    if (response.status === 401 && detail.includes("create_instant_voice_clone")) {
+      throw new Error(
+        "Voice cloning is not enabled on your ElevenLabs API key. Clone your voice in ElevenCreative, then add that voice ID as ELEVENLABS_VOICE_ID — Generate audio will still use your voice.",
+      );
+    }
     throw new Error(`ElevenLabs clone failed (${response.status}): ${detail.slice(0, 200)}`);
   }
 
