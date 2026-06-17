@@ -89,19 +89,17 @@ export function CalendarPage() {
 
   return (
     <div className="luxury-page px-4 py-6 sm:p-8 max-w-[1400px] w-full mx-auto space-y-6">
-      <header>
+      <header className="text-center">
         <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-taupe">
           Calendar
         </p>
         <h1 className="font-serif text-[36px] font-semibold tracking-tight text-ink md:text-[40px]">
           {greeting}
         </h1>
-        <p className="mt-1 text-[15px] text-slate-text">
+        <p className="mx-auto mt-2 max-w-lg text-[15px] text-slate-text">
           Your agenda — Google Calendar, tasks, and CRM callbacks together.
         </p>
       </header>
-
-      <DashboardConcierge />
 
       <FocusHeroBanner
         eyebrow="Today's focus"
@@ -136,6 +134,8 @@ export function CalendarPage() {
           </>
         }
       />
+
+      <DashboardConcierge />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {[

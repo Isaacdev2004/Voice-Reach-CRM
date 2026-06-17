@@ -1,3 +1,4 @@
+import { cn } from "@/lib/cn";
 import { Icon } from "@/components/ui/icon";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -7,25 +8,67 @@ type FocusHeroBannerProps = {
   title: string;
   description: string;
   actions?: ReactNode;
+  align?: "left" | "center";
 };
 
-export function FocusHeroBanner({ eyebrow, title, description, actions }: FocusHeroBannerProps) {
+export function FocusHeroBanner({
+  eyebrow,
+  title,
+  description,
+  actions,
+  align = "center",
+}: FocusHeroBannerProps) {
+  const centered = align === "center";
+
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sage via-emerald-muted to-sage px-6 py-8 text-ivory shadow-nav sm:px-10 sm:py-10">
-      <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-xl">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-ivory/80">
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-[28px] bg-gradient-to-br from-sage via-emerald-muted to-sage text-ivory shadow-nav",
+        centered ? "px-6 py-12 text-center sm:px-12 sm:py-16" : "px-6 py-8 sm:px-10 sm:py-10",
+      )}
+    >
+      <div
+        className={cn(
+          "relative z-10 flex flex-col gap-8",
+          centered ? "items-center" : "gap-6 lg:flex-row lg:items-end lg:justify-between",
+        )}
+      >
+        <div className={cn(centered ? "mx-auto max-w-2xl" : "max-w-xl")}>
+          <p
+            className={cn(
+              "text-[11px] font-semibold uppercase tracking-[0.28em] text-ivory/80",
+              centered && "mx-auto",
+            )}
+          >
             {eyebrow}
           </p>
-          <h2 className="mt-2 font-serif text-[28px] font-semibold leading-tight sm:text-[36px]">
+          <h2
+            className={cn(
+              "mt-3 font-serif font-semibold leading-[1.15] text-ivory",
+              centered ? "text-[32px] sm:text-[40px] md:text-[44px]" : "text-[28px] sm:text-[36px]",
+            )}
+          >
             {title}
           </h2>
-          <p className="mt-3 text-[15px] leading-relaxed text-ivory/90">{description}</p>
+          <p
+            className={cn(
+              "mt-4 text-[15px] leading-relaxed text-ivory/90 sm:text-[16px]",
+              centered ? "mx-auto max-w-xl" : "mt-3",
+            )}
+          >
+            {description}
+          </p>
         </div>
-        {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+        {actions ? (
+          <div className={cn("flex flex-wrap gap-3", centered && "justify-center")}>
+            {actions}
+          </div>
+        ) : null}
       </div>
-      <div className="pointer-events-none absolute -right-12 -top-12 h-56 w-56 rounded-full bg-ivory/10 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-16 right-1/4 h-40 w-40 rounded-full bg-ivory/5 blur-2xl" />
+
+      <div className="pointer-events-none absolute -left-16 top-1/2 h-64 w-64 -translate-y-1/2 rounded-full bg-ivory/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-ivory/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/2 h-32 w-[70%] -translate-x-1/2 rounded-full bg-ivory/5 blur-2xl" />
     </div>
   );
 }

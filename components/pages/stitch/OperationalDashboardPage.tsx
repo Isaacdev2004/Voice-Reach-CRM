@@ -34,7 +34,7 @@ export function OperationalDashboardPage() {
 
   return (
     <div className="luxury-page px-4 py-6 sm:p-8 max-w-[1400px] w-full mx-auto space-y-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <header className="flex flex-col items-center gap-4 text-center lg:flex-row lg:items-end lg:justify-between lg:text-left">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-taupe">
             Dashboard
@@ -42,14 +42,12 @@ export function OperationalDashboardPage() {
           <h1 className="font-serif text-[36px] font-semibold tracking-tight text-ink md:text-[40px]">
             {greeting}
           </h1>
-          <p className="mt-1 text-[15px] text-slate-text">
+          <p className="mx-auto mt-1 max-w-lg text-[15px] text-slate-text lg:mx-0">
             Overview of relationships, campaigns, and today&apos;s engagement.
           </p>
         </div>
         <ContactPageActions onRefresh={refresh} variant="compact" />
       </header>
-
-      <DashboardConcierge />
 
       <FocusHeroBanner
         eyebrow="Today's focus"
@@ -66,6 +64,8 @@ export function OperationalDashboardPage() {
           </>
         }
       />
+
+      <DashboardConcierge />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         {DASHBOARD_KPIS.map((kpi) => (
