@@ -4,6 +4,10 @@ import Link from "next/link";
 import { AiSuggestionPanel } from "@/components/crm/ai-suggestion-panel";
 import { ContactPageActions } from "@/components/crm/contact-page-actions";
 import { DashboardConcierge } from "@/components/crm/dashboard-concierge";
+import {
+  FocusHeroBanner,
+  HeroActionLink,
+} from "@/components/crm/focus-hero-banner";
 import { KpiCard } from "@/components/crm/kpi-card";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
@@ -47,36 +51,21 @@ export function OperationalDashboardPage() {
 
       <DashboardConcierge />
 
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sage via-emerald-muted to-sage px-6 py-8 text-ivory shadow-nav sm:px-10 sm:py-10">
-        <div className="relative z-10 max-w-xl">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-ivory/80">
-            Today&apos;s focus
-          </p>
-          <h2 className="mt-2 font-serif text-[28px] font-semibold sm:text-[32px]">
-            Stay ahead of every relationship
-          </h2>
-          <p className="mt-2 text-[15px] text-ivory/90">
-            Review your agenda, follow up with active leads, and keep past clients in their own lane.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/dashboard/calendar"
-              className="inline-flex items-center gap-2 rounded-full bg-ivory px-5 py-2.5 text-[14px] font-medium text-sage hover:bg-cream"
-            >
-              <Icon name="calendar_today" className="text-[18px]" />
+      <FocusHeroBanner
+        eyebrow="Today's focus"
+        title="Stay ahead of every relationship"
+        description="Review your agenda, follow up with active leads, and keep past clients in their own lane."
+        actions={
+          <>
+            <HeroActionLink href="/dashboard/calendar" icon="calendar_today">
               View agenda
-            </Link>
-            <Link
-              href="/dashboard/contacts?segment=cold-lead"
-              className="inline-flex items-center gap-2 rounded-full border border-ivory/40 px-5 py-2.5 text-[14px] font-medium text-ivory hover:bg-ivory/10"
-            >
-              <Icon name="person" className="text-[18px]" />
+            </HeroActionLink>
+            <HeroActionLink href="/dashboard/contacts?segment=cold-lead" icon="person" variant="ghost">
               Cold leads
-            </Link>
-          </div>
-        </div>
-        <div className="pointer-events-none absolute -right-8 -top-8 h-48 w-48 rounded-full bg-ivory/10 blur-2xl" />
-      </div>
+            </HeroActionLink>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         {DASHBOARD_KPIS.map((kpi) => (
