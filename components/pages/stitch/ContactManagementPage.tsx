@@ -12,7 +12,7 @@ import {
   CONTACT_SEGMENT_TABS,
   contactSegment,
   segmentBadgeClass,
-  segmentLabel,
+  segmentBadgeLabel,
   type ContactSegment,
 } from "@/lib/contacts/lifecycle";
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
@@ -350,16 +350,16 @@ export function ContactManagementPage() {
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
                     Phone
                   </th>
-                  <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
+                  <th className="min-w-[100px] px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
                     Type
                   </th>
-                  <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
+                  <th className="min-w-[88px] px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
                     Source
                   </th>
-                  <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
+                  <th className="min-w-[96px] px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
                     Compliance
                   </th>
-                  <th className="px-6 py-4" />
+                  <th className="min-w-[120px] px-6 py-4" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/15">
@@ -399,27 +399,27 @@ export function ContactManagementPage() {
                       </Link>
                     </td>
                     <td className="px-6 py-4 text-[14px] text-ink">{contact.phone}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 align-middle whitespace-nowrap">
                       {(() => {
                         const seg = contactSegment(contact.type);
                         return (
                           <span
-                            className={`rounded-full px-3 py-1 text-[12px] font-medium ${segmentBadgeClass(seg)}`}
+                            className={`inline-flex items-center whitespace-nowrap rounded-lg px-2.5 py-1 text-[12px] font-medium leading-none ${segmentBadgeClass(seg)}`}
                           >
-                            {segmentLabel(seg)}
+                            {segmentBadgeLabel(seg)}
                           </span>
                         );
                       })()}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="rounded-full bg-champagne/80 px-3 py-1 text-[12px] text-taupe">
+                    <td className="px-6 py-4 align-middle">
+                      <span className="inline-flex max-w-[140px] truncate rounded-lg bg-champagne/80 px-2.5 py-1 text-[12px] text-taupe">
                         {contact.source ?? "—"}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <ComplianceBadge status={consentStatus(contact)} />
+                    <td className="px-6 py-4 align-middle whitespace-nowrap">
+                      <ComplianceBadge status={consentStatus(contact)} compact />
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 align-middle text-right whitespace-nowrap">
                       <Link
                         href={`/dashboard/contacts/${contact.id}`}
                         className="text-[13px] font-medium text-rose-gold-deep hover:underline"

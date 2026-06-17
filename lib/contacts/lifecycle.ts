@@ -70,3 +70,16 @@ export function segmentBadgeClass(segment: Exclude<ContactSegment, "all">): stri
 export function segmentLabel(segment: Exclude<ContactSegment, "all">): string {
   return CONTACT_SEGMENT_TABS.find((t) => t.id === segment)?.label ?? "Contact";
 }
+
+/** Single-line label for table badges */
+export function segmentBadgeLabel(segment: Exclude<ContactSegment, "all">): string {
+  switch (segment) {
+    case "past-client":
+      return "Past client";
+    case "active-lead":
+      return "Active";
+    case "cold-lead":
+    default:
+      return "Cold";
+  }
+}
