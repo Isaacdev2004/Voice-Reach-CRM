@@ -174,3 +174,57 @@ export async function fetchGoogleAccountEmail(accessToken: string): Promise<stri
   const json = (await response.json()) as { email?: string };
   return json.email ?? null;
 }
+
+export type GoogleCalendarEventItem = {
+  id: string;
+  title: string;
+  starts_at: string;
+  ends_at: string;
+  htmlLink?: string;
+  source: "google";
+};
+
+export async function listGoogleCalendarEvents(options: {
+  connection: CalendarConnection;
+  timeMin: Date;
+  timeMax: Date;
+}): Promise<GoogleCalendarEventItem[]> {
+  const accessToken = await getValidGoogleAccessToken(options.connection);
+  const calendarId = encodeURIComponent(options.connection.calendar_id || "primary");
+  const params = new URLSearchParams({
+    timeMin: options.timeMin.toISOString(),
+    timeMax: options.timeMax.toISOString(),
+    singleEvents: "true",
+    orderBy: "startTime",
+    maxResults: "100",
+  });
+
+  const response = await fetch(
+    `${GOOGLE_CALENDAR}/calendars/${calendarId}/events?${params}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(`Google Calendar list failed (${response.status}): ${detail.slice(0, 200)}`);
+  }
+
+  const json = (await response.json()) as {
+    items?: {
+      id: string;
+      summary?: string;
+      start?: { dateTime?: string; date?: string };
+      end?: { dateTime?: string; date?: string };
+      htmlLink?: string;
+    }[];
+  };
+
+  return (json.items ?? []).map((item) => ({
+    id: item.id,
+    title: item.summary ?? "Untitled event",
+    starts_at: item.start?.dateTime ?? `${item.start?.date}T12:00:00`,
+    ends_at: item.end?.dateTime ?? `${item.end?.date}T13:00:00`,
+    htmlLink: item.htmlLink,
+    source: "google" as const,
+  }));
+}

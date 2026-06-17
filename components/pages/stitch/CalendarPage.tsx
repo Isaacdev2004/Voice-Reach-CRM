@@ -3,23 +3,17 @@
 import Link from "next/link";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-type CalendarEvent = {
+type AgendaItem = {
   id: string;
   title: string;
   starts_at: string;
   ends_at?: string | null;
   contact_id?: string | null;
   contacts?: { first_name: string; last_name?: string | null } | null;
-};
-
-type CalendarTask = {
-  id: string;
-  title: string;
-  due_at: string;
-  contact_id?: string | null;
-  contacts?: { first_name: string; last_name?: string | null } | null;
+  source: "google" | "crm" | "task";
+  htmlLink?: string | null;
 };
 
 function formatWhen(iso: string) {
@@ -38,44 +32,51 @@ function contactName(c?: { first_name: string; last_name?: string | null } | nul
   return `${c.first_name} ${c.last_name ?? ""}`.trim();
 }
 
+function sourceLabel(source: AgendaItem["source"]) {
+  switch (source) {
+    case "google":
+      return "Google";
+    case "task":
+      return "Task";
+    default:
+      return "CRM";
+  }
+}
+
 export function CalendarPage() {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [connected, setConnected] = useState(false);
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [tasks, setTasks] = useState<CalendarTask[]>([]);
+  const [agenda, setAgenda] = useState<AgendaItem[]>([]);
+  const [counts, setCounts] = useState({ google: 0, crm: 0, tasks: 0 });
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void (async () => {
-      setLoading(true);
-      try {
-        const res = await fetch("/api/calendar/events", { cache: "no-store" });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Could not load calendar");
-        setConnected(Boolean(data.connected));
-        setAccountEmail(data.accountEmail ?? null);
-        setEvents(data.events ?? []);
-        setTasks(data.tasks ?? []);
-        setError(data.eventsError || data.tasksError || null);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not load calendar");
-      } finally {
-        setLoading(false);
-      }
-    })();
+  const load = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    try {
+      const res = await fetch("/api/calendar/events", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not load calendar");
+      setConnected(Boolean(data.connected));
+      setAccountEmail(data.accountEmail ?? null);
+      setAgenda(data.agenda ?? []);
+      setCounts(data.counts ?? { google: 0, crm: 0, tasks: 0 });
+      const errors = [data.googleError, data.eventsError, data.tasksError].filter(Boolean);
+      setError(errors[0] ?? null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not load calendar");
+      setAgenda([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
 
-  const upcoming = [...events, ...tasks.map((t) => ({
-    id: `task-${t.id}`,
-    title: t.title,
-    starts_at: t.due_at,
-    contact_id: t.contact_id,
-    contacts: t.contacts,
-    isTask: true as const,
-  }))].sort(
-    (a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime(),
-  );
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   return (
     <div className="luxury-page p-8 max-w-[1400px] w-full mx-auto space-y-6">
@@ -86,62 +87,108 @@ export function CalendarPage() {
           </p>
           <h1 className="font-serif text-[36px] font-semibold text-ink">Your agenda</h1>
           <p className="mt-1 text-[15px] text-slate-text">
-            Callbacks, tasks, and Google Calendar events in one place.
+            Live Google Calendar events, CRM callbacks, and tasks in one place.
           </p>
         </div>
-        <Link
-          href="/dashboard/settings"
-          className="inline-flex items-center gap-2 rounded-full bg-sage px-5 py-2.5 text-[14px] font-medium text-ivory hover:opacity-90"
-        >
-          <Icon name="calendar_today" className="text-[18px]" />
-          {connected ? "Manage Google Calendar" : "Connect Google Calendar"}
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => void load(true)}
+            disabled={loading || refreshing}
+            className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-cream px-4 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne disabled:opacity-50"
+          >
+            <Icon name="refresh" className="text-[18px]" />
+            {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
+          {connected ? (
+            <a
+              href="https://calendar.google.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-cream px-4 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne"
+            >
+              <Icon name="open_in_new" className="text-[18px]" />
+              Open Google Calendar
+            </a>
+          ) : null}
+          <Link
+            href="/dashboard/settings?tab=workspace"
+            className="inline-flex items-center gap-2 rounded-full bg-sage px-5 py-2.5 text-[14px] font-medium text-ivory hover:opacity-90"
+          >
+            <Icon name="calendar_today" className="text-[18px]" />
+            {connected ? "Manage connection" : "Connect Google Calendar"}
+          </Link>
+        </div>
       </header>
 
-      {connected && accountEmail ? (
+      {connected ? (
         <p className="rounded-2xl border border-emerald-muted/20 bg-sage-light/40 px-4 py-3 text-[14px] text-emerald-muted">
-          Synced with {accountEmail}
+          Google Calendar connected
+          {accountEmail ? ` · ${accountEmail}` : ""}
+          {counts.google > 0 ? ` · ${counts.google} event${counts.google === 1 ? "" : "s"} loaded` : ""}
         </p>
       ) : !loading ? (
         <p className="rounded-2xl border border-outline-variant/20 bg-champagne/50 px-4 py-3 text-[14px] text-slate-text">
-          Connect Google Calendar in Settings to sync campaign callbacks and tasks automatically.
+          Connect Google Calendar in Settings to see your live schedule here.
         </p>
       ) : null}
 
       {error ? (
-        <p className="rounded-2xl bg-champagne px-4 py-3 text-[14px] text-taupe">{error}</p>
+        <p className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
+          {error}
+        </p>
       ) : null}
 
       <LuxuryCard padding="none" className="overflow-hidden">
         {loading ? (
           <p className="p-8 text-center text-taupe">Loading agenda…</p>
-        ) : upcoming.length === 0 ? (
+        ) : agenda.length === 0 ? (
           <div className="p-12 text-center">
             <Icon name="event_available" className="mx-auto text-[48px] text-taupe/60" />
-            <p className="mt-4 font-serif text-[22px] text-ink">Nothing scheduled yet</p>
-            <p className="mt-2 text-[14px] text-slate-text">
-              Tasks with due dates and campaign callbacks appear here.
+            <p className="mt-4 font-serif text-[22px] text-ink">
+              {connected ? "No upcoming events in this window" : "Nothing scheduled yet"}
             </p>
-            <Link
-              href="/dashboard/tasks"
-              className="mt-4 inline-block text-[14px] font-medium text-rose-gold-deep hover:underline"
-            >
-              View all tasks →
-            </Link>
+            <p className="mt-2 text-[14px] text-slate-text max-w-md mx-auto">
+              {connected
+                ? "Add events in Google Calendar, create tasks on a contact profile, or run a campaign with callback steps — then hit Refresh."
+                : "Connect Google Calendar to pull in your schedule, or add tasks from any contact profile."}
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link
+                href="/dashboard/tasks"
+                className="inline-flex items-center gap-2 rounded-full bg-rose-gold px-4 py-2 text-[14px] font-medium text-ivory"
+              >
+                <Icon name="task_alt" className="text-[18px]" />
+                View tasks
+              </Link>
+              <Link
+                href="/dashboard/contacts"
+                className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-4 py-2 text-[14px] font-medium text-ink hover:bg-champagne"
+              >
+                <Icon name="person" className="text-[18px]" />
+                Add task on a contact
+              </Link>
+            </div>
           </div>
         ) : (
           <ul className="divide-y divide-outline-variant/15">
-            {upcoming.map((item) => {
+            {agenda.map((item) => {
               const name = contactName(item.contacts);
-              const isTask = "isTask" in item && item.isTask;
+              const tone =
+                item.source === "google"
+                  ? "bg-sage-light text-emerald-muted"
+                  : item.source === "task"
+                    ? "bg-champagne text-taupe"
+                    : "bg-rose-gold/15 text-rose-gold-deep";
+              const icon =
+                item.source === "google" ? "event" : item.source === "task" ? "task_alt" : "phone_callback";
+
               return (
                 <li key={item.id} className="flex gap-4 px-6 py-5 hover:bg-cream/40">
                   <div
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
-                      isTask ? "bg-champagne text-taupe" : "bg-sage-light text-emerald-muted"
-                    }`}
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${tone}`}
                   >
-                    <Icon name={isTask ? "task_alt" : "event"} className="text-[22px]" />
+                    <Icon name={icon} className="text-[22px]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-ink">{item.title}</p>
@@ -155,9 +202,21 @@ export function CalendarPage() {
                       </Link>
                     ) : null}
                   </div>
-                  <span className="self-center rounded-full bg-cream px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-taupe">
-                    {isTask ? "Task" : "Event"}
-                  </span>
+                  <div className="flex shrink-0 flex-col items-end gap-2 self-center">
+                    <span className="rounded-full bg-cream px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-taupe">
+                      {sourceLabel(item.source)}
+                    </span>
+                    {item.htmlLink ? (
+                      <a
+                        href={item.htmlLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[12px] font-medium text-rose-gold-deep hover:underline"
+                      >
+                        Open →
+                      </a>
+                    ) : null}
+                  </div>
                 </li>
               );
             })}
