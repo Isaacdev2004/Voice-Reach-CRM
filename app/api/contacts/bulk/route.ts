@@ -18,7 +18,13 @@ const BulkConsentSchema = z.object({
   proof: z.string().min(2),
 });
 
-const BodySchema = z.union([BulkDeleteSchema, BulkConsentSchema]);
+const BulkTypeSchema = z.object({
+  action: z.literal("set_type"),
+  ids: z.array(z.string().uuid()).min(1).max(5000),
+  type: z.string().min(2),
+});
+
+const BodySchema = z.union([BulkDeleteSchema, BulkConsentSchema, BulkTypeSchema]);
 
 export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
@@ -44,7 +50,26 @@ export const POST = withApiHandler(async (request) => {
     return apiOk({ ok: true, deleted: body.ids.length });
   }
 
-  // action === "set_consent"
+  if (body.action === "set_type") {
+    const { error } = await supabaseAdmin
+      .from("contacts")
+      .update({ type: body.type, updated_at: new Date().toISOString() })
+      .eq("owner_id", ownerId)
+      .in("id", body.ids);
+
+    if (error) return apiError(error.message, { status: 500 });
+
+    await writeAuditLog({
+      ownerId,
+      action: "CONTACTS_BULK_TYPE_SET",
+      entityType: "contacts",
+      entityId: null,
+      metadata: { count: body.ids.length, type: body.type },
+    });
+
+    return apiOk({ ok: true, updated: body.ids.length });
+  }
+
   const consentRows = body.ids.map((id) => ({
     owner_id: ownerId,
     contact_id: id,
@@ -71,4 +96,3 @@ export const POST = withApiHandler(async (request) => {
 
   return apiOk({ ok: true, updated: body.ids.length });
 });
-

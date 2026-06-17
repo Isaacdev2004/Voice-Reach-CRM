@@ -61,7 +61,7 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                 className={cn(
                   "mx-2 my-1 flex items-center gap-3 rounded-full px-4 py-3 transition-all",
                   active
-                    ? "bg-champagne text-ink shadow-sm"
+                    ? "bg-sage text-ivory shadow-sm"
                     : "text-taupe hover:bg-cream",
                 )}
               >

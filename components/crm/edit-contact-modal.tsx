@@ -7,6 +7,7 @@ import {
   modalInputClass,
 } from "@/components/crm/modal";
 import type { ApiContact } from "@/lib/hooks/use-contacts";
+import { CONTACT_TYPE_OPTIONS } from "@/lib/contacts/lifecycle";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -34,6 +35,7 @@ export function EditContactModal({
     lastName: "",
     phone: "",
     email: "",
+    type: "Cold Lead",
     source: "",
     notes: "",
     dnc: false,
@@ -51,6 +53,7 @@ export function EditContactModal({
       lastName: contact.last_name ?? "",
       phone: contact.phone,
       email: contact.email ?? "",
+      type: contact.type ?? "Cold Lead",
       source: contact.source ?? "",
       notes: contact.notes ?? "",
       dnc: contact.dnc ?? false,
@@ -77,6 +80,7 @@ export function EditContactModal({
           lastName: form.lastName.trim(),
           phone: form.phone.trim(),
           email: form.email.trim(),
+          type: form.type,
           source: form.source.trim(),
           notes: form.notes.trim(),
           dnc: form.dnc,
@@ -173,6 +177,19 @@ export function EditContactModal({
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             />
+          </ModalField>
+          <ModalField label="Contact type">
+            <select
+              className={modalInputClass}
+              value={form.type}
+              onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+            >
+              {CONTACT_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </ModalField>
           <ModalField label="Source">
             <input

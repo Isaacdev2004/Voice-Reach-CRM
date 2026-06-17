@@ -1,6 +1,7 @@
 "use client";
 
 import { isUuid } from "@/lib/contacts/is-uuid";
+import type { ContactSegment } from "@/lib/contacts/lifecycle";
 import { useCallback, useEffect, useState } from "react";
 
 export type ApiContact = {
@@ -22,18 +23,33 @@ export type ApiContact = {
   }[];
 };
 
-export function useContacts(query?: string) {
+export type ContactCounts = {
+  all: number;
+  coldLead: number;
+  activeLead: number;
+  pastClient: number;
+};
+
+export function useContacts(query?: string, segment: ContactSegment = "all") {
   const [contacts, setContacts] = useState<ApiContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [meta, setMeta] = useState<{ total: number; filtered: number } | null>(null);
+  const [meta, setMeta] = useState<{
+    total: number;
+    filtered: number;
+    counts?: ContactCounts;
+  } | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      const params = new URLSearchParams();
       const q = query?.trim();
-      const url = q ? `/api/contacts?q=${encodeURIComponent(q)}` : "/api/contacts";
+      if (q) params.set("q", q);
+      if (segment !== "all") params.set("segment", segment);
+      const qs = params.toString();
+      const url = qs ? `/api/contacts?${qs}` : "/api/contacts";
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -41,7 +57,11 @@ export function useContacts(query?: string) {
       }
       const data = await res.json();
       setContacts(data.contacts ?? []);
-      setMeta({ total: data.total ?? data.contacts?.length ?? 0, filtered: data.filtered ?? data.contacts?.length ?? 0 });
+      setMeta({
+        total: data.total ?? data.contacts?.length ?? 0,
+        filtered: data.filtered ?? data.contacts?.length ?? 0,
+        counts: data.counts,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load contacts");
       setContacts([]);
@@ -49,7 +69,7 @@ export function useContacts(query?: string) {
     } finally {
       setLoading(false);
     }
-  }, [query]);
+  }, [query, segment]);
 
   useEffect(() => {
     void refresh();

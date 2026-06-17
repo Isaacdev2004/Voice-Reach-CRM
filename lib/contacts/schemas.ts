@@ -7,7 +7,7 @@ export const CreateContactSchema = z.object({
   lastName: z.string().optional().default(""),
   phone: z.string().min(7),
   email: z.string().email().optional().or(z.literal("")),
-  type: z.string().optional().default("Imported Contact"),
+  type: z.string().optional().default("Cold Lead"),
   source: z.string().optional().default("Manual entry"),
   dnc: z.boolean().optional().default(false),
   notes: z.string().optional().default(""),

@@ -6,6 +6,7 @@ import {
   ModalFooterActions,
   modalInputClass,
 } from "@/components/crm/modal";
+import { CONTACT_TYPE_OPTIONS } from "@/lib/contacts/lifecycle";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -39,6 +40,7 @@ export function AddContactModal({
     lastName: "",
     phone: "",
     email: "",
+    type: "Cold Lead",
     source: "Manual entry",
     consent: "Unknown" as "Yes" | "No" | "Unknown",
     notes: "",
@@ -50,6 +52,7 @@ export function AddContactModal({
       lastName: "",
       phone: "",
       email: "",
+      type: "Cold Lead",
       source: "Manual entry",
       consent: "Unknown",
       notes: "",
@@ -80,6 +83,7 @@ export function AddContactModal({
           lastName: form.lastName.trim(),
           phone: form.phone.trim(),
           email: form.email.trim(),
+          type: form.type,
           source: form.source.trim() || "Manual entry",
           consent: form.consent,
           notes: form.notes.trim(),
@@ -167,6 +171,19 @@ export function AddContactModal({
 
         <FormSection title="Compliance">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <ModalField label="Contact type">
+              <select
+                className={modalInputClass}
+                value={form.type}
+                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+              >
+                {CONTACT_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </ModalField>
             <ModalField label="Lead source">
               <input
                 className={modalInputClass}

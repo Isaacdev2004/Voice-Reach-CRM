@@ -66,7 +66,7 @@ export const POST = withApiHandler(async (request) => {
         last_name: row.lastName || row.last_name || null,
         phone: normalizePhone(phone),
         email: row.email || null,
-        type: row.type || "Imported Contact",
+        type: row.type || "Cold Lead",
         source: row.source || "CSV import",
         dnc: normalizeBoolean(row.dnc),
         notes: row.notes || null,

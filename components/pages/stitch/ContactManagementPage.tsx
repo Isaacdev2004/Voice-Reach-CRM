@@ -8,10 +8,18 @@ import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Modal, ModalField, ModalFooterActions, modalInputClass } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
 import { DEMO_CONTACT } from "@/lib/crm/mock-data";
+import {
+  CONTACT_SEGMENT_TABS,
+  contactSegment,
+  segmentBadgeClass,
+  segmentLabel,
+  type ContactSegment,
+} from "@/lib/contacts/lifecycle";
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
 import { useContacts, type ApiContact } from "@/lib/hooks/use-contacts";
 import { safeFetch } from "@/lib/api-response";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 function initials(first: string, last?: string | null) {
   return `${first[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase() || "?";
@@ -39,15 +47,21 @@ const FALLBACK_ROWS: ApiContact[] = [
 
 export function ContactManagementPage() {
   const headerQuery = useDashboardSearch();
-  const { contacts, loading, error, refresh, meta } = useContacts(headerQuery);
+  const searchParams = useSearchParams();
+  const initialSegment = (searchParams.get("segment") ?? "all") as ContactSegment;
+  const [segment, setSegment] = useState<ContactSegment>(
+    CONTACT_SEGMENT_TABS.some((t) => t.id === initialSegment) ? initialSegment : "all",
+  );
+  const { contacts, loading, error, refresh, meta } = useContacts(headerQuery, segment);
   const rows = contacts.length > 0 ? contacts : FALLBACK_ROWS;
   const total = meta?.total ?? (contacts.length > 0 ? contacts.length : rows.length);
 
   const selectableRows = useMemo(() => (contacts.length > 0 ? contacts : []), [contacts]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
-  const [bulkOpen, setBulkOpen] = useState<null | "consent" | "delete">(null);
+  const [bulkOpen, setBulkOpen] = useState<null | "consent" | "delete" | "type">(null);
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
   const [bulkError, setBulkError] = useState<string | null>(null);
+  const [bulkType, setBulkType] = useState("Past Client");
   const [bulkConsent, setBulkConsent] = useState({
     consent: "Yes" as "Yes" | "No" | "Unknown",
     consentDate: new Date().toISOString().slice(0, 10),
@@ -112,6 +126,27 @@ export function ContactManagementPage() {
     void refresh();
   };
 
+  const runBulkType = async () => {
+    if (selectedIds.length === 0) return;
+    setBulkSubmitting(true);
+    setBulkError(null);
+    const envelope = await safeFetch<{ updated: number }>("/api/contacts/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "set_type", ids: selectedIds, type: bulkType }),
+    });
+    setBulkSubmitting(false);
+    if (!envelope.success) {
+      setBulkError(envelope.error);
+      return;
+    }
+    setSelected({});
+    closeBulk();
+    void refresh();
+  };
+
+  const counts = meta?.counts;
+
   const runBulkConsent = async () => {
     if (selectedIds.length === 0) return;
     setBulkSubmitting(true);
@@ -150,6 +185,16 @@ export function ContactManagementPage() {
         submitting={bulkSubmitting}
         error={bulkError}
       />
+      <BulkTypeModal
+        open={bulkOpen === "type"}
+        onClose={closeBulk}
+        count={selectedIds.length}
+        value={bulkType}
+        onChange={setBulkType}
+        onSubmit={() => void runBulkType()}
+        submitting={bulkSubmitting}
+        error={bulkError}
+      />
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
@@ -162,6 +207,46 @@ export function ContactManagementPage() {
         </div>
         <ContactPageActions onRefresh={refresh} />
       </header>
+
+      <div className="flex flex-wrap gap-2">
+        {CONTACT_SEGMENT_TABS.map((tab) => {
+          const count =
+            tab.id === "all"
+              ? counts?.all
+              : tab.id === "cold-lead"
+                ? counts?.coldLead
+                : tab.id === "active-lead"
+                  ? counts?.activeLead
+                  : counts?.pastClient;
+          const active = segment === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setSegment(tab.id)}
+              className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+                active
+                  ? "bg-sage text-ivory shadow-sm"
+                  : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
+              }`}
+              title={tab.description}
+            >
+              {tab.label}
+              {count !== undefined ? (
+                <span className={`ml-2 ${active ? "text-ivory/80" : "text-taupe"}`}>
+                  ({count})
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+
+      {segment === "past-client" ? (
+        <p className="rounded-2xl border border-emerald-muted/20 bg-sage-light/40 px-4 py-3 text-[14px] text-emerald-muted">
+          Past clients are excluded from cold outreach. Use bulk actions or edit a contact to reclassify.
+        </p>
+      ) : null}
 
       {contacts.length > 0 ? (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-outline-variant/10 bg-ivory px-4 py-3">
@@ -179,6 +264,15 @@ export function ContactManagementPage() {
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={selectedIds.length === 0}
+              onClick={() => setBulkOpen("type")}
+              className="inline-flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-50"
+            >
+              <Icon name="label" className="text-[18px]" />
+              Change type
+            </button>
             <button
               type="button"
               disabled={selectedIds.length === 0}
@@ -214,8 +308,8 @@ export function ContactManagementPage() {
             label: "Consent validated",
             value: loading ? "…" : `${rows.length ? Math.round((validated / rows.length) * 100) : 0}%`,
           },
-          { label: "DNC / blocked", value: loading ? "…" : String(dncCount) },
-          { label: "In active sequences", value: "12" },
+          { label: "Past clients", value: loading ? "…" : String(counts?.pastClient ?? "—") },
+          { label: "Cold leads", value: loading ? "…" : String(counts?.coldLead ?? "—") },
         ].map((stat) => (
           <LuxuryCard key={stat.label} padding="md">
             <p className="text-[13px] text-taupe">{stat.label}</p>
@@ -255,6 +349,9 @@ export function ContactManagementPage() {
                   </th>
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
                     Phone
+                  </th>
+                  <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
+                    Type
                   </th>
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
                     Source
@@ -302,6 +399,18 @@ export function ContactManagementPage() {
                       </Link>
                     </td>
                     <td className="px-6 py-4 text-[14px] text-ink">{contact.phone}</td>
+                    <td className="px-6 py-4">
+                      {(() => {
+                        const seg = contactSegment(contact.type);
+                        return (
+                          <span
+                            className={`rounded-full px-3 py-1 text-[12px] font-medium ${segmentBadgeClass(seg)}`}
+                          >
+                            {segmentLabel(seg)}
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td className="px-6 py-4">
                       <span className="rounded-full bg-champagne/80 px-3 py-1 text-[12px] text-taupe">
                         {contact.source ?? "—"}
@@ -412,6 +521,61 @@ function BulkConsentModal(props: {
         <p className="text-[12px] text-taupe">
           This records consent in the database so compliance checks allow VM/SMS. If you don’t have explicit opt-in,
           keep consent as Unknown/No.
+        </p>
+      </div>
+    </Modal>
+  );
+}
+
+function BulkTypeModal(props: {
+  open: boolean;
+  onClose: () => void;
+  count: number;
+  value: string;
+  onChange: (next: string) => void;
+  onSubmit: () => void;
+  submitting: boolean;
+  error: string | null;
+}) {
+  const { open, onClose, count, value, onChange, onSubmit, submitting, error } = props;
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Change contact type"
+      description={`Updates lifecycle type for ${count} selected contact${count === 1 ? "" : "s"}.`}
+      icon="label"
+      size="md"
+      footer={
+        <ModalFooterActions
+          onCancel={onClose}
+          primaryLabel={submitting ? "Saving…" : "Update type"}
+          onPrimary={onSubmit}
+          primaryDisabled={submitting}
+          primaryLoading={submitting}
+        />
+      }
+    >
+      <div className="space-y-4">
+        {error ? (
+          <p className="rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
+            {error}
+          </p>
+        ) : null}
+        <ModalField label="Contact type">
+          <select
+            className={modalInputClass}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          >
+            <option value="Past Client">Past client (closed)</option>
+            <option value="Cold Lead">Cold lead</option>
+            <option value="Active Lead">Active lead</option>
+            <option value="Imported Contact">Imported / unclassified</option>
+          </select>
+        </ModalField>
+        <p className="text-[12px] text-taupe">
+          Mark closed transactions as Past client so they stay out of cold outreach campaigns.
         </p>
       </div>
     </Modal>

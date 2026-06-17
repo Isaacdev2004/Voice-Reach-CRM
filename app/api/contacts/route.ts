@@ -4,6 +4,11 @@ import { writeAuditLog } from "@/lib/audit";
 import { evaluateTriggers } from "@/lib/automations/engine";
 import { evaluateEligibility } from "@/lib/compliance";
 import { CreateContactSchema, filterContactsByQuery } from "@/lib/contacts/schemas";
+import {
+  contactSegment,
+  filterContactsBySegment,
+  type ContactSegment,
+} from "@/lib/contacts/lifecycle";
 import { normalizePhone } from "@/lib/phone";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -11,6 +16,7 @@ export const GET = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim() ?? "";
+  const segment = (searchParams.get("segment") ?? "all") as ContactSegment;
 
   const { data, error } = await supabaseAdmin
     .from("contacts")
@@ -21,9 +27,11 @@ export const GET = withApiHandler(async (request) => {
   if (error) return apiError(error.message, { status: 500 });
 
   const raw = q ? filterContactsByQuery(data ?? [], q) : (data ?? []);
-  const contacts = raw.map((contact) => ({
+  const segmented = filterContactsBySegment(raw, segment);
+  const contacts = segmented.map((contact) => ({
     ...contact,
     eligibility: evaluateEligibility(contact),
+    lifecycleSegment: contactSegment(contact.type),
   }));
   const eligibleCount = contacts.filter((c) => c.eligibility.eligible).length;
   return apiOk({
@@ -32,6 +40,13 @@ export const GET = withApiHandler(async (request) => {
     filtered: contacts.length,
     eligibleCount,
     q,
+    segment,
+    counts: {
+      all: (data ?? []).length,
+      coldLead: filterContactsBySegment(data ?? [], "cold-lead").length,
+      activeLead: filterContactsBySegment(data ?? [], "active-lead").length,
+      pastClient: filterContactsBySegment(data ?? [], "past-client").length,
+    },
   });
 });
 
@@ -47,7 +62,7 @@ export const POST = withApiHandler(async (request) => {
       last_name: body.lastName,
       phone: normalizePhone(body.phone),
       email: body.email || null,
-      type: body.type,
+      type: body.type || "Cold Lead",
       source: body.source,
       dnc: body.dnc,
       notes: body.notes,

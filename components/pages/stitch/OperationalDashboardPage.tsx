@@ -47,6 +47,37 @@ export function OperationalDashboardPage() {
 
       <DashboardConcierge />
 
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sage via-emerald-muted to-sage px-6 py-8 text-ivory shadow-nav sm:px-10 sm:py-10">
+        <div className="relative z-10 max-w-xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-ivory/80">
+            Today&apos;s focus
+          </p>
+          <h2 className="mt-2 font-serif text-[28px] font-semibold sm:text-[32px]">
+            Stay ahead of every relationship
+          </h2>
+          <p className="mt-2 text-[15px] text-ivory/90">
+            Review your agenda, follow up with active leads, and keep past clients in their own lane.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/dashboard/calendar"
+              className="inline-flex items-center gap-2 rounded-full bg-ivory px-5 py-2.5 text-[14px] font-medium text-sage hover:bg-cream"
+            >
+              <Icon name="calendar_today" className="text-[18px]" />
+              View agenda
+            </Link>
+            <Link
+              href="/dashboard/contacts?segment=cold-lead"
+              className="inline-flex items-center gap-2 rounded-full border border-ivory/40 px-5 py-2.5 text-[14px] font-medium text-ivory hover:bg-ivory/10"
+            >
+              <Icon name="person" className="text-[18px]" />
+              Cold leads
+            </Link>
+          </div>
+        </div>
+        <div className="pointer-events-none absolute -right-8 -top-8 h-48 w-48 rounded-full bg-ivory/10 blur-2xl" />
+      </div>
+
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         {DASHBOARD_KPIS.map((kpi) => (
           <KpiCard key={kpi.id} {...kpi} />
@@ -112,11 +143,18 @@ export function OperationalDashboardPage() {
         </LuxuryCard>
 
         <div className="lg:col-span-3 space-y-4">
-          <Link href="/dashboard/contacts" className="block">
+          <Link href="/dashboard/tasks" className="block">
             <LuxuryCard padding="md" className="transition-shadow hover:shadow-nav">
               <p className="text-[12px] uppercase tracking-wider text-taupe">Pending follow-ups</p>
               <p className="mt-2 font-serif text-[36px] font-semibold text-ink">7</p>
-              <p className="mt-1 text-[13px] text-rose-gold-deep">Review contacts →</p>
+              <p className="mt-1 text-[13px] text-rose-gold-deep">View tasks →</p>
+            </LuxuryCard>
+          </Link>
+          <Link href="/dashboard/calendar" className="block">
+            <LuxuryCard padding="md" className="transition-shadow hover:shadow-nav">
+              <p className="text-[12px] uppercase tracking-wider text-taupe">Today&apos;s agenda</p>
+              <p className="mt-2 font-serif text-[36px] font-semibold text-ink">→</p>
+              <p className="mt-1 text-[13px] text-emerald-muted">Open calendar →</p>
             </LuxuryCard>
           </Link>
           <Link href="/dashboard/campaigns" className="block">
