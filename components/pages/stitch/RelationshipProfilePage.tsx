@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { AiLauncherButton } from "@/components/ai/ai-launcher-button";
+import Link from "next/link";
 import { AiSuggestionPanel } from "@/components/crm/ai-suggestion-panel";
 import { ComplianceBadge } from "@/components/crm/compliance-badge";
+import { ContactAvatar } from "@/components/crm/contact-avatar";
 import { ContactInfoLinks, ContactQuickActions } from "@/components/crm/contact-quick-actions";
 import { ContactTasksPanel } from "@/components/crm/contact-tasks-panel";
 import { EditContactModal } from "@/components/crm/edit-contact-modal";
@@ -26,7 +26,11 @@ type RelationshipProfilePageProps = {
 function profileFromId(contactId: string, apiContact: ReturnType<typeof useContact>["contact"]): ContactProfile {
   if (apiContact) return contactProfileFromApi(apiContact);
   if (contactId === DEMO_CONTACT.id) return DEMO_CONTACT;
-  return { ...DEMO_CONTACT, id: contactId };
+  return contactProfileFromApi({
+    id: contactId,
+    first_name: "Contact",
+    last_name: "",
+  });
 }
 
 export function RelationshipProfilePage({ contactId }: RelationshipProfilePageProps) {
@@ -72,22 +76,11 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
       <LuxuryCard padding="lg" className="luxury-gradient-hero">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
           <div className="flex shrink-0 flex-col items-center gap-4 lg:items-start">
-            <div className="relative h-28 w-28 overflow-hidden rounded-full ring-4 ring-champagne">
-              {profile.avatarUrl ? (
-                <Image
-                  src={profile.avatarUrl}
-                  alt={`${profile.firstName} ${profile.lastName}`}
-                  fill
-                  className="object-cover"
-                  sizes="112px"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-champagne text-3xl font-serif text-taupe">
-                  {profile.firstName[0]}
-                  {profile.lastName[0]}
-                </div>
-              )}
-            </div>
+            <ContactAvatar
+              firstName={profile.firstName}
+              lastName={profile.lastName}
+              size="lg"
+            />
             <ComplianceBadge status={consentStatus} />
             <p className="text-center text-[13px] font-medium text-emerald-muted lg:text-left">
               {profile.leadStatus}
@@ -167,12 +160,14 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
             </div>
           </div>
 
-          <div className="text-center lg:text-right">
-            <p className="text-[12px] uppercase tracking-wider text-taupe">Relationship score</p>
-            <p className="font-serif text-[48px] font-semibold text-rose-gold-deep">
-              {profile.relationshipScore}
-            </p>
-          </div>
+          {profile.relationshipScore > 0 ? (
+            <div className="text-center lg:text-right">
+              <p className="text-[12px] uppercase tracking-wider text-taupe">Relationship score</p>
+              <p className="font-serif text-[48px] font-semibold text-rose-gold-deep">
+                {profile.relationshipScore}
+              </p>
+            </div>
+          ) : null}
         </div>
       </LuxuryCard>
 

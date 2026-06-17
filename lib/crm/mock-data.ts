@@ -5,6 +5,7 @@ import type {
   ContactProfile,
   DashboardKpi,
 } from "./types";
+import { contactSegment, segmentLabel } from "@/lib/contacts/lifecycle";
 
 export const DEFAULT_CAMPAIGN: CampaignDefinition = {
   id: "luxury-seller-follow-up",
@@ -94,8 +95,6 @@ export const DEMO_CONTACT: ContactProfile = {
   company: "Reyes Wellness Group",
   quote:
     "I value trust, discretion, and working with someone who truly understands my goals.",
-  avatarUrl:
-    "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&h=400&fit=crop",
   tags: ["Residential Agent", "Lender Partner", "Business Owner"],
   leadStatus: "Warm — Engaged",
   relationshipScore: 82,
@@ -288,19 +287,30 @@ export function contactProfileFromApi(contact: {
   type?: string | null;
   source?: string | null;
 }): ContactProfile {
-  const base = { ...DEMO_CONTACT };
+  const typeLabel = contact.type?.trim() || "Contact";
+  const segment = contactSegment(contact.type);
+
   return {
-    ...base,
     id: contact.id,
     firstName: contact.first_name,
     lastName: contact.last_name ?? "",
+    title: typeLabel,
     email: contact.email ?? undefined,
     phone: contact.phone,
-    notes: contact.notes ?? base.notes,
+    notes: contact.notes ?? "",
+    tags: typeLabel !== "Contact" ? [typeLabel] : [],
+    leadStatus: segmentLabel(segment),
+    relationshipScore: 0,
+    enrolledCampaigns: [],
+    timeline: [],
+    signals: [],
+    tasks: [],
+    aiSuggestions: [],
     details: [
-      { label: "Type", value: contact.type ?? "Contact" },
+      { label: "Type", value: typeLabel },
       { label: "Source", value: contact.source ?? "—" },
-      ...base.details.slice(2),
+      ...(contact.email ? [{ label: "Email", value: contact.email }] : []),
+      ...(contact.phone ? [{ label: "Phone", value: contact.phone }] : []),
     ],
   };
 }

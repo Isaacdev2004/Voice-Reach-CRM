@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CompliancePanel } from "@/components/crm/compliance-panel";
 import { ComplianceBadge } from "@/components/crm/compliance-badge";
+import { ContactAvatar } from "@/components/crm/contact-avatar";
 import { ContactPageActions } from "@/components/crm/contact-page-actions";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Modal, ModalField, ModalFooterActions, modalInputClass } from "@/components/crm/modal";
@@ -20,10 +21,6 @@ import { useContacts, type ApiContact } from "@/lib/hooks/use-contacts";
 import { safeFetch } from "@/lib/api-response";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-
-function initials(first: string, last?: string | null) {
-  return `${first[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase() || "?";
-}
 
 function consentStatus(contact: ApiContact): "valid" | "pending" | "blocked" | "review" {
   if (contact.dnc) return "blocked";
@@ -385,9 +382,12 @@ export function ContactManagementPage() {
                         href={`/dashboard/contacts/${contact.id}`}
                         className="flex items-center gap-3 group"
                       >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-champagne font-semibold text-[12px] text-taupe">
-                          {initials(contact.first_name, contact.last_name)}
-                        </div>
+                        <ContactAvatar
+                          firstName={contact.first_name}
+                          lastName={contact.last_name}
+                          size="sm"
+                          className="ring-0"
+                        />
                         <div>
                           <p className="font-medium text-ink group-hover:text-rose-gold-deep">
                             {contact.first_name} {contact.last_name ?? ""}
