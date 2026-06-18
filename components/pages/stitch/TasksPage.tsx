@@ -107,27 +107,30 @@ export function TasksPage() {
         </Link>
       </div>
 
-      <LuxuryCard padding="none" className="w-full overflow-hidden">
+      <LuxuryCard padding="none" className="w-full min-w-0 overflow-hidden">
         <div className="border-b border-outline-variant/15 px-6 py-4">
           <h2 className="font-serif text-[22px] font-semibold text-ink">Open tasks</h2>
         </div>
         {loading ? (
           <p className="p-8 text-center text-taupe">Loading tasks…</p>
         ) : open.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="font-serif text-[22px] text-ink">No open tasks</p>
-            <p className="mx-auto mt-2 max-w-md text-[14px] text-slate-text">
-              Tap the <strong>+</strong> button at the top → <strong>New task</strong>, or use the
-              button below to add a follow-up with notes and repeats.
-            </p>
-            <button
-              type="button"
-              onClick={() => setModalOpen(true)}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-rose-gold px-4 py-2 text-[14px] font-medium text-ivory"
-            >
-              <Icon name="add" className="text-[18px]" />
-              Create a task
-            </button>
+          <div className="w-full min-w-0 px-6 py-12 sm:px-12">
+            <div className="mx-auto w-full max-w-xl text-center">
+              <p className="font-serif text-[22px] text-ink">No open tasks</p>
+              <p className="mt-3 w-full text-[15px] leading-relaxed text-slate-text">
+                Tap the <strong>+</strong> button at the top and choose <strong>New task</strong>, or
+                use the button below to add a follow-up with notes and daily, weekly, or monthly
+                repeats.
+              </p>
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory"
+              >
+                <Icon name="add" className="text-[18px]" />
+                Create a task
+              </button>
+            </div>
           </div>
         ) : (
           <ul className="divide-y divide-outline-variant/15">

@@ -232,6 +232,16 @@ export function CalendarPage() {
 
 
 
+  const handleDayClick = useCallback((day: Date) => {
+
+    setSelectedDate(day);
+
+    setAddEventOpen(true);
+
+  }, []);
+
+
+
   const hour = new Date().getHours();
 
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
@@ -476,9 +486,21 @@ export function CalendarPage() {
 
               onSelectDate={setSelectedDate}
 
+              onDayClick={handleDayClick}
+
             />
 
           )}
+
+          {!loading ? (
+
+            <p className="mt-4 text-center text-[13px] text-taupe sm:text-left">
+
+              Click any day to add an event on that date.
+
+            </p>
+
+          ) : null}
 
         </LuxuryCard>
 
@@ -526,7 +548,11 @@ export function CalendarPage() {
 
           {selectedDayEvents.length === 0 ? (
 
-            <p className="p-6 text-center text-[14px] text-taupe">Nothing scheduled this day.</p>
+            <p className="p-6 text-center text-[14px] text-taupe">
+
+              Nothing scheduled this day. Click the day on the calendar to add an event.
+
+            </p>
 
           ) : (
 

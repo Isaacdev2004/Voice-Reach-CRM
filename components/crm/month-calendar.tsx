@@ -17,6 +17,8 @@ type MonthCalendarProps = {
   events: CalendarAgendaItem[];
   selectedDate: Date | null;
   onSelectDate: (date: Date) => void;
+  /** When set, clicking a day cell selects it and runs this (e.g. open add-event modal). */
+  onDayClick?: (date: Date) => void;
 };
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -58,6 +60,7 @@ export function MonthCalendar({
   events,
   selectedDate,
   onSelectDate,
+  onDayClick,
 }: MonthCalendarProps) {
   const today = new Date();
   const cells = useMemo(() => buildMonthGrid(viewDate), [viewDate]);
@@ -144,11 +147,16 @@ export function MonthCalendar({
             <button
               key={day.toISOString()}
               type="button"
-              onClick={() => onSelectDate(day)}
+              onClick={() => {
+                onSelectDate(day);
+                onDayClick?.(day);
+              }}
+              title="Click to add an event on this day"
               className={cn(
                 "min-h-[88px] bg-ivory p-2 text-left transition-colors hover:bg-cream/70 sm:min-h-[100px]",
                 !inMonth && "bg-cream/40 text-taupe/60",
                 isSelected && "ring-2 ring-inset ring-rose-gold-deep/50",
+                onDayClick && "cursor-pointer hover:ring-1 hover:ring-inset hover:ring-rose-gold/30",
               )}
             >
               <span
