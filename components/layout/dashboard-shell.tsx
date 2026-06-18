@@ -58,6 +58,16 @@ const headerConfig: Record<
     showQuickCreate: true,
     fullWidth: true,
   },
+  "/dashboard/calendar": {
+    searchPlaceholder: "Search calendar events...",
+    showQuickCreate: true,
+    fullWidth: true,
+  },
+  "/dashboard/tasks": {
+    searchPlaceholder: "Search tasks...",
+    showQuickCreate: true,
+    fullWidth: true,
+  },
   "/dashboard/partners": {
     searchPlaceholder: "Search partner workspaces...",
     showQuickCreate: true,

@@ -29,11 +29,11 @@ export function FocusHeroBanner({
     >
       <div
         className={cn(
-          "relative z-10 flex flex-col gap-8",
+          "relative z-10 flex w-full flex-col gap-8",
           centered ? "items-center" : "gap-6 lg:flex-row lg:items-end lg:justify-between",
         )}
       >
-        <div className={cn(centered ? "mx-auto max-w-2xl" : "max-w-xl")}>
+        <div className={cn(centered ? "w-full max-w-2xl text-center" : "max-w-xl")}>
           <p
             className={cn(
               "text-[11px] font-semibold uppercase tracking-[0.28em] text-ivory/80",
@@ -60,7 +60,7 @@ export function FocusHeroBanner({
           </p>
         </div>
         {actions ? (
-          <div className={cn("flex flex-wrap gap-3", centered && "justify-center")}>
+          <div className={cn("flex w-full flex-wrap gap-3", centered && "justify-center")}>
             {actions}
           </div>
         ) : null}
