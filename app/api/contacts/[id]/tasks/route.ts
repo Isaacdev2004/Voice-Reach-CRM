@@ -3,6 +3,7 @@ import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { syncTaskReminderToCalendar } from "@/lib/calendar/task-sync";
 import { isUuid } from "@/lib/contacts/is-uuid";
+import { insertContactTask } from "@/lib/tasks/insert-task";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
 
@@ -55,19 +56,15 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
   const contact = await loadContact(ownerId, id);
   if (!contact) return apiError("Contact not found", { status: 404 });
 
-  const { data: task, error } = await supabaseAdmin
-    .from("contact_tasks")
-    .insert({
-      owner_id: ownerId,
-      contact_id: id,
-      title: body.title.trim(),
-      due_at: body.dueAt ?? null,
-      reminder_at: body.reminderAt ?? body.dueAt ?? null,
-      notes: body.notes?.trim() || null,
-      recurrence: body.recurrence,
-    })
-    .select("*")
-    .single();
+  const { data: task, error } = await insertContactTask({
+    owner_id: ownerId,
+    contact_id: id,
+    title: body.title.trim(),
+    due_at: body.dueAt ?? null,
+    reminder_at: body.reminderAt ?? body.dueAt ?? null,
+    notes: body.notes?.trim() || null,
+    recurrence: body.recurrence,
+  });
 
   if (error) return apiError(error.message, { status: 500 });
 

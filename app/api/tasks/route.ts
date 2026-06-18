@@ -4,6 +4,7 @@ import { writeAuditLog } from "@/lib/audit";
 import { getOrCreatePersonalContact } from "@/lib/contacts/personal-contact";
 import { syncTaskReminderToCalendar } from "@/lib/calendar/task-sync";
 import type { Recurrence } from "@/lib/calendar/google";
+import { insertContactTask } from "@/lib/tasks/insert-task";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
 
@@ -56,19 +57,15 @@ export const POST = withApiHandler(async (request) => {
 
   const recurrence = body.recurrence as Recurrence;
 
-  const { data: task, error } = await supabaseAdmin
-    .from("contact_tasks")
-    .insert({
-      owner_id: ownerId,
-      contact_id: contactId,
-      title: body.title.trim(),
-      due_at: body.dueAt ?? null,
-      reminder_at: body.reminderAt ?? body.dueAt ?? null,
-      notes: body.notes?.trim() || null,
-      recurrence,
-    })
-    .select("*, contacts(id, first_name, last_name, phone)")
-    .single();
+  const { data: task, error } = await insertContactTask({
+    owner_id: ownerId,
+    contact_id: contactId,
+    title: body.title.trim(),
+    due_at: body.dueAt ?? null,
+    reminder_at: body.reminderAt ?? body.dueAt ?? null,
+    notes: body.notes?.trim() || null,
+    recurrence,
+  });
 
   if (error) return apiError(error.message, { status: 500 });
 
