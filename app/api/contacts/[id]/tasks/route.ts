@@ -13,6 +13,7 @@ const CreateTaskSchema = z.object({
   dueAt: z.string().datetime().optional().nullable(),
   reminderAt: z.string().datetime().optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
+  recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional().default("none"),
   addToCalendar: z.boolean().optional().default(false),
 });
 
@@ -63,6 +64,7 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
       due_at: body.dueAt ?? null,
       reminder_at: body.reminderAt ?? body.dueAt ?? null,
       notes: body.notes?.trim() || null,
+      recurrence: body.recurrence,
     })
     .select("*")
     .single();
@@ -77,6 +79,7 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
       taskTitle: body.title,
       dueAt: body.dueAt,
       notes: body.notes,
+      recurrence: body.recurrence,
     });
     if (sync.synced && sync.eventId) {
       calendarEventId = sync.eventId;

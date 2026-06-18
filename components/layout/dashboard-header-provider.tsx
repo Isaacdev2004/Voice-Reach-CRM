@@ -1,8 +1,11 @@
 "use client";
 
+import { AddCalendarEventModal } from "@/components/crm/add-calendar-event-modal";
 import { AddContactModal } from "@/components/crm/add-contact-modal";
 import { ImportCsvModal } from "@/components/crm/import-csv-modal";
-import { Modal, ModalFooterActions } from "@/components/crm/modal";
+import { QuickNoteModal } from "@/components/crm/quick-note-modal";
+import { StandaloneTaskModal } from "@/components/crm/standalone-task-modal";
+import { Modal } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { formatRelativeTime } from "@/lib/activity/format";
@@ -31,6 +34,9 @@ type ContactHit = {
 
 type DashboardHeaderContextValue = {
   openQuickCreate: () => void;
+  openNewTask: () => void;
+  openNewEvent: () => void;
+  openNewNote: () => void;
 };
 
 const DashboardHeaderContext = createContext<DashboardHeaderContextValue | null>(null);
@@ -84,6 +90,10 @@ export function DashboardHeaderProvider({
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [importCsvOpen, setImportCsvOpen] = useState(false);
+  const [newTaskOpen, setNewTaskOpen] = useState(false);
+  const [newEventOpen, setNewEventOpen] = useState(false);
+  const [newNoteOpen, setNewNoteOpen] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(false);
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<ActivityLogEntry[]>([]);
@@ -103,6 +113,21 @@ export function DashboardHeaderProvider({
   useEffect(() => {
     setReadIds(loadReadNotificationIds());
   }, []);
+
+  useEffect(() => {
+    if (!newEventOpen) return;
+    void fetch("/api/integrations/google/status")
+      .then((r) => r.json())
+      .then((data) => setGoogleConnected(Boolean(data.connected)))
+      .catch(() => setGoogleConnected(false));
+  }, [newEventOpen]);
+
+  const headerActions = {
+    openQuickCreate: () => setQuickCreateOpen(true),
+    openNewTask: () => setNewTaskOpen(true),
+    openNewEvent: () => setNewEventOpen(true),
+    openNewNote: () => setNewNoteOpen(true),
+  };
 
   const applySearchToUrl = useCallback(
     (q: string) => {
@@ -209,7 +234,7 @@ export function DashboardHeaderProvider({
   );
 
   return (
-    <DashboardHeaderContext.Provider value={{ openQuickCreate: () => setQuickCreateOpen(true) }}>
+    <DashboardHeaderContext.Provider value={headerActions}>
       <header className="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-2 border-b border-outline-variant bg-surface/80 px-4 shadow-sm backdrop-blur-md lg:left-64 lg:w-[calc(100%-16rem)] lg:gap-4 lg:px-margin-desktop">
         <button
           type="button"
@@ -466,17 +491,33 @@ export function DashboardHeaderProvider({
         description="Start something new without leaving your current page."
         icon="add_circle"
         size="md"
-        footer={
-          <ModalFooterActions
-            onCancel={() => setQuickCreateOpen(false)}
-            cancelLabel="Close"
-            primaryLabel="Close"
-            onPrimary={() => setQuickCreateOpen(false)}
-          />
-        }
       >
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {[
+            {
+              label: "Calendar event",
+              icon: "event",
+              action: () => {
+                setQuickCreateOpen(false);
+                setNewEventOpen(true);
+              },
+            },
+            {
+              label: "New task",
+              icon: "task_alt",
+              action: () => {
+                setQuickCreateOpen(false);
+                setNewTaskOpen(true);
+              },
+            },
+            {
+              label: "Add note",
+              icon: "sticky_note_2",
+              action: () => {
+                setQuickCreateOpen(false);
+                setNewNoteOpen(true);
+              },
+            },
             {
               label: "Add contact",
               icon: "person_add",
@@ -518,11 +559,11 @@ export function DashboardHeaderProvider({
               },
             },
             {
-              label: "View analytics",
-              icon: "analytics",
+              label: "View calendar",
+              icon: "calendar_month",
               action: () => {
                 setQuickCreateOpen(false);
-                router.push("/dashboard/analytics");
+                router.push("/dashboard/calendar");
               },
             },
           ].map((item) => (
@@ -548,6 +589,23 @@ export function DashboardHeaderProvider({
         open={importCsvOpen}
         onClose={() => setImportCsvOpen(false)}
         onSuccess={() => router.refresh()}
+      />
+      <StandaloneTaskModal
+        open={newTaskOpen}
+        onClose={() => setNewTaskOpen(false)}
+        onSaved={() => router.refresh()}
+      />
+      <AddCalendarEventModal
+        open={newEventOpen}
+        onClose={() => setNewEventOpen(false)}
+        defaultDate={new Date()}
+        connected={googleConnected}
+        onCreated={() => router.refresh()}
+      />
+      <QuickNoteModal
+        open={newNoteOpen}
+        onClose={() => setNewNoteOpen(false)}
+        onSaved={() => router.refresh()}
       />
     </DashboardHeaderContext.Provider>
   );

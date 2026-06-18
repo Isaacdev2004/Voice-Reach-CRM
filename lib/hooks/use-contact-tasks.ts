@@ -49,6 +49,7 @@ export function useContactTasks(contactId: string | undefined) {
     dueAt?: string | null;
     reminderAt?: string | null;
     notes?: string | null;
+    recurrence?: string;
     addToCalendar?: boolean;
   }) => {
     if (!contactId) throw new Error("No contact");

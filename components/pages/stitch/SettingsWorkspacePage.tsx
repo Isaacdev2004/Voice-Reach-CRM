@@ -1,6 +1,7 @@
 "use client";
 
 import { ApiKeyModal } from "@/components/settings/api-key-modal";
+import { InAppBrowserBanner } from "@/components/auth/in-app-browser-banner";
 import { IntegrationConfigModal } from "@/components/settings/integration-config-modal";
 import { InviteMemberModal } from "@/components/settings/invite-member-modal";
 import { TeamMemberModal } from "@/components/settings/team-member-modal";
@@ -8,6 +9,7 @@ import { useUpgradePlan } from "@/components/billing/upgrade-plan-provider";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import { connectGoogleCalendar } from "@/lib/connect-google-calendar";
 import { formatRelativeTime } from "@/lib/activity/format";
 import { TIMEZONE_OPTIONS } from "@/lib/settings/defaults";
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
@@ -560,6 +562,7 @@ export function SettingsWorkspacePage() {
                   <h2 className="font-serif text-[22px] font-semibold text-ink">API integrations</h2>
                   <span className="text-[13px] text-taupe">{connectedCount} connected</span>
                 </div>
+                <InAppBrowserBanner context="google-calendar" />
                 <div className="space-y-3">
                   {settings.integrations
                     .filter(
@@ -596,7 +599,13 @@ export function SettingsWorkspacePage() {
                           type="button"
                           onClick={() => {
                             if (integration.id === "google-calendar" && !integration.connected) {
-                              window.location.href = "/api/integrations/google/authorize";
+                              const result = connectGoogleCalendar();
+                              if (result.blocked) {
+                                showToast(
+                                  "Open VoiceReach in Safari or Chrome, then connect Google Calendar.",
+                                  "error",
+                                );
+                              }
                               return;
                             }
                             if (integration.id === "google-calendar" && integration.connected) {

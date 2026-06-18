@@ -1,6 +1,6 @@
 import { writeAuditLog } from "@/lib/audit";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { createGoogleCalendarEvent, getGoogleConnection } from "./google";
+import { createGoogleCalendarEvent, getGoogleConnection, type Recurrence } from "./google";
 
 type ContactLite = {
   id: string;
@@ -71,6 +71,7 @@ export async function syncCallbackStepToCalendar(options: {
   scheduledAt?: string | null;
   timeLabel?: string | null;
   stepType?: "callback" | "task";
+  recurrence?: Recurrence;
 }): Promise<{ synced: boolean; eventId?: string; reason?: string }> {
   const connection = await getGoogleConnection(options.ownerId);
   if (!connection) {
@@ -107,6 +108,7 @@ export async function syncCallbackStepToCalendar(options: {
       start,
       end,
       timeZone,
+      recurrence: options.recurrence ?? "none",
     });
 
     await supabaseAdmin.from("calendar_events").upsert(

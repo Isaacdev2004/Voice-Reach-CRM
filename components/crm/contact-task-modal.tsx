@@ -6,6 +6,7 @@ import {
   ModalFooterActions,
   modalInputClass,
 } from "@/components/crm/modal";
+import type { Recurrence } from "@/lib/calendar/google";
 import type { ContactTask } from "@/lib/hooks/use-contact-tasks";
 import { useEffect, useState } from "react";
 
@@ -17,6 +18,7 @@ type ContactTaskModalProps = {
     title: string;
     dueAt?: string | null;
     notes?: string | null;
+    recurrence?: Recurrence;
     addToCalendar?: boolean;
   }) => Promise<void>;
   saving?: boolean;
@@ -47,6 +49,7 @@ export function ContactTaskModal({
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [notes, setNotes] = useState("");
+  const [recurrence, setRecurrence] = useState<Recurrence>("none");
   const [addToCalendar, setAddToCalendar] = useState(true);
 
   useEffect(() => {
@@ -54,6 +57,7 @@ export function ContactTaskModal({
     setTitle(task?.title ?? "");
     setDueAt(toLocalDatetimeValue(task?.due_at));
     setNotes(task?.notes ?? "");
+    setRecurrence((task as { recurrence?: Recurrence })?.recurrence ?? "none");
     setAddToCalendar(!task);
   }, [open, task]);
 
@@ -64,6 +68,7 @@ export function ContactTaskModal({
       title: title.trim(),
       dueAt: localDatetimeToIso(dueAt),
       notes: notes.trim() || null,
+      recurrence,
       addToCalendar: showCalendarOption && addToCalendar && Boolean(dueAt),
     });
   };
@@ -114,6 +119,18 @@ export function ContactTaskModal({
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Optional context for this reminder"
           />
+        </ModalField>
+        <ModalField label="Repeat">
+          <select
+            className={modalInputClass}
+            value={recurrence}
+            onChange={(e) => setRecurrence(e.target.value as Recurrence)}
+          >
+            <option value="none">Does not repeat</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
         </ModalField>
         {showCalendarOption && dueAt ? (
           <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-cream/60 px-4 py-3 text-[14px]">

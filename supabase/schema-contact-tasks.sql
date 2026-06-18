@@ -10,6 +10,7 @@ create table if not exists public.contact_tasks (
   completed boolean not null default false,
   completed_at timestamptz,
   notes text,
+  recurrence text default 'none' check (recurrence in ('none', 'daily', 'weekly', 'monthly')),
   calendar_event_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -19,3 +20,6 @@ create index if not exists idx_contact_tasks_owner on public.contact_tasks(owner
 
 alter table public.contact_tasks enable row level security;
 create policy "server owned contact_tasks" on public.contact_tasks for all using (true) with check (true);
+
+-- If table already exists without recurrence:
+alter table public.contact_tasks add column if not exists recurrence text default 'none' check (recurrence in ('none', 'daily', 'weekly', 'monthly'));

@@ -131,6 +131,21 @@ export async function getValidGoogleAccessToken(
   return refreshed.access_token;
 }
 
+export type Recurrence = "none" | "daily" | "weekly" | "monthly";
+
+function recurrenceRule(recurrence: Recurrence): string | undefined {
+  switch (recurrence) {
+    case "daily":
+      return "RRULE:FREQ=DAILY";
+    case "weekly":
+      return "RRULE:FREQ=WEEKLY";
+    case "monthly":
+      return "RRULE:FREQ=MONTHLY";
+    default:
+      return undefined;
+  }
+}
+
 export async function createGoogleCalendarEvent(options: {
   connection: CalendarConnection;
   title: string;
@@ -138,9 +153,11 @@ export async function createGoogleCalendarEvent(options: {
   start: Date;
   end: Date;
   timeZone: string;
+  recurrence?: Recurrence;
 }): Promise<{ eventId: string; htmlLink?: string }> {
   const accessToken = await getValidGoogleAccessToken(options.connection);
   const calendarId = encodeURIComponent(options.connection.calendar_id || "primary");
+  const rrule = recurrenceRule(options.recurrence ?? "none");
 
   const response = await fetch(`${GOOGLE_CALENDAR}/calendars/${calendarId}/events`, {
     method: "POST",
@@ -153,6 +170,7 @@ export async function createGoogleCalendarEvent(options: {
       description: options.description,
       start: { dateTime: options.start.toISOString(), timeZone: options.timeZone },
       end: { dateTime: options.end.toISOString(), timeZone: options.timeZone },
+      ...(rrule ? { recurrence: [rrule] } : {}),
     }),
   });
 

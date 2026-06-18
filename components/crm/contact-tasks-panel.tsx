@@ -48,6 +48,7 @@ export function ContactTasksPanel({ contactId, demoTasks = [], isDemo }: Contact
     title: string;
     dueAt?: string | null;
     notes?: string | null;
+    recurrence?: import("@/lib/calendar/google").Recurrence;
     addToCalendar?: boolean;
   }) => {
     setSaving(true);

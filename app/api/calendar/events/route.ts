@@ -1,5 +1,6 @@
 import { apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
+import { createOwnerCalendarEvent } from "@/lib/calendar/create-event";
 import {
   fetchGoogleAccountEmail,
   getGoogleConnection,
@@ -7,6 +8,7 @@ import {
   listGoogleCalendarEvents,
 } from "@/lib/calendar/google";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { z } from "zod";
 
 function asContactJoin(
   value: unknown,
@@ -28,12 +30,26 @@ export type AgendaItem = {
   htmlLink?: string | null;
 };
 
-export const GET = withApiHandler(async () => {
+export const GET = withApiHandler(async (request: Request) => {
   const ownerId = await requireUserId();
   const connection = await getGoogleConnection(ownerId).catch(() => null);
 
-  const timeMin = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const timeMax = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
+  const { searchParams } = new URL(request.url);
+  const month = searchParams.get("month");
+
+  let timeMin: Date;
+  let timeMax: Date;
+
+  if (month && /^\d{4}-\d{2}$/.test(month)) {
+    const [year, mon] = month.split("-").map(Number);
+    timeMin = new Date(year, mon - 1, 1);
+    timeMax = new Date(year, mon, 0, 23, 59, 59, 999);
+    timeMin.setDate(timeMin.getDate() - 7);
+    timeMax.setDate(timeMax.getDate() + 7);
+  } else {
+    timeMin = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    timeMax = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
+  }
 
   let accountEmail = connection?.account_email ?? null;
   let googleEvents: Awaited<ReturnType<typeof listGoogleCalendarEvents>> = [];
@@ -129,4 +145,30 @@ export const GET = withApiHandler(async () => {
     eventsError: eventsRes.error?.message ?? null,
     tasksError: tasksRes.error?.message ?? null,
   });
+});
+
+const CreateEventSchema = z.object({
+  title: z.string().min(1).max(200),
+  startsAt: z.string().datetime(),
+  endsAt: z.string().datetime().optional(),
+  description: z.string().max(2000).optional(),
+  contactId: z.string().uuid().optional(),
+  recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional().default("none"),
+});
+
+export const POST = withApiHandler(async (request: Request) => {
+  const ownerId = await requireUserId();
+  const body = CreateEventSchema.parse(await request.json());
+
+  const result = await createOwnerCalendarEvent({
+    ownerId,
+    title: body.title.trim(),
+    startsAt: body.startsAt,
+    endsAt: body.endsAt,
+    description: body.description,
+    contactId: body.contactId,
+    recurrence: body.recurrence,
+  });
+
+  return apiOk(result, { status: 201 });
 });

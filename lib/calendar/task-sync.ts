@@ -14,6 +14,7 @@ export async function syncTaskReminderToCalendar(options: {
   taskTitle: string;
   dueAt: string;
   notes?: string | null;
+  recurrence?: import("./google").Recurrence;
 }) {
   return syncCallbackStepToCalendar({
     ownerId: options.ownerId,
@@ -23,6 +24,7 @@ export async function syncTaskReminderToCalendar(options: {
     scheduledAt: options.dueAt,
     timeLabel: formatTimeLabel(options.dueAt),
     stepType: "task",
+    recurrence: options.recurrence,
   });
 }
 
