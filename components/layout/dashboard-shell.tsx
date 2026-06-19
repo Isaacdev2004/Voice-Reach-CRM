@@ -96,8 +96,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
   }, [mobileNavOpen]);
 
   const mainClass = config.fullWidth
-    ? "min-h-screen pt-16 lg:ml-64"
-    : "min-h-screen px-4 pb-12 pt-24 lg:ml-64 lg:px-margin-desktop";
+    ? "min-h-screen w-full min-w-0 pt-16 lg:ml-64"
+    : "min-h-screen w-full min-w-0 px-4 pb-12 pt-24 lg:ml-64 lg:px-margin-desktop";
 
   return (
     <UpgradePlanProvider>

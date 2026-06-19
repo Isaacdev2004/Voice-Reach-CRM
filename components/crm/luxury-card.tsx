@@ -16,6 +16,8 @@ const paddingMap = {
 
 export function LuxuryCard({ children, className, padding = "md" }: LuxuryCardProps) {
   return (
-    <div className={cn("luxury-card", paddingMap[padding], className)}>{children}</div>
+    <div className={cn("luxury-card block w-full min-w-0", paddingMap[padding], className)}>
+      {children}
+    </div>
   );
 }

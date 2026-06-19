@@ -6,6 +6,8 @@ import Link from "next/link";
 
 import { AddCalendarEventModal } from "@/components/crm/add-calendar-event-modal";
 
+import { CalendarDayPanel } from "@/components/crm/calendar-day-panel";
+
 import { InAppBrowserBanner } from "@/components/auth/in-app-browser-banner";
 
 import { LuxuryCard } from "@/components/crm/luxury-card";
@@ -149,6 +151,7 @@ export function CalendarPage() {
 
   const [addEventOpen, setAddEventOpen] = useState(false);
   const [connectHint, setConnectHint] = useState<string | null>(null);
+  const [mobileDayView, setMobileDayView] = useState(false);
 
 
 
@@ -236,7 +239,11 @@ export function CalendarPage() {
 
     setSelectedDate(day);
 
-    setAddEventOpen(true);
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
+
+      setMobileDayView(true);
+
+    }
 
   }, []);
 
@@ -472,6 +479,20 @@ export function CalendarPage() {
 
             <p className="py-12 text-center text-taupe">Loading calendar…</p>
 
+          ) : mobileDayView && selectedDate ? (
+
+            <CalendarDayPanel
+
+              date={selectedDate}
+
+              events={selectedDayEvents}
+
+              onAddEvent={() => setAddEventOpen(true)}
+
+              onBack={() => setMobileDayView(false)}
+
+            />
+
           ) : (
 
             <MonthCalendar
@@ -492,11 +513,11 @@ export function CalendarPage() {
 
           )}
 
-          {!loading ? (
+          {!loading && !mobileDayView ? (
 
-            <p className="mt-4 text-center text-[13px] text-taupe sm:text-left">
+            <p className="mt-4 text-[13px] text-taupe">
 
-              Click any day to add an event on that date.
+              Tap a day to view its schedule. On mobile, opens a focused day view.
 
             </p>
 
@@ -506,142 +527,16 @@ export function CalendarPage() {
 
 
 
-        <LuxuryCard padding="none" className="w-full min-w-0 overflow-hidden">
-
-          <div className="border-b border-outline-variant/15 px-5 py-4">
-
-            <h2 className="font-serif text-[20px] font-semibold text-ink">
-
-              {selectedDate
-
-                ? selectedDate.toLocaleDateString(undefined, {
-
-                    weekday: "long",
-
-                    month: "long",
-
-                    day: "numeric",
-
-                  })
-
-                : "Select a day"}
-
-            </h2>
-
-            <button
-
-              type="button"
-
-              onClick={() => setAddEventOpen(true)}
-
-              className="mt-2 text-[13px] font-medium text-rose-gold-deep hover:underline"
-
-            >
-
-              + Add event on this day
-
-            </button>
-
-          </div>
-
-
-
-          {selectedDayEvents.length === 0 ? (
-
-            <p className="p-6 text-center text-[14px] text-taupe">
-
-              Nothing scheduled this day. Click the day on the calendar to add an event.
-
-            </p>
-
+        <LuxuryCard padding="lg" className="hidden w-full min-w-0 lg:block">
+          {selectedDate ? (
+            <CalendarDayPanel
+              date={selectedDate}
+              events={selectedDayEvents}
+              onAddEvent={() => setAddEventOpen(true)}
+            />
           ) : (
-
-            <ul className="divide-y divide-outline-variant/15">
-
-              {selectedDayEvents.map((item) => {
-
-                const name = contactName(item.contacts);
-
-                const tone =
-
-                  item.source === "google"
-
-                    ? "bg-sage-light text-emerald-muted"
-
-                    : item.source === "task"
-
-                      ? "bg-champagne text-taupe"
-
-                      : "bg-rose-gold/15 text-rose-gold-deep";
-
-                const icon =
-
-                  item.source === "google"
-
-                    ? "event"
-
-                    : item.source === "task"
-
-                      ? "task_alt"
-
-                      : "phone_callback";
-
-
-
-                return (
-
-                  <li key={item.id} className="flex gap-3 px-5 py-4">
-
-                    <div
-
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${tone}`}
-
-                    >
-
-                      <Icon name={icon} className="text-[18px]" />
-
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-
-                      <p className="font-medium text-ink">{item.title}</p>
-
-                      <p className="text-[13px] text-slate-text">{formatWhen(item.starts_at)}</p>
-
-                      {name && item.contact_id ? (
-
-                        <Link
-
-                          href={`/dashboard/contacts/${item.contact_id}`}
-
-                          className="mt-1 inline-block text-[12px] text-rose-gold-deep hover:underline"
-
-                        >
-
-                          {name}
-
-                        </Link>
-
-                      ) : null}
-
-                      <span className="mt-1 block text-[11px] uppercase tracking-wider text-taupe">
-
-                        {sourceLabel(item.source)}
-
-                      </span>
-
-                    </div>
-
-                  </li>
-
-                );
-
-              })}
-
-            </ul>
-
+            <p className="text-[14px] text-taupe">Select a day on the calendar to view its schedule.</p>
           )}
-
         </LuxuryCard>
 
       </div>

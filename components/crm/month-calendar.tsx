@@ -151,7 +151,7 @@ export function MonthCalendar({
                 onSelectDate(day);
                 onDayClick?.(day);
               }}
-              title="Click to add an event on this day"
+              title="Tap to view this day"
               className={cn(
                 "min-h-[88px] bg-ivory p-2 text-left transition-colors hover:bg-cream/70 sm:min-h-[100px]",
                 !inMonth && "bg-cream/40 text-taupe/60",

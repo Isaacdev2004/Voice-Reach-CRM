@@ -62,7 +62,7 @@ export function TasksPage() {
   const done = tasks.filter((t) => t.completed);
 
   return (
-    <div className="luxury-page w-full max-w-[1400px] space-y-6 p-4 sm:p-8 mx-auto">
+    <div className="luxury-page mx-auto block w-full min-w-0 max-w-[1400px] space-y-6 p-4 sm:p-8">
       <header className="flex w-full flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Tasks</p>
@@ -114,23 +114,20 @@ export function TasksPage() {
         {loading ? (
           <p className="p-8 text-center text-taupe">Loading tasks…</p>
         ) : open.length === 0 ? (
-          <div className="w-full min-w-0 px-6 py-12 sm:px-12">
-            <div className="mx-auto w-full max-w-xl text-center">
-              <p className="font-serif text-[22px] text-ink">No open tasks</p>
-              <p className="mt-3 w-full text-[15px] leading-relaxed text-slate-text">
-                Tap the <strong>+</strong> button at the top and choose <strong>New task</strong>, or
-                use the button below to add a follow-up with notes and daily, weekly, or monthly
-                repeats.
-              </p>
-              <button
-                type="button"
-                onClick={() => setModalOpen(true)}
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory"
-              >
-                <Icon name="add" className="text-[18px]" />
-                Create a task
-              </button>
-            </div>
+          <div className="block w-full px-6 py-10 sm:px-10 sm:py-12">
+            <h3 className="font-serif text-[22px] font-semibold text-ink">No open tasks</h3>
+            <p className="mt-4 max-w-none text-[15px] leading-relaxed text-slate-text">
+              Tap <strong>Quick Create (+)</strong> at the top and choose <strong>New task</strong>.
+              You can set a due date, add notes, and pick daily, weekly, or monthly repeats.
+            </p>
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory"
+            >
+              <Icon name="add" className="text-[18px]" />
+              Create a task
+            </button>
           </div>
         ) : (
           <ul className="divide-y divide-outline-variant/15">
@@ -204,16 +201,18 @@ export function TasksPage() {
         onSaved={() => void refresh()}
       />
 
-      <div className="fixed bottom-20 right-4 z-30 sm:hidden">
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          className="inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-3 text-[14px] font-medium text-ivory shadow-nav"
-        >
-          <Icon name="add" className="text-[20px]" />
-          New task
-        </button>
-      </div>
+      {open.length > 0 ? (
+        <div className="fixed bottom-20 right-4 z-30 sm:hidden">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-3 text-[14px] font-medium text-ivory shadow-nav"
+          >
+            <Icon name="add" className="text-[20px]" />
+            New task
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
