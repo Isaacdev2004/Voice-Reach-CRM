@@ -88,6 +88,9 @@ async function refreshGoogleToken(refreshToken: string) {
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
+    if (detail.includes("invalid_grant")) {
+      throw new Error("GOOGLE_RECONNECT_REQUIRED");
+    }
     throw new Error(`Google token refresh failed: ${detail.slice(0, 200)}`);
   }
 
@@ -97,6 +100,10 @@ async function refreshGoogleToken(refreshToken: string) {
     scope?: string;
     token_type?: string;
   }>;
+}
+
+export async function revokeGoogleConnection(connectionId: string): Promise<void> {
+  await supabaseAdmin.from("calendar_connections").delete().eq("id", connectionId);
 }
 
 export async function getGoogleConnection(ownerId: string): Promise<CalendarConnection | null> {
@@ -116,19 +123,26 @@ export async function getValidGoogleAccessToken(
   if (Date.now() < expiresAt - 60_000) return connection.access_token;
   if (!connection.refresh_token) return connection.access_token;
 
-  const refreshed = await refreshGoogleToken(connection.refresh_token);
-  const nextExpiry = new Date(Date.now() + refreshed.expires_in * 1000).toISOString();
+  try {
+    const refreshed = await refreshGoogleToken(connection.refresh_token);
+    const nextExpiry = new Date(Date.now() + refreshed.expires_in * 1000).toISOString();
 
-  await supabaseAdmin
-    .from("calendar_connections")
-    .update({
-      access_token: refreshed.access_token,
-      expires_at: nextExpiry,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", connection.id);
+    await supabaseAdmin
+      .from("calendar_connections")
+      .update({
+        access_token: refreshed.access_token,
+        expires_at: nextExpiry,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", connection.id);
 
-  return refreshed.access_token;
+    return refreshed.access_token;
+  } catch (err) {
+    if (err instanceof Error && err.message === "GOOGLE_RECONNECT_REQUIRED") {
+      await revokeGoogleConnection(connection.id);
+    }
+    throw err;
+  }
 }
 
 export type Recurrence = "none" | "daily" | "weekly" | "monthly";

@@ -71,7 +71,11 @@ export const GET = withApiHandler(async (request: Request) => {
         }
       }
     } catch (err) {
-      googleError = err instanceof Error ? err.message : "Could not load Google Calendar";
+      const message = err instanceof Error ? err.message : "Could not load Google Calendar";
+      googleError =
+        message === "GOOGLE_RECONNECT_REQUIRED"
+          ? "Your Google Calendar connection expired. Reconnect in Settings → Workspace."
+          : message;
     }
   }
 

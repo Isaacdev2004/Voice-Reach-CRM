@@ -8,6 +8,7 @@ import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { safeFetch } from "@/lib/api-response";
 import type { ActivateCampaignOptions, CampaignDefinition } from "@/lib/crm/types";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 type ContactRow = {
@@ -287,10 +288,39 @@ export function ActivateCampaignModal({
                 </div>
               ) : null}
 
-              {eligibleContacts.length === 0 ? (
-                <p className="mt-3 rounded-lg border border-error/20 bg-error/5 px-3 py-2 text-[13px] text-error">
-                  No eligible contacts yet. Fix consent on your contacts, then try again.
-                </p>
+              {contacts.length === 0 ? (
+                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-950">
+                  <p className="font-medium">No contacts yet</p>
+                  <p className="mt-1 leading-relaxed">
+                    Import your list or add a test contact before activating a campaign.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    <Link
+                      href="/dashboard/contacts"
+                      className="inline-flex items-center gap-1 font-medium text-rose-gold-deep hover:underline"
+                    >
+                      Go to Contacts
+                      <Icon name="arrow_forward" className="text-[16px]" />
+                    </Link>
+                    <span className="text-taupe">→ Import CSV or + Add contact</span>
+                  </div>
+                </div>
+              ) : eligibleContacts.length === 0 ? (
+                <div className="mt-3 rounded-lg border border-error/20 bg-error/5 px-4 py-3 text-[13px] text-error">
+                  <p className="font-medium text-ink">Contacts need consent before sending</p>
+                  <p className="mt-1 leading-relaxed text-slate-text">
+                    You have {contacts.length} contact{contacts.length === 1 ? "" : "s"}, but none
+                    are eligible yet. On Contacts, select them →{" "}
+                    <strong>Mark consent valid</strong> (only if you have documented opt-in).
+                  </p>
+                  <Link
+                    href="/dashboard/contacts"
+                    className="mt-3 inline-flex items-center gap-1 font-medium text-rose-gold-deep hover:underline"
+                  >
+                    Fix consent on Contacts
+                    <Icon name="arrow_forward" className="text-[16px]" />
+                  </Link>
+                </div>
               ) : null}
             </>
           )}

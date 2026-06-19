@@ -461,11 +461,43 @@ export function CalendarPage() {
 
       {error ? (
 
-        <p className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
+        <div className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
 
-          {error}
+          <p>{error.includes("invalid_grant") || error.includes("expired") ? "Your Google Calendar connection expired. Reconnect to sync live events — your in-app events still work." : error}</p>
 
-        </p>
+          {error.includes("expired") || error.includes("invalid_grant") || error.includes("Reconnect") ? (
+
+            <button
+
+              type="button"
+
+              onClick={() => {
+
+                const result = connectGoogleCalendar();
+
+                if (result.blocked) {
+
+                  setConnectHint(
+
+                    "Open VoiceReach in Safari or Chrome, then reconnect Google Calendar.",
+
+                  );
+
+                }
+
+              }}
+
+              className="mt-3 inline-flex items-center gap-2 rounded-full bg-rose-gold px-4 py-2 text-[13px] font-medium text-ivory"
+
+            >
+
+              Reconnect Google Calendar
+
+            </button>
+
+          ) : null}
+
+        </div>
 
       ) : null}
 
