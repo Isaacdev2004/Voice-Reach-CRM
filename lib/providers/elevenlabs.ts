@@ -104,9 +104,7 @@ export async function cloneVoiceFromSample(options: {
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     if (response.status === 401 && detail.includes("create_instant_voice_clone")) {
-      throw new Error(
-        "Voice cloning is not enabled on your ElevenLabs API key. Clone your voice in ElevenCreative, then add that voice ID as ELEVENLABS_VOICE_ID — Generate audio will still use your voice.",
-      );
+      throw new ElevenLabsCloneNotAllowedError();
     }
     throw new Error(`ElevenLabs clone failed (${response.status}): ${detail.slice(0, 200)}`);
   }
@@ -114,4 +112,21 @@ export async function cloneVoiceFromSample(options: {
   const json = (await response.json()) as { voice_id?: string };
   if (!json.voice_id) throw new Error("ElevenLabs clone returned no voice_id");
   return { voiceId: json.voice_id };
+}
+
+export class ElevenLabsCloneNotAllowedError extends Error {
+  constructor() {
+    super("ELEVENLABS_CLONE_NOT_ALLOWED");
+    this.name = "ElevenLabsCloneNotAllowedError";
+  }
+}
+
+export async function verifyElevenLabsVoice(voiceId: string): Promise<boolean> {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) return false;
+
+  const response = await fetch(`${ELEVENLABS_BASE}/voices/${encodeURIComponent(voiceId)}`, {
+    headers: { "xi-api-key": apiKey },
+  });
+  return response.ok;
 }

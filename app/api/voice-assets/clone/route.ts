@@ -1,7 +1,7 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
-import { cloneVoiceFromSample, isElevenLabsConfigured } from "@/lib/providers/elevenlabs";
+import { cloneVoiceFromSample, ElevenLabsCloneNotAllowedError, isElevenLabsConfigured } from "@/lib/providers/elevenlabs";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
 
@@ -41,11 +41,22 @@ export const POST = withApiHandler(async (request) => {
   }
 
   const sampleBuffer = await file.arrayBuffer();
-  const cloned = await cloneVoiceFromSample({
-    name: body.label,
-    sampleBuffer,
-    sampleFileName: `${body.label.replace(/\s+/g, "-")}.mp3`,
-  });
+  let cloned: { voiceId: string };
+  try {
+    cloned = await cloneVoiceFromSample({
+      name: body.label,
+      sampleBuffer,
+      sampleFileName: `${body.label.replace(/\s+/g, "-")}.mp3`,
+    });
+  } catch (err) {
+    if (err instanceof ElevenLabsCloneNotAllowedError) {
+      return apiError(
+        "Your ElevenLabs plan does not include API voice cloning. Use Link my voice instead — paste the voice ID from ElevenCreative.",
+        { status: 403, code: "clone_not_allowed" },
+      );
+    }
+    throw err;
+  }
 
   const { data: profile, error: profileError } = await supabaseAdmin
     .from("voice_profiles")
