@@ -56,7 +56,7 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
     if (!envelope.success) return;
 
     const { profiles: loaded, envVoice: env, defaultProfileId } = envelope.data;
-    setProfiles(loaded);
+    setProfiles(loaded ?? []);
     setEnvVoice(env);
 
     if (defaultProfileId) {

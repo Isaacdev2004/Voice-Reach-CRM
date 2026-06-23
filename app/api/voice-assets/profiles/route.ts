@@ -17,7 +17,19 @@ export const GET = withApiHandler(async () => {
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
 
-  if (error) return apiError(error.message, { status: 500 });
+  if (error) {
+    if (error.message.includes("voice_profiles")) {
+      const envVoice = configuredEnvVoice();
+      return apiOk({
+        profiles: [],
+        envVoice,
+        defaultProfileId: null,
+        defaultVoiceId: envVoice?.voiceId ?? null,
+        warning: "Run supabase/schema-calendar.sql to enable saved voice profiles.",
+      });
+    }
+    return apiError(error.message, { status: 500 });
+  }
 
   const profiles = data ?? [];
   const envVoice = configuredEnvVoice();

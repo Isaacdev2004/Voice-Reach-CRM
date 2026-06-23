@@ -92,9 +92,16 @@ export async function readApiResponse<T>(res: Response): Promise<ApiEnvelope<T>>
     };
   }
   try {
-    const json = JSON.parse(text);
+    const json = JSON.parse(text) as Record<string, unknown>;
     if (typeof json === "object" && json !== null && "success" in json) {
-      return json as ApiEnvelope<T>;
+      if (json.success === true) {
+        if ("data" in json && json.data !== undefined) {
+          return { success: true, data: json.data as T };
+        }
+        const { success: _s, ...payload } = json;
+        return { success: true, data: payload as T };
+      }
+      return json as ApiFailure;
     }
     if (res.ok) return { success: true, data: json as T };
     return {
