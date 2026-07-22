@@ -235,7 +235,7 @@ export function DashboardHeaderProvider({
 
   return (
     <DashboardHeaderContext.Provider value={headerActions}>
-      <header className="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-2 border-b border-outline-variant bg-surface/80 px-4 shadow-sm backdrop-blur-md lg:left-64 lg:w-[calc(100%-16rem)] lg:gap-4 lg:px-margin-desktop">
+      <header className="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-2 border-b border-outline-variant bg-surface/80 px-4 shadow-sm backdrop-blur-md lg:left-64 lg:gap-4 lg:px-margin-desktop">
         <button
           type="button"
           onClick={onMenuClick}

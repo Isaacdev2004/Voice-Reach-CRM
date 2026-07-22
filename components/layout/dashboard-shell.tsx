@@ -96,8 +96,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
   }, [mobileNavOpen]);
 
   const mainClass = config.fullWidth
-    ? "min-h-screen w-full min-w-0 pt-16 lg:ml-64"
-    : "min-h-screen w-full min-w-0 px-4 pb-12 pt-24 lg:ml-64 lg:px-margin-desktop";
+    ? "min-h-screen w-full min-w-0 overflow-x-hidden pt-16 lg:pl-64"
+    : "min-h-screen w-full min-w-0 overflow-x-hidden px-4 pb-12 pt-24 lg:pl-64 lg:px-margin-desktop";
 
   return (
     <UpgradePlanProvider>
@@ -107,7 +107,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           showQuickCreate={config.showQuickCreate ?? true}
           onMenuClick={() => setMobileNavOpen(true)}
         >
-          <div className="min-h-screen bg-cream text-on-surface">
+          <div className="min-h-screen overflow-x-hidden bg-cream text-on-surface">
             <DashboardSidebar
               mobileOpen={mobileNavOpen}
               onMobileClose={() => setMobileNavOpen(false)}
