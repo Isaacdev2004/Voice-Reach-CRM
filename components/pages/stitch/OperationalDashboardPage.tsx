@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ContactAvatar } from "@/components/crm/contact-avatar";
-import { DashboardConcierge } from "@/components/crm/dashboard-concierge";
 import { DashboardDeckHero } from "@/components/crm/dashboard-deck-hero";
 import { KpiCard } from "@/components/crm/kpi-card";
 import { LuxuryCard } from "@/components/crm/luxury-card";
@@ -75,8 +74,6 @@ export function OperationalDashboardPage() {
           <KpiCard key={kpi.id} {...kpi} />
         ))}
       </div>
-
-      <DashboardConcierge />
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <LuxuryCard padding="lg" className="xl:col-span-5">
