@@ -1,4 +1,4 @@
-import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
+import { apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { evaluateTriggers } from "@/lib/automations/engine";
@@ -10,6 +10,7 @@ import {
   type ContactSegment,
 } from "@/lib/contacts/lifecycle";
 import { normalizePhone } from "@/lib/phone";
+import { apiErrorFromSupabase } from "@/lib/supabase-errors";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const GET = withApiHandler(async (request) => {
@@ -24,7 +25,10 @@ export const GET = withApiHandler(async (request) => {
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
 
-  if (error) return apiError(error.message, { status: 500 });
+  if (error) {
+    const mapped = apiErrorFromSupabase(error);
+    if (mapped) return mapped;
+  }
 
   const raw = q ? filterContactsByQuery(data ?? [], q) : (data ?? []);
   const segmented = filterContactsBySegment(raw, segment);
@@ -70,7 +74,10 @@ export const POST = withApiHandler(async (request) => {
     .select("*")
     .single();
 
-  if (contactError) return apiError(contactError.message, { status: 500 });
+  if (contactError) {
+    const mapped = apiErrorFromSupabase(contactError);
+    if (mapped) return mapped;
+  }
 
   const { error: consentError } = await supabaseAdmin.from("consent_records").insert({
     owner_id: ownerId,
@@ -82,7 +89,10 @@ export const POST = withApiHandler(async (request) => {
     notes: body.notes || null,
   });
 
-  if (consentError) return apiError(consentError.message, { status: 500 });
+  if (consentError) {
+    const mapped = apiErrorFromSupabase(consentError);
+    if (mapped) return mapped;
+  }
 
   await writeAuditLog({
     ownerId,

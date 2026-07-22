@@ -2,6 +2,7 @@
 
 import { isUuid } from "@/lib/contacts/is-uuid";
 import type { ContactSegment } from "@/lib/contacts/lifecycle";
+import { humanizeDatabaseError } from "@/lib/supabase-errors";
 import { useCallback, useEffect, useState } from "react";
 
 export type ApiContact = {
@@ -53,7 +54,9 @@ export function useContacts(query?: string, segment: ContactSegment = "all") {
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "Failed to load contacts");
+        throw new Error(
+          humanizeDatabaseError((body as { error?: string }).error ?? "Failed to load contacts"),
+        );
       }
       const data = await res.json();
       setContacts(data.contacts ?? []);

@@ -19,6 +19,7 @@ import {
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
 import { useContacts, type ApiContact } from "@/lib/hooks/use-contacts";
 import { safeFetch } from "@/lib/api-response";
+import { DATABASE_SETUP_HINT } from "@/lib/supabase-errors";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -50,10 +51,10 @@ export function ContactManagementPage() {
     CONTACT_SEGMENT_TABS.some((t) => t.id === initialSegment) ? initialSegment : "all",
   );
   const { contacts, loading, error, refresh, meta } = useContacts(headerQuery, segment);
-  const rows = contacts.length > 0 ? contacts : FALLBACK_ROWS;
+  const rows: ApiContact[] = contacts.length > 0 ? contacts : FALLBACK_ROWS;
   const total = meta?.total ?? (contacts.length > 0 ? contacts.length : rows.length);
 
-  const selectableRows = useMemo(() => (contacts.length > 0 ? contacts : []), [contacts]);
+  const selectableRows = useMemo<ApiContact[]>(() => (contacts.length > 0 ? contacts : []), [contacts]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [bulkOpen, setBulkOpen] = useState<null | "consent" | "delete" | "type">(null);
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
@@ -294,18 +295,9 @@ export function ContactManagementPage() {
 
       {error ? (
         <div className="rounded-2xl border border-rose-gold/25 bg-champagne px-4 py-4 text-[14px] text-slate-text">
-          <p className="font-medium text-ink">Live contacts unavailable</p>
-          <p className="mt-1">
-            {error.includes("Supabase") || error.includes("Database")
-              ? error
-              : `Could not load contacts (${error}). Showing demo data until the database is connected.`}
-          </p>
-          <p className="mt-2 text-[13px] text-taupe">
-            In Vercel → Settings → Environment Variables, confirm{" "}
-            <code className="rounded bg-ivory px-1">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
-            <code className="rounded bg-ivory px-1">SUPABASE_SERVICE_ROLE_KEY</code> match an active
-            Supabase project, then redeploy.
-          </p>
+          <p className="font-medium text-ink">Database not connected</p>
+          <p className="mt-1">{error}</p>
+          <p className="mt-2 text-[13px] text-taupe">{DATABASE_SETUP_HINT}</p>
         </div>
       ) : null}
 
@@ -452,7 +444,7 @@ export function ContactManagementPage() {
         </p>
       ) : null}
 
-      <CompliancePanel />
+      <CompliancePanel databaseUnavailable={Boolean(error)} />
     </div>
   );
 }

@@ -1,7 +1,8 @@
-import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
+import { apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { scanContactsForCompliance } from "@/lib/compliance/scan";
+import { apiErrorFromSupabase } from "@/lib/supabase-errors";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const GET = withApiHandler(async () => {
@@ -14,7 +15,10 @@ export const GET = withApiHandler(async () => {
     )
     .eq("owner_id", ownerId);
 
-  if (error) return apiError(error.message, { status: 500 });
+  if (error) {
+    const mapped = apiErrorFromSupabase(error);
+    if (mapped) return mapped;
+  }
 
   const result = scanContactsForCompliance(data ?? []);
 

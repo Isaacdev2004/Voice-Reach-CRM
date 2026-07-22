@@ -1,12 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { humanizeDatabaseError } from "@/lib/supabase-errors";
 import { Modal, ModalFooterActions } from "./modal";
 import { ComplianceBadge } from "./compliance-badge";
 import { LuxuryCard } from "./luxury-card";
 import type { ComplianceIssueSummary } from "@/lib/compliance/scan";
 
-export function CompliancePanel() {
+type CompliancePanelProps = {
+  databaseUnavailable?: boolean;
+};
+
+export function CompliancePanel({ databaseUnavailable = false }: CompliancePanelProps) {
   const [issues, setIssues] = useState<ComplianceIssueSummary[]>([]);
   const [total, setTotal] = useState(0);
   const [eligible, setEligible] = useState(0);
@@ -21,7 +26,7 @@ export function CompliancePanel() {
   const fetchAudit = useCallback(async () => {
     const res = await fetch("/api/compliance/audit", { cache: "no-store" });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error ?? "Could not load compliance data");
+    if (!res.ok) throw new Error(humanizeDatabaseError(data.error ?? "Could not load compliance data"));
     return data as {
       issues: ComplianceIssueSummary[];
       total: number;
@@ -30,6 +35,14 @@ export function CompliancePanel() {
   }, []);
 
   const loadIssues = useCallback(async () => {
+    if (databaseUnavailable) {
+      setLoading(false);
+      setLoadError(null);
+      setIssues([]);
+      setTotal(0);
+      setEligible(0);
+      return;
+    }
     setLoading(true);
     setLoadError(null);
     try {
@@ -43,7 +56,7 @@ export function CompliancePanel() {
     } finally {
       setLoading(false);
     }
-  }, [fetchAudit]);
+  }, [fetchAudit, databaseUnavailable]);
 
   useEffect(() => {
     void loadIssues();
@@ -104,10 +117,11 @@ export function CompliancePanel() {
         </div>
 
         {loadError ? (
-          <div className="mb-4 rounded-xl border border-rose-gold/25 bg-champagne px-4 py-3 text-[14px] text-slate-text">
-            <p className="font-medium text-ink">Compliance scan unavailable</p>
-            <p className="mt-1">{loadError}</p>
-          </div>
+          <p className="mb-4 rounded-xl bg-champagne px-4 py-3 text-[14px] text-taupe">{loadError}</p>
+        ) : databaseUnavailable ? (
+          <p className="mb-4 rounded-xl bg-cream/80 px-4 py-3 text-[14px] text-taupe">
+            Connect Supabase to run compliance scans.
+          </p>
         ) : null}
 
         {loading ? (
