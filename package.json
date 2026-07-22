@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "latest",
+    "@clerk/ui": "^1.25.7",
     "@supabase/supabase-js": "latest",
     "@tailwindcss/postcss": "^4.3.0",
     "autoprefixer": "^10.5.0",

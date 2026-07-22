@@ -138,26 +138,6 @@
     box-shadow: 0px 20px 40px -12px rgba(0, 0, 0, 0.08);
   }
 
-  /* Clerk auth — hide duplicate footers / dev badge inside our form panel */
-  .auth-form-panel .cl-footer,
-  .auth-form-panel .cl-footerAction,
-  .auth-form-panel .cl-badge,
-  .auth-form-panel .cl-internal-b3fm6y {
-    display: none !important;
-  }
-
-  .auth-form-panel .cl-card {
-    background: transparent !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-  }
-
-  .auth-form-panel .cl-rootBox,
-  .auth-form-panel .cl-cardBox {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
   .workflow-canvas {
     background-image: radial-gradient(#c6c6cd 1px, transparent 1px);
     background-size: 24px 24px;

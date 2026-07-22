@@ -1,6 +1,8 @@
 "use client";
 
 import { ClerkProvider } from "@clerk/nextjs";
+import { ui } from "@clerk/ui";
+import { clerkAppearance } from "@/lib/clerk-appearance";
 import { AUTH_AFTER_URL } from "@/lib/clerk-env";
 
 type ProvidersProps = {
@@ -15,6 +17,8 @@ export function Providers({ children, clerkEnabled }: ProvidersProps) {
 
   return (
     <ClerkProvider
+      ui={ui}
+      appearance={clerkAppearance}
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
       signInFallbackRedirectUrl={AUTH_AFTER_URL}
