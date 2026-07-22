@@ -59,7 +59,7 @@ export function Modal({
   if (!open || !mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[200] overflow-y-auto" role="presentation">
+    <div className="fixed inset-0 overflow-y-auto" style={{ zIndex: 10000 }} role="presentation">
       <button
         type="button"
         className="modal-overlay fixed inset-0 bg-ink/55 backdrop-blur-[6px]"

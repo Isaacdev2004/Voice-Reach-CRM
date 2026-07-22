@@ -1,34 +1,30 @@
 "use client";
 
-import { Icon } from "@/components/ui/icon";
+import { Modal, ModalFooterActions } from "@/components/crm/modal";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { useAiAssistant, type AiTaskType } from "./ai-assistant-context";
 
-const TASKS: { id: AiTaskType; label: string; icon: string; description: string }[] = [
+const TASKS: { id: AiTaskType; label: string; description: string }[] = [
   {
     id: "follow_up",
     label: "Next best action",
-    icon: "auto_awesome",
-    description: "AI suggests the best next touchpoint.",
+    description: "Best next touchpoint",
   },
-  { id: "email_writer", label: "Email writer", icon: "mail", description: "Draft a luxury, on-brand email." },
-  { id: "sms_writer", label: "SMS writer", icon: "sms", description: "Short, warm SMS messages." },
+  { id: "email_writer", label: "Email writer", description: "On-brand email draft" },
+  { id: "sms_writer", label: "SMS writer", description: "Short warm message" },
   {
     id: "voicemail_script",
     label: "Voicemail script",
-    icon: "voicemail",
-    description: "Personalized 25-second script.",
+    description: "25-second script",
   },
-  { id: "note_summary", label: "Note summary", icon: "edit_note", description: "3-bullet client summary." },
-  { id: "campaign_idea", label: "Campaign idea", icon: "campaign", description: "Multi-touch sequence concept." },
+  { id: "note_summary", label: "Note summary", description: "3-bullet summary" },
+  { id: "campaign_idea", label: "Campaign idea", description: "Multi-touch sequence" },
   {
     id: "next_best_action",
     label: "Smart suggestion",
-    icon: "bolt",
-    description: "Recommend a channel + reason.",
+    description: "Channel + reason",
   },
 ];
 
@@ -41,7 +37,6 @@ const TONES: { id: "warm" | "professional" | "concise" | "luxury"; label: string
 
 export function AiAssistantSidebar() {
   const { state, closeAssistant, setBrief, setTask } = useAiAssistant();
-  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,29 +44,12 @@ export function AiAssistantSidebar() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!state.open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeAssistant();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [state.open, closeAssistant]);
-
-  useEffect(() => {
     if (state.open) {
       setResult(null);
       setError(null);
+      setTone(state.context.tone ?? "luxury");
     }
-  }, [state.open, state.task]);
+  }, [state.open, state.task, state.context.tone]);
 
   const run = async () => {
     setLoading(true);
@@ -99,9 +77,8 @@ export function AiAssistantSidebar() {
 
   const copyOutput = async () => {
     if (!result) return;
-    const text = renderableText(result);
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(renderableText(result));
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -109,55 +86,30 @@ export function AiAssistantSidebar() {
     }
   };
 
-  if (!mounted) return null;
-
-  return createPortal(
-    <>
-      <div
-        className={cn(
-          "fixed inset-0 z-[200] bg-ink/40 backdrop-blur-[2px] transition-opacity duration-200",
-          state.open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
-        )}
-        onClick={closeAssistant}
-        aria-hidden={!state.open}
-      />
-
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-label="VoiceReach AI assistant"
-        className={cn(
-          "fixed right-0 top-0 z-[210] flex h-dvh w-full max-w-md flex-col border-l border-outline-variant/15 bg-ivory shadow-card transition-transform duration-300 ease-out",
-          state.open ? "translate-x-0" : "translate-x-full pointer-events-none",
-        )}
-      >
-        <header className="flex shrink-0 items-center justify-between border-b border-outline-variant/10 px-6 py-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-gold/15 text-rose-gold-deep">
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <path d="M12 2l1.4 4.2L18 7.6l-4.2 1.4L12 13l-1.4-4.2L6 7.6l4.6-1.4L12 2zm7 9l.9 2.7 2.7.9-2.7.9L19 18l-.9-2.7L15.4 14l2.7-.9L19 11zM5 14l.8 2.4 2.4.8-2.4.8L5 20.4l-.8-2.4L1.8 17l2.4-.8L5 14z" />
-              </svg>
-            </div>
-            <div>
-              <p className="font-serif text-[18px] font-semibold text-ink">VoiceReach AI</p>
-              <p className="text-[12px] text-taupe">Relationship copilot</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={closeAssistant}
-            className="rounded-full p-2 text-taupe hover:bg-champagne"
-            aria-label="Close AI assistant"
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-              <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-            </svg>
-          </button>
-        </header>
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Choose a task</p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
+  return (
+    <Modal
+      open={state.open}
+      onClose={closeAssistant}
+      title="VoiceReach AI"
+      description="Relationship copilot — pick a task and generate a draft."
+      size="lg"
+      footer={
+        <ModalFooterActions
+          onCancel={closeAssistant}
+          cancelLabel="Close"
+          primaryLabel={loading ? "Generating…" : "Generate"}
+          onPrimary={() => void run()}
+          primaryDisabled={loading}
+          primaryLoading={loading}
+        />
+      }
+    >
+      <div className="space-y-5">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
+            Choose a task
+          </p>
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
             {TASKS.map((t) => {
               const active = t.id === state.task;
               return (
@@ -166,20 +118,22 @@ export function AiAssistantSidebar() {
                   type="button"
                   onClick={() => setTask(t.id)}
                   className={cn(
-                    "rounded-xl border p-3 text-left transition-all",
+                    "rounded-xl border px-3 py-3 text-left transition-all",
                     active
                       ? "border-rose-gold/60 bg-champagne shadow-sm"
                       : "border-outline-variant/15 hover:border-rose-gold/30",
                   )}
                 >
                   <p className="text-[13px] font-medium text-ink">{t.label}</p>
-                  <p className="mt-1 text-[11px] leading-snug text-taupe">{t.description}</p>
+                  <p className="mt-0.5 text-[11px] text-taupe">{t.description}</p>
                 </button>
               );
             })}
           </div>
+        </div>
 
-          <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Tone</p>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">Tone</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {TONES.map((t) => (
               <button
@@ -197,15 +151,16 @@ export function AiAssistantSidebar() {
               </button>
             ))}
           </div>
+        </div>
 
-          {state.context.contactName ? (
-            <div className="mt-5 rounded-xl bg-champagne/40 px-3 py-2 text-[12px] text-taupe">
-              Context: <span className="font-medium text-ink">{state.context.contactName}</span>
-              {state.context.campaignName ? ` · ${state.context.campaignName}` : ""}
-            </div>
-          ) : null}
+        {state.context.contactName ? (
+          <p className="rounded-xl bg-champagne/40 px-3 py-2 text-[12px] text-taupe">
+            Context: <span className="font-medium text-ink">{state.context.contactName}</span>
+          </p>
+        ) : null}
 
-          <label className="mt-5 block text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
+        <div>
+          <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
             Brief (optional)
           </label>
           <textarea
@@ -213,45 +168,37 @@ export function AiAssistantSidebar() {
             onChange={(e) => setBrief(e.target.value)}
             rows={3}
             placeholder="E.g. The client just toured a new listing — follow up gently."
-            className="mt-1 w-full rounded-xl border border-outline-variant/30 bg-ivory px-3 py-2 text-[14px] outline-none focus:border-rose-gold"
+            className="mt-2 w-full rounded-xl border border-outline-variant/30 bg-ivory px-3 py-2 text-[14px] outline-none focus:border-rose-gold"
           />
-
-          <button
-            type="button"
-            onClick={() => void run()}
-            disabled={loading}
-            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-rose-gold py-3 text-[14px] font-medium text-ivory transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
-          >
-            {loading ? "Generating…" : "Generate"}
-          </button>
-
-          {error ? (
-            <p className="mt-3 rounded-xl border border-error/30 bg-error/5 px-3 py-2 text-[13px] text-error">
-              {error}
-            </p>
-          ) : null}
-
-          {result ? (
-            <div className="mt-5 rounded-2xl border border-outline-variant/15 bg-cream p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-[12px] font-semibold uppercase tracking-wider text-taupe">Suggestion</p>
-                <button
-                  type="button"
-                  onClick={() => void copyOutput()}
-                  className="text-[12px] font-medium text-rose-gold-deep hover:underline"
-                >
-                  {copied ? "Copied!" : "Copy"}
-                </button>
-              </div>
-              <pre className="whitespace-pre-wrap font-serif text-[14px] leading-relaxed text-ink">
-                {renderableText(result)}
-              </pre>
-            </div>
-          ) : null}
         </div>
-      </aside>
-    </>,
-    document.body,
+
+        {error ? (
+          <p className="rounded-xl border border-error/30 bg-error/5 px-3 py-2 text-[13px] text-error">
+            {error}
+          </p>
+        ) : null}
+
+        {result ? (
+          <div className="rounded-2xl border border-outline-variant/15 bg-cream p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[12px] font-semibold uppercase tracking-wider text-taupe">
+                Suggestion
+              </p>
+              <button
+                type="button"
+                onClick={() => void copyOutput()}
+                className="text-[12px] font-medium text-rose-gold-deep hover:underline"
+              >
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+            <pre className="whitespace-pre-wrap font-serif text-[14px] leading-relaxed text-ink">
+              {renderableText(result)}
+            </pre>
+          </div>
+        ) : null}
+      </div>
+    </Modal>
   );
 }
 
