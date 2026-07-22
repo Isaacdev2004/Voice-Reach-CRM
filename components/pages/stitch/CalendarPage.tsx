@@ -585,43 +585,23 @@ export function CalendarPage() {
 
 
 
-      <LuxuryCard padding="none" className="w-full overflow-hidden">
-
-        <div className="flex items-center justify-between border-b border-outline-variant/15 px-6 py-4">
-
-          <h2 className="font-serif text-[22px] font-semibold text-ink">Upcoming</h2>
-
-          <Link
-
-            href="/dashboard/tasks"
-
-            className="text-[13px] font-medium text-rose-gold-deep hover:underline"
-
-          >
-
-            View all tasks →
-
-          </Link>
-
-        </div>
-
-
-
-        {loading ? (
-
-          <p className="p-8 text-center text-taupe">Loading agenda…</p>
-
-        ) : agenda.length === 0 ? (
-          <div className="w-full px-6 py-10 sm:px-10 sm:py-12">
-            <h3 className="font-serif text-[22px] font-semibold text-ink">No events yet</h3>
-            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-text">
-              Use <strong>Add event</strong> to schedule something. It shows up here and syncs to
-              Google Calendar when connected.
-            </p>
+      {loading ? (
+        <LuxuryCard padding="lg" className="w-full">
+          <p className="text-taupe">Loading agenda…</p>
+        </LuxuryCard>
+      ) : agenda.length === 0 ? (
+        <LuxuryCard padding="lg" className="w-full">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="font-serif text-[22px] font-semibold text-ink">No upcoming events</h2>
+              <p className="mt-1 text-[14px] leading-snug text-slate-text">
+                Schedule something and it will list here. Syncs to Google when connected.
+              </p>
+            </div>
             <button
               type="button"
               onClick={() => setAddEventOpen(true)}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory hover:bg-rose-gold-deep"
+              className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory hover:bg-rose-gold-deep sm:self-center"
             >
               <svg
                 className="h-4 w-4"
@@ -634,83 +614,57 @@ export function CalendarPage() {
               >
                 <path d="M12 5v14M5 12h14" />
               </svg>
-              Add your first event
+              Add event
             </button>
           </div>
-        ) : (
-
+        </LuxuryCard>
+      ) : (
+        <LuxuryCard padding="none" className="w-full overflow-hidden">
+          <div className="flex items-center justify-between border-b border-outline-variant/15 px-6 py-4">
+            <h2 className="font-serif text-[22px] font-semibold text-ink">Upcoming</h2>
+            <Link
+              href="/dashboard/tasks"
+              className="text-[13px] font-medium text-rose-gold-deep hover:underline"
+            >
+              View all tasks →
+            </Link>
+          </div>
           <ul className="divide-y divide-outline-variant/15">
-
             {agenda.slice(0, 8).map((item) => {
-
               const name = contactName(item.contacts);
-
               return (
-
                 <li key={item.id} className="flex gap-4 px-6 py-4 hover:bg-cream/40">
-
                   <div className="min-w-0 flex-1">
-
                     <p className="font-medium text-ink">{item.title}</p>
-
                     <p className="text-[14px] text-slate-text">{formatWhen(item.starts_at)}</p>
-
                     {name && item.contact_id ? (
-
                       <Link
-
                         href={`/dashboard/contacts/${item.contact_id}`}
-
                         className="mt-1 inline-block text-[13px] text-rose-gold-deep hover:underline"
-
                       >
-
                         {name} →
-
                       </Link>
-
                     ) : null}
-
                   </div>
-
                   <span className="shrink-0 self-center rounded-full bg-cream px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-taupe">
-
                     {sourceLabel(item.source)}
-
                   </span>
-
                 </li>
-
               );
-
             })}
-
           </ul>
-
-        )}
-
-      </LuxuryCard>
-
-
+        </LuxuryCard>
+      )}
 
       <AddCalendarEventModal
-
         open={addEventOpen}
-
         onClose={() => setAddEventOpen(false)}
-
         defaultDate={selectedDate}
-
         connected={connected}
-
         onCreated={() => void load(true)}
-
       />
-
     </div>
-
   );
-
 }
 
 
