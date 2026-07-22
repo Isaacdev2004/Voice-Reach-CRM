@@ -16,43 +16,47 @@ export function DashboardConcierge() {
 
   return (
     <>
-      <section className="rounded-[20px] border border-outline-variant/10 bg-ivory px-5 py-4 shadow-card">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-gold/15 text-rose-gold-deep">
+      <section className="rounded-[24px] border border-outline-variant/10 bg-ivory p-6 shadow-card sm:p-7">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex gap-4 sm:max-w-md sm:shrink-0">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-gold/15 text-rose-gold-deep">
               <Icon name="auto_awesome" className="text-[22px]" />
             </div>
-            <div className="min-w-0">
+            <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
                 AI concierge · today&apos;s focus
               </p>
-              <p className="mt-0.5 truncate text-[15px] text-ink">
+              <p className="mt-1.5 text-[15px] leading-relaxed text-slate-text">
                 Stay consistent — personalization keeps you top of mind.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+          <div className="grid w-full gap-2 sm:w-auto sm:min-w-[320px] sm:grid-cols-3">
             {FOCUS_ITEMS.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className="inline-flex items-center gap-2 rounded-full border border-outline-variant/15 bg-cream/80 px-4 py-2 text-[13px] transition-colors hover:border-rose-gold/30 hover:bg-champagne"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-outline-variant/15 bg-cream/80 px-4 py-3 transition-colors hover:border-rose-gold/30 hover:bg-champagne sm:flex-col sm:items-start sm:justify-start sm:gap-1"
               >
-                <span className="font-serif text-[18px] font-semibold leading-none text-rose-gold-deep">
+                <span className="font-serif text-[26px] font-semibold leading-none text-rose-gold-deep">
                   {item.value}
                 </span>
-                <span className="text-taupe">{item.label}</span>
+                <span className="text-[13px] leading-snug text-taupe">{item.label}</span>
               </Link>
             ))}
-            <button
-              type="button"
-              onClick={() => setWorkspaceOpen(true)}
-              className="rounded-full bg-rose-gold px-4 py-2 text-[13px] font-medium text-ivory whitespace-nowrap"
-            >
-              AI workspace
-            </button>
           </div>
+        </div>
+
+        <div className="mt-5 flex justify-end border-t border-outline-variant/10 pt-5">
+          <button
+            type="button"
+            onClick={() => setWorkspaceOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[13px] font-medium text-ivory transition-opacity hover:opacity-90"
+          >
+            <Icon name="auto_awesome" className="text-[16px]" />
+            Open AI workspace
+          </button>
         </div>
       </section>
 
@@ -77,7 +81,9 @@ export function DashboardConcierge() {
           rows={5}
           placeholder="Draft a warm follow-up…"
         />
-        <p className="mt-3 text-[12px] text-taupe">AI generation will be available in a future release.</p>
+        <p className="mt-3 text-[12px] text-taupe">
+          AI generation will be available in a future release.
+        </p>
       </Modal>
     </>
   );
