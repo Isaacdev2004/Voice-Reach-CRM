@@ -39,7 +39,7 @@ export const POST = withApiHandler(async (request) => {
     entityType: "ai_task",
     entityId: null,
     metadata: { task: body.task, provider: result.provider },
-  });
+  }).catch(() => undefined);
 
   return apiSuccess(result);
 });

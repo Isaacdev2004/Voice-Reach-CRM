@@ -4,16 +4,32 @@ import { Icon } from "@/components/ui/icon";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAiAssistant, type AiTaskType } from "./ai-assistant-context";
 
 const TASKS: { id: AiTaskType; label: string; icon: string; description: string }[] = [
-  { id: "follow_up", label: "Next best action", icon: "auto_awesome", description: "AI suggests the best next touchpoint." },
+  {
+    id: "follow_up",
+    label: "Next best action",
+    icon: "auto_awesome",
+    description: "AI suggests the best next touchpoint.",
+  },
   { id: "email_writer", label: "Email writer", icon: "mail", description: "Draft a luxury, on-brand email." },
   { id: "sms_writer", label: "SMS writer", icon: "sms", description: "Short, warm SMS messages." },
-  { id: "voicemail_script", label: "Voicemail script", icon: "voicemail", description: "Personalized 25-second script." },
+  {
+    id: "voicemail_script",
+    label: "Voicemail script",
+    icon: "voicemail",
+    description: "Personalized 25-second script.",
+  },
   { id: "note_summary", label: "Note summary", icon: "edit_note", description: "3-bullet client summary." },
   { id: "campaign_idea", label: "Campaign idea", icon: "campaign", description: "Multi-touch sequence concept." },
-  { id: "next_best_action", label: "Smart suggestion", icon: "bolt", description: "Recommend a channel + reason." },
+  {
+    id: "next_best_action",
+    label: "Smart suggestion",
+    icon: "bolt",
+    description: "Recommend a channel + reason.",
+  },
 ];
 
 const TONES: { id: "warm" | "professional" | "concise" | "luxury"; label: string }[] = [
@@ -25,11 +41,30 @@ const TONES: { id: "warm" | "professional" | "concise" | "luxury"; label: string
 
 export function AiAssistantSidebar() {
   const { state, closeAssistant, setBrief, setTask } = useAiAssistant();
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tone, setTone] = useState<typeof TONES[number]["id"]>(state.context.tone ?? "luxury");
+  const [tone, setTone] = useState<(typeof TONES)[number]["id"]>(state.context.tone ?? "luxury");
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!state.open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeAssistant();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [state.open, closeAssistant]);
 
   useEffect(() => {
     if (state.open) {
@@ -74,26 +109,34 @@ export function AiAssistantSidebar() {
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <>
-      {state.open ? (
-        <div
-          className="fixed inset-0 z-[140] bg-ink/30 backdrop-blur-sm transition-opacity"
-          onClick={closeAssistant}
-          aria-hidden
-        />
-      ) : null}
-      <aside
+      <div
         className={cn(
-          "fixed right-0 top-0 z-[150] flex h-full w-full max-w-md flex-col border-l border-outline-variant/15 bg-ivory shadow-card transition-transform duration-300",
-          state.open ? "translate-x-0" : "translate-x-full",
+          "fixed inset-0 z-[200] bg-ink/40 backdrop-blur-[2px] transition-opacity duration-200",
+          state.open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
         )}
+        onClick={closeAssistant}
         aria-hidden={!state.open}
+      />
+
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label="VoiceReach AI assistant"
+        className={cn(
+          "fixed right-0 top-0 z-[210] flex h-dvh w-full max-w-md flex-col border-l border-outline-variant/15 bg-ivory shadow-card transition-transform duration-300 ease-out",
+          state.open ? "translate-x-0" : "translate-x-full pointer-events-none",
+        )}
       >
         <header className="flex shrink-0 items-center justify-between border-b border-outline-variant/10 px-6 py-5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-gold/15 text-rose-gold-deep">
-              <Icon name="auto_awesome" />
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                <path d="M12 2l1.4 4.2L18 7.6l-4.2 1.4L12 13l-1.4-4.2L6 7.6l4.6-1.4L12 2zm7 9l.9 2.7 2.7.9-2.7.9L19 18l-.9-2.7L15.4 14l2.7-.9L19 11zM5 14l.8 2.4 2.4.8-2.4.8L5 20.4l-.8-2.4L1.8 17l2.4-.8L5 14z" />
+              </svg>
             </div>
             <div>
               <p className="font-serif text-[18px] font-semibold text-ink">VoiceReach AI</p>
@@ -103,10 +146,12 @@ export function AiAssistantSidebar() {
           <button
             type="button"
             onClick={closeAssistant}
-            className="rounded-full p-1.5 text-taupe hover:bg-champagne"
+            className="rounded-full p-2 text-taupe hover:bg-champagne"
             aria-label="Close AI assistant"
           >
-            <Icon name="close" />
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+            </svg>
           </button>
         </header>
 
@@ -127,11 +172,8 @@ export function AiAssistantSidebar() {
                       : "border-outline-variant/15 hover:border-rose-gold/30",
                   )}
                 >
-                  <div className="flex items-center gap-2">
-                    <Icon name={t.icon} className="text-[18px] text-rose-gold-deep" />
-                    <p className="text-[13px] font-medium text-ink">{t.label}</p>
-                  </div>
-                  <p className="mt-1 text-[11px] text-taupe">{t.description}</p>
+                  <p className="text-[13px] font-medium text-ink">{t.label}</p>
+                  <p className="mt-1 text-[11px] leading-snug text-taupe">{t.description}</p>
                 </button>
               );
             })}
@@ -180,15 +222,7 @@ export function AiAssistantSidebar() {
             disabled={loading}
             className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-rose-gold py-3 text-[14px] font-medium text-ivory transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
           >
-            {loading ? (
-              <>
-                <Icon name="progress_activity" className="animate-spin text-[18px]" /> Generating…
-              </>
-            ) : (
-              <>
-                <Icon name="auto_awesome" /> Generate
-              </>
-            )}
+            {loading ? "Generating…" : "Generate"}
           </button>
 
           {error ? (
@@ -200,9 +234,7 @@ export function AiAssistantSidebar() {
           {result ? (
             <div className="mt-5 rounded-2xl border border-outline-variant/15 bg-cream p-4">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-[12px] font-semibold uppercase tracking-wider text-taupe">
-                  Suggestion
-                </p>
+                <p className="text-[12px] font-semibold uppercase tracking-wider text-taupe">Suggestion</p>
                 <button
                   type="button"
                   onClick={() => void copyOutput()}
@@ -214,14 +246,12 @@ export function AiAssistantSidebar() {
               <pre className="whitespace-pre-wrap font-serif text-[14px] leading-relaxed text-ink">
                 {renderableText(result)}
               </pre>
-              <p className="mt-3 text-[11px] text-taupe">
-                AI infrastructure ready — connect OpenAI/Claude to unlock live generation.
-              </p>
             </div>
           ) : null}
         </div>
       </aside>
-    </>
+    </>,
+    document.body,
   );
 }
 

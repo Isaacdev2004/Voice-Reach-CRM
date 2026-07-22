@@ -107,7 +107,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           showQuickCreate={config.showQuickCreate ?? true}
           onMenuClick={() => setMobileNavOpen(true)}
         >
-          <div className="min-h-screen overflow-x-hidden bg-cream text-on-surface">
+          <div className="min-h-screen bg-cream text-on-surface">
             <DashboardSidebar
               mobileOpen={mobileNavOpen}
               onMobileClose={() => setMobileNavOpen(false)}
@@ -116,9 +116,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <SetupBanner />
               {children}
             </main>
-            <AiFloatingButton />
-            <AiAssistantSidebar />
           </div>
+          <AiFloatingButton />
+          <AiAssistantSidebar />
         </DashboardHeaderProvider>
       </AiAssistantProvider>
     </UpgradePlanProvider>
