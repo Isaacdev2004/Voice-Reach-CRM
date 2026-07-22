@@ -63,10 +63,7 @@ export function withApiHandler<TContext = unknown>(
         return apiError("Sign in required", { status: 401, code: "unauthorized" });
       }
       if (isConfigError(err)) {
-        return apiError(
-          "Database not connected yet. Production credentials are being configured — please check back shortly.",
-          { status: 503, code: "service_unconfigured" },
-        );
+        return apiError(err.message, { status: 503, code: "service_unconfigured" });
       }
       if (err instanceof Error && err.message.startsWith("Missing ")) {
         return apiError(

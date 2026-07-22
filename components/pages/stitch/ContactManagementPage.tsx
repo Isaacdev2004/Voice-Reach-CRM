@@ -293,9 +293,20 @@ export function ContactManagementPage() {
       ) : null}
 
       {error ? (
-        <p className="rounded-2xl bg-champagne px-4 py-3 text-[14px] text-taupe">
-          Live data unavailable — showing demo contacts. ({error})
-        </p>
+        <div className="rounded-2xl border border-rose-gold/25 bg-champagne px-4 py-4 text-[14px] text-slate-text">
+          <p className="font-medium text-ink">Live contacts unavailable</p>
+          <p className="mt-1">
+            {error.includes("Supabase") || error.includes("Database")
+              ? error
+              : `Could not load contacts (${error}). Showing demo data until the database is connected.`}
+          </p>
+          <p className="mt-2 text-[13px] text-taupe">
+            In Vercel → Settings → Environment Variables, confirm{" "}
+            <code className="rounded bg-ivory px-1">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
+            <code className="rounded bg-ivory px-1">SUPABASE_SERVICE_ROLE_KEY</code> match an active
+            Supabase project, then redeploy.
+          </p>
+        </div>
       ) : null}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">

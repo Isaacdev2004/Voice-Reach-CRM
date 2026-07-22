@@ -104,7 +104,10 @@ export function CompliancePanel() {
         </div>
 
         {loadError ? (
-          <p className="mb-4 rounded-xl bg-champagne px-4 py-3 text-[14px] text-taupe">{loadError}</p>
+          <div className="mb-4 rounded-xl border border-rose-gold/25 bg-champagne px-4 py-3 text-[14px] text-slate-text">
+            <p className="font-medium text-ink">Compliance scan unavailable</p>
+            <p className="mt-1">{loadError}</p>
+          </div>
         ) : null}
 
         {loading ? (
