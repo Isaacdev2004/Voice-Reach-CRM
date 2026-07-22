@@ -11,7 +11,7 @@ type AuthSignInPageProps = {
 
 export function AuthSignInPage({ clerkEnabled }: AuthSignInPageProps) {
   return (
-    <AuthShell>
+    <AuthShell mode="sign-in">
       {clerkEnabled ? <InAppBrowserBanner context="sign-in" /> : null}
       {clerkEnabled ? <ClerkSignIn /> : <SignInFormDev />}
     </AuthShell>
