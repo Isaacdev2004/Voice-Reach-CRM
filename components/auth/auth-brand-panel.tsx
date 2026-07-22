@@ -81,12 +81,6 @@ export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
           </div>
         </div>
       </div>
-
-      <footer className="relative z-10 px-12 pb-12">
-        <p className="max-w-sm text-[14px] leading-relaxed text-white/55">
-          Built for teams who lead with relationships, not just transactions.
-        </p>
-      </footer>
     </aside>
   );
 }
