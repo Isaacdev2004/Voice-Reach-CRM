@@ -303,7 +303,17 @@ export function CalendarPage() {
 
           >
 
-            <Icon name="add" className="text-[18px]" />
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.25"
+              strokeLinecap="round"
+              aria-hidden
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
 
             Add event
 
@@ -602,43 +612,31 @@ export function CalendarPage() {
           <p className="p-8 text-center text-taupe">Loading agenda…</p>
 
         ) : agenda.length === 0 ? (
-
-          <div className="p-12 text-center">
-
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-champagne/80">
-
-              <Icon name="event_available" className="text-[32px] text-taupe/70" />
-
-            </div>
-
-            <p className="mt-4 font-serif text-[22px] text-ink">No events yet</p>
-
-            <p className="mx-auto mt-2 max-w-md text-[14px] text-slate-text">
-
-              Click Add event to schedule something — it will appear here and sync to Google
-
-              Calendar when connected.
-
+          <div className="w-full px-6 py-10 sm:px-10 sm:py-12">
+            <h3 className="font-serif text-[22px] font-semibold text-ink">No events yet</h3>
+            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-text">
+              Use <strong>Add event</strong> to schedule something. It shows up here and syncs to
+              Google Calendar when connected.
             </p>
-
             <button
-
               type="button"
-
               onClick={() => setAddEventOpen(true)}
-
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-rose-gold px-4 py-2 text-[14px] font-medium text-ivory"
-
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory hover:bg-rose-gold-deep"
             >
-
-              <Icon name="add" className="text-[18px]" />
-
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.25"
+                strokeLinecap="round"
+                aria-hidden
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
               Add your first event
-
             </button>
-
           </div>
-
         ) : (
 
           <ul className="divide-y divide-outline-variant/15">
