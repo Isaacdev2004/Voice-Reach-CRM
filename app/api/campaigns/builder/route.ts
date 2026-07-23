@@ -6,7 +6,7 @@ import {
   scheduleStepRunsForCampaign,
   type CampaignBlueprintStep,
 } from "@/lib/campaigns/engine";
-import { evaluateEligibility } from "@/lib/compliance";
+import { enrollContacts } from "@/lib/campaigns/enroll";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
 
@@ -82,58 +82,6 @@ async function upsertCampaign(
 
   if (error) throw new Error(error.message);
   return data;
-}
-
-async function enrollContacts(
-  ownerId: string,
-  campaignId: string,
-  options?: { contactIds?: string[] },
-) {
-  let query = supabaseAdmin
-    .from("contacts")
-    .select("id, phone, dnc, consent_records(*)")
-    .eq("owner_id", ownerId);
-
-  if (options?.contactIds?.length) {
-    query = query.in("id", options.contactIds);
-  }
-
-  const { data: contacts, error } = await query;
-  if (error) throw new Error(error.message);
-
-  const eligible =
-    contacts?.filter((c) => evaluateEligibility(c).eligible).map((c) => c.id) ?? [];
-
-  if (eligible.length === 0) {
-    return {
-      enrolled: 0,
-      eligible: 0,
-      total: contacts?.length ?? 0,
-      requested: options?.contactIds?.length ?? null,
-    };
-  }
-
-  const rows = eligible.map((contactId) => ({
-    owner_id: ownerId,
-    campaign_id: campaignId,
-    contact_id: contactId,
-    eligibility_status: "eligible",
-    eligibility_issues: [],
-    delivery_status: "not_sent",
-  }));
-
-  const { error: insertError } = await supabaseAdmin
-    .from("campaign_recipients")
-    .upsert(rows, { onConflict: "campaign_id,contact_id", ignoreDuplicates: true });
-
-  if (insertError) throw new Error(insertError.message);
-
-  return {
-    enrolled: eligible.length,
-    eligible: eligible.length,
-    total: contacts?.length ?? 0,
-    requested: options?.contactIds?.length ?? null,
-  };
 }
 
 function mapStepsToBlueprint(steps: z.infer<typeof StepSchema>[]): CampaignBlueprintStep[] {

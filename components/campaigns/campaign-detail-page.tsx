@@ -1,12 +1,13 @@
 "use client";
 
+import { AddCampaignPeopleModal } from "@/components/campaigns/add-campaign-people-modal";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { EngagementTimeline } from "@/components/engagement/engagement-timeline";
 import { Icon } from "@/components/ui/icon";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Campaign = {
   id: string;
@@ -61,10 +62,36 @@ type StepRun = {
   result: Record<string, unknown>;
 };
 
+type Recipient = {
+  id: string;
+  eligibility_status: string;
+  eligibility_issues: string[] | null;
+  delivery_status: string;
+  updated_at: string;
+  contacts?:
+    | {
+        id: string;
+        first_name: string | null;
+        last_name: string | null;
+        phone: string | null;
+        email: string | null;
+        dnc: boolean;
+      }
+    | {
+        id: string;
+        first_name: string | null;
+        last_name: string | null;
+        phone: string | null;
+        email: string | null;
+        dnc: boolean;
+      }[]
+    | null;
+};
+
 type ApiData = {
   campaign: Campaign;
   steps: Step[];
-  recipients: unknown[];
+  recipients: Recipient[];
   runs: StepRun[];
   blockedReport: BlockedRecipient[];
   counts: {
@@ -113,6 +140,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
   const [toast, setToast] = useState<Toast | null>(null);
   const [sending, setSending] = useState(false);
   const [tickingRunner, setTickingRunner] = useState(false);
+  const [addPeopleOpen, setAddPeopleOpen] = useState(false);
 
   const showToast = (message: string, tone: Toast["tone"] = "success") => {
     setToast({ message, tone });
@@ -170,6 +198,39 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
       showToast(envelope.error, "error");
     }
   };
+
+  const recipients = data?.recipients ?? [];
+
+  const existingContactIds = useMemo(
+    () =>
+      recipients
+        .map((r) => {
+          const contact = Array.isArray(r.contacts) ? r.contacts[0] : r.contacts;
+          return contact?.id;
+        })
+        .filter((id): id is string => Boolean(id)),
+    [recipients],
+  );
+
+  const peopleRows = useMemo(
+    () =>
+      recipients.map((r) => {
+        const contact = Array.isArray(r.contacts) ? r.contacts[0] : r.contacts;
+        const name = contact
+          ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() || "Contact"
+          : "Contact";
+        return {
+          id: r.id,
+          contactId: contact?.id ?? null,
+          name,
+          phone: contact?.phone ?? "",
+          email: contact?.email ?? "",
+          eligibility: r.eligibility_status,
+          delivery: r.delivery_status,
+        };
+      }),
+    [recipients],
+  );
 
   if (loading) {
     return (
@@ -255,6 +316,14 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
+            onClick={() => setAddPeopleOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2 text-[13px] font-medium text-ivory shadow-card transition-opacity hover:opacity-95"
+          >
+            <Icon name="person_add" className="text-[18px]" />
+            Add people
+          </button>
+          <button
+            type="button"
             onClick={() => void refresh()}
             className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-ivory px-4 py-2 text-[13px] font-medium text-ink hover:bg-champagne"
           >
@@ -309,6 +378,84 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
           </LuxuryCard>
         ))}
       </section>
+
+      <LuxuryCard padding="lg">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-serif text-[22px] font-semibold text-ink">People on this campaign</h2>
+            <p className="mt-1 text-[13px] text-taupe">
+              {counts.total === 0
+                ? "No one enrolled yet — add contacts to start outreach."
+                : `${counts.total} recipient${counts.total === 1 ? "" : "s"} enrolled`}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAddPeopleOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-rose-gold/40 bg-rose-gold/10 px-4 py-2 text-[13px] font-medium text-rose-gold-deep hover:bg-rose-gold/20"
+          >
+            <Icon name="person_add" className="text-[18px]" />
+            Add people
+          </button>
+        </div>
+
+        {peopleRows.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-outline-variant/30 bg-cream/50 px-6 py-10 text-center">
+            <p className="font-serif text-[20px] font-semibold text-ink">No people yet</p>
+            <p className="mx-auto mt-2 max-w-md text-[14px] text-slate-text">
+              This saved campaign has no recipients. Add contacts here — they must have valid
+              consent to be eligible.
+            </p>
+            <button
+              type="button"
+              onClick={() => setAddPeopleOpen(true)}
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory"
+            >
+              <Icon name="person_add" className="text-[18px]" />
+              Add people
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-[13px]">
+              <thead>
+                <tr className="border-b border-outline-variant/15 text-[11px] uppercase tracking-wider text-taupe">
+                  <th className="py-2 pr-3 font-medium">Name</th>
+                  <th className="py-2 pr-3 font-medium">Phone / Email</th>
+                  <th className="py-2 pr-3 font-medium">Eligibility</th>
+                  <th className="py-2 font-medium">Delivery</th>
+                </tr>
+              </thead>
+              <tbody>
+                {peopleRows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="border-b border-outline-variant/10 last:border-b-0"
+                  >
+                    <td className="py-3 pr-3">
+                      {row.contactId ? (
+                        <Link
+                          href={`/dashboard/contacts/${row.contactId}`}
+                          className="font-medium text-ink hover:text-rose-gold-deep"
+                        >
+                          {row.name}
+                        </Link>
+                      ) : (
+                        <span className="font-medium text-ink">{row.name}</span>
+                      )}
+                    </td>
+                    <td className="py-3 pr-3 text-taupe">{row.phone || row.email || "—"}</td>
+                    <td className="py-3 pr-3 capitalize text-slate-text">{row.eligibility}</td>
+                    <td className="py-3 capitalize text-slate-text">
+                      {row.delivery.replace(/_/g, " ")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </LuxuryCard>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <LuxuryCard padding="lg" className="lg:col-span-2">
@@ -479,6 +626,18 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
         </div>
         <EngagementTimeline campaignId={campaignId} showScore={false} />
       </LuxuryCard>
+
+      <AddCampaignPeopleModal
+        open={addPeopleOpen}
+        onClose={() => setAddPeopleOpen(false)}
+        campaignId={campaignId}
+        campaignName={campaign.name}
+        existingContactIds={existingContactIds}
+        onAdded={(message) => {
+          showToast(message);
+          void refresh();
+        }}
+      />
     </div>
   );
 }
