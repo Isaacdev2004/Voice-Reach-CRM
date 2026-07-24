@@ -43,6 +43,13 @@ export function VoiceStudioWorkspace() {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [activeAssetId, setActiveAssetId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    title: string;
+    remote: boolean;
+    url?: string | null;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -257,13 +264,26 @@ export function VoiceStudioWorkspace() {
     }
   };
 
-  const handleDelete = async (item: {
-    id: string;
-    title: string;
-    remote: boolean;
-    url?: string | null;
-  }) => {
-    if (!confirm(`Delete “${item.title}”? This cannot be undone.`)) return;
+  const handleUseForCampaign = async (asset: VoiceAsset) => {
+    if (!campaignId || !isUuid(campaignId)) {
+      showToast("Select a real campaign in Assign to campaign first.", "error");
+      return;
+    }
+    setActiveAssetId(asset.id);
+    try {
+      if (!asset.approved) {
+        await approve(asset.id);
+      }
+      await assignToCampaign(asset.id, campaignId);
+      showToast(`"${asset.title}" approved and linked to campaign`);
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Could not link to campaign", "error");
+    }
+  };
+
+  const confirmDelete = async () => {
+    const item = deleteTarget;
+    if (!item) return;
 
     if (playingId === item.id && audioRef.current) {
       audioRef.current.pause();
@@ -274,16 +294,21 @@ export function VoiceStudioWorkspace() {
     if (!item.remote) {
       if (item.url?.startsWith("blob:")) URL.revokeObjectURL(item.url);
       setLocalRecordings(removeLocalRecording(item.id));
+      setDeleteTarget(null);
       showToast("Local recording deleted");
       return;
     }
 
+    setDeleting(true);
     try {
       await remove(item.id);
       if (activeAssetId === item.id) setActiveAssetId(null);
+      setDeleteTarget(null);
       showToast("Recording deleted");
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Could not delete recording", "error");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -495,10 +520,7 @@ export function VoiceStudioWorkspace() {
                 {item.remote && item.asset ? (
                   <button
                     type="button"
-                    onClick={() => {
-                      setActiveAssetId(item.asset!.id);
-                      void handleCampaignChange(campaignId);
-                    }}
+                    onClick={() => void handleUseForCampaign(item.asset!)}
                     className="rounded-full border border-outline-variant/30 px-3 py-1 text-[12px] text-taupe hover:bg-champagne"
                   >
                     Use for campaign
@@ -506,7 +528,14 @@ export function VoiceStudioWorkspace() {
                 ) : null}
                 <button
                   type="button"
-                  onClick={() => void handleDelete(item)}
+                  onClick={() =>
+                    setDeleteTarget({
+                      id: item.id,
+                      title: item.title,
+                      remote: item.remote,
+                      url: item.url,
+                    })
+                  }
                   className="rounded-full border border-error/25 bg-error/5 px-3 py-1 text-[12px] font-medium text-error hover:bg-error/10"
                 >
                   Delete
@@ -580,6 +609,33 @@ export function VoiceStudioWorkspace() {
           />
         </ModalField>
         <p className="text-[13px] text-taupe">Duration: {displayTime}</p>
+      </Modal>
+
+      <Modal
+        open={Boolean(deleteTarget)}
+        onClose={() => (!deleting ? setDeleteTarget(null) : undefined)}
+        title="Delete recording"
+        description={
+          deleteTarget
+            ? `Delete “${deleteTarget.title}”? This cannot be undone.`
+            : "Delete this recording?"
+        }
+        icon="delete"
+        size="md"
+        footer={
+          <ModalFooterActions
+            onCancel={() => setDeleteTarget(null)}
+            primaryLabel={deleting ? "Deleting…" : "Delete permanently"}
+            onPrimary={() => void confirmDelete()}
+            primaryDisabled={deleting}
+            primaryLoading={deleting}
+          />
+        }
+      >
+        <p className="text-[14px] leading-relaxed text-slate-text">
+          The file will be removed from your library
+          {deleteTarget?.remote ? " and cloud storage" : ""}. Linked campaigns will be unlinked.
+        </p>
       </Modal>
     </>
   );

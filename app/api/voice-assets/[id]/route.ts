@@ -70,11 +70,25 @@ export const DELETE = withApiHandler<RouteContext>(async (_request, context) => 
   }
   if (!asset) return apiError("Recording not found", { status: 404, code: "not_found" });
 
-  await supabaseAdmin
+  // Clear FK references that would block delete (campaigns may lack ON DELETE SET NULL).
+  const { error: unlinkCampaignsError } = await supabaseAdmin
     .from("campaigns")
     .update({ voice_asset_id: null, updated_at: new Date().toISOString() })
     .eq("owner_id", ownerId)
     .eq("voice_asset_id", id);
+
+  if (unlinkCampaignsError) {
+    return apiError(
+      `Could not unlink campaigns before delete: ${unlinkCampaignsError.message}`,
+      { status: 500 },
+    );
+  }
+
+  await supabaseAdmin
+    .from("voice_profiles")
+    .update({ sample_asset_id: null })
+    .eq("owner_id", ownerId)
+    .eq("sample_asset_id", id);
 
   if (asset.storage_path) {
     try {
@@ -93,7 +107,10 @@ export const DELETE = withApiHandler<RouteContext>(async (_request, context) => 
   if (deleteError) {
     const mapped = apiErrorFromSupabase(deleteError);
     if (mapped) return mapped;
-    return apiError(deleteError.message, { status: 500 });
+    return apiError(
+      `Delete failed: ${deleteError.message}. Unlink this recording from any campaign first.`,
+      { status: 500 },
+    );
   }
 
   await writeAuditLog({
@@ -104,5 +121,5 @@ export const DELETE = withApiHandler<RouteContext>(async (_request, context) => 
     metadata: { deletedAssetId: id, title: asset.title },
   }).catch(() => undefined);
 
-  return apiOk({ ok: true });
+  return apiOk({ ok: true, deletedId: id });
 });

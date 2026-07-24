@@ -9,10 +9,27 @@ export type EnrollResult = {
   recipientIds: string[];
 };
 
+/** Write a Yes consent record so a contact can be enrolled for a dry-run / test. */
+export async function documentTestConsent(ownerId: string, contactIds: string[]) {
+  if (!contactIds.length) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = contactIds.map((contactId) => ({
+    owner_id: ownerId,
+    contact_id: contactId,
+    status: "Yes",
+    consent_date: today,
+    source: "Campaign test run",
+    proof_reference: "Owner-initiated test enrollment",
+    notes: "Auto-documented for campaign sequence testing",
+  }));
+  const { error } = await supabaseAdmin.from("consent_records").insert(rows);
+  if (error) throw new Error(error.message);
+}
+
 export async function enrollContacts(
   ownerId: string,
   campaignId: string,
-  options?: { contactIds?: string[] },
+  options?: { contactIds?: string[]; documentTestConsent?: boolean },
 ): Promise<EnrollResult> {
   let query = supabaseAdmin
     .from("contacts")
@@ -26,15 +43,50 @@ export async function enrollContacts(
   const { data: contacts, error } = await query;
   if (error) throw new Error(error.message);
 
-  const eligible =
-    contacts?.filter((c) => evaluateEligibility(c).eligible).map((c) => c.id) ?? [];
+  if (options?.documentTestConsent && options.contactIds?.length) {
+    const needingConsent = (contacts ?? [])
+      .filter((c) => !evaluateEligibility(c).eligible)
+      .map((c) => c.id as string);
+    if (needingConsent.length) {
+      await documentTestConsent(ownerId, needingConsent);
+      const { data: refreshed, error: refreshError } = await supabaseAdmin
+        .from("contacts")
+        .select("id, phone, dnc, consent_records(*)")
+        .eq("owner_id", ownerId)
+        .in("id", options.contactIds);
+      if (refreshError) throw new Error(refreshError.message);
+      return enrollEligible(ownerId, campaignId, refreshed ?? [], options.contactIds.length);
+    }
+  }
+
+  return enrollEligible(ownerId, campaignId, contacts ?? [], options?.contactIds?.length ?? null);
+}
+
+async function enrollEligible(
+  ownerId: string,
+  campaignId: string,
+  contacts: Array<{
+    id: string;
+    phone: string;
+    dnc: boolean;
+    consent_records?: Array<{
+      status: string;
+      consent_date?: string | null;
+      source?: string | null;
+      proof_reference?: string | null;
+      created_at?: string | null;
+    }>;
+  }>,
+  requested: number | null,
+): Promise<EnrollResult> {
+  const eligible = contacts.filter((c) => evaluateEligibility(c).eligible).map((c) => c.id);
 
   if (eligible.length === 0) {
     return {
       enrolled: 0,
       eligible: 0,
-      total: contacts?.length ?? 0,
-      requested: options?.contactIds?.length ?? null,
+      total: contacts.length,
+      requested,
       recipientIds: [],
     };
   }
@@ -52,8 +104,8 @@ export async function enrollContacts(
     return {
       enrolled: 0,
       eligible: eligible.length,
-      total: contacts?.length ?? 0,
-      requested: options?.contactIds?.length ?? null,
+      total: contacts.length,
+      requested,
       recipientIds: [],
     };
   }
@@ -77,8 +129,8 @@ export async function enrollContacts(
   return {
     enrolled: inserted?.length ?? newContactIds.length,
     eligible: eligible.length,
-    total: contacts?.length ?? 0,
-    requested: options?.contactIds?.length ?? null,
+    total: contacts.length,
+    requested,
     recipientIds: (inserted ?? []).map((r) => r.id as string),
   };
 }
@@ -88,6 +140,7 @@ export async function scheduleStepRunsForRecipients(
   ownerId: string,
   campaignId: string,
   recipientIds: string[],
+  options?: { accelerated?: boolean },
 ) {
   if (!recipientIds.length) return { scheduled: 0 };
 
@@ -111,8 +164,13 @@ export async function scheduleStepRunsForRecipients(
   const rows: Record<string, unknown>[] = [];
   for (const recipient of recipients) {
     let cursor = baseTime;
-    for (const step of steps) {
-      cursor += (step.delay_minutes ?? 0) * 60_000;
+    for (const [index, step] of steps.entries()) {
+      if (options?.accelerated) {
+        // All due immediately so one scheduler tick can process the full sequence.
+        cursor = baseTime - (steps.length - index) * 1_000;
+      } else {
+        cursor += (step.delay_minutes ?? 0) * 60_000;
+      }
       rows.push({
         owner_id: ownerId,
         campaign_id: campaignId,

@@ -84,7 +84,14 @@ export function useVoiceAssets() {
   const remove = async (id: string) => {
     const res = await fetch(`/api/voice-assets/${id}`, { method: "DELETE" });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error ?? "Could not delete recording");
+    if (!res.ok) {
+      throw new Error(
+        data.error ??
+          (res.status === 404
+            ? "Recording not found"
+            : "Could not delete recording. Try again or unlink it from the campaign first."),
+      );
+    }
     setAssets((prev) => prev.filter((a) => a.id !== id));
   };
 

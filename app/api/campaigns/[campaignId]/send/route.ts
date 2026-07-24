@@ -80,9 +80,9 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     }
 
     const voicemailProvider =
-      campaign.provider && campaign.provider !== "mock"
-        ? campaign.provider
-        : process.env.VOICE_PROVIDER ?? "slybroadcast";
+      campaign.provider === "mock"
+        ? "mock"
+        : campaign.provider || process.env.VOICE_PROVIDER || "mock";
 
     const providerResult = await dispatch(
       {

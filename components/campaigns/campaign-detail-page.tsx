@@ -1,6 +1,7 @@
 "use client";
 
 import { AddCampaignPeopleModal } from "@/components/campaigns/add-campaign-people-modal";
+import { TestCampaignRunModal } from "@/components/campaigns/test-campaign-run-modal";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { EngagementTimeline } from "@/components/engagement/engagement-timeline";
 import { Icon } from "@/components/ui/icon";
@@ -141,6 +142,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
   const [sending, setSending] = useState(false);
   const [tickingRunner, setTickingRunner] = useState(false);
   const [addPeopleOpen, setAddPeopleOpen] = useState(false);
+  const [testRunOpen, setTestRunOpen] = useState(false);
 
   const showToast = (message: string, tone: Toast["tone"] = "success") => {
     setToast({ message, tone });
@@ -314,6 +316,14 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setTestRunOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-rose-gold/40 bg-rose-gold/10 px-5 py-2 text-[13px] font-medium text-rose-gold-deep shadow-card transition-colors hover:bg-rose-gold/20"
+          >
+            <Icon name="science" className="text-[18px]" />
+            Run test sequence
+          </button>
           <button
             type="button"
             onClick={() => setAddPeopleOpen(true)}
@@ -634,6 +644,16 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
         campaignName={campaign.name}
         existingContactIds={existingContactIds}
         onAdded={(message) => {
+          showToast(message);
+          void refresh();
+        }}
+      />
+      <TestCampaignRunModal
+        open={testRunOpen}
+        onClose={() => setTestRunOpen(false)}
+        campaignId={campaignId}
+        campaignName={campaign.name}
+        onDone={(message) => {
           showToast(message);
           void refresh();
         }}

@@ -203,10 +203,9 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     const channel: "voicemail" | "sms" | "email" =
       step.type === "voicemail" ? "voicemail" : step.type === "sms" ? "sms" : "email";
 
-    const voicemailProvider =
-      campaign?.provider && campaign.provider !== "mock"
-        ? campaign.provider
-        : process.env.VOICE_PROVIDER ?? "slybroadcast";
+    // Respect campaign mock mode for end-to-end tests; otherwise let adapters fall back.
+    const preferredProvider =
+      campaign?.provider === "mock" ? "mock" : campaign?.provider || undefined;
 
     let audioUrl: string | undefined;
     if (channel === "voicemail") {
@@ -240,7 +239,7 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       body: step.description ?? step.title,
       subject: step.title,
       audioUrl,
-      providerId: channel === "voicemail" ? voicemailProvider : undefined,
+      providerId: preferredProvider,
       recordEngagement: true,
     });
 
