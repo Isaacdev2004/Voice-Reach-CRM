@@ -94,6 +94,12 @@ export function addLocalRecording(rec: LocalRecording) {
   localStorage.setItem(LOCAL_RECORDINGS_KEY, JSON.stringify(list.slice(0, 20)));
 }
 
+export function removeLocalRecording(id: string) {
+  const next = loadLocalRecordings().filter((r) => r.id !== id);
+  localStorage.setItem(LOCAL_RECORDINGS_KEY, JSON.stringify(next));
+  return next;
+}
+
 export function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);

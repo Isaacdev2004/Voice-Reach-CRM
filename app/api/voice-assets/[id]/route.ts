@@ -1,6 +1,8 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import { getSupabaseEnv } from "@/lib/server-config";
+import { apiErrorFromSupabase } from "@/lib/supabase-errors";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
 
@@ -32,7 +34,11 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     .select("*")
     .single();
 
-  if (error) return apiError(error.message, { status: 500 });
+  if (error) {
+    const mapped = apiErrorFromSupabase(error);
+    if (mapped) return mapped;
+    return apiError(error.message, { status: 500 });
+  }
 
   await writeAuditLog({
     ownerId,
@@ -40,7 +46,63 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     entityType: "voice_asset",
     entityId: id,
     metadata: updates,
-  });
+  }).catch(() => undefined);
 
   return apiOk({ voiceAsset: data });
+});
+
+export const DELETE = withApiHandler<RouteContext>(async (_request, context) => {
+  const ownerId = await requireUserId();
+  const { id } = await context.params;
+  const { storageBucket } = getSupabaseEnv();
+
+  const { data: asset, error: findError } = await supabaseAdmin
+    .from("voice_assets")
+    .select("id, title, storage_path")
+    .eq("id", id)
+    .eq("owner_id", ownerId)
+    .maybeSingle();
+
+  if (findError) {
+    const mapped = apiErrorFromSupabase(findError);
+    if (mapped) return mapped;
+    return apiError(findError.message, { status: 500 });
+  }
+  if (!asset) return apiError("Recording not found", { status: 404, code: "not_found" });
+
+  await supabaseAdmin
+    .from("campaigns")
+    .update({ voice_asset_id: null, updated_at: new Date().toISOString() })
+    .eq("owner_id", ownerId)
+    .eq("voice_asset_id", id);
+
+  if (asset.storage_path) {
+    try {
+      await supabaseAdmin.storage.from(storageBucket).remove([asset.storage_path]);
+    } catch {
+      /* storage cleanup is best-effort */
+    }
+  }
+
+  const { error: deleteError } = await supabaseAdmin
+    .from("voice_assets")
+    .delete()
+    .eq("id", id)
+    .eq("owner_id", ownerId);
+
+  if (deleteError) {
+    const mapped = apiErrorFromSupabase(deleteError);
+    if (mapped) return mapped;
+    return apiError(deleteError.message, { status: 500 });
+  }
+
+  await writeAuditLog({
+    ownerId,
+    action: "VOICE_ASSET_DELETED",
+    entityType: "voice_asset",
+    entityId: null,
+    metadata: { deletedAssetId: id, title: asset.title },
+  }).catch(() => undefined);
+
+  return apiOk({ ok: true });
 });

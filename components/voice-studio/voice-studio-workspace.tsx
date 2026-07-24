@@ -13,6 +13,7 @@ import {
   loadCampaignAssignment,
   loadLocalRecordings,
   loadScriptText,
+  removeLocalRecording,
   saveCampaignAssignment,
   saveScriptText,
   type LocalRecording,
@@ -25,7 +26,7 @@ type RecState = "idle" | "recording" | "paused";
 type Toast = { message: string; tone: "success" | "error" };
 
 export function VoiceStudioWorkspace() {
-  const { assets, loading, error, refresh, approve, assignToCampaign } = useVoiceAssets();
+  const { assets, loading, error, refresh, approve, assignToCampaign, remove } = useVoiceAssets();
   const { options: campaigns, loading: campaignsLoading } = useCampaignOptions();
   const [localRecordings, setLocalRecordings] = useState<LocalRecording[]>([]);
   const [scriptText, setScriptText] = useState("");
@@ -236,6 +237,36 @@ export function VoiceStudioWorkspace() {
     }
   };
 
+  const handleDelete = async (item: {
+    id: string;
+    title: string;
+    remote: boolean;
+    url?: string | null;
+  }) => {
+    if (!confirm(`Delete “${item.title}”? This cannot be undone.`)) return;
+
+    if (playingId === item.id && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setPlayingId(null);
+    }
+
+    if (!item.remote) {
+      if (item.url?.startsWith("blob:")) URL.revokeObjectURL(item.url);
+      setLocalRecordings(removeLocalRecording(item.id));
+      showToast("Local recording deleted");
+      return;
+    }
+
+    try {
+      await remove(item.id);
+      if (activeAssetId === item.id) setActiveAssetId(null);
+      showToast("Recording deleted");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Could not delete recording", "error");
+    }
+  };
+
   const handleScriptBlur = () => saveScriptText(scriptText);
 
   const allItems = [
@@ -437,6 +468,13 @@ export function VoiceStudioWorkspace() {
                     Use for campaign
                   </button>
                 ) : null}
+                <button
+                  type="button"
+                  onClick={() => void handleDelete(item)}
+                  className="rounded-full border border-error/25 bg-error/5 px-3 py-1 text-[12px] font-medium text-error hover:bg-error/10"
+                >
+                  Delete
+                </button>
               </div>
             </LuxuryCard>
           ))}

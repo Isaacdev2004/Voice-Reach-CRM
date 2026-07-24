@@ -72,5 +72,12 @@ export function useVoiceAssets() {
     await refresh();
   };
 
-  return { assets, loading, error, refresh, approve, assignScript, assignToCampaign };
+  const remove = async (id: string) => {
+    const res = await fetch(`/api/voice-assets/${id}`, { method: "DELETE" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ?? "Could not delete recording");
+    setAssets((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  return { assets, loading, error, refresh, approve, assignScript, assignToCampaign, remove };
 }
