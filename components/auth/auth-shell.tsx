@@ -2,6 +2,7 @@
 
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { Icon } from "@/components/ui/icon";
+import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 import type { ReactNode } from "react";
 
 type AuthShellProps = {
@@ -22,10 +23,8 @@ export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
             <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-rose-gold shadow-card">
               <Icon name="voice_chat" className="text-[24px] text-ivory" />
             </div>
-            <p className="font-serif text-[24px] font-semibold text-ink">Voice Reach</p>
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-taupe">
-              Relationship CRM
-            </p>
+            <p className="font-serif text-[24px] font-semibold text-ink">{BRAND_NAME}</p>
+            <p className="mt-1 max-w-[240px] text-[12px] leading-snug text-taupe">{BRAND_TAGLINE}</p>
           </div>
 
           <div className="auth-form-panel mx-auto w-full max-w-[420px]">{children}</div>

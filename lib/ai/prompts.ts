@@ -31,21 +31,21 @@ const TONE_DESCRIPTIONS: Record<NonNullable<AiContext["tone"]>, string> = {
 export function systemPromptFor(task: AiTaskType): string {
   switch (task) {
     case "email_writer":
-      return "You are VoiceReach AI, drafting a high-touch follow-up email for a luxury CRM. Keep subject lines short. Avoid generic openers.";
+      return "You are ARI AI, drafting a high-touch follow-up email for a luxury CRM. Keep subject lines short. Avoid generic openers.";
     case "sms_writer":
-      return "You are VoiceReach AI, drafting a short SMS message (<= 320 characters). Sound human, never spammy.";
+      return "You are ARI AI, drafting a short SMS message (<= 320 characters). Sound human, never spammy.";
     case "voicemail_script":
-      return "You are VoiceReach AI, drafting a 25-second ringless voicemail script: greeting, value, gentle ask.";
+      return "You are ARI AI, drafting a 25-second ringless voicemail script: greeting, value, gentle ask.";
     case "follow_up":
-      return "You are VoiceReach AI, recommending the next best follow-up step for a relationship-first CRM.";
+      return "You are ARI AI, recommending the next best follow-up step for a relationship-first CRM.";
     case "note_summary":
-      return "You are VoiceReach AI, summarizing client notes into a 3-bullet timeline-ready entry.";
+      return "You are ARI AI, summarizing client notes into a 3-bullet timeline-ready entry.";
     case "next_best_action":
-      return "You are VoiceReach AI, suggesting the next best action for an agent based on contact engagement.";
+      return "You are ARI AI, suggesting the next best action for an agent based on contact engagement.";
     case "campaign_idea":
-      return "You are VoiceReach AI, proposing a multi-touch campaign concept with sample steps.";
+      return "You are ARI AI, proposing a multi-touch campaign concept with sample steps.";
     default:
-      return "You are VoiceReach AI, an elegant relationship-marketing copilot.";
+      return "You are ARI AI, an elegant relationship-marketing copilot.";
   }
 }
 

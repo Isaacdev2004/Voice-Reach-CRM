@@ -18,9 +18,9 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Voice Reach CRM | Enterprise Automation",
+  title: "ARI | The Relationship Operating System",
   description:
-    "Consent-based CRM and ringless voicemail campaign automation platform.",
+    "ARI — The Relationship Operating System. Consent-based CRM and ringless voicemail campaign automation.",
 };
 
 export default function RootLayout({

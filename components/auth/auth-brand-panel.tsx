@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CheckCircleIcon } from "@/components/icons/landing-icons";
+import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 
 type AuthBrandPanelProps = {
   mode: "sign-in" | "sign-up";
@@ -11,7 +12,7 @@ const FEATURES = [
   "Appointments and follow-ups synced automatically",
 ];
 
-function VoiceReachMark({ className }: { className?: string }) {
+function AriMark({ className }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -42,14 +43,12 @@ export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
       <header className="relative z-10 px-12 pt-12">
         <Link href="/" className="inline-flex items-center gap-3.5">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur-sm">
-            <VoiceReachMark className="h-6 w-6" />
+            <AriMark className="h-6 w-6" />
           </div>
           <div>
-            <p className="font-serif text-[24px] font-semibold leading-none text-white">
-              Voice Reach
-            </p>
-            <p className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
-              Relationship CRM
+            <p className="font-serif text-[24px] font-semibold leading-none text-white">{BRAND_NAME}</p>
+            <p className="mt-1.5 max-w-[220px] text-[11px] font-medium leading-snug text-white/75">
+              {BRAND_TAGLINE}
             </p>
           </div>
         </Link>
@@ -58,7 +57,7 @@ export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
       <div className="relative z-10 flex flex-1 items-center px-12 py-10">
         <div className="max-w-[440px]">
           <h1 className="font-serif text-[44px] font-semibold leading-[1.08] tracking-tight text-white">
-            Relationships that open doors
+            {BRAND_TAGLINE}
           </h1>
           <p className="mt-5 text-[17px] leading-[1.65] text-white/85">
             {isSignUp

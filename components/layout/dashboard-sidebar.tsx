@@ -4,6 +4,7 @@ import { useUpgradePlan } from "@/components/billing/upgrade-plan-provider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
+import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 import { cn } from "@/lib/cn";
 import { dashboardNav, isActiveNav } from "@/lib/navigation";
 
@@ -37,8 +38,8 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
       >
         <div className="mb-8 flex items-start justify-between px-6">
           <div>
-            <h1 className="font-serif text-[26px] font-semibold text-ink">Voice Reach</h1>
-            <p className="text-[13px] italic text-taupe">Relationships that open doors</p>
+            <h1 className="font-serif text-[26px] font-semibold text-ink">{BRAND_NAME}</h1>
+            <p className="text-[13px] italic text-taupe">{BRAND_TAGLINE}</p>
           </div>
           <button
             type="button"

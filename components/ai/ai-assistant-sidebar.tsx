@@ -90,7 +90,7 @@ export function AiAssistantSidebar() {
     <Modal
       open={state.open}
       onClose={closeAssistant}
-      title="VoiceReach AI"
+      title="ARI AI"
       description="Relationship copilot — pick a task and generate a draft."
       size="lg"
       footer={

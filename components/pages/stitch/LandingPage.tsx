@@ -9,6 +9,7 @@ import {
   VerifiedBadgeIcon,
   VoicemailIcon,
 } from "@/components/icons/landing-icons";
+import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 
 const PARTNERS = [
   "Northgate Realty",
@@ -86,8 +87,11 @@ export function LandingPage() {
     <div className="min-h-screen bg-cream text-ink">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-outline-variant/15 bg-ivory/90 backdrop-blur-md">
         <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-margin-mobile md:px-margin-desktop">
-          <Link href="/" className="font-serif text-[22px] font-semibold tracking-tight text-ink">
-            Voice Reach CRM
+          <Link href="/" className="flex flex-col leading-tight">
+            <span className="font-serif text-[22px] font-semibold tracking-tight text-ink">
+              {BRAND_NAME}
+            </span>
+            <span className="text-[11px] text-taupe">{BRAND_TAGLINE}</span>
           </Link>
           <div className="hidden items-center gap-lg md:flex">
             <a
@@ -160,7 +164,7 @@ export function LandingPage() {
               <div className="overflow-hidden rounded-2xl border border-outline-variant/15 bg-ivory p-2 shadow-card">
                 <Image
                   src={HERO_IMAGE}
-                  alt="Voice Reach CRM dashboard showing campaign analytics"
+                  alt="ARI dashboard showing campaign analytics"
                   width={1200}
                   height={675}
                   className="h-auto w-full rounded-xl"
@@ -417,7 +421,7 @@ export function LandingPage() {
               Ready to transform your outreach?
             </h2>
             <p className="relative z-10 mx-auto mb-10 max-w-2xl text-body-lg text-ivory/85">
-              Join high-growth teams using Voice Reach CRM to scale sales conversations
+              Join high-growth teams using ARI to scale sales conversations
               with compliance built in from day one.
             </p>
             <div className="relative z-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
@@ -443,9 +447,10 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl px-margin-mobile md:px-margin-desktop">
           <div className="mb-16 grid grid-cols-1 gap-12 md:grid-cols-4">
             <div className="md:col-span-1">
-              <span className="mb-6 block text-headline-md font-black text-ink">
-                Voice Reach
+              <span className="mb-2 block font-serif text-headline-md font-semibold text-ink">
+                {BRAND_NAME}
               </span>
+              <p className="mb-4 text-[13px] italic text-taupe">{BRAND_TAGLINE}</p>
               <p className="text-body-md text-slate-text">
                 Enterprise-grade communication automation for modern sales teams.
                 Precision. Compliance. Growth.
@@ -532,7 +537,7 @@ export function LandingPage() {
           </div>
           <div className="flex flex-col items-center justify-between gap-4 border-t border-outline-variant/20 pt-12 md:flex-row">
             <p className="text-caption text-slate-text">
-              © {new Date().getFullYear()} Voice Reach CRM. All rights reserved.
+              © {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.
             </p>
             <p className="text-caption font-medium uppercase tracking-wider text-slate-text/60">
               TCPA · FCC · DNC ready
