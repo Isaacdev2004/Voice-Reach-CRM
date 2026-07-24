@@ -5,6 +5,7 @@ import { Modal, ModalField, ModalFooterActions, modalInputClass } from "@/compon
 import { VoiceCloningStrip } from "@/components/crm/voice-cloning-strip";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import { isUuid } from "@/lib/contacts/is-uuid";
 import { useCampaignOptions } from "@/lib/hooks/use-campaign-options";
 import { useVoiceAssets, type VoiceAsset } from "@/lib/hooks/use-voice-assets";
 import {
@@ -19,6 +20,7 @@ import {
   type LocalRecording,
 } from "@/lib/voice-studio/storage";
 import { uploadVoiceRecording } from "@/lib/voice-studio/upload";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type RecState = "idle" | "recording" | "paused";
@@ -56,8 +58,18 @@ export function VoiceStudioWorkspace() {
 
   useEffect(() => {
     setScriptText(loadScriptText());
-    setCampaignId(loadCampaignAssignment() || campaigns[0]?.id || "");
     setLocalRecordings(loadLocalRecordings());
+
+    const stored = loadCampaignAssignment();
+    const validStored = isUuid(stored) ? stored : "";
+    if (stored && !validStored) saveCampaignAssignment("");
+
+    const nextId =
+      (validStored && campaigns.some((c) => c.id === validStored) ? validStored : "") ||
+      campaigns[0]?.id ||
+      "";
+    setCampaignId(nextId);
+    if (nextId) saveCampaignAssignment(nextId);
   }, [campaigns]);
 
   useEffect(() => {
@@ -216,6 +228,14 @@ export function VoiceStudioWorkspace() {
   const handleCampaignChange = async (id: string) => {
     setCampaignId(id);
     saveCampaignAssignment(id);
+    if (!id) {
+      showToast("Campaign cleared");
+      return;
+    }
+    if (!isUuid(id)) {
+      showToast("Create a real campaign in Campaigns before linking a voice.", "error");
+      return;
+    }
     if (activeAssetId && id) {
       try {
         await assignToCampaign(activeAssetId, id);
@@ -379,19 +399,35 @@ export function VoiceStudioWorkspace() {
           </LuxuryCard>
           <LuxuryCard padding="md">
             <h3 className="font-medium text-ink mb-3">Assign to campaign</h3>
-            <select
-              className="w-full rounded-xl border border-outline-variant/40 bg-cream px-4 py-2.5 text-[14px] outline-none focus:border-rose-gold/50"
-              value={campaignId}
-              disabled={campaignsLoading}
-              onChange={(e) => void handleCampaignChange(e.target.value)}
-            >
-              {campaigns.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {activeAssetId ? (
+            {campaignsLoading ? (
+              <p className="text-[13px] text-taupe">Loading campaigns…</p>
+            ) : campaigns.length === 0 ? (
+              <div className="space-y-2">
+                <p className="text-[13px] leading-relaxed text-taupe">
+                  No campaigns yet. Create one first, then link your approved voice recording here.
+                </p>
+                <Link
+                  href="/dashboard/campaigns"
+                  className="inline-flex text-[13px] font-medium text-rose-gold-deep hover:underline"
+                >
+                  Go to Campaigns →
+                </Link>
+              </div>
+            ) : (
+              <select
+                className="w-full rounded-xl border border-outline-variant/40 bg-cream px-4 py-2.5 text-[14px] outline-none focus:border-rose-gold/50"
+                value={campaignId}
+                onChange={(e) => void handleCampaignChange(e.target.value)}
+              >
+                <option value="">Select a campaign…</option>
+                {campaigns.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {activeAssetId && campaigns.length > 0 ? (
               <p className="mt-2 text-[12px] text-emerald-muted">Linked to selected recording</p>
             ) : null}
           </LuxuryCard>

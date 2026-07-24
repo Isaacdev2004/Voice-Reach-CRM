@@ -203,6 +203,7 @@ export function AvatarStudioPanel() {
               value={campaignId}
               onChange={(e) => setCampaignId(e.target.value)}
             >
+              <option value="">No campaign</option>
               {campaigns.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}

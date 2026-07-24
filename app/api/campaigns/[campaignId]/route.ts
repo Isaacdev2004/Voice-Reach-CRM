@@ -1,14 +1,27 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import { isUuid } from "@/lib/contacts/is-uuid";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
 
 type RouteContext = { params: Promise<{ campaignId: string }> };
 
+function requireCampaignUuid(campaignId: string) {
+  if (!isUuid(campaignId)) {
+    return apiError("Invalid campaign id. Create a campaign in Campaigns, then link your voice.", {
+      status: 400,
+      code: "invalid_campaign_id",
+    });
+  }
+  return null;
+}
+
 export const GET = withApiHandler<RouteContext>(async (_request, context) => {
   const ownerId = await requireUserId();
   const { campaignId } = await context.params;
+  const invalid = requireCampaignUuid(campaignId);
+  if (invalid) return invalid;
 
   const [campaignRes, stepsRes, recipientsRes, runsRes, engagementRes] = await Promise.all([
     supabaseAdmin
@@ -118,6 +131,8 @@ const PatchSchema = z.object({
 export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   const ownerId = await requireUserId();
   const { campaignId } = await context.params;
+  const invalid = requireCampaignUuid(campaignId);
+  if (invalid) return invalid;
   const body = PatchSchema.parse(await request.json());
 
   if (body.voiceAssetId) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { isUuid } from "@/lib/contacts/is-uuid";
 import { useCallback, useEffect, useState } from "react";
 
 export type VoiceAsset = {
@@ -61,6 +62,14 @@ export function useVoiceAssets() {
   };
 
   const assignToCampaign = async (assetId: string, campaignId: string) => {
+    if (!isUuid(campaignId)) {
+      throw new Error(
+        "Pick a real campaign from Campaigns first — demo placeholders can’t be linked.",
+      );
+    }
+    if (!isUuid(assetId)) {
+      throw new Error("Save/upload the recording to the cloud before linking it to a campaign.");
+    }
     const res = await fetch(`/api/campaigns/${campaignId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
