@@ -18,10 +18,14 @@ export const CreateContactSchema = z.object({
 });
 
 export const PatchContactSchema = z.object({
-  firstName: z.string().min(1).optional(),
+  firstName: z.string().min(1, "First name is required").optional(),
   lastName: z.string().optional(),
-  phone: z.string().min(7).optional(),
-  email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().min(7, "Phone must have at least 7 digits").optional(),
+  email: z
+    .string()
+    .email("Enter a valid email address")
+    .optional()
+    .or(z.literal("")),
   type: z.string().optional(),
   source: z.string().optional(),
   dnc: z.boolean().optional(),
