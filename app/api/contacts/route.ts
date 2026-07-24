@@ -1,4 +1,4 @@
-import { apiOk, withApiHandler } from "@/lib/api-response";
+import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { evaluateTriggers } from "@/lib/automations/engine";
@@ -57,6 +57,27 @@ export const GET = withApiHandler(async (request) => {
 export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const body = CreateContactSchema.parse(await request.json());
+
+  if (body.consent === "Yes") {
+    if (!body.consentDate?.trim()) {
+      return apiError("Consent date is required when consent is Yes.", {
+        status: 400,
+        code: "validation_error",
+      });
+    }
+    if (!body.consentSource?.trim()) {
+      return apiError("Consent source is required when consent is Yes.", {
+        status: 400,
+        code: "validation_error",
+      });
+    }
+    if (!body.proof?.trim()) {
+      return apiError("Proof reference is required when consent is Yes.", {
+        status: 400,
+        code: "validation_error",
+      });
+    }
+  }
 
   const { data: contact, error: contactError } = await supabaseAdmin
     .from("contacts")
