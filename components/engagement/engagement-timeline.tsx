@@ -71,6 +71,13 @@ const LABELS: Record<EngagementEvent["event_type"], string> = {
   task_completed: "Task completed",
 };
 
+function eventTitle(event: EngagementEvent): string {
+  if (event.event_type === "delivered" && event.metadata?.provider === "mock") {
+    return "Simulated delivery";
+  }
+  return LABELS[event.event_type];
+}
+
 type Props = {
   contactId?: string;
   campaignId?: string;
@@ -157,7 +164,7 @@ export function EngagementTimeline({
             </div>
             <div className="min-w-0 flex-1 pt-1">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h4 className="text-[14px] font-medium text-ink">{LABELS[event.event_type]}</h4>
+                <h4 className="text-[14px] font-medium text-ink">{eventTitle(event)}</h4>
                 <time className="text-[12px] text-taupe">
                   {new Date(event.occurred_at).toLocaleString()}
                 </time>
@@ -166,7 +173,13 @@ export function EngagementTimeline({
                 {event.channel}
                 {event.score ? ` · +${event.score}` : ""}
               </p>
-              {typeof event.metadata?.error === "string" && event.metadata.error ? (
+              {event.metadata?.provider === "mock" &&
+              (event.event_type === "delivered" || event.event_type === "failed") ? (
+                <p className="mt-1 rounded-lg bg-amber-50 px-2 py-1.5 text-[12px] leading-snug text-amber-950">
+                  Simulated only — nothing was sent to a real phone or inbox. Use{" "}
+                  <strong>Live send</strong> after Twilio / Slybroadcast / Resend are configured.
+                </p>
+              ) : typeof event.metadata?.error === "string" && event.metadata.error ? (
                 <p className="mt-1 text-[12px] leading-snug text-error/90">
                   {event.metadata.error}
                   {typeof event.metadata.provider === "string"
@@ -175,7 +188,9 @@ export function EngagementTimeline({
                 </p>
               ) : typeof event.metadata?.provider === "string" &&
                 event.event_type === "delivered" ? (
-                <p className="mt-1 text-[12px] text-taupe">via {event.metadata.provider}</p>
+                <p className="mt-1 text-[12px] text-taupe">
+                  Sent via {event.metadata.provider} (live)
+                </p>
               ) : null}
             </div>
           </li>

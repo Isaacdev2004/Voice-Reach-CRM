@@ -14,6 +14,12 @@ type ContactRow = {
   email: string | null;
 };
 
+type ProviderStatus = {
+  configured: { voicemail: boolean; sms: boolean; email: boolean };
+  canSendLive: boolean;
+  missing: { voicemail: string | null; sms: string | null; email: string | null };
+};
+
 type TestCampaignRunModalProps = {
   open: boolean;
   onClose: () => void;
@@ -30,23 +36,30 @@ export function TestCampaignRunModal({
   onDone,
 }: TestCampaignRunModalProps) {
   const [contacts, setContacts] = useState<ContactRow[]>([]);
+  const [providers, setProviders] = useState<ProviderStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
+  const [mode, setMode] = useState<"mock" | "live">("mock");
 
   useEffect(() => {
     if (!open) return;
     setSelectedIds(new Set());
     setSearch("");
     setError(null);
+    setMode("mock");
     (async () => {
       setLoading(true);
-      const envelope = await safeFetch<{ contacts: ContactRow[] }>("/api/contacts");
+      const [contactsEnv, providersEnv] = await Promise.all([
+        safeFetch<{ contacts: ContactRow[] }>("/api/contacts"),
+        safeFetch<ProviderStatus>("/api/providers/status"),
+      ]);
       setLoading(false);
-      if (envelope.success) setContacts(envelope.data.contacts);
-      else setError(envelope.error);
+      if (contactsEnv.success) setContacts(contactsEnv.data.contacts);
+      else setError(contactsEnv.error);
+      if (providersEnv.success) setProviders(providersEnv.data);
     })();
   }, [open]);
 
@@ -74,6 +87,12 @@ export function TestCampaignRunModal({
 
   const handleRun = async () => {
     if (selectedIds.size === 0) return;
+    if (mode === "live" && providers && !providers.canSendLive) {
+      setError(
+        "Live providers are not configured in Vercel yet. Use Simulation, or add Twilio / Slybroadcast / Resend keys first.",
+      );
+      return;
+    }
     setRunning(true);
     setError(null);
     const envelope = await safeFetch<{ message: string }>(
@@ -81,7 +100,7 @@ export function TestCampaignRunModal({
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contactIds: [...selectedIds] }),
+        body: JSON.stringify({ contactIds: [...selectedIds], mode }),
       },
     );
     setRunning(false);
@@ -97,14 +116,20 @@ export function TestCampaignRunModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Run test sequence"
-      description={`Dry-run “${campaignName}” with mock delivery (voicemail, SMS, email steps). Missing consent is auto-documented for this test only.`}
+      title="Run campaign sequence"
+      description={`Run “${campaignName}” for selected contacts. Simulation checks the pipeline; Live send uses real SMS / voicemail / email providers.`}
       icon="science"
       size="lg"
       footer={
         <ModalFooterActions
           onCancel={onClose}
-          primaryLabel={running ? "Running test…" : "Run test now"}
+          primaryLabel={
+            running
+              ? "Running…"
+              : mode === "live"
+                ? "Send live now"
+                : "Run simulation"
+          }
           onPrimary={() => void handleRun()}
           primaryDisabled={running || loading || selectedIds.size === 0}
           primaryLoading={running}
@@ -112,14 +137,75 @@ export function TestCampaignRunModal({
       }
     >
       <div className="space-y-4">
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-950">
-          <p className="font-medium">Before you run</p>
-          <ol className="mt-1 list-decimal space-y-1 pl-4">
-            <li>Approve a voice recording and tap Use for campaign on Voice Scripts</li>
-            <li>Pick 1–2 contacts below (Ariel is fine)</li>
-            <li>We&apos;ll mock-send the full sequence so you can verify the pipeline</li>
-          </ol>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setMode("mock")}
+            className={cn(
+              "rounded-xl border px-4 py-3 text-left text-[13px]",
+              mode === "mock"
+                ? "border-rose-gold/40 bg-rose-gold/10"
+                : "border-outline-variant/20",
+            )}
+          >
+            <p className="font-medium text-ink">Simulation</p>
+            <p className="mt-1 text-taupe">
+              Marks steps complete in ARI — does <strong>not</strong> text or call the phone.
+            </p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("live")}
+            className={cn(
+              "rounded-xl border px-4 py-3 text-left text-[13px]",
+              mode === "live"
+                ? "border-rose-gold/40 bg-rose-gold/10"
+                : "border-outline-variant/20",
+            )}
+          >
+            <p className="font-medium text-ink">Live send</p>
+            <p className="mt-1 text-taupe">
+              Actually delivers via Twilio / Slybroadcast / Resend when configured.
+            </p>
+          </button>
         </div>
+
+        {providers ? (
+          <div className="rounded-xl border border-outline-variant/15 bg-cream/60 px-4 py-3 text-[12px] text-slate-text">
+            <p className="font-medium text-ink">Provider status</p>
+            <ul className="mt-2 space-y-1">
+              <li>
+                SMS (Twilio):{" "}
+                {providers.configured.sms ? (
+                  <span className="text-emerald-muted">ready</span>
+                ) : (
+                  <span className="text-error">not configured</span>
+                )}
+              </li>
+              <li>
+                Ringless VM (Slybroadcast):{" "}
+                {providers.configured.voicemail ? (
+                  <span className="text-emerald-muted">ready</span>
+                ) : (
+                  <span className="text-error">not configured</span>
+                )}
+              </li>
+              <li>
+                Email (Resend):{" "}
+                {providers.configured.email ? (
+                  <span className="text-emerald-muted">ready</span>
+                ) : (
+                  <span className="text-error">not configured</span>
+                )}
+              </li>
+            </ul>
+            {mode === "live" && !providers.canSendLive ? (
+              <p className="mt-2 text-error">
+                Add at least one provider’s env vars in Vercel before live send will work.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         {loading ? (
           <p className="text-[13px] text-taupe">Loading contacts…</p>
@@ -132,7 +218,7 @@ export function TestCampaignRunModal({
               placeholder="Search contacts"
               className="w-full rounded-xl border border-outline-variant/20 bg-cream/60 px-4 py-2.5 text-[14px] outline-none focus:border-rose-gold/50"
             />
-            <ul className="max-h-64 space-y-1 overflow-y-auto">
+            <ul className="max-h-56 space-y-1 overflow-y-auto">
               {filtered.map((c) => {
                 const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "Contact";
                 const checked = selectedIds.has(c.id);
@@ -179,7 +265,7 @@ export function TestCampaignRunModal({
         {selectedIds.size > 0 ? (
           <p className="flex items-center gap-2 text-[12px] text-taupe">
             <Icon name="check_circle" className="text-[16px] text-emerald-muted" />
-            {selectedIds.size} contact{selectedIds.size === 1 ? "" : "s"} selected for test
+            {selectedIds.size} contact{selectedIds.size === 1 ? "" : "s"} selected
           </p>
         ) : null}
       </div>

@@ -257,11 +257,20 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     }
 
     if (sendResult.ok) {
-      await markRun(run.id, "sent", { providerMessageId: sendResult.providerMessageId });
+      await markRun(run.id, "sent", {
+        providerMessageId: sendResult.providerMessageId,
+        status: sendResult.status,
+        simulated: sendResult.status === "mock_sent",
+      });
       await supabaseAdmin
         .from("campaign_recipients")
         .update({
-          delivery_status: sendResult.status === "queued" ? "queued" : "sent",
+          delivery_status:
+            sendResult.status === "mock_sent"
+              ? "mock_sent"
+              : sendResult.status === "queued"
+                ? "queued"
+                : "sent",
           provider_message_id: sendResult.providerMessageId ?? null,
         })
         .eq("id", recipient.id);

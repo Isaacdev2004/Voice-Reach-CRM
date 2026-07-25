@@ -3,6 +3,7 @@ import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { runDueStepRuns } from "@/lib/campaigns/engine";
 import { enrollContacts, scheduleStepRunsForRecipients } from "@/lib/campaigns/enroll";
+import { isLiveProvidersConfigured } from "@/lib/providers/registry";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
 
@@ -10,16 +11,23 @@ type RouteContext = { params: Promise<{ campaignId: string }> };
 
 const BodySchema = z.object({
   contactIds: z.array(z.string().uuid()).min(1).max(25),
+  /** mock = pipeline check only; live = real Twilio / Slybroadcast / Resend when configured */
+  mode: z.enum(["mock", "live"]).optional().default("mock"),
 });
 
-/**
- * End-to-end dry run: document test consent, enroll contacts, schedule steps
- * on an accelerated timeline, force mock provider, and process due runs.
- */
 export const POST = withApiHandler<RouteContext>(async (request, context) => {
   const ownerId = await requireUserId();
   const { campaignId } = await context.params;
   const body = BodySchema.parse(await request.json());
+  const live = body.mode === "live";
+  const providers = isLiveProvidersConfigured();
+
+  if (live && !providers.voicemail && !providers.sms && !providers.email) {
+    return apiError(
+      "Live sending is not configured yet. Add Twilio (SMS), Slybroadcast (ringless voicemail), and/or Resend (email) in Vercel env, then redeploy. Until then use Simulation mode.",
+      { status: 400, code: "providers_not_configured" },
+    );
+  }
 
   const { data: campaign, error: campaignError } = await supabaseAdmin
     .from("campaigns")
@@ -55,11 +63,14 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
     });
   }
 
-  // Force mock delivery so the full sequence can be verified without live SMS/email/VM keys.
+  const provider = live
+    ? process.env.VOICE_PROVIDER?.trim() || "slybroadcast"
+    : "mock";
+
   await supabaseAdmin
     .from("campaigns")
     .update({
-      provider: "mock",
+      provider,
       status: "queued",
       updated_at: new Date().toISOString(),
     })
@@ -78,7 +89,6 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
     );
   }
 
-  // Prefer newly enrolled recipients; if already enrolled, schedule for existing ones.
   let recipientIds = enrollment.recipientIds;
   if (!recipientIds.length) {
     const { data: existing } = await supabaseAdmin
@@ -98,7 +108,6 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
     });
   }
 
-  // Clear prior scheduled runs for these recipients so the test is clean.
   await supabaseAdmin
     .from("campaign_step_runs")
     .delete()
@@ -111,7 +120,6 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
     accelerated: true,
   });
 
-  // Process a few ticks in case step count exceeds the runner limit.
   let processed = 0;
   for (let i = 0; i < 5; i++) {
     const tick = await runDueStepRuns({ ownerId, limit: 50 });
@@ -121,16 +129,29 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
 
   await writeAuditLog({
     ownerId,
-    action: "CAMPAIGN_TEST_RUN",
+    action: live ? "CAMPAIGN_LIVE_TEST_RUN" : "CAMPAIGN_TEST_RUN",
     entityType: "campaign",
     entityId: campaignId,
-    metadata: { enrollment, schedule, processed, contactIds: body.contactIds },
+    metadata: {
+      enrollment,
+      schedule,
+      processed,
+      contactIds: body.contactIds,
+      mode: body.mode,
+      providers,
+    },
   }).catch(() => undefined);
+
+  const modeLabel = live
+    ? "LIVE delivery (check the contact’s phone/inbox)"
+    : "simulation only — nothing was sent to a real phone";
 
   return apiOk({
     enrollment,
     schedule,
     processed,
-    message: `Test run finished: ${enrollment.enrolled || recipientIds.length} contact(s), ${schedule.scheduled} step(s) scheduled, ${processed} processed (mock delivery).`,
+    mode: body.mode,
+    providers,
+    message: `Run finished (${modeLabel}): ${processed} step(s) processed for ${recipientIds.length} contact(s).`,
   });
 });

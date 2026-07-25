@@ -308,6 +308,11 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             <span className="rounded-full bg-cream px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-taupe">
               {campaign.provider}
             </span>
+            {campaign.provider === "mock" ? (
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
+                Simulation — not live phone/SMS
+              </span>
+            ) : null}
           </div>
           <h1 className="mt-2 font-serif text-[36px] font-semibold text-ink">{campaign.name}</h1>
           <p className="mt-1 text-[13px] text-taupe">
@@ -322,7 +327,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             className="inline-flex items-center gap-2 rounded-full border border-rose-gold/40 bg-rose-gold/10 px-5 py-2 text-[13px] font-medium text-rose-gold-deep shadow-card transition-colors hover:bg-rose-gold/20"
           >
             <Icon name="science" className="text-[18px]" />
-            Run test sequence
+            Run sequence
           </button>
           <button
             type="button"
