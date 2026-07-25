@@ -1,14 +1,26 @@
 import type { ProviderAdapter, SendRequest, SendResult, WebhookEvent } from "./types";
 
 /**
- * Slybroadcast ringless voicemail adapter (template).
+ * Slybroadcast ringless voicemail adapter.
  *
- * Real integration steps:
- *   1. set SLYBROADCAST_USERNAME and SLYBROADCAST_PASSWORD in env
- *   2. set SLYBROADCAST_CALLER_ID for outbound from-number
- *   3. supply a publicly accessible signed audio URL in request.audioUrl
- *   4. configure webhook to POST to /api/webhooks/voice with provider=slybroadcast
+ * Env: SLYBROADCAST_USERNAME, SLYBROADCAST_PASSWORD, SLYBROADCAST_CALLER_ID
+ * Audio: publicly reachable signed URL (WAV / Mp3 / M4a), > 5 seconds.
+ * Docs: https://www.slybroadcast.com/documentation.php
  */
+function audioTypeFromUrl(url: string): "wav" | "mp3" | "m4a" {
+  const path = url.split("?")[0]?.toLowerCase() ?? "";
+  if (path.endsWith(".wav")) return "wav";
+  if (path.endsWith(".m4a") || path.endsWith(".mp4")) return "m4a";
+  return "mp3";
+}
+
+function digitsOnlyPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  // Slybroadcast US examples use 10-digit local form; keep last 10 when +1…
+  if (digits.length === 11 && digits.startsWith("1")) return digits.slice(1);
+  return digits;
+}
+
 export const slybroadcastProvider: ProviderAdapter = {
   id: "slybroadcast",
   label: "Slybroadcast",
@@ -34,17 +46,29 @@ export const slybroadcastProvider: ProviderAdapter = {
       return { ok: false, status: "failed", error: "Missing audioUrl for voicemail" };
     }
 
+    const to = digitsOnlyPhone(request.to);
+    const from = digitsOnlyPhone(callerId);
+    if (to.length < 10) {
+      return { ok: false, status: "failed", error: "Invalid destination phone for Slybroadcast" };
+    }
+
     const body = new URLSearchParams({
       c_uid: username,
       c_password: password,
-      c_phone: request.to,
-      c_callerID: callerId,
-      c_audio: request.audioUrl,
+      c_phone: to,
+      c_callerID: from,
       c_url: request.audioUrl,
+      // Required when using c_url: file type, not the URL itself
+      c_audio: audioTypeFromUrl(request.audioUrl),
+      // Required: "now" or Eastern Time YYYY-MM-DD HH:MM:SS
+      c_date: "now",
+      c_title: `ARI ${request.campaignId.slice(0, 8)}`,
       mobile_only: "1",
-      c_record_audio: "0",
       c_extref: `${request.campaignId}:${request.recipientId}`,
     });
+
+    const dispoUrl = process.env.SLYBROADCAST_DISPO_URL?.trim();
+    if (dispoUrl) body.set("c_dispo_url", dispoUrl);
 
     try {
       const res = await fetch("https://www.mobile-sphere.com/gateway/vmb.php", {
@@ -53,14 +77,16 @@ export const slybroadcastProvider: ProviderAdapter = {
         body: body.toString(),
       });
       const text = await res.text();
-      const ok = res.ok && /OK/i.test(text);
-      const idMatch = text.match(/sessionid=([\w-]+)/i);
+      const ok = res.ok && /OK|session.?id/i.test(text) && !/ERROR/i.test(text);
+      const idMatch = text.match(/session[_ ]?id[=:\s]+([\w-]+)/i);
       return {
         ok,
         providerMessageId: idMatch?.[1],
         status: ok ? "queued" : "failed",
         rawResponse: { body: text },
-        error: ok ? undefined : text,
+        error: ok
+          ? undefined
+          : text.slice(0, 300) || "Slybroadcast rejected the campaign",
       };
     } catch (err) {
       return {
@@ -73,7 +99,9 @@ export const slybroadcastProvider: ProviderAdapter = {
 
   parseWebhook(raw): WebhookEvent | null {
     const extRef = String(raw.extref ?? raw.c_extref ?? "");
-    const [campaignId, recipientId] = extRef.includes(":") ? extRef.split(":") : [undefined, undefined];
+    const [campaignId, recipientId] = extRef.includes(":")
+      ? extRef.split(":")
+      : [undefined, undefined];
     const status = String(raw.status ?? "").toLowerCase();
     const eventType: WebhookEvent["eventType"] =
       status === "delivered"

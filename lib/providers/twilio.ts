@@ -40,12 +40,19 @@ export const twilioProvider: ProviderAdapter = {
           body: body.toString(),
         });
         const raw = await res.json().catch(() => ({}));
+        const twilioError =
+          typeof raw?.message === "string"
+            ? raw.message.includes("not a Twilio phone number") ||
+              raw.message.includes("country mismatch")
+              ? `${raw.message} Fix: in Vercel set TWILIO_FROM_NUMBER to a number you own in Twilio Console that matches the recipient’s country (US → US Twilio number).`
+              : raw.message
+            : undefined;
         return {
           ok: res.ok,
           providerMessageId: raw?.sid,
           status: res.ok ? "sent" : "failed",
           rawResponse: raw,
-          error: res.ok ? undefined : raw?.message,
+          error: res.ok ? undefined : twilioError,
         };
       } catch (err) {
         return {
