@@ -56,14 +56,14 @@ export function getAdapter(id: string | undefined): ProviderAdapter {
 
 /**
  * Picks a live provider when credentials exist; otherwise falls back to mock.
- * - voicemail: campaign provider → VOICE_PROVIDER → slybroadcast
- * - sms: twilio
- * - email: resend
+ * Explicit preferred="mock" always wins (used by Run test sequence).
  */
 export function pickAdapterForChannel(
   channel: ProviderChannel,
   preferred?: string,
 ): ProviderAdapter {
+  if (preferred === "mock") return mockProvider;
+
   if (channel === "email") {
     if (hasResendEnv()) return resendProvider;
     return mockProvider;
@@ -77,6 +77,7 @@ export function pickAdapterForChannel(
 
   if (channel === "voicemail") {
     const id = preferred ?? process.env.VOICE_PROVIDER ?? "slybroadcast";
+    if (id === "mock") return mockProvider;
     if (id === "slybroadcast" && hasSlybroadcastEnv()) return slybroadcastProvider;
     if (id === "twilio" && hasTwilioEnv()) return twilioProvider;
     if (hasSlybroadcastEnv()) return slybroadcastProvider;

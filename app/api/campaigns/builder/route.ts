@@ -55,7 +55,7 @@ async function upsertCampaign(
       .update({
         name: blueprint.name,
         script_id: scriptId,
-        provider: blueprint.provider ?? process.env.VOICE_PROVIDER ?? "slybroadcast",
+        provider: blueprint.provider ?? process.env.VOICE_PROVIDER ?? "mock",
         status,
         updated_at: new Date().toISOString(),
       })
@@ -74,7 +74,7 @@ async function upsertCampaign(
       owner_id: ownerId,
       name: blueprint.name,
       script_id: scriptId,
-      provider: blueprint.provider ?? process.env.VOICE_PROVIDER ?? "slybroadcast",
+      provider: blueprint.provider ?? process.env.VOICE_PROVIDER ?? "mock",
       status,
     })
     .select("*")

@@ -166,6 +166,17 @@ export function EngagementTimeline({
                 {event.channel}
                 {event.score ? ` · +${event.score}` : ""}
               </p>
+              {typeof event.metadata?.error === "string" && event.metadata.error ? (
+                <p className="mt-1 text-[12px] leading-snug text-error/90">
+                  {event.metadata.error}
+                  {typeof event.metadata.provider === "string"
+                    ? ` · provider: ${event.metadata.provider}`
+                    : ""}
+                </p>
+              ) : typeof event.metadata?.provider === "string" &&
+                event.event_type === "delivered" ? (
+                <p className="mt-1 text-[12px] text-taupe">via {event.metadata.provider}</p>
+              ) : null}
             </div>
           </li>
         ))}

@@ -44,10 +44,6 @@ export async function sendToContact(params: {
     return { ok: false, status: "failed", error: addressError, skipped: true, skipReason: addressError };
   }
 
-  const preferred =
-    params.providerId ??
-    (params.channel === "voicemail" ? process.env.VOICE_PROVIDER : undefined);
-
   const request: SendRequest = {
     channel: params.channel,
     to: address,
@@ -65,8 +61,13 @@ export async function sendToContact(params: {
     stepId: params.stepId,
   };
 
-  const adapter = pickAdapterForChannel(params.channel, preferred);
-  const result = await dispatch(request, adapter.id);
+  // Explicit mock always wins. Otherwise pick a configured live adapter (with mock fallback).
+  const providerId =
+    params.providerId === "mock"
+      ? "mock"
+      : pickAdapterForChannel(params.channel, params.providerId).id;
+
+  const result = await dispatch(request, providerId);
 
   if (result.ok && params.recordEngagement !== false) {
     await recordEngagementEvent({
@@ -77,7 +78,7 @@ export async function sendToContact(params: {
       eventType: "delivered",
       channel: params.channel,
       metadata: {
-        provider: adapter.id,
+        provider: providerId,
         providerMessageId: result.providerMessageId,
       },
     }).catch(() => undefined);
@@ -89,7 +90,7 @@ export async function sendToContact(params: {
       stepId: params.stepId,
       eventType: "failed",
       channel: params.channel,
-      metadata: { error: result.error, provider: adapter.id },
+      metadata: { error: result.error, provider: providerId },
     }).catch(() => undefined);
   }
 

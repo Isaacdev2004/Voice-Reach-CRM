@@ -126,7 +126,8 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     const step = run.campaign_steps;
     const recipient = run.campaign_recipients;
     const contact = recipient?.contacts;
-    const campaign = recipient?.campaigns;
+    const campaignRaw = recipient?.campaigns;
+    const campaign = Array.isArray(campaignRaw) ? campaignRaw[0] : campaignRaw;
     if (!step || !recipient || !contact) {
       await markRun(run.id, "skipped", { reason: "missing entity" });
       executed.push({ runId: run.id, status: "skipped" });
@@ -203,13 +204,19 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     const channel: "voicemail" | "sms" | "email" =
       step.type === "voicemail" ? "voicemail" : step.type === "sms" ? "sms" : "email";
 
-    // Respect campaign mock mode for end-to-end tests; otherwise let adapters fall back.
+    // Campaign.provider is the voicemail adapter preference only.
+    // SMS/email always use channel-aware picking (or mock when campaign is in mock/test mode).
     const preferredProvider =
-      campaign?.provider === "mock" ? "mock" : campaign?.provider || undefined;
+      campaign?.provider === "mock"
+        ? "mock"
+        : channel === "voicemail"
+          ? campaign?.provider || undefined
+          : undefined;
 
     let audioUrl: string | undefined;
     if (channel === "voicemail") {
-      const voiceAsset = campaign?.voice_assets;
+      const voiceRaw = campaign?.voice_assets;
+      const voiceAsset = Array.isArray(voiceRaw) ? voiceRaw[0] : voiceRaw;
       if (!voiceAssetReady(voiceAsset)) {
         await markRun(run.id, "failed", {
           error: "Campaign needs an approved voice recording before voicemail steps can send.",
