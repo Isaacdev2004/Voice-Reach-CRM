@@ -2,7 +2,7 @@ import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { persistSteps, type CampaignBlueprintStep } from "@/lib/campaigns/engine";
-import { instantiateTemplate } from "@/lib/crm/campaign-templates";
+import { getTemplate, instantiateTemplate } from "@/lib/crm/campaign-templates";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
 
@@ -11,7 +11,8 @@ const BodySchema = z.object({
   createAutomation: z.boolean().optional().default(true),
 });
 
-function delayFromDayLabel(dayLabel?: string): number {
+/** Supports "Day 1", "Day 30", "Day 180" etc. */
+export function delayFromDayLabel(dayLabel?: string): number {
   const match = dayLabel?.match(/day\s*(\d+)/i);
   if (!match) return 0;
   const day = Number(match[1]);
@@ -21,8 +22,9 @@ function delayFromDayLabel(dayLabel?: string): number {
 export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const body = BodySchema.parse(await request.json().catch(() => ({})));
+  const template = getTemplate(body.templateKey);
   const campaign = instantiateTemplate(body.templateKey);
-  if (!campaign) return apiError("Unknown campaign template.", { status: 400 });
+  if (!template || !campaign) return apiError("Unknown campaign template.", { status: 400 });
 
   const { data: existing } = await supabaseAdmin
     .from("campaigns")
@@ -78,15 +80,15 @@ export const POST = withApiHandler(async (request) => {
   await persistSteps(ownerId, record.id, steps);
 
   let automationRuleId: string | null = null;
-  if (body.createAutomation) {
+  if (body.createAutomation && template.automation) {
     const { data: rule } = await supabaseAdmin
       .from("automation_rules")
       .insert({
         owner_id: ownerId,
-        name: "Start cold lead re-engagement",
-        description: "When a lead is inactive, enroll them in Cold Lead Re-engagement.",
-        trigger_type: "lead_inactive",
-        trigger_config: { daysInactive: 14 },
+        name: template.automation.name,
+        description: template.automation.description,
+        trigger_type: template.automation.triggerType,
+        trigger_config: template.automation.triggerConfig ?? {},
         actions: [{ type: "start_campaign", config: { campaignId: record.id } }],
         enabled: true,
         updated_at: new Date().toISOString(),
@@ -111,8 +113,8 @@ export const POST = withApiHandler(async (request) => {
       alreadyExisted: false,
       voiceAttached: Boolean(latestVoice?.id),
       message: latestVoice?.id
-        ? "Cold Lead Re-engagement is ready with your latest approved voice. Open it, add consented contacts, then Run sequence → Live send."
-        : "Cold Lead Re-engagement is ready. Open it, add consented contacts, approve a voice recording, then Run sequence → Live send.",
+        ? `"${campaign.name}" is ready with your latest approved voice. Add consented contacts, then Run sequence → Live send.`
+        : `"${campaign.name}" is ready. Add consented contacts, approve a voice if needed, then Run sequence → Live send.`,
     },
     { status: 201 },
   );

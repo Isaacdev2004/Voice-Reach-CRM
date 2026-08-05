@@ -1,0 +1,607 @@
+
+<h2 class="sr-only">5 launch-ready realtor automation campaigns with copy-ready email, SMS, and logic code</h2>
+
+<style>
+  .camp-wrap { padding: 1rem 0; font-family: var(--font-sans); }
+  .camp-header { margin-bottom: 1.5rem; }
+  .camp-header h1 { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 4px; }
+  .camp-header p { font-size: 14px; color: var(--color-text-secondary); margin: 0; }
+  .campaign-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); margin-bottom: 1rem; overflow: hidden; }
+  .card-trigger { width: 100%; display: flex; align-items: center; gap: 12px; padding: 1rem 1.25rem; background: none; border: none; cursor: pointer; text-align: left; }
+  .card-trigger:hover { background: var(--color-background-secondary); }
+  .camp-icon { width: 36px; height: 36px; border-radius: var(--border-radius-md); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .camp-meta { flex: 1; }
+  .camp-meta h3 { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 2px; }
+  .camp-meta p { font-size: 13px; color: var(--color-text-secondary); margin: 0; }
+  .camp-badge { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: var(--border-radius-md); white-space: nowrap; }
+  .chevron { font-size: 16px; color: var(--color-text-secondary); transition: transform 0.2s; flex-shrink: 0; }
+  .chevron.open { transform: rotate(180deg); }
+  .card-body { display: none; border-top: 0.5px solid var(--color-border-tertiary); }
+  .card-body.open { display: block; }
+  .flow-strip { display: flex; align-items: center; gap: 6px; padding: 10px 1.25rem; background: var(--color-background-secondary); overflow-x: auto; flex-wrap: wrap; }
+  .flow-node { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+  .flow-arrow { font-size: 12px; color: var(--color-text-secondary); }
+  .tab-bar { display: flex; border-bottom: 0.5px solid var(--color-border-tertiary); padding: 0 1.25rem; gap: 4px; }
+  .tab-btn { font-size: 13px; padding: 8px 12px; background: none; border: none; cursor: pointer; color: var(--color-text-secondary); border-bottom: 2px solid transparent; margin-bottom: -0.5px; font-family: var(--font-sans); }
+  .tab-btn.active { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); font-weight: 500; }
+  .tab-content { display: none; padding: 1rem 1.25rem; }
+  .tab-content.active { display: block; }
+  .code-block { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--color-text-primary); line-height: 1.6; white-space: pre-wrap; word-break: break-word; border: 0.5px solid var(--color-border-tertiary); position: relative; }
+  .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 4px 8px; font-size: 11px; cursor: pointer; font-family: var(--font-sans); color: var(--color-text-secondary); }
+  .copy-btn:hover { background: var(--color-background-secondary); }
+  .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .field-label { font-size: 12px; color: var(--color-text-secondary); min-width: 80px; }
+  .field-val { font-size: 12px; color: var(--color-text-primary); background: var(--color-background-secondary); padding: 3px 8px; border-radius: var(--border-radius-md); }
+  .section-label { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 8px; }
+  .tip-box { border-left: 3px solid; border-radius: 0; padding: 8px 12px; font-size: 13px; margin-top: 12px; line-height: 1.5; }
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px; text-align: center; }
+  .stat-num { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+  .stat-lbl { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+</style>
+
+<div class="camp-wrap">
+  <div class="camp-header">
+    <h1>Realtor automation campaigns</h1>
+    <p>5 launch-ready campaigns — expand each for email copy, SMS scripts, and logic code</p>
+  </div>
+
+  <div id="campaigns"></div>
+</div>
+
+<script>
+const campaigns = [
+  {
+    id: 'new-lead',
+    icon: 'ti-user-plus',
+    iconBg: '#E6F1FB', iconColor: '#185FA5',
+    title: 'New lead instant response',
+    desc: 'Fires within 60 seconds of form fill or Zillow/Realtor.com inquiry',
+    badge: 'Highest ROI', badgeBg: '#EAF3DE', badgeColor: '#3B6D11',
+    stats: [{ n: '~5min', l: 'Avg. response' }, { n: '21×', l: 'More likely to qualify' }, { n: '78%', l: 'Expect instant reply' }],
+    flow: [
+      { label: 'Lead submits form', color: '#E6F1FB', tc: '#185FA5' },
+      { label: 'SMS fires < 60s', color: '#EAF3DE', tc: '#3B6D11' },
+      { label: 'Email fires < 2min', color: '#EAF3DE', tc: '#3B6D11' },
+      { label: 'CRM task created', color: '#EEEDFE', tc: '#534AB7' },
+      { label: 'Day 1 follow-up', color: '#EEEDFE', tc: '#534AB7' },
+      { label: 'Day 3 nurture', color: '#F1EFE8', tc: '#5F5E5A' },
+    ],
+    email: {
+      subject: 'Great news — I found properties matching your search, {{first_name}}',
+      body: `Hi {{first_name}},
+
+Thanks for reaching out! I'm {{agent_name}}, your local real estate specialist in {{market_area}}.
+
+I pulled up the listing you were looking at — {{property_address}} — and I have some great news: there are several similar homes available right now that might be an even better fit for your needs.
+
+Here's what I'd love to do:
+→ Send you a curated shortlist of matches (takes me about 10 minutes)
+→ Answer any questions about the neighborhood, pricing, or process
+→ Schedule a no-pressure walkthrough at your convenience
+
+What's the best time to connect? Even a quick 10-minute call can save you weeks of searching.
+
+Looking forward to helping you find the right home,
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}
+{{license_number}}`
+    },
+    sms: `Hi {{first_name}}, this is {{agent_name}} from {{brokerage_name}}. I just saw your inquiry about {{property_address}} — great choice! I have a few similar listings to share. Can I send them over now, or is there a better time to chat? Reply STOP to opt out.`,
+    logic: `// Trigger: Webhook from website form, Zillow, or Realtor.com
+// Platform: Make.com / Zapier / n8n
+
+const newLeadFlow = {
+  trigger: "webhook_form_submit OR zillow_lead OR realtor_lead",
+  
+  steps: [
+    {
+      step: 1,
+      delay: "0 seconds",
+      action: "send_sms",
+      to: "{{lead_phone}}",
+      message: SMS_TEMPLATE,
+      condition: "phone_number_exists == true"
+    },
+    {
+      step: 2,
+      delay: "120 seconds",
+      action: "send_email",
+      to: "{{lead_email}}",
+      subject: EMAIL_SUBJECT,
+      body: EMAIL_BODY,
+    },
+    {
+      step: 3,
+      delay: "0 seconds",
+      action: "create_crm_contact",
+      crm: "Follow Up Boss OR KVCore OR HubSpot",
+      fields: {
+        name: "{{first_name}} {{last_name}}",
+        email: "{{lead_email}}",
+        phone: "{{lead_phone}}",
+        source: "{{lead_source}}",
+        property_interest: "{{property_address}}",
+        stage: "New Lead"
+      }
+    },
+    {
+      step: 4,
+      delay: "0 seconds",
+      action: "create_task",
+      assignee: "{{agent_name}}",
+      due: "today + 4 hours",
+      note: "Call {{first_name}} — expressed interest in {{property_address}}"
+    },
+    {
+      step: 5,
+      delay: "24 hours",
+      action: "send_email",
+      condition: "lead_has_not_replied == true",
+      subject: "Still looking, {{first_name}}?",
+      body: "Day 1 nurture email — see Day 1 template"
+    }
+  ]
+};`,
+    tip: { text: 'Speed-to-lead is the #1 conversion driver. Integrate your IDX form directly to your automation platform — never relay through email.', color: '#185FA5', bg: '#E6F1FB' }
+  },
+  {
+    id: 'listing-alert',
+    icon: 'ti-bell',
+    iconBg: '#FAEEDA', iconColor: '#854F0B',
+    title: 'Listing alert drip (buyer nurture)',
+    desc: 'Keeps buyers engaged with auto-matched listings until they\'re ready to write an offer',
+    badge: 'High volume', badgeBg: '#FAEEDA', badgeColor: '#854F0B',
+    stats: [{ n: '3–6mo', l: 'Avg. buyer timeline' }, { n: '47%', l: 'Convert from nurture' }, { n: 'Weekly', l: 'Recommended cadence' }],
+    flow: [
+      { label: 'Buyer registers', color: '#FAEEDA', tc: '#854F0B' },
+      { label: 'Criteria captured', color: '#FAEEDA', tc: '#854F0B' },
+      { label: 'Weekly alert email', color: '#EAF3DE', tc: '#3B6D11' },
+      { label: 'New match SMS', color: '#EAF3DE', tc: '#3B6D11' },
+      { label: 'Monthly check-in', color: '#EEEDFE', tc: '#534AB7' },
+      { label: 'Showing booked', color: '#F1EFE8', tc: '#2C2C2A' },
+    ],
+    email: {
+      subject: '{{num_matches}} new homes match your search this week, {{first_name}}',
+      body: `Hi {{first_name}},
+
+I've been keeping an eye on the {{city}} market for you and found {{num_matches}} new homes that match your criteria this week.
+
+🏡 Top pick this week:
+{{top_listing_address}}
+{{top_listing_beds}} bed / {{top_listing_baths}} bath · {{top_listing_sqft}} sq ft
+Listed at {{top_listing_price}}
+{{top_listing_link}}
+
+{{#if additional_listings}}
+Other matches worth a look:
+{{listing_2_address}} — {{listing_2_price}} · {{listing_2_link}}
+{{listing_3_address}} — {{listing_3_price}} · {{listing_3_link}}
+{{/if}}
+
+Market note: Homes in {{zip_code}} are averaging {{avg_dom}} days on market this week. {{#if fast_market}}Properties are moving quickly — I recommend scheduling showings within 24–48 hours of a listing you like.{{/if}}
+
+Ready to schedule a showing or have questions about any of these? Just reply here or click below.
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}`
+    },
+    sms: `{{first_name}}, new match! {{property_address}} — {{beds}}bd/{{baths}}ba at {{price}}. Just hit the market {{days_ago}}. Want a showing? {{short_link}} — {{agent_name}}`,
+    logic: `// Trigger: MLS/IDX new listing matches saved search criteria
+// Recommended tool: Zapier + KVCore / Follow Up Boss / IXACT
+
+const listingAlertFlow = {
+  trigger: "new_mls_listing_matches_saved_search",
+
+  weeklyEmailDigest: {
+    schedule: "every_monday_9am",
+    condition: "buyer_stage NOT IN ['Under Contract','Closed','Paused']",
+    action: "send_listing_digest_email",
+    template: "listing_alert_weekly",
+    variables: {
+      num_matches: "count(new_listings_this_week)",
+      top_listing: "highest_match_score_listing",
+      avg_dom: "mls_api.avg_days_on_market(zip_code)",
+    }
+  },
+
+  instantSMS: {
+    trigger: "new_listing_match_score > 90",
+    delay: "0 seconds",
+    action: "send_sms",
+    message: SMS_TEMPLATE,
+    throttle: "max_1_per_day_per_lead"
+  },
+
+  monthlyCheckIn: {
+    schedule: "day_30_and_every_30_days_after",
+    condition: "no_showing_scheduled AND lead_active",
+    action: "send_email",
+    subject: "Quick check-in, {{first_name}} — still searching?",
+    body: "Personalized check-in with market stats update"
+  },
+
+  exitConditions: [
+    "lead_books_showing",
+    "lead_replies_not_looking",
+    "lead_marked_under_contract",
+    "lead_unsubscribes"
+  ]
+};`,
+    tip: { text: 'Connect your MLS IDX feed directly to your CRM saved searches. Never manually curate listing emails — it kills the cadence.', color: '#854F0B', bg: '#FAEEDA' }
+  },
+  {
+    id: 'seller-valuation',
+    icon: 'ti-home',
+    iconBg: '#EEEDFE', iconColor: '#534AB7',
+    title: 'Seller home valuation follow-up',
+    desc: 'Converts AVM/CMA requests into listing appointments with a 7-touch sequence',
+    badge: 'Listing generator', badgeBg: '#EEEDFE', badgeColor: '#534AB7',
+    stats: [{ n: '7 touches', l: 'Full sequence' }, { n: '14 days', l: 'Window to convert' }, { n: '31%', l: 'Set appt. rate' }],
+    flow: [
+      { label: 'CMA requested', color: '#EEEDFE', tc: '#534AB7' },
+      { label: 'Day 0: CMA email', color: '#EEEDFE', tc: '#534AB7' },
+      { label: 'Day 1: SMS', color: '#EAF3DE', tc: '#3B6D11' },
+      { label: 'Day 3: Market stats', color: '#E6F1FB', tc: '#185FA5' },
+      { label: 'Day 7: Video email', color: '#FAEEDA', tc: '#854F0B' },
+      { label: 'Day 14: Breakup', color: '#F1EFE8', tc: '#5F5E5A' },
+    ],
+    email: {
+      subject: 'Your home value estimate is ready — {{property_address}}',
+      body: `Hi {{first_name}},
+
+Great news — I've put together your personalized home value analysis for {{property_address}}.
+
+📊 Your estimated value range: {{cma_low}} – {{cma_high}}
+📍 Based on {{comp_count}} recent sales within {{comp_radius}} miles
+📅 Most recent comp closed: {{most_recent_comp_date}}
+
+What this means for you:
+If you listed today, homes like yours in {{neighborhood}} are selling in an average of {{avg_dom}} days, often at {{list_to_sale_pct}}% of asking price.
+
+This estimate is a starting point. A walkthrough of your home lets me factor in upgrades, condition, and curb appeal — all of which can move your number significantly.
+
+Can we schedule a free, no-obligation 20-minute walkthrough? I'll bring a detailed marketing plan and a final pricing recommendation.
+
+[Book a free consultation → {{calendar_link}}]
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}
+{{license_number}}
+
+P.S. This market is moving. Homeowners who listed in {{last_month}} saw an average of {{avg_offers}} offers in the first week.`
+    },
+    sms: `Hi {{first_name}}, {{agent_name}} here. I just sent your home value report for {{property_address}} — check your email! One quick question: are you thinking of selling in the next 3–6 months, or just curious about your equity? Either is totally fine.`,
+    logic: `// Trigger: Home valuation form submission (HomeBot, HouseValues, or custom)
+// Platform: ActiveCampaign / Follow Up Boss / HubSpot
+
+const sellerValuationFlow = {
+  trigger: "valuation_form_submitted",
+
+  sequence: [
+    { day: 0, delay: "5 minutes",  action: "send_email", template: "cma_delivery" },
+    { day: 0, delay: "30 minutes", action: "send_sms",   template: "cma_sms_intro" },
+    { day: 1, delay: "24 hours",   action: "send_email",
+      subject: "One thing that could raise your number, {{first_name}}",
+      condition: "email_not_opened OR link_not_clicked" },
+    { day: 3, delay: "72 hours",   action: "send_email",
+      subject: "{{num_sold_this_week}} homes just sold near {{property_address}}",
+      body: "Market update with neighborhood recent sales" },
+    { day: 5, delay: "120 hours",  action: "create_call_task",
+      note: "Call {{first_name}} — check in on CMA, pitch walkthrough" },
+    { day: 7, delay: "168 hours",  action: "send_email",
+      subject: "I made a quick video about your home's value, {{first_name}}",
+      body: "BombBomb / Loom personalized video email" },
+    { day: 10, delay: "240 hours", action: "send_sms",
+      message: "Still thinking about it? No rush — market update attached." },
+    { day: 14, delay: "336 hours", action: "send_email",
+      subject: "Should I remove you from my list, {{first_name}}?",
+      body: "Breakup email — drives highest reply rates of the sequence",
+      tag_if_no_reply: "cold_seller_lead" }
+  ],
+
+  exitConditions: [
+    "seller_books_appointment",
+    "seller_replies_not_selling",
+    "seller_unsubscribes"
+  ]
+};`,
+    tip: { text: 'Day 7 video email via BombBomb or Loom consistently has the highest open and reply rate in seller sequences. Record once, personalize the subject line.', color: '#534AB7', bg: '#EEEDFE' }
+  },
+  {
+    id: 'past-client',
+    icon: 'ti-heart',
+    iconBg: '#FBEAF0', iconColor: '#993556',
+    title: 'Past client anniversary & referral',
+    desc: 'Turns your closed clients into a referral engine with milestone touchpoints',
+    badge: 'Referral engine', badgeBg: '#FBEAF0', badgeColor: '#993556',
+    stats: [{ n: '41%', l: 'Buyers reuse agent' }, { n: '12%', l: 'Avg. referral rate' }, { n: '5×', l: 'Lower cost than ads' }],
+    flow: [
+      { label: 'Closing date logged', color: '#FBEAF0', tc: '#993556' },
+      { label: '1 week: Thank you', color: '#FBEAF0', tc: '#993556' },
+      { label: '3 month check-in', color: '#EAF3DE', tc: '#3B6D11' },
+      { label: 'Annual: Home-iversary', color: '#FAEEDA', tc: '#854F0B' },
+      { label: 'Annual: Market update', color: '#E6F1FB', tc: '#185FA5' },
+      { label: 'Referral ask', color: '#EEEDFE', tc: '#534AB7' },
+    ],
+    email: {
+      subject: 'Happy 1-year home-iversary, {{first_name}}! 🏡',
+      body: `Hi {{first_name}} {{#if co_buyer_name}}and {{co_buyer_name}}{{/if}},
+
+One year ago today, you got the keys to {{property_address}} — and I still remember how excited you both were.
+
+I hope this past year has been everything you hoped for in your new home!
+
+A quick update on your investment:
+📈 Estimated current value: {{current_avm_value}}
+💰 Purchased at: {{purchase_price}}
+📊 Estimated equity gain: {{equity_gain}} ({{equity_pct}}% in 12 months)
+
+A few things I wanted to share:
+• Your area is seeing strong demand — {{neighborhood}} had {{recent_sales}} sales in the last 30 days
+• If you've done any improvements, they may have added even more to your value
+• Homestead exemption deadline is {{homestead_deadline}} — have you filed yours?
+
+And one small ask: if you know anyone thinking about buying or selling in {{market_area}}, I'd be honored if you'd pass my name along. Referrals from happy clients like you are the foundation of my business.
+
+Wishing you another wonderful year in your home,
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}`
+    },
+    sms: `Happy home-iversary, {{first_name}}! 🏡 It's been 1 year since you got the keys to {{property_address}}. Your home is now worth an estimated {{current_value}} — up {{equity_gain}} from what you paid! Know anyone thinking of buying or selling? I'd love the introduction. — {{agent_name}}`,
+    logic: `// Trigger: Closing date stored in CRM
+// Platform: Follow Up Boss / KVCore / ActiveCampaign
+
+const pastClientFlow = {
+  trigger: "closing_date_recorded_in_crm",
+
+  milestoneSequence: [
+    {
+      timing: "closing_date + 7 days",
+      action: "send_email",
+      template: "post_close_thank_you",
+      also: "send_handwritten_card_via_handwrytten_or_fellow"
+    },
+    {
+      timing: "closing_date + 90 days",
+      action: "send_email",
+      subject: "Settling in well, {{first_name}}?",
+      body: "Check-in + local vendor referral list (plumbers, electricians, etc.)"
+    },
+    {
+      timing: "closing_date + 180 days",
+      action: "send_sms",
+      message: "Hi {{first_name}}, just checking in! Any questions about your home or neighborhood? Happy to help anytime. — {{agent_name}}"
+    },
+    {
+      timing: "closing_date + 365 days",
+      action: "send_email",
+      template: "home_iversary_with_equity_update",
+      also: "send_referral_request_sms"
+    }
+  ],
+
+  annualRecurring: {
+    schedule: "every_year_on_closing_anniversary",
+    actions: [
+      { month_offset: 0, action: "home_iversary_email_with_equity_update" },
+      { month_offset: 2, action: "market_update_email_for_their_zip" },
+      { month_offset: 6, action: "holiday_card_or_local_event_invite" }
+    ]
+  },
+
+  avm_integration: "Homebot OR HomeZada OR manual_zillow_scrape",
+  equity_calc: "current_avm - purchase_price - estimated_paydown"
+};`,
+    tip: { text: 'Integrate Homebot for automated equity updates — it sends monthly reports to your past clients and notifies you when they check their value, signaling re-engagement.', color: '#993556', bg: '#FBEAF0' }
+  },
+  {
+    id: 'open-house',
+    icon: 'ti-door',
+    iconBg: '#E1F5EE', iconColor: '#0F6E56',
+    title: 'Open house follow-up sequence',
+    desc: 'Converts open house visitors into active buyers or seller leads within 72 hours',
+    badge: 'High intent', badgeBg: '#E1F5EE', badgeColor: '#0F6E56',
+    stats: [{ n: '72hrs', l: 'Critical window' }, { n: '63%', l: 'Visitors forget agent' }, { n: '4 touches', l: 'Sequence length' }],
+    flow: [
+      { label: 'Sign-in captured', color: '#E1F5EE', tc: '#0F6E56' },
+      { label: 'Same-day SMS', color: '#E1F5EE', tc: '#0F6E56' },
+      { label: 'Day 1: Photo email', color: '#EAF3DE', tc: '#3B6D11' },
+      { label: 'Day 2: Similar homes', color: '#E6F1FB', tc: '#185FA5' },
+      { label: 'Day 5: Market report', color: '#EEEDFE', tc: '#534AB7' },
+      { label: 'CRM tagged + segmented', color: '#F1EFE8', tc: '#5F5E5A' },
+    ],
+    email: {
+      subject: 'Photos + details from today\'s open house at {{property_address}}',
+      body: `Hi {{first_name}},
+
+It was great meeting you at {{property_address}} today! I hope you enjoyed the tour.
+
+As promised, here are the full details:
+
+📋 Property highlights:
+• {{beds}} bed / {{baths}} bath · {{sqft}} sq ft · Built {{year_built}}
+• Listed at {{list_price}} ({{price_per_sqft}}/sq ft)
+• {{garage_spaces}}-car garage · {{lot_size}} lot
+• {{key_feature_1}} · {{key_feature_2}}
+
+📁 Full listing: {{mls_link}}
+📸 Photo gallery: {{photo_gallery_link}}
+📊 Neighborhood market report: {{market_report_link}}
+
+A few things worth knowing:
+• We've had {{showing_count}} showings since listing
+• {{#if offers_received}}We are currently reviewing {{offer_count}} offer(s).{{else}}No offers yet — there may be room to negotiate.{{/if}}
+• Sellers are {{seller_motivation}} — {{seller_timeline}}
+
+Questions about this home or others in the area? I'd love to help. I can also set you up with automatic alerts so you're the first to know when similar homes hit the market.
+
+Talk soon,
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}
+{{license_number}}`
+    },
+    sms: `Hi {{first_name}}, it was great meeting you at the open house on {{property_address}}! I'm sending you the photos and full details now. Quick question — were you more interested in this home specifically, or are you open to seeing similar options in the area? — {{agent_name}}`,
+    logic: `// Trigger: Open house sign-in (digital: Spacio, Open Home Pro, or Google Form)
+// Platform: Zapier + Follow Up Boss / KVCore
+
+const openHouseFlow = {
+  trigger: "open_house_signin_submitted",
+
+  // Tag and segment immediately
+  onSignIn: {
+    action: "create_or_update_crm_contact",
+    tags: ["open_house_visitor", "property_{{property_id}}", "date_{{event_date}}"],
+    stage: "New Lead",
+    source: "Open House — {{property_address}}"
+  },
+
+  sequence: [
+    {
+      day: 0,
+      delay: "2 hours",
+      action: "send_sms",
+      template: "open_house_same_day_sms",
+      condition: "event_end_time_passed == true"
+    },
+    {
+      day: 1,
+      delay: "20 hours",
+      action: "send_email",
+      template: "open_house_followup_photos",
+      subject: "Photos + details from today's open house at {{property_address}}"
+    },
+    {
+      day: 2,
+      delay: "48 hours",
+      action: "send_email",
+      subject: "3 homes similar to {{property_address}} you might love",
+      body: "Auto-pull 3 MLS listings matching: beds, baths, price range, zip",
+      condition: "visitor_has_not_replied == true"
+    },
+    {
+      day: 5,
+      delay: "120 hours",
+      action: "send_email",
+      subject: "{{city}} real estate update — what's selling near {{property_address}}",
+      body: "Neighborhood stats email with recent sold comps",
+      condition: "visitor_has_not_replied == true"
+    },
+    {
+      day: 7,
+      action: "create_call_task",
+      note: "Call {{first_name}} — open house follow-up, qualify buyer intent"
+    }
+  ],
+
+  segmentationLogic: {
+    if_replies_interested: "move_to_active_buyer_sequence",
+    if_replies_just_looking: "move_to_long_term_nurture",
+    if_replies_has_home_to_sell: "move_to_seller_valuation_sequence",
+    if_no_reply_after_day7: "tag_cold_lead_quarterly_touch"
+  }
+};`,
+    tip: { text: 'Use Spacio or Open Home Pro for digital sign-ins — they auto-sync to your CRM and trigger this flow instantly. Paper sign-in sheets kill speed-to-follow-up.', color: '#0F6E56', bg: '#E1F5EE' }
+  }
+];
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.innerHTML = '<i class="ti ti-copy" aria-hidden="true"></i> Copy'; }, 1800);
+  });
+}
+
+function renderCampaigns() {
+  const container = document.getElementById('campaigns');
+  campaigns.forEach((c, idx) => {
+    const card = document.createElement('div');
+    card.className = 'campaign-card';
+    card.innerHTML = `
+      <button class="card-trigger" onclick="toggleCard('${c.id}', this)" aria-expanded="false">
+        <div class="camp-icon" style="background:${c.iconBg}">
+          <i class="ti ${c.icon}" style="color:${c.iconColor}" aria-hidden="true"></i>
+        </div>
+        <div class="camp-meta">
+          <h3>${c.title}</h3>
+          <p>${c.desc}</p>
+        </div>
+        <span class="camp-badge" style="background:${c.badgeBg};color:${c.badgeColor}">${c.badge}</span>
+        <i class="ti ti-chevron-down chevron" aria-hidden="true"></i>
+      </button>
+      <div class="card-body" id="body-${c.id}">
+        <div class="flow-strip">
+          ${c.flow.map((f, i) => `
+            <span class="flow-node" style="background:${f.color};color:${f.tc}">${f.label}</span>
+            ${i < c.flow.length - 1 ? '<span class="flow-arrow">→</span>' : ''}
+          `).join('')}
+        </div>
+        <div class="tab-bar" id="tabs-${c.id}">
+          <button class="tab-btn active" onclick="switchTab('${c.id}','stats',this)">Overview</button>
+          <button class="tab-btn" onclick="switchTab('${c.id}','email',this)">Email copy</button>
+          <button class="tab-btn" onclick="switchTab('${c.id}','sms',this)">SMS copy</button>
+          <button class="tab-btn" onclick="switchTab('${c.id}','logic',this)">Logic code</button>
+        </div>
+        <div class="tab-content active" id="${c.id}-stats">
+          <div class="stats-row">
+            ${c.stats.map(s => `<div class="stat-card"><div class="stat-num">${s.n}</div><div class="stat-lbl">${s.l}</div></div>`).join('')}
+          </div>
+          <p class="section-label">Automation sequence</p>
+          <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;">
+            ${c.flow.map((f, i) => `<span style="display:inline-block;margin-right:4px;">${i+1}. ${f.label}${i < c.flow.length-1 ? ' →' : ''}</span>`).join(' ')}
+          </div>
+          <div class="tip-box" style="border-left-color:${c.tip.color};background:${c.tip.bg};color:${c.iconColor}">
+            <strong>Pro tip:</strong> ${c.tip.text}
+          </div>
+        </div>
+        <div class="tab-content" id="${c.id}-email">
+          <p class="section-label">Subject line</p>
+          <div class="code-block" style="margin-bottom:10px;position:relative">
+            <button class="copy-btn" onclick="copyText(${JSON.stringify(c.email.subject)}, this)"><i class="ti ti-copy" aria-hidden="true"></i> Copy</button>${c.email.subject}</div>
+          <p class="section-label">Email body</p>
+          <div class="code-block" style="position:relative">
+            <button class="copy-btn" onclick="copyText(${JSON.stringify(c.email.body)}, this)"><i class="ti ti-copy" aria-hidden="true"></i> Copy</button>${c.email.body}</div>
+        </div>
+        <div class="tab-content" id="${c.id}-sms">
+          <p class="section-label">SMS script (160 char friendly)</p>
+          <div class="code-block" style="position:relative">
+            <button class="copy-btn" onclick="copyText(${JSON.stringify(c.sms)}, this)"><i class="ti ti-copy" aria-hidden="true"></i> Copy</button>${c.sms}</div>
+          <div class="tip-box" style="border-left-color:var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);margin-top:10px;">
+            All SMS templates include opt-out language. Confirm A2P 10DLC registration with your SMS platform before sending at volume.
+          </div>
+        </div>
+        <div class="tab-content" id="${c.id}-logic">
+          <p class="section-label">Automation logic (JSON/JS — platform-agnostic)</p>
+          <div class="code-block" style="position:relative">
+            <button class="copy-btn" onclick="copyText(${JSON.stringify(c.logic)}, this)"><i class="ti ti-copy" aria-hidden="true"></i> Copy</button>${c.logic}</div>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function toggleCard(id, btn) {
+  const body = document.getElementById('body-' + id);
+  const chevron = btn.querySelector('.chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('open', !isOpen);
+  btn.setAttribute('aria-expanded', String(!isOpen));
+}
+
+function switchTab(campId, tabName, clickedBtn) {
+  const tabBar = document.getElementById('tabs-' + campId);
+  tabBar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  clickedBtn.classList.add('active');
+  ['stats','email','sms','logic'].forEach(t => {
+    const el = document.getElementById(campId + '-' + t);
+    if (el) el.classList.toggle('active', t === tabName);
+  });
+}
+
+renderCampaigns();
+</script>

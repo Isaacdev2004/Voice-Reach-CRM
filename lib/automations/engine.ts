@@ -210,7 +210,7 @@ async function runAction(
       if (enrollment.recipientIds.length) {
         const { data: campaign } = await supabaseAdmin
           .from("campaigns")
-          .select("status, voice_asset_id")
+          .select("status, voice_asset_id, script_id, name")
           .eq("id", campaignId)
           .eq("owner_id", ownerId)
           .maybeSingle();
@@ -225,6 +225,16 @@ async function runAction(
         if (campaign && ["queued", "sending", "partial", "sent"].includes(campaign.status)) {
           await scheduleStepRunsForRecipients(ownerId, campaignId, enrollment.recipientIds);
         }
+        await supabaseAdmin
+          .from("contacts")
+          .update({
+            sequence_active: campaign?.script_id ?? campaign?.name ?? campaignId,
+            sequence_step: 0,
+            sequence_started_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", contactId)
+          .eq("owner_id", ownerId);
       }
       await writeAuditLog({
         ownerId,

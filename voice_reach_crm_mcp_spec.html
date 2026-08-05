@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Reach CRM — MCP Server Integration Spec</title>
+<style>
+  :root {
+    --ink:       #0D1117;
+    --ink-soft:  #4A5568;
+    --ink-muted: #8A94A6;
+    --rule:      #E2E8F0;
+    --surface:   #F7F9FC;
+    --white:     #FFFFFF;
+    --blue:      #1A56DB;
+    --blue-lt:   #EBF2FF;
+    --teal:      #0D9488;
+    --teal-lt:   #E6FAF8;
+    --amber:     #B45309;
+    --amber-lt:  #FEF3C7;
+    --green:     #15803D;
+    --green-lt:  #F0FDF4;
+    --red:       #B91C1C;
+    --red-lt:    #FEF2F2;
+    --violet:    #6D28D9;
+    --violet-lt: #F5F3FF;
+    --mono:      'Courier New', Courier, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--white);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  @media print {
+    .no-print { display: none !important; }
+    body { font-size: 12px; }
+    .code-block { font-size: 11px; }
+    section { page-break-inside: avoid; }
+  }
+
+  /* ── HEADER ── */
+  .doc-header {
+    background: var(--ink);
+    color: #fff;
+    padding: 32px 48px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .doc-header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; color: #fff; }
+  .doc-header p  { font-size: 13px; color: #94A3B8; margin-top: 5px; }
+  .header-chips  { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .hchip {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+    border: 1px solid #334155; color: #94A3B8;
+  }
+  .hchip.green { border-color: #166534; color: #86EFAC; background: rgba(134,239,172,0.08); }
+  .print-btn {
+    padding: 8px 18px; font-size: 13px; font-weight: 600;
+    background: #1A56DB; color: #fff; border: none; border-radius: 6px;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  }
+  .print-btn:hover { background: #1e40af; }
+
+  /* ── SIDEBAR NAV ── */
+  .layout { display: flex; min-height: calc(100vh - 120px); }
+  .sidebar {
+    width: 220px; flex-shrink: 0; border-right: 1px solid var(--rule);
+    padding: 24px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-section { padding: 0 16px; margin-bottom: 20px; }
+  .sidebar-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--ink-muted); margin-bottom: 6px;
+    display: block;
+  }
+  .sidebar a {
+    display: block; padding: 5px 8px; font-size: 13px; color: var(--ink-soft);
+    text-decoration: none; border-radius: 5px;
+  }
+  .sidebar a:hover { background: var(--surface); color: var(--ink); }
+  .sidebar a.active { background: var(--blue-lt); color: var(--blue); font-weight: 600; }
+
+  /* ── MAIN CONTENT ── */
+  .content { flex: 1; padding: 36px 48px 80px; max-width: 860px; }
+  .content > section { margin-bottom: 52px; }
+
+  h2 {
+    font-size: 18px; font-weight: 700; color: var(--ink);
+    letter-spacing: -0.2px; margin-bottom: 6px;
+    padding-top: 8px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2 .section-num {
+    font-size: 11px; font-weight: 700; color: var(--ink-muted);
+    background: var(--surface); border: 1px solid var(--rule);
+    padding: 2px 7px; border-radius: 4px; letter-spacing: 0.04em;
+  }
+  h3 { font-size: 15px; font-weight: 700; color: var(--ink); margin: 24px 0 8px; }
+  p  { color: var(--ink-soft); margin-bottom: 10px; }
+  .divider { border: none; border-top: 1px solid var(--rule); margin: 28px 0; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-left: 3px solid; border-radius: 0 8px 8px 0;
+    padding: 12px 16px; margin: 16px 0; font-size: 13px; line-height: 1.6;
+  }
+  .callout strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .callout.info    { border-color: var(--blue);   background: var(--blue-lt);   color: #1e3a8a; }
+  .callout.success { border-color: var(--green);  background: var(--green-lt);  color: #14532d; }
+  .callout.warning { border-color: var(--amber);  background: var(--amber-lt);  color: #78350f; }
+  .callout.tip     { border-color: var(--violet); background: var(--violet-lt); color: #4c1d95; }
+
+  /* ── CODE BLOCKS ── */
+  .code-wrap { position: relative; margin: 10px 0 16px; }
+  .code-label-bar {
+    background: #1E2A3A; border-radius: 8px 8px 0 0; padding: 7px 16px;
+    font-size: 11px; font-weight: 600; color: #64748B; letter-spacing: 0.04em;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .code-block {
+    background: #0D1117; color: #E2E8F0; font-family: var(--mono);
+    font-size: 12.5px; line-height: 1.7; padding: 16px 18px;
+    border-radius: 0 0 8px 8px; white-space: pre; overflow-x: auto;
+    border: 1px solid #1E2A3A; border-top: none;
+  }
+  .code-block .cm  { color: #6B7280; }
+  .code-block .ck  { color: #93C5FD; }
+  .code-block .cs  { color: #86EFAC; }
+  .code-block .cn  { color: #FCA5A5; }
+  .code-block .cb  { color: #FCD34D; }
+  .code-block .cp  { color: #F9A8D4; }
+  .copy-btn-bar {
+    background: #1E2A3A; color: #64748B; border: none;
+    font-size: 11px; font-weight: 600; cursor: pointer; padding: 2px 8px;
+    border-radius: 4px; font-family: inherit;
+  }
+  .copy-btn-bar:hover { color: #E2E8F0; }
+
+  /* ── INLINE CODE ── */
+  code {
+    font-family: var(--mono); font-size: 12px;
+    background: var(--surface); border: 1px solid var(--rule);
+    padding: 1px 5px; border-radius: 4px; color: var(--red);
+  }
+
+  /* ── TOOL TABLE ── */
+  .tool-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0 20px; }
+  .tool-table th {
+    text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--ink-muted); padding: 8px 12px;
+    border-bottom: 2px solid var(--rule); background: var(--surface);
+  }
+  .tool-table td { padding: 10px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; color: var(--ink-soft); }
+  .tool-table tr:last-child td { border-bottom: none; }
+  .tool-table td:first-child { font-family: var(--mono); font-size: 12px; color: var(--blue); font-weight: 600; }
+  .tool-table td:nth-child(2) { color: var(--ink); font-weight: 500; }
+  .method-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+    text-transform: uppercase; font-family: var(--mono);
+  }
+  .get  { background: #DCFCE7; color: #15803D; }
+  .post { background: #DBEAFE; color: #1D4ED8; }
+  .put  { background: #FEF3C7; color: #B45309; }
+  .del  { background: #FEE2E2; color: #B91C1C; }
+
+  /* ── ARCH DIAGRAM ── */
+  .arch-diagram {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 10px; padding: 24px; margin: 16px 0; font-family: var(--mono);
+    font-size: 12.5px; line-height: 1.9; color: var(--ink-soft);
+    white-space: pre;
+  }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; margin: 10px 0 16px; }
+  .checklist li {
+    padding: 6px 0 6px 28px; border-bottom: 1px solid var(--rule);
+    position: relative; font-size: 13px; color: var(--ink-soft);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li::before {
+    content: '☐'; position: absolute; left: 4px;
+    color: var(--ink-muted); font-size: 14px;
+  }
+  .checklist li strong { color: var(--ink); }
+
+  /* ── STEP BADGES ── */
+  .step-list { list-style: none; counter-reset: steps; margin: 10px 0; }
+  .step-list li {
+    counter-increment: steps; padding: 10px 0 10px 44px;
+    position: relative; border-bottom: 1px solid var(--rule);
+    font-size: 13px; color: var(--ink-soft);
+  }
+  .step-list li:last-child { border-bottom: none; }
+  .step-list li::before {
+    content: counter(steps);
+    position: absolute; left: 0; top: 10px;
+    width: 26px; height: 26px; background: var(--ink); color: #fff;
+    border-radius: 50%; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-list li strong { display: block; color: var(--ink); margin-bottom: 2px; }
+
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .content { padding: 24px 20px 60px; }
+    .doc-header { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="doc-header">
+  <div>
+    <h1>Voice Reach CRM — MCP Server Integration Spec</h1>
+    <p>Technical handoff for connecting Claude AI to voice-reach-crm.vercel.app</p>
+    <div class="header-chips">
+      <span class="hchip green">Developer Handoff</span>
+      <span class="hchip">MCP Protocol</span>
+      <span class="hchip">Node.js / TypeScript</span>
+      <span class="hchip">REST API Bridge</span>
+    </div>
+  </div>
+  <button class="print-btn no-print" onclick="window.print()">⬇ Save as PDF</button>
+</header>
+
+<!-- ═══ LAYOUT ═══ -->
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <nav class="sidebar no-print">
+    <div class="sidebar-section">
+      <span class="sidebar-label">Overview</span>
+      <a href="#s1" class="active">What is MCP?</a>
+      <a href="#s2">Architecture</a>
+      <a href="#s3">How it works</a>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-label">Implementation</span>
+      <a href="#s4">Project setup</a>
+      <a href="#s5">Authentication</a>
+      <a href="#s6">MCP tools to build</a>
+      <a href="#s7">Full server code</a>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-label">Integration</span>
+      <a href="#s8">CRM API endpoints</a>
+      <a href="#s9">Connecting to Claude</a>
+      <a href="#s10">Testing</a>
+      <a href="#s11">Deployment</a>
+      <a href="#s12">Launch checklist</a>
+    </div>
+  </nav>
+
+  <!-- ── CONTENT ── -->
+  <main class="content">
+
+    <!-- ── SECTION 1: WHAT IS MCP ── -->
+    <section id="s1">
+      <h2><span class="section-num">01</span> What is MCP and why does it matter here</h2>
+      <p><strong>MCP (Model Context Protocol)</strong> is an open standard developed by Anthropic that lets Claude securely connect to external tools, databases, and APIs. Think of it as a controlled API bridge — Claude can call functions you define, and those functions talk to Voice Reach CRM on Claude's behalf.</p>
+      <p>Once this is set up, Kikzeny can say things like <em>"Add Marcus Johnson as a new buyer lead interested in Winter Park under $450K"</em> or <em>"Pull up all hot leads in Seminole County this week"</em> — and Claude will execute those actions directly in the CRM.</p>
+
+      <div class="callout success">
+        <strong>What this unlocks</strong>
+        No shared passwords. No manual data entry. Claude reads from and writes to Voice Reach CRM through a secure API layer your developer controls entirely.
+      </div>
+
+      <div class="callout warning">
+        <strong>Prerequisite</strong>
+        Voice Reach CRM must expose a REST API (or have one added). This spec covers both building the MCP server AND the API endpoints the CRM needs to support it.
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SECTION 2: ARCHITECTURE ── -->
+    <section id="s2">
+      <h2><span class="section-num">02</span> Architecture overview</h2>
+
+      <div class="arch-diagram">┌─────────────────────────────────────────────────────────┐
+│                    KIKZENY'S CONVERSATION                │
+│               "Add a new lead — Marcus Johnson"          │
+└────────────────────────┬────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│                    CLAUDE (claude.ai)                    │
+│          Reads available MCP tools, decides which        │
+│          tool to call, formats the arguments             │
+└────────────────────────┬────────────────────────────────┘
+                         │  MCP Protocol (JSON-RPC 2.0)
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│              MCP SERVER (your new Node.js app)           │
+│         Hosted on Vercel / Railway / Render              │
+│                                                          │
+│   Tools exposed:                                         │
+│   • crm_create_contact    • crm_get_leads               │
+│   • crm_update_stage      • crm_log_activity            │
+│   • crm_search_contacts   • crm_get_pipeline            │
+│   • crm_schedule_followup • crm_get_stats               │
+└────────────────────────┬────────────────────────────────┘
+                         │  HTTPS REST API calls
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│         VOICE REACH CRM (voice-reach-crm.vercel.app)    │
+│              Your existing Next.js application           │
+│              + new /api/mcp/* routes to add              │
+└─────────────────────────────────────────────────────────┘</div>
+
+      <div class="callout info">
+        <strong>Two parts to build</strong>
+        Part A: Add REST API routes to Voice Reach CRM (if not already there). Part B: Build the MCP server that wraps those routes and exposes them to Claude. This doc covers both.
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SECTION 3: HOW IT WORKS ── -->
+    <section id="s3">
+      <h2><span class="section-num">03</span> How a tool call works end-to-end</h2>
+      <ol class="step-list">
+        <li>
+          <strong>Kikzeny types a request in Claude</strong>
+          "Add a new buyer lead — Sarah Kim, sarah@email.com, (407) 555-0198, interested in Oviedo homes under $380K, referred by HVAC client."
+        </li>
+        <li>
+          <strong>Claude identifies the right tool</strong>
+          Claude reads the list of available MCP tools and their descriptions, then decides to call <code>crm_create_contact</code> with the parsed arguments.
+        </li>
+        <li>
+          <strong>Claude sends a tool call to the MCP server</strong>
+          The MCP server receives a JSON-RPC call with the tool name and structured parameters.
+        </li>
+        <li>
+          <strong>MCP server calls the Voice Reach CRM API</strong>
+          The server makes an authenticated POST to <code>/api/contacts</code> on the CRM, passing the lead data.
+        </li>
+        <li>
+          <strong>CRM creates the record, returns confirmation</strong>
+          The API returns the new contact ID and record URL.
+        </li>
+        <li>
+          <strong>Claude reports back to Kikzeny</strong>
+          "Done! Sarah Kim has been added as a buyer lead in Oviedo under $380K. I tagged her as referred by an HVAC client. Want me to schedule a follow-up task for tomorrow?"
+        </li>
+      </ol>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SECTION 4: PROJECT SETUP ── -->
+    <section id="s4">
+      <h2><span class="section-num">04</span> Project setup</h2>
+
+      <div class="callout tip">
+        <strong>Tech stack</strong>
+        Node.js 18+ · TypeScript · @modelcontextprotocol/sdk · Express.js · dotenv. The MCP server is a separate repo from Voice Reach CRM — it lives alongside it.
+      </div>
+
+      <h3>Initialize the project</h3>
+      <div class="code-wrap">
+        <div class="code-label-bar">
+          <span>BASH — terminal</span>
+          <button class="copy-btn-bar no-print" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre class="code-block"><span class="cm"># Create new repo</span>
+mkdir voice-reach-mcp-server
+cd voice-reach-mcp-server
+npm init -y
+
+<span class="cm"># Install dependencies</span>
+npm install @modelcontextprotocol/sdk express dotenv axios zod
+npm install -D typescript @types/node @types/express ts-node nodemon
+
+<span class="cm"># Init TypeScript</span>
+npx tsc --init</pre>
+      </div>
+
+      <h3>tsconfig.json</h3>
+      <div class="code-wrap">
+        <div class="code-label-bar">
+          <span>tsconfig.json</span>
+          <button class="copy-btn-bar no-print" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre class="code-block">{
+  <span class="cs">"compilerOptions"</span>: {
+    <span class="cs">"target"</span>: <span class="cs">"ES2020"</span>,
+    <span class="cs">"module"</span>: <span class="cs">"commonjs"</span>,
+    <span class="cs">"lib"</span>: [<span class="cs">"ES2020"</span>],
+    <span class="cs">"outDir"</span>: <span class="cs">"./dist"</span>,
+    <span class="cs">"rootDir"</span>: <span class="cs">"./src"</span>,
+    <span class="cs">"strict"</span>: <span class="cb">true</span>,
+    <span class="cs">"esModuleInterop"</span>: <span class="cb">true</span>,
+    <span class="cs">"skipLibCheck"</span>: <span class="cb">true</span>,
+    <span class="cs">"resolveJsonModule"</span>: <span class="cb">true</span>
+  },
+  <span class="cs">"include"</span>: [<span class="cs">"src/**/*"</span>],
+  <span class="cs">"exclude"</span>: [<span class="cs">"node_modules"</span>, <span class="cs">"dist"</span>]
+}</pre>
+      </div>
+
+      <h3>.env file</h3>
+      <div class="code-wrap">
+        <div class="code-label-bar">
+          <span>.env — never commit this file</span>
+          <button class="copy-btn-bar no-print" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre class="code-block"><span class="cm"># Voice Reach CRM base URL</span>
+CRM_BASE_URL=https://voice-reach-crm.vercel.app/api
+
+<span class="cm"># Secret API key your CRM will validate (you generate this)</span>
+CRM_API_KEY=your_secret_api_key_here
+
+<span class="cm"># MCP server secret (Claude Desktop uses this to authenticate)</span>
+MCP_SERVER_SECRET=your_mcp_server_secret_here
+
+<span class="cm"># Port for local development</span>
+PORT=3001</pre>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SECTION 5: AUTH ── -->
+    <section id="s5">
+      <h2><span class="section-num">05</span> Authentication approach</h2>
+      <p>Use a simple <strong>API key pattern</strong> — no OAuth needed for a single-user setup. The MCP server holds the key; Claude never sees it.</p>
+
+      <div class="code-wrap">
+        <div class="code-label-bar">
+          <span>src/auth.ts</span>
+          <button class="copy-btn-bar no-print" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre class="code-block"><span class="ck">import</span> axios <span class="ck">from</span> <span class="cs">'axios'</span>;
+
+<span class="cm">// Axios instance pre-configured with CRM auth header</span>
+<span class="ck">export const</span> crmClient = axios.create({
+  baseURL: process.env.CRM_BASE_URL,
+  headers: {
+    <span class="cs">'Authorization'</span>: <span class="cp">`Bearer ${process.env.CRM_API_KEY}`</span>,
+    <span class="cs">'Content-Type'</span>: <span class="cs">'application/json'</span>,
+    <span class="cs">'x-mcp-client'</span>: <span class="cs">'claude-mcp-server/1.0'</span>
+  },
+  timeout: <span class="cn">10000</span>
+});
+
+<span class="cm">// Middleware to validate MCP server is being called by Claude Desktop</span>
+<span class="ck">export function</span> <span class="cb">validateMCPSecret</span>(secret: string): boolean {
+  <span class="ck">return</span> secret === process.env.MCP_SERVER_SECRET;
+}</pre>
+      </div>
+
+      <div class="callout warning">
+        <strong>CRM side — add this middleware to Voice Reach CRM</strong>
+        All <code>/api/mcp/*</code> routes on the CRM should validate the <code>Authorization: Bearer YOUR_KEY</code> header. Reject any request without it with a 401. Generate a strong random key with: <code>openssl rand -hex 32</code>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SECTION 6: MCP TOOLS ── -->
+    <section id="s6">
+      <h2><span class="section-num">06</span> MCP tools to build</h2>
+      <p>These are the 8 tools Claude will be able to call. Each maps to one or more CRM API endpoints. Write descriptions carefully — Claude uses them to decide which tool to call.</p>
+
+      <table class="tool-table">
+        <thead>
+          <tr>
+            <th>Tool name</th>
+            <th>What it does</th>
+            <th>CRM endpoint</th>
+            <th>Method</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>crm_create_contact</td>
+            <td>Add a new buyer lead or contact to the CRM</td>
+            <td>/api/contacts</td>
+            <td><span class="method-badge post">POST</span></td>
+          </tr>
+          <tr>
+            <td>crm_search_contacts</td>
+            <td>Search contacts by name, email, phone, tags, or stage</td>
+            <td>/api/contacts/search</td>
+            <td><span class="method-badge get">GET</span></td>
+          </tr>
+          <tr>
+            <td>crm_get_contact</td>
+            <td>Get full details of a single contact by ID</td>
+            <td>/api/contacts/:id</td>
+            <td><span class="method-badge get">GET</span></td>
+          </tr>
+          <tr>
+            <td>crm_update_stage</td>
+            <td>Move a lead to a new pipeline stage (New / Active / Hot / Under Contract / Closed)</td>
+            <td>/api/contacts/:id/stage</td>
+            <td><span class="method-badge put">PUT</span></td>
+          </tr>
+          <tr>
+            <td>crm_log_activity</td>
+            <td>Log a call, email, showing, or note against a contact record</td>
+            <td>/api/contacts/:id/activities</td>
+            <td><span class="method-badge post">POST</span></td>
+          </tr>
+          <tr>
+            <td>crm_schedule_followup</td>
+            <td>Create a follow-up task for a contact with a due date and note</td>
+            <td>/api/tasks</td>
+            <td><span class="method-badge post">POST</span></td>
+          </tr>
+          <tr>
+            <td>crm_get_pipeline</td>
+            <td>Pull the full pipeline — all leads grouped by stage, with counts and values</td>
+            <td>/api/pipeline</td>
+            <td><span class="method-badge get">GET</span></td>
+          </tr>
+          <tr>
+            <td>crm_get_stats</td>
+            <td>Get summary stats: new leads this week, conversion rate, tasks due today</td>
+            <td>/api/stats</td>
+            <td><span class="method-badge get">GET</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SECTION 7: FULL SERVER CODE ── -->
+    <section id="s7">
+      <h2><span class="section-num">07</span> Full MCP server code</h2>
+
+      <div class="code-wrap">
+        <div class="code-label-bar">
+          <span>src/index.ts — complete MCP server</span>
+          <button class="copy-btn-bar no-print" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre class="code-block"><span class="ck">import</span> { Server } <span class="ck">from</span> <span class="cs">'@modelcontextprotocol/sdk/server/index.js'</span>;
+<span class="ck">import</span> { StdioServerTransport } <span class="ck">from</span> <span class="cs">'@modelcontextprotocol/sdk/server/stdio.js'</span>;
+<span class="ck">import</span> {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+} <span class="ck">from</span> <span class="cs">'@modelcontextprotocol/sdk/types.js'</span>;
+<span class="ck">import</span> { z } <span class="ck">from</span> <span class="cs">'zod'</span>;
+<span class="ck">import</span> { crmClient } <span class="ck">from</span> <span class="cs">'./auth.js'</span>;
+<span class="ck">import</span> <span class="cs">'dotenv/config'</span>;
+
+<span class="cm">// ─────────────────────────────────────────────────────────
+// Initialize MCP Server
+// ─────────────────────────────────────────────────────────</span>
+<span class="ck">const</span> server = <span class="ck">new</span> <span class="cb">Server</span>(
+  { name: <span class="cs">'voice-reach-crm'</span>, version: <span class="cs">'1.0.0'</span> },
+  { capabilities: { tools: {} } }
+);
+
+<span class="cm">// ─────────────────────────────────────────────────────────
+// TOOL DEFINITIONS
+// Claude reads these descriptions to decide which tool to call.
+// Write them like instructions to a smart assistant.
+// ─────────────────────────────────────────────────────────</span>
+server.setRequestHandler(ListToolsRequestSchema, <span class="ck">async</span> () => ({
+  tools: [
+    {
+      name: <span class="cs">'crm_create_contact'</span>,
+      description: <span class="cs">'Add a new buyer lead or contact to Voice Reach CRM. Use this when Kikzeny mentions a new lead, prospect, or client to add. Captures name, email, phone, buyer criteria, lead source, and notes.'</span>,
+      inputSchema: {
+        type: <span class="cs">'object'</span>,
+        properties: {
+          first_name:       { type: <span class="cs">'string'</span>,  description: <span class="cs">'Contact first name'</span> },
+          last_name:        { type: <span class="cs">'string'</span>,  description: <span class="cs">'Contact last name'</span> },
+          email:            { type: <span class="cs">'string'</span>,  description: <span class="cs">'Email address'</span> },
+          phone:            { type: <span class="cs">'string'</span>,  description: <span class="cs">'Phone number'</span> },
+          stage:            { type: <span class="cs">'string'</span>,  description: <span class="cs">'Pipeline stage: New Lead | Active Buyer | Hot Lead | Pre-Approved | Under Contract | Closed'</span>, default: <span class="cs">'New Lead'</span> },
+          lead_source:      { type: <span class="cs">'string'</span>,  description: <span class="cs">'Where the lead came from: Zillow | Realtor.com | Referral | HVAC Referral | Open House | Facebook | Website | Other'</span> },
+          price_min:        { type: <span class="cs">'number'</span>,  description: <span class="cs">'Minimum purchase budget in dollars'</span> },
+          price_max:        { type: <span class="cs">'number'</span>,  description: <span class="cs">'Maximum purchase budget in dollars'</span> },
+          target_areas:     { type: <span class="cs">'string'</span>,  description: <span class="cs">'Neighborhoods or cities they want to buy in'</span> },
+          bedrooms_min:     { type: <span class="cs">'number'</span>,  description: <span class="cs">'Minimum bedrooms needed'</span> },
+          pre_approved:     { type: <span class="cs">'boolean'</span>, description: <span class="cs">'Whether the buyer has a mortgage pre-approval'</span> },
+          notes:            { type: <span class="cs">'string'</span>,  description: <span class="cs">'Any additional notes about this contact'</span> },
+          tags:             { type: <span class="cs">'array'</span>, items: { type: <span class="cs">'string'</span> }, description: <span class="cs">'Tags to apply, e.g. hvac-referral, seminole-county, investor'</span> }
+        },
+        required: [<span class="cs">'first_name'</span>, <span class="cs">'last_name'</span>]
+      }
+    },
+    {
+      name: <span class="cs">'crm_search_contacts'</span>,
+      description: <span class="cs">'Search Voice Reach CRM contacts by any combination of name, email, phone, stage, tag, or area. Use when Kikzeny asks to "find", "look up", "pull up", or "show me" a contact or group of leads.'</span>,
+      inputSchema: {
+        type: <span class="cs">'object'</span>,
+        properties: {
+          query:    { type: <span class="cs">'string'</span>,  description: <span class="cs">'Name, email, or phone to search'</span> },
+          stage:    { type: <span class="cs">'string'</span>,  description: <span class="cs">'Filter by pipeline stage'</span> },
+          tag:      { type: <span class="cs">'string'</span>,  description: <span class="cs">'Filter by tag'</span> },
+          area:     { type: <span class="cs">'string'</span>,  description: <span class="cs">'Filter by target area or city'</span> },
+          limit:    { type: <span class="cs">'number'</span>,  description: <span class="cs">'Max results to return (default 10)'</span>, default: <span class="cn">10</span> }
+        }
+      }
+    },
+    {
+      name: <span class="cs">'crm_get_contact'</span>,
+      description: <span class="cs">'Get full details of a single CRM contact by their ID. Use after a search returns an ID and you need the complete record.'</span>,
+      inputSchema: {
+        type: <span class="cs">'object'</span>,
+        properties: {
+          contact_id: { type: <span class="cs">'string'</span>, description: <span class="cs">'The contact ID from the CRM'</span> }
+        },
+        required: [<span class="cs">'contact_id'</span>]
+      }
+    },
+    {
+      name: <span class="cs">'crm_update_stage'</span>,
+      description: <span class="cs">'Move a contact to a different pipeline stage in Voice Reach CRM. Use when Kikzeny says a lead got pre-approved, signed a contract, closed, went cold, or is now actively searching.'</span>,
+      inputSchema: {
+        type: <span class="cs">'object'</span>,
+        properties: {
+          contact_id: { type: <span class="cs">'string'</span>, description: <span class="cs">'The contact ID'</span> },
+          stage:      { type: <span class="cs">'string'</span>, description: <span class="cs">'New stage: New Lead | Active Buyer | Hot Lead | Pre-Approved | Under Contract | Closed | Cold'</span> },
+          note:       { type: <span class="cs">'string'</span>, description: <span class="cs">'Optional note explaining the stage change'</span> }
+        },
+        required: [<span class="cs">'contact_id'</span>, <span class="cs">'stage'</span>]
+      }
+    },
+    {
+      name: <span class="cs">'crm_log_activity'</span>,
+      description: <span class="cs">'Log a completed activity against a contact in Voice Reach CRM. Use when Kikzeny says she called someone, sent an email, showed a home, received a reply, or wants to note something that happened.'</span>,
+      inputSchema: {
+        type: <span class="cs">'object'</span>,
+        properties: {
+          contact_id:    { type: <span class="cs">'string'</span>, description: <span class="cs">'The contact ID'</span> },
+          activity_type: { type: <span class="cs">'string'</span>, description: <span class="cs">'Type of activity: call | email | text | showing | note | voicemail | meeting'</span> },
+          summary:       { type: <span class="cs">'string'</span>, description: <span class="cs">'What happened or what was said'</span> },
+          outcome:       { type: <span class="cs">'string'</span>, description: <span class="cs">'Result: connected | no answer | callback requested | not interested | interested | showing booked'</span> },
+          date:          { type: <span class="cs">'string'</span>, description: <span class="cs">'ISO date string, defaults to now'</span> }
+        },
+        required: [<span class="cs">'contact_id'</span>, <span class="cs">'activity_type'</span>, <span class="cs">'summary'</span>]
+      }
+    },
+    {
+      name: <span class="cs">'crm_schedule_followup'</span>,
+      description: <span class="cs">'Create a follow-up task for a contact in Voice Reach CRM. Use when Kikzeny wants to remind herself to call, email, or follow up with someone on a specific date.'</span>,
+      inputSchema: {
+        type: <span class="cs">'object'</span>,
+        properties: {
+          contact_id: { type: <span class="cs">'string'</span>, description: <span class="cs">'The contact ID'</span> },
+          task_type:  { type: <span class="cs">'string'</span>, description: <span class="cs">'Type: call | email | text | showing | send_listing | check_in'</span> },
+          due_date:   { type: <span class="cs">'string'</span>, description: <span class="cs">'Due date as ISO string or natural language like "tomorrow" or "Friday"'</span> },
+          note:       { type: <span class="cs">'string'</span>, description: <span class="cs">'What to do or what to say'</span> },
+          priority:   { type: <span class="cs">'string'</span>, description: <span class="cs">'Priority: high | normal | low'</span>, default: <span class="cs">'normal'</span> }
+        },
+        required: [<span class="cs">'contact_id'</span>, <span class="cs">'task_type'</span>, <span class="cs">'due_date'</span>]
+      }
+    },
+    {
+      name: <span class="cs">'crm_get_pipeline'</span>,
+      description: <span class="cs">'Get the full buyer pipeline from Voice Reach CRM — all leads grouped by stage with counts. Use when Kikzeny asks "how is my pipeline looking", "how many leads do I have", or wants a business overview.'</span>,
+      inputSchema: {
+        type: <span class="cs">'object'</span>,
+        properties: {
+          stage_filter: { type: <span class="cs">'string'</span>, description: <span class="cs">'Optional: filter to a single stage'</span> },
+          area_filter:  { type: <span class="cs">'string'</span>, description: <span class="cs">'Optional: filter by target area'</span> }
+        }
+      }
+    },
+    {
+      name: <span class="cs">'crm_get_stats'</span>,
+      description: <span class="cs">'Get summary statistics from Voice Reach CRM: new leads this week, tasks due today, hot leads count, conversion metrics. Use for morning briefings or business check-ins.'</span>,
+      inputSchema: {
+        type: <span class="cs">'object'</span>,
+        properties: {
+          period: { type: <span class="cs">'string'</span>, description: <span class="cs">'Time period: today | this_week | this_month | last_30_days'</span>, default: <span class="cs">'this_week'</span> }
+        }
+      }
+    }
+  ]
+}));
+
+<span class="cm">// ─────────────────────────────────────────────────────────
+// TOOL HANDLERS
+// Each tool calls the appropriate CRM API endpoint
+// ─────────────────────────────────────────────────────────</span>
+server.setRequestHandler(CallToolRequestSchema, <span class="ck">async</span> (request) => {
+  <span class="ck">const</span> { name, arguments: args } = request.params;
+
+  <span class="ck">try</span> {
+    <span class="ck">switch</span> (name) {
+
+      <span class="cm">// ── CREATE CONTACT ────────────────────────────────────</span>
+      <span class="ck">case</span> <span class="cs">'crm_create_contact'</span>: {
+        <span class="ck">const</span> response = <span class="ck">await</span> crmClient.post(<span class="cs">'/contacts'</span>, {
+          firstName:    args.first_name,
+          lastName:     args.last_name,
+          email:        args.email,
+          phone:        args.phone,
+          stage:        args.stage ?? <span class="cs">'New Lead'</span>,
+          leadSource:   args.lead_source,
+          buyerCriteria: {
+            priceMin:   args.price_min,
+            priceMax:   args.price_max,
+            targetAreas: args.target_areas,
+            bedroomsMin: args.bedrooms_min,
+            preApproved: args.pre_approved
+          },
+          notes: args.notes,
+          tags:  args.tags
+        });
+        <span class="ck">return</span> {
+          content: [{
+            type: <span class="cs">'text'</span>,
+            text: <span class="cp">`Contact created successfully. ID: ${response.data.id}. Name: ${args.first_name} ${args.last_name}. Stage: ${args.stage ?? 'New Lead'}.`</span>
+          }]
+        };
+      }
+
+      <span class="cm">// ── SEARCH CONTACTS ───────────────────────────────────</span>
+      <span class="ck">case</span> <span class="cs">'crm_search_contacts'</span>: {
+        <span class="ck">const</span> response = <span class="ck">await</span> crmClient.get(<span class="cs">'/contacts/search'</span>, {
+          params: {
+            q:     args.query,
+            stage: args.stage,
+            tag:   args.tag,
+            area:  args.area,
+            limit: args.limit ?? <span class="cn">10</span>
+          }
+        });
+        <span class="ck">const</span> contacts = response.data.contacts;
+        <span class="ck">if</span> (contacts.length === <span class="cn">0</span>) {
+          <span class="ck">return</span> { content: [{ type: <span class="cs">'text'</span>, text: <span class="cs">'No contacts found matching those criteria.'</span> }] };
+        }
+        <span class="ck">const</span> summary = contacts.map((c: <span class="ck">any</span>) =>
+          <span class="cp">`• ${c.firstName} ${c.lastName} | ${c.stage} | ${c.phone ?? 'no phone'} | ${c.email ?? 'no email'} | ID: ${c.id}`</span>
+        ).join(<span class="cs">'\n'</span>);
+        <span class="ck">return</span> { content: [{ type: <span class="cs">'text'</span>, text: <span class="cp">`Found ${contacts.length} contact(s):\n\n${summary}`</span> }] };
+      }
+
+      <span class="cm">// ── GET SINGLE CONTACT ────────────────────────────────</span>
+      <span class="ck">case</span> <span class="cs">'crm_get_contact'</span>: {
+        <span class="ck">const</span> response = <span class="ck">await</span> crmClient.get(<span class="cp">`/contacts/${args.contact_id}`</span>);
+        <span class="ck">const</span> c = response.data;
+        <span class="ck">return</span> {
+          content: [{
+            type: <span class="cs">'text'</span>,
+            text: JSON.stringify(c, <span class="cb">null</span>, <span class="cn">2</span>)
+          }]
+        };
+      }
+
+      <span class="cm">// ── UPDATE STAGE ──────────────────────────────────────</span>
+      <span class="ck">case</span> <span class="cs">'crm_update_stage'</span>: {
+        <span class="ck">await</span> crmClient.put(<span class="cp">`/contacts/${args.contact_id}/stage`</span>, {
+          stage: args.stage,
+          note:  args.note
+        });
+        <span class="ck">return</span> {
+          content: [{
+            type: <span class="cs">'text'</span>,
+            text: <span class="cp">`Stage updated to "${args.stage}" for contact ${args.contact_id}.${args.note ? ' Note logged: ' + args.note : ''}`</span>
+          }]
+        };
+      }
+
+      <span class="cm">// ── LOG ACTIVITY ──────────────────────────────────────</span>
+      <span class="ck">case</span> <span class="cs">'crm_log_activity'</span>: {
+        <span class="ck">await</span> crmClient.post(<span class="cp">`/contacts/${args.contact_id}/activities`</span>, {
+          type:    args.activity_type,
+          summary: args.summary,
+          outcome: args.outcome,
+          date:    args.date ?? <span class="ck">new</span> Date().toISOString()
+        });
+        <span class="ck">return</span> {
+          content: [{
+            type: <span class="cs">'text'</span>,
+            text: <span class="cp">`Activity logged: ${args.activity_type} — "${args.summary}"${args.outcome ? '. Outcome: ' + args.outcome : ''}`</span>
+          }]
+        };
+      }
+
+      <span class="cm">// ── SCHEDULE FOLLOW-UP ────────────────────────────────</span>
+      <span class="ck">case</span> <span class="cs">'crm_schedule_followup'</span>: {
+        <span class="ck">const</span> response = <span class="ck">await</span> crmClient.post(<span class="cs">'/tasks'</span>, {
+          contactId: args.contact_id,
+          type:      args.task_type,
+          dueDate:   args.due_date,
+          note:      args.note,
+          priority:  args.priority ?? <span class="cs">'normal'</span>
+        });
+        <span class="ck">return</span> {
+          content: [{
+            type: <span class="cs">'text'</span>,
+            text: <span class="cp">`Follow-up task created: ${args.task_type} due ${args.due_date}. Task ID: ${response.data.id}`</span>
+          }]
+        };
+      }
+
+      <span class="cm">// ── GET PIPELINE ──────────────────────────────────────</span>
+      <span class="ck">case</span> <span class="cs">'crm_get_pipeline'</span>: {
+        <span class="ck">const</span> response = <span class="ck">await</span> crmClient.get(<span class="cs">'/pipeline'</span>, {
+          params: { stage: args.stage_filter, area: args.area_filter }
+        });
+        <span class="ck">const</span> p = response.data;
+        <span class="ck">const</span> summary = Object.entries(p.stages).map(([stage, data]: [string, <span class="ck">any</span>]) =>
+          <span class="cp">`${stage}: ${data.count} leads`</span>
+        ).join(<span class="cs">'\n'</span>);
+        <span class="ck">return</span> {
+          content: [{
+            type: <span class="cs">'text'</span>,
+            text: <span class="cp">`Pipeline overview:\n\n${summary}\n\nTotal active leads: ${p.totalActive}`</span>
+          }]
+        };
+      }
+
+      <span class="cm">// ── GET STATS ─────────────────────────────────────────</span>
+      <span class="ck">case</span> <span class="cs">'crm_get_stats'</span>: {
+        <span class="ck">const</span> response = <span class="ck">await</span> crmClient.get(<span class="cs">'/stats'</span>, {
+          params: { period: args.period ?? <span class="cs">'this_week'</span> }
+        });
+        <span class="ck">return</span> {
+          content: [{
+            type: <span class="cs">'text'</span>,
+            text: JSON.stringify(response.data, <span class="cb">null</span>, <span class="cn">2</span>)
+          }]
+        };
+      }
+
+      <span class="ck">default</span>:
+        <span class="ck">return</span> {
+          content: [{ type: <span class="cs">'text'</span>, text: <span class="cp">`Unknown tool: ${name}`</span> }],
+          isError: <span class="cb">true</span>
+        };
+    }
+
+  } <span class="ck">catch</span> (error: <span class="ck">any</span>) {
+    <span class="ck">return</span> {
+      content: [{
+        type: <span class="cs">'text'</span>,
+        text: <span class="cp">`CRM API error: ${error.response?.data?.message ?? error.message}`</span>
+      }],
+      isError: <span class="cb">true</span>
+    };
+  }
+});
+
+<span class="cm">// ─────────────────────────────────────────────────────────
+// START SERVER
+// ─────────────────────────────────────────────────────────</span>
+<span class="ck">async function</span> <span class="cb">main</span>() {
+  <span class="ck">const</span> transport = <span class="ck">new</span> <span class="cb">StdioServerTransport</span>();
+  <span class="ck">await</span> server.connect(transport);
+  console.error(<span class="cs">'Voice Reach CRM MCP Server running'</span>);
+}
+
+<span class="cb">main</span>().catch(console.error);</pre>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SECTION 8: CRM API ENDPOINTS ── -->
+    <section id="s8">
+      <h2><span class="section-num">08</span> CRM API endpoints to add (Voice Reach CRM side)</h2>
+      <p>These routes need to exist on <code>voice-reach-crm.vercel.app</code>. If the CRM already has them, just confirm the request/response shapes match. If not, add them as Next.js API routes.</p>
+
+      <h3>Example: /api/contacts route (Next.js)</h3>
+      <div class="code-wrap">
+        <div class="code-label-bar">
+          <span>pages/api/contacts/index.ts  — Voice Reach CRM repo</span>
+          <button class="copy-btn-bar no-print" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre class="code-block"><span class="ck">import</span> { NextApiRequest, NextApiResponse } <span class="ck">from</span> <span class="cs">'next'</span>;
+<span class="cm">// import your DB client here (Prisma, Supabase, MongoDB, etc.)</span>
+
+<span class="cm">// Validate the MCP server API key</span>
+<span class="ck">function</span> <span class="cb">isAuthorized</span>(req: NextApiRequest): boolean {
+  <span class="ck">const</span> authHeader = req.headers.authorization;
+  <span class="ck">return</span> authHeader === <span class="cp">`Bearer ${process.env.CRM_MCP_API_KEY}`</span>;
+}
+
+<span class="ck">export default async function</span> <span class="cb">handler</span>(req: NextApiRequest, res: NextApiResponse) {
+
+  <span class="ck">if</span> (!<span class="cb">isAuthorized</span>(req)) {
+    <span class="ck">return</span> res.status(<span class="cn">401</span>).json({ error: <span class="cs">'Unauthorized'</span> });
+  }
+
+  <span class="cm">// POST /api/contacts — create new contact</span>
+  <span class="ck">if</span> (req.method === <span class="cs">'POST'</span>) {
+    <span class="ck">const</span> { firstName, lastName, email, phone, stage, leadSource, buyerCriteria, notes, tags } = req.body;
+
+    <span class="cm">// TODO: Replace with your actual DB write</span>
+    <span class="ck">const</span> contact = <span class="ck">await</span> db.contact.create({
+      data: { firstName, lastName, email, phone, stage, leadSource, buyerCriteria, notes, tags }
+    });
+
+    <span class="ck">return</span> res.status(<span class="cn">201</span>).json({ id: contact.id, success: <span class="cb">true</span> });
+  }
+
+  <span class="cm">// GET /api/contacts — list all</span>
+  <span class="ck">if</span> (req.method === <span class="cs">'GET'</span>) {
+    <span class="ck">const</span> contacts = <span class="ck">await</span> db.contact.findMany({ take: <span class="cn">50</span> });
+    <span class="ck">return</span> res.json({ contacts });
+  }
+
+  res.status(<span class="cn">405</span>).json({ error: <span class="cs">'Method not allowed'</span> });
+}</pre>
+      </div>
+
+      <div class="callout info">
+        <strong>Required routes — full list</strong>
+        POST /api/contacts · GET /api/contacts/search · GET /api/contacts/:id · PUT /api/contacts/:id/stage · POST /api/contacts/:id/activities · POST /api/tasks · GET /api/pipeline · GET /api/stats
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SECTION 9: CONNECTING TO CLAUDE ── -->
+    <section id="s9">
+      <h2><span class="section-num">09</span> Connecting the MCP server to Claude Desktop</h2>
+
+      <h3>Step 1 — Build the server</h3>
+      <div class="code-wrap">
+        <div class="code-label-bar"><span>BASH</span><button class="copy-btn-bar no-print" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block">npm run build
+<span class="cm"># or for development:</span>
+npm run dev</pre>
+      </div>
+
+      <h3>Step 2 — Add to Claude Desktop config</h3>
+      <p>Open Claude Desktop → Settings → Developer → Edit Config. Add this entry:</p>
+      <div class="code-wrap">
+        <div class="code-label-bar"><span>claude_desktop_config.json</span><button class="copy-btn-bar no-print" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block">{
+  <span class="cs">"mcpServers"</span>: {
+    <span class="cs">"voice-reach-crm"</span>: {
+      <span class="cs">"command"</span>: <span class="cs">"node"</span>,
+      <span class="cs">"args"</span>: [<span class="cs">"/absolute/path/to/voice-reach-mcp-server/dist/index.js"</span>],
+      <span class="cs">"env"</span>: {
+        <span class="cs">"CRM_BASE_URL"</span>: <span class="cs">"https://voice-reach-crm.vercel.app/api"</span>,
+        <span class="cs">"CRM_API_KEY"</span>: <span class="cs">"your_api_key_here"</span>
+      }
+    }
+  }
+}</pre>
+      </div>
+
+      <h3>Step 3 — Restart Claude Desktop</h3>
+      <p>Quit and reopen Claude Desktop. A hammer icon (🔨) will appear in the chat input — that confirms the MCP server is connected.</p>
+
+      <div class="callout success">
+        <strong>Test it immediately</strong>
+        Type: "Show me my CRM pipeline" — Claude should call crm_get_pipeline and return real data from Voice Reach CRM.
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SECTION 10: TESTING ── -->
+    <section id="s10">
+      <h2><span class="section-num">10</span> Testing the integration</h2>
+
+      <h3>Suggested test prompts (in order)</h3>
+      <div class="code-wrap">
+        <div class="code-label-bar"><span>Test these in Claude Desktop after connecting</span></div>
+        <pre class="code-block"><span class="cm">// Test 1: Stats (read-only, safe to run first)</span>
+<span class="cs">"Give me a quick overview of my CRM — how many leads do I have this week?"</span>
+
+<span class="cm">// Test 2: Pipeline</span>
+<span class="cs">"Show me my full buyer pipeline broken down by stage."</span>
+
+<span class="cm">// Test 3: Search</span>
+<span class="cs">"Find all my Hot Leads in Seminole County."</span>
+
+<span class="cm">// Test 4: Create contact (use a test name first)</span>
+<span class="cs">"Add a test contact — John Doe, test@test.com, (407) 555-0001,
+buyer looking in Winter Park between $350K–$500K, referred by HVAC client."</span>
+
+<span class="cm">// Test 5: Log activity</span>
+<span class="cs">"Log that I called John Doe today — left a voicemail, no answer."</span>
+
+<span class="cm">// Test 6: Schedule follow-up</span>
+<span class="cs">"Schedule a follow-up call with John Doe for tomorrow at 10am."</span>
+
+<span class="cm">// Test 7: Update stage</span>
+<span class="cs">"John Doe just got pre-approved — update his stage."</span></pre>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SECTION 11: DEPLOYMENT ── -->
+    <section id="s11">
+      <h2><span class="section-num">11</span> Deployment options</h2>
+
+      <table class="tool-table">
+        <thead>
+          <tr><th>Option</th><th>Best for</th><th>Cost</th><th>Setup time</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Local (stdio)</td>
+            <td>Claude Desktop on Kikzeny's machine — simplest setup, no hosting needed</td>
+            <td>Free</td>
+            <td>30 min</td>
+          </tr>
+          <tr>
+            <td>Railway.app</td>
+            <td>Always-on server, shareable with team members</td>
+            <td>~$5/mo</td>
+            <td>1–2 hrs</td>
+          </tr>
+          <tr>
+            <td>Render.com</td>
+            <td>Free tier available, good for low-traffic MCP</td>
+            <td>Free / $7/mo</td>
+            <td>1–2 hrs</td>
+          </tr>
+          <tr>
+            <td>Vercel (same as CRM)</td>
+            <td>Consistent infra with Voice Reach CRM — deploy as a serverless function</td>
+            <td>Free tier</td>
+            <td>2–3 hrs</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout tip">
+        <strong>Recommended for now</strong>
+        Start with the local stdio approach — it works with Claude Desktop immediately, no hosting required. When you're ready to make it always-on or share with a team, migrate to Railway.
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SECTION 12: CHECKLIST ── -->
+    <section id="s12">
+      <h2><span class="section-num">12</span> Developer launch checklist</h2>
+
+      <h3>Voice Reach CRM (existing app)</h3>
+      <ul class="checklist">
+        <li><strong>Add API routes</strong> — /api/contacts, /api/contacts/search, /api/contacts/:id, /api/contacts/:id/stage, /api/contacts/:id/activities, /api/tasks, /api/pipeline, /api/stats</li>
+        <li><strong>Add API key auth middleware</strong> — validate <code>Authorization: Bearer</code> header on all /api/* routes</li>
+        <li><strong>Generate a strong API key</strong> — <code>openssl rand -hex 32</code> — store in Vercel environment variables</li>
+        <li><strong>Test each endpoint</strong> with Postman or curl before connecting MCP</li>
+        <li><strong>Confirm CORS allows</strong> requests from localhost:3001 during development</li>
+      </ul>
+
+      <h3>MCP Server (new repo)</h3>
+      <ul class="checklist">
+        <li><strong>Clone/create repo</strong> and install dependencies per Section 4</li>
+        <li><strong>Copy src/index.ts</strong> from Section 7 — update field names to match your actual DB schema</li>
+        <li><strong>Fill in .env</strong> with CRM_BASE_URL, CRM_API_KEY, MCP_SERVER_SECRET</li>
+        <li><strong>Run</strong> <code>npm run build</code> — confirm no TypeScript errors</li>
+        <li><strong>Add to Claude Desktop config</strong> per Section 9 with correct absolute path</li>
+        <li><strong>Restart Claude Desktop</strong> — confirm hammer icon appears</li>
+        <li><strong>Run all 7 test prompts</strong> from Section 10 — confirm each returns real CRM data</li>
+        <li><strong>Delete the test contact</strong> (John Doe) from the CRM after testing</li>
+      </ul>
+
+      <div class="callout success">
+        <strong>Estimated build time</strong>
+        An experienced developer should complete this in 4–8 hours. The MCP server code is provided in full (Section 7) — most time will be spent on the CRM API routes and testing. Share this entire document as the brief.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+function copyCode(btn) {
+  const block = btn.closest('.code-wrap') || btn.closest('.code-label-bar').parentElement;
+  const pre = block.querySelector('pre');
+  if (!pre) return;
+  navigator.clipboard.writeText(pre.innerText || pre.textContent).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.color = '#86EFAC';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1800);
+  });
+}
+
+// Sidebar active state on scroll
+const sections = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12'];
+const links = document.querySelectorAll('.sidebar a');
+window.addEventListener('scroll', () => {
+  let cur = 's1';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && window.scrollY >= el.offsetTop - 100) cur = id;
+  });
+  links.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + cur);
+  });
+}, { passive: true });
+</script>
+</body>
+</html>

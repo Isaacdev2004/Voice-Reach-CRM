@@ -1,12 +1,12 @@
 import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
-import { runInactiveLeadScan } from "@/lib/automations/inactive-leads";
+import { runEngagementScoreScan, runInactiveLeadScan } from "@/lib/automations/inactive-leads";
 import { runDueStepRuns } from "@/lib/campaigns/engine";
 import { auth } from "@clerk/nextjs/server";
 
 /**
  * Trigger the campaign step runner.
  * - With Clerk session: runs for the signed-in user
- * - With X-Cron-Secret header matching CAMPAIGN_RUNNER_SECRET: runs across all users
+ * - With X-Cron-Secret / Vercel CRON_SECRET: runs across all users
  */
 async function handle(request: Request) {
   const cronSecret = request.headers.get("x-cron-secret");
@@ -17,8 +17,9 @@ async function handle(request: Request) {
 
   if (vercelCron || (cronSecret && envSecret && cronSecret === envSecret)) {
     const inactive = await runInactiveLeadScan({ limit: 100 });
+    const engaged = await runEngagementScoreScan({ limit: 100 });
     const result = await runDueStepRuns({ limit: 100 });
-    return apiSuccess({ ...result, inactive });
+    return apiSuccess({ ...result, inactive, engaged });
   }
 
   const { userId } = await auth();
@@ -27,8 +28,9 @@ async function handle(request: Request) {
   }
 
   const inactive = await runInactiveLeadScan({ ownerId: userId, limit: 50 });
+  const engaged = await runEngagementScoreScan({ ownerId: userId, limit: 50 });
   const result = await runDueStepRuns({ ownerId: userId, limit: 50 });
-  return apiSuccess({ ...result, inactive });
+  return apiSuccess({ ...result, inactive, engaged });
 }
 
 export const POST = withApiHandler(handle);

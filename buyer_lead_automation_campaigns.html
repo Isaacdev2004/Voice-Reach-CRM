@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buyer Lead Automation Campaigns — Developer Handoff</title>
+<style>
+  :root {
+    --ink:       #0D1117;
+    --ink-soft:  #4A5568;
+    --ink-muted: #8A94A6;
+    --rule:      #E2E8F0;
+    --surface:   #F7F9FC;
+    --white:     #FFFFFF;
+    --blue:      #1A56DB;
+    --blue-lt:   #EBF2FF;
+    --blue-mid:  #3B82F6;
+    --teal:      #0D9488;
+    --teal-lt:   #E6FAF8;
+    --amber:     #B45309;
+    --amber-lt:  #FEF3C7;
+    --rose:      #BE185D;
+    --rose-lt:   #FDF2F8;
+    --violet:    #6D28D9;
+    --violet-lt: #F5F3FF;
+    --green:     #15803D;
+    --green-lt:  #F0FDF4;
+    --mono:      'Courier New', Courier, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--white);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── PRINT PAGE ── */
+  @media print {
+    .no-print { display: none !important; }
+    .tab-content { display: block !important; }
+    .tab-nav { display: none; }
+    .campaign-body { display: block !important; }
+    body { font-size: 12px; }
+  }
+
+  /* ── TOP HEADER ── */
+  .doc-header {
+    border-bottom: 1px solid var(--rule);
+    padding: 28px 40px 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .doc-header-left h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .doc-header-left p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+  .doc-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 6px;
+  }
+  .meta-chip {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+    background: var(--surface);
+  }
+  .meta-chip.live { background: var(--green-lt); color: var(--green); border-color: #bbf7d0; }
+  .print-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .print-btn:hover { background: #1a2030; }
+
+  /* ── TOC STRIP ── */
+  .toc-strip {
+    border-bottom: 1px solid var(--rule);
+    padding: 0 40px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .toc-item {
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: inherit;
+  }
+  .toc-item:hover { color: var(--ink); }
+  .toc-item.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* ── MAIN LAYOUT ── */
+  .main { padding: 0 40px 60px; max-width: 1100px; }
+
+  /* ── CAMPAIGN SECTION ── */
+  .campaign-section {
+    padding: 36px 0 0;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0;
+  }
+  .campaign-section:last-child { border-bottom: none; }
+
+  .camp-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .camp-num {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    padding-top: 3px;
+    min-width: 24px;
+  }
+  .camp-title-block h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.2px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .camp-pill {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+  }
+  .camp-title-block p {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  /* ── STAT ROW ── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .stat-box .num {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat-box .lbl {
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 4px;
+  }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+  }
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .flow-node {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 11px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .flow-arrow { font-size: 13px; color: var(--ink-muted); }
+
+  /* ── TABS ── */
+  .tab-nav {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0;
+  }
+  .tab-btn {
+    padding: 9px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  .tab-btn.active { color: var(--ink); border-bottom-color: var(--ink); }
+  .tab-btn:hover { color: var(--ink); }
+
+  .tab-content { display: none; padding: 20px 0 28px; }
+  .tab-content.active { display: block; }
+
+  /* ── CODE BLOCKS ── */
+  .code-section { margin-bottom: 16px; }
+  .code-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    margin-bottom: 6px;
+  }
+  .code-wrap { position: relative; }
+  .code-block {
+    background: #0D1117;
+    color: #E2E8F0;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    padding: 16px 18px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+    border: 1px solid #1E2A3A;
+  }
+  .code-block .cm { color: #6B7280; }
+  .code-block .ck { color: #93C5FD; }
+  .code-block .cs { color: #86EFAC; }
+  .code-block .cn { color: #FCA5A5; }
+  .code-block .cb { color: #FCD34D; }
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #1E2A3A;
+    color: #9CA3AF;
+    border: 1px solid #374151;
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.03em;
+  }
+  .copy-btn:hover { background: #2D3748; color: #E2E8F0; }
+
+  /* ── PLAIN TEXT CODE (email/SMS) ── */
+  .email-block {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .email-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+  }
+  .email-header-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+  }
+  .email-subject {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .email-body {
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--ink-soft);
+    white-space: pre-wrap;
+    font-family: Georgia, serif;
+  }
+  .sms-block {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .sms-char-count {
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 8px;
+    font-family: var(--mono);
+  }
+
+  /* ── TIPS ── */
+  .tip-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .tip-box {
+    border-left: 3px solid;
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  .tip-box strong { display: block; margin-bottom: 2px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ── PLATFORM TABLE ── */
+  .platform-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin-top: 8px;
+  }
+  .platform-table th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface);
+  }
+  .platform-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+    color: var(--ink-soft);
+  }
+  .platform-table tr:last-child td { border-bottom: none; }
+  .platform-table td:first-child { font-weight: 600; color: var(--ink); }
+  .check { color: var(--green); font-weight: 700; }
+  .dash  { color: var(--ink-muted); }
+
+  /* ── FOOTER ── */
+  .doc-footer {
+    border-top: 1px solid var(--rule);
+    padding: 20px 40px;
+    font-size: 12px;
+    color: var(--ink-muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  @media (max-width: 640px) {
+    .doc-header, .main, .doc-footer { padding-left: 16px; padding-right: 16px; }
+    .toc-strip { padding: 0 16px; }
+    .camp-heading { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header class="doc-header">
+  <div class="doc-header-left">
+    <h1>Buyer Lead Automation — Developer Handoff</h1>
+    <p>5 launch-ready campaigns · LPT Realty · Orange &amp; Seminole County, FL</p>
+    <div class="doc-meta">
+      <span class="meta-chip live">Launch Ready</span>
+      <span class="meta-chip">Platform-agnostic</span>
+      <span class="meta-chip">CRM-compatible</span>
+      <span class="meta-chip">TCPA-compliant templates</span>
+    </div>
+  </div>
+  <button class="print-btn no-print" onclick="window.print()">⬇ Save as PDF</button>
+</header>
+
+<!-- ═══════════════ TOC NAV ═══════════════ -->
+<nav class="toc-strip no-print">
+  <button class="toc-item active" onclick="scrollTo('c1',this)">1 · Speed-to-Lead</button>
+  <button class="toc-item" onclick="scrollTo('c2',this)">2 · IDX Listing Alert</button>
+  <button class="toc-item" onclick="scrollTo('c3',this)">3 · Long-Term Nurture</button>
+  <button class="toc-item" onclick="scrollTo('c4',this)">4 · Pre-Approval Push</button>
+  <button class="toc-item" onclick="scrollTo('c5',this)">5 · Post-Showing Follow-Up</button>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main class="main">
+
+<!-- ──────────────────────────────────────
+     CAMPAIGN 1 · SPEED-TO-LEAD
+────────────────────────────────────────── -->
+<section class="campaign-section" id="c1">
+  <div class="camp-heading">
+    <span class="camp-num">01</span>
+    <div class="camp-title-block">
+      <h2>Speed-to-lead instant response
+        <span class="camp-pill" style="background:#EBF2FF;color:#1A56DB;">Highest ROI</span>
+      </h2>
+      <p>Fires within 60 seconds of any form fill, Zillow inquiry, Realtor.com lead, or Facebook lead ad — before any competitor can call.</p>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">21×</div><div class="lbl">More likely to qualify vs. 30-min response</div></div>
+    <div class="stat-box"><div class="num">78%</div><div class="lbl">Buyers expect a reply within 10 minutes</div></div>
+    <div class="stat-box"><div class="num">&lt;60s</div><div class="lbl">Target SMS fire time</div></div>
+    <div class="stat-box"><div class="num">5 days</div><div class="lbl">Full sequence length</div></div>
+  </div>
+
+  <div class="flow-wrap">
+    <div class="flow-step"><span class="flow-node" style="background:#EBF2FF;color:#1A56DB;">Lead form submit</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#EBF2FF;color:#1A56DB;">SMS &lt;60s</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#EBF2FF;color:#1A56DB;">Email &lt;2min</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F0FDF4;color:#15803D;">CRM contact created</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F0FDF4;color:#15803D;">Agent task assigned</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F5F3FF;color:#6D28D9;">Day 1 follow-up</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F5F3FF;color:#6D28D9;">Day 3 nurture</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F7F9FC;color:#4A5568;">Day 5 check-in</span></div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('c1','email',this)">EMAIL COPY</button>
+    <button class="tab-btn" onclick="switchTab('c1','sms',this)">SMS COPY</button>
+    <button class="tab-btn" onclick="switchTab('c1','logic',this)">AUTOMATION LOGIC</button>
+    <button class="tab-btn" onclick="switchTab('c1','crm',this)">CRM SETUP</button>
+  </div>
+
+  <div class="tab-content active" id="c1-email">
+    <div class="email-block">
+      <div class="email-header">
+        <span class="email-header-label">Touch 1 — &lt;2 min</span>
+        <span class="email-subject">I found homes matching your search — {{first_name}}</span>
+        <button class="copy-btn no-print" onclick="copyEl('c1-email-body')">Copy</button>
+      </div>
+      <div class="email-body" id="c1-email-body">Hi {{first_name}},
+
+Thanks for reaching out! I'm {{agent_name}}, your local real estate specialist covering {{market_area}}.
+
+I pulled up the listing you were looking at — {{property_address}} — and I want to make sure you don't miss out. Homes in that price range in {{neighborhood}} are averaging just {{avg_dom}} days on market right now.
+
+Here's what I'd love to do for you in the next 15 minutes:
+  → Send you a shortlist of 3–5 similar homes (including some not yet on Zillow)
+  → Answer any questions about the neighborhood, schools, or pricing
+  → Get you set up with instant alerts so you see new listings the moment they hit
+
+Is now a good time to chat? Even a quick 10-minute call can save you weeks of searching.
+
+Talk soon,
+
+{{agent_name}}
+{{brokerage_name}} · {{agent_phone}}
+License #{{license_number}}
+
+P.S. I work exclusively in Orange and Seminole County — I know these neighborhoods like my own backyard.</div>
+    </div>
+
+    <div class="email-block">
+      <div class="email-header">
+        <span class="email-header-label">Touch 2 — Day 1 (no reply)</span>
+        <span class="email-subject">Still searching? 3 homes near {{property_address}} worth seeing</span>
+        <button class="copy-btn no-print" onclick="copyEl('c1-email2-body')">Copy</button>
+      </div>
+      <div class="email-body" id="c1-email2-body">Hi {{first_name}},
+
+I wanted to follow up in case my first message got buried.
+
+I pulled three homes near {{property_address}} that match your criteria and wanted to share them before they're gone:
+
+1. {{comp1_address}} — {{comp1_beds}}bd/{{comp1_baths}}ba · {{comp1_price}} · {{comp1_link}}
+2. {{comp2_address}} — {{comp2_beds}}bd/{{comp2_baths}}ba · {{comp2_price}} · {{comp2_link}}
+3. {{comp3_address}} — {{comp3_beds}}bd/{{comp3_baths}}ba · {{comp3_price}} · {{comp3_link}}
+
+No pressure at all — just wanted to make sure you have good options in front of you.
+
+If any of these catch your eye, I can get you in for a showing as early as tomorrow.
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}</div>
+    </div>
+
+    <div class="tip-row">
+      <div class="tip-box" style="border-color:#1A56DB;background:#EBF2FF;color:#1E40AF;">
+        <strong>Developer note</strong>Trigger this via webhook from Zillow, Realtor.com, Facebook Lead Ads, or your IDX form. Use Make.com or Zapier to fan out to SMS + Email + CRM simultaneously.
+      </div>
+      <div class="tip-box" style="border-color:#15803D;background:#F0FDF4;color:#166534;">
+        <strong>Compliance note</strong>Day 1 email fires only if lead has NOT replied. Add exit condition: if lead_replied == true → cancel remaining sequence.
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c1-sms">
+    <div class="code-section">
+      <div class="code-label">Touch 1 SMS — fires &lt;60 seconds of form submit</div>
+      <div class="sms-block" id="c1-sms1">Hi {{first_name}}! This is {{agent_name}} from {{brokerage_name}} — I just saw your inquiry about {{property_address}}. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.</div>
+      <div class="sms-char-count">≈ 230 characters · 2 SMS segments · Include STOP opt-out on all outbound</div>
+    </div>
+
+    <div class="code-section">
+      <div class="code-label">Touch 2 SMS — Day 3 (no reply)</div>
+      <div class="sms-block" id="c1-sms2">Hey {{first_name}}, {{agent_name}} again. Still looking in {{neighborhood}}? A home just listed at {{new_listing_address}} — {{beds}}bd/{{baths}}ba at {{price}}. Only been on {{days_on_market}} days. Want a showing? — {{agent_name}}</div>
+      <div class="sms-char-count">≈ 180 characters · 1–2 SMS segments</div>
+    </div>
+
+    <div class="code-section">
+      <div class="code-label">Touch 3 SMS — Day 5 breakup text</div>
+      <div class="sms-block" id="c1-sms3">Hi {{first_name}}, I don't want to keep bugging you — just wanted to make sure you have my number if you ever need a local expert in {{market_area}}. No pressure at all. Wishing you the best! — {{agent_name}} {{agent_phone}}</div>
+      <div class="sms-char-count">≈ 190 characters · 2 SMS segments</div>
+    </div>
+
+    <div class="tip-row">
+      <div class="tip-box" style="border-color:#B45309;background:#FEF3C7;color:#92400E;">
+        <strong>TCPA / A2P requirement</strong>All SMS requires prior express written consent captured at the lead form. Register your 10DLC campaign with your SMS platform (Twilio, SimpleTexting, etc.) before sending at volume. Fines up to $1,500 per unsolicited text.
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c1-logic">
+    <div class="code-section">
+      <div class="code-label">Automation logic — platform-agnostic (Make.com / Zapier / n8n)</div>
+      <div class="code-wrap">
+        <button class="copy-btn no-print" onclick="copyEl('c1-code1')">Copy</button>
+        <pre class="code-block" id="c1-code1"><span class="cm">// ═══════════════════════════════════════════════════════
+// CAMPAIGN 1: Speed-to-Lead Instant Response
+// Platform: Make.com · Zapier · n8n · ActiveCampaign
+// Trigger:  Webhook (Zillow / Realtor.com / IDX form /
+//           Facebook Lead Ads / website form)
+// ═══════════════════════════════════════════════════════</span>
+
+<span class="ck">const</span> speedToLeadFlow = {
+
+  <span class="cm">// ── TRIGGER ──────────────────────────────────────────</span>
+  trigger: {
+    type: <span class="cs">"webhook_POST"</span>,
+    sources: [<span class="cs">"zillow"</span>, <span class="cs">"realtor_com"</span>, <span class="cs">"facebook_lead_ads"</span>, <span class="cs">"idx_form"</span>, <span class="cs">"website_form"</span>],
+    payload_map: {
+      first_name:        <span class="cs">"lead.firstName"</span>,
+      last_name:         <span class="cs">"lead.lastName"</span>,
+      email:             <span class="cs">"lead.email"</span>,
+      phone:             <span class="cs">"lead.phone"</span>,
+      property_address:  <span class="cs">"lead.propertyInterest"</span>,
+      source:            <span class="cs">"lead.leadSource"</span>,
+    }
+  },
+
+  <span class="cm">// ── STEP 1: SMS — fires immediately ──────────────────</span>
+  step1: {
+    delay: <span class="cn">0</span>,         <span class="cm">// seconds</span>
+    action: <span class="cs">"send_sms"</span>,
+    condition: <span class="cs">"lead.phone != null"</span>,
+    to: <span class="cs">"{{lead.phone}}"</span>,
+    body: <span class="cs">"Hi {{first_name}}! This is {{agent_name}} from {{brokerage}}..."</span>,
+    platform_note: <span class="cs">"Twilio / SimpleTexting / EZTexting"</span>
+  },
+
+  <span class="cm">// ── STEP 2: Email — fires at 2 minutes ───────────────</span>
+  step2: {
+    delay: <span class="cn">120</span>,       <span class="cm">// seconds</span>
+    action: <span class="cs">"send_email"</span>,
+    to: <span class="cs">"{{lead.email}}"</span>,
+    subject: <span class="cs">"I found homes matching your search — {{first_name}}"</span>,
+    template: <span class="cs">"speed_to_lead_email_v1"</span>,
+    platform_note: <span class="cs">"Mailchimp / ActiveCampaign / Follow Up Boss / KVCore"</span>
+  },
+
+  <span class="cm">// ── STEP 3: Create CRM contact ───────────────────────</span>
+  step3: {
+    delay: <span class="cn">0</span>,
+    action: <span class="cs">"upsert_crm_contact"</span>,
+    fields: {
+      name:              <span class="cs">"{{first_name}} {{last_name}}"</span>,
+      email:             <span class="cs">"{{lead.email}}"</span>,
+      phone:             <span class="cs">"{{lead.phone}}"</span>,
+      lead_source:       <span class="cs">"{{source}}"</span>,
+      property_interest: <span class="cs">"{{property_address}}"</span>,
+      stage:             <span class="cs">"New Buyer Lead"</span>,
+      assigned_agent:    <span class="cs">"{{agent_name}}"</span>,
+    },
+    crm_options: [<span class="cs">"Follow Up Boss"</span>, <span class="cs">"KVCore"</span>, <span class="cs">"HubSpot"</span>, <span class="cs">"LionDesk"</span>]
+  },
+
+  <span class="cm">// ── STEP 4: Create agent task ────────────────────────</span>
+  step4: {
+    delay: <span class="cn">0</span>,
+    action: <span class="cs">"create_task"</span>,
+    assigned_to: <span class="cs">"{{agent_id}}"</span>,
+    due_in_hours: <span class="cn">4</span>,
+    note: <span class="cs">"📞 Call {{first_name}} — new lead from {{source}} interested in {{property_address}}"</span>
+  },
+
+  <span class="cm">// ── STEP 5: Day 1 follow-up email ────────────────────</span>
+  step5: {
+    delay: <span class="cn">86400</span>,    <span class="cm">// 24 hours in seconds</span>
+    action: <span class="cs">"send_email"</span>,
+    condition: <span class="cs">"lead.replied == false AND lead.unsubscribed == false"</span>,
+    subject: <span class="cs">"Still searching? 3 homes near {{property_address}} worth seeing"</span>,
+    template: <span class="cs">"day1_comp_email"</span>
+  },
+
+  <span class="cm">// ── STEP 6: Day 3 SMS ────────────────────────────────</span>
+  step6: {
+    delay: <span class="cn">259200</span>,   <span class="cm">// 72 hours</span>
+    action: <span class="cs">"send_sms"</span>,
+    condition: <span class="cs">"lead.replied == false AND lead.unsubscribed == false"</span>,
+    body: <span class="cs">"Hey {{first_name}}, still looking in {{neighborhood}}? New listing just hit..."</span>
+  },
+
+  <span class="cm">// ── STEP 7: Day 5 breakup text ───────────────────────</span>
+  step7: {
+    delay: <span class="cn">432000</span>,   <span class="cm">// 5 days</span>
+    action: <span class="cs">"send_sms"</span>,
+    condition: <span class="cs">"lead.replied == false AND lead.unsubscribed == false"</span>,
+    body: <span class="cs">"Hi {{first_name}}, don't want to keep bugging you..."</span>,
+    on_complete: <span class="cs">"tag_lead: cold_buyer → move to quarterly drip"</span>
+  },
+
+  <span class="cm">// ── EXIT CONDITIONS ───────────────────────────────────</span>
+  exitConditions: [
+    <span class="cs">"lead.replied == true"</span>,
+    <span class="cs">"lead.booking_confirmed == true"</span>,
+    <span class="cs">"lead.unsubscribed == true"</span>,
+    <span class="cs">"lead.stage == 'Under Contract'"</span>
+  ]
+};
+</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c1-crm">
+    <div class="code-label" style="margin-bottom:10px;">Compatible platforms &amp; native features</div>
+    <table class="platform-table">
+      <thead>
+        <tr>
+          <th>CRM / Platform</th>
+          <th>Native Speed-to-Lead</th>
+          <th>SMS Built-in</th>
+          <th>Zapier/Make</th>
+          <th>Best for</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Follow Up Boss</td><td class="check">✓ Action Plans</td><td class="check">✓</td><td class="check">✓</td><td>Teams, high volume</td></tr>
+        <tr><td>KVCore</td><td class="check">✓ Smart Campaigns</td><td class="check">✓</td><td class="check">✓</td><td>IDX + CRM combined</td></tr>
+        <tr><td>LionDesk</td><td class="check">✓ Drip campaigns</td><td class="check">✓</td><td class="check">✓</td><td>Solo agents, budget</td></tr>
+        <tr><td>HubSpot</td><td class="check">✓ Workflows</td><td class="dash">— (needs Twilio)</td><td class="check">✓</td><td>Advanced segmentation</td></tr>
+        <tr><td>ActiveCampaign</td><td class="check">✓ Automations</td><td class="check">✓ (add-on)</td><td class="check">✓</td><td>Email-heavy nurture</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<!-- ──────────────────────────────────────
+     CAMPAIGN 2 · IDX LISTING ALERT DRIP
+────────────────────────────────────────── -->
+<section class="campaign-section" id="c2">
+  <div class="camp-heading">
+    <span class="camp-num">02</span>
+    <div class="camp-title-block">
+      <h2>IDX listing alert drip
+        <span class="camp-pill" style="background:#E6FAF8;color:#0D9488;">Long-term engine</span>
+      </h2>
+      <p>Keeps buyers engaged with auto-matched listings across a 3–6 month search cycle. Highest engagement rates of any buyer automation.</p>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">3–6mo</div><div class="lbl">Average buyer timeline</div></div>
+    <div class="stat-box"><div class="num">47%</div><div class="lbl">Buyers convert from long-term nurture</div></div>
+    <div class="stat-box"><div class="num">42%</div><div class="lbl">Average open rate on listing alerts</div></div>
+    <div class="stat-box"><div class="num">Weekly</div><div class="lbl">Recommended send cadence</div></div>
+  </div>
+
+  <div class="flow-wrap">
+    <div class="flow-step"><span class="flow-node" style="background:#E6FAF8;color:#0D9488;">Buyer registers</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#E6FAF8;color:#0D9488;">Search criteria saved</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#E6FAF8;color:#0D9488;">Weekly digest email</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F0FDF4;color:#15803D;">High-match SMS instant</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F5F3FF;color:#6D28D9;">Monthly check-in</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#FEF3C7;color:#B45309;">Showing booked → exit</span></div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('c2','email',this)">EMAIL COPY</button>
+    <button class="tab-btn" onclick="switchTab('c2','sms',this)">SMS COPY</button>
+    <button class="tab-btn" onclick="switchTab('c2','logic',this)">AUTOMATION LOGIC</button>
+    <button class="tab-btn" onclick="switchTab('c2','crm',this)">SETUP NOTES</button>
+  </div>
+
+  <div class="tab-content active" id="c2-email">
+    <div class="email-block">
+      <div class="email-header">
+        <span class="email-header-label">Weekly digest — every Monday 8am</span>
+        <span class="email-subject">{{num_matches}} new homes match your search this week, {{first_name}}</span>
+        <button class="copy-btn no-print" onclick="copyEl('c2-email-body')">Copy</button>
+      </div>
+      <div class="email-body" id="c2-email-body">Hi {{first_name}},
+
+I've been watching the {{city}} market for you and found {{num_matches}} new homes matching your criteria this week.
+
+🏡 Top pick this week:
+{{top_listing_address}}
+{{top_listing_beds}} bed / {{top_listing_baths}} bath · {{top_listing_sqft}} sq ft · {{top_listing_year_built}}
+Listed at {{top_listing_price}} ({{top_listing_price_per_sqft}}/sq ft)
+{{top_listing_link}}
+
+{{#if additional_listings}}
+Also worth a look this week:
+• {{listing_2_address}} — {{listing_2_price}} · {{listing_2_link}}
+• {{listing_3_address}} — {{listing_3_price}} · {{listing_3_link}}
+• {{listing_4_address}} — {{listing_4_price}} · {{listing_4_link}}
+{{/if}}
+
+📊 Market snapshot — {{zip_code}} this week:
+  · Median list price: {{median_list_price}}
+  · Avg. days on market: {{avg_dom}} days
+  · New listings this week: {{new_listings_count}}
+  · Price reductions: {{price_reduction_count}}
+
+{{#if fast_market}}
+⚡ Heads up: Homes in this range are moving in {{avg_dom}} days or less. I recommend scheduling showings within 24–48 hours on anything you like.
+{{/if}}
+
+Ready to see any of these in person? I can usually get you in within 24 hours.
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}
+
+You're receiving this because you saved a search on {{registration_date}}. · Unsubscribe</div>
+    </div>
+
+    <div class="email-block">
+      <div class="email-header">
+        <span class="email-header-label">Monthly check-in — Day 30 / 60 / 90</span>
+        <span class="email-subject">Quick check-in, {{first_name}} — still searching in {{city}}?</span>
+        <button class="copy-btn no-print" onclick="copyEl('c2-checkin-body')">Copy</button>
+      </div>
+      <div class="email-body" id="c2-checkin-body">Hi {{first_name}},
+
+You've been on my radar since {{registration_date}} and I just wanted to check in — still actively searching, or has your timeline shifted?
+
+Either answer is totally fine. I just want to make sure I'm sending you the right stuff.
+
+A few things have changed in {{city}} since we last connected:
+  · Median sale price: {{current_median_price}} (was {{prior_median_price}} last month)
+  · Inventory: {{inventory_count}} active listings in your range
+  · Interest rates: {{current_rate_estimate}} (as of this week)
+
+If you'd like to pause your alerts for now, just reply "pause" and I'll hold off. Or if you're ready to pick up the pace, I'm here.
+
+{{agent_name}}
+{{agent_phone}}</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c2-sms">
+    <div class="code-section">
+      <div class="code-label">Instant match SMS — fires when match score &gt; 90%</div>
+      <div class="sms-block">{{first_name}}, new match! {{property_address}} — {{beds}}bd/{{baths}}ba at {{price}}. Just listed {{days_ago}}. {{neighborhood}} is moving fast — want a showing this week? {{short_link}} — {{agent_name}}</div>
+      <div class="sms-char-count">≈ 185 characters · 2 SMS segments · Throttle: max 1 per day per lead</div>
+    </div>
+    <div class="code-section">
+      <div class="code-label">Price drop SMS — fires when saved listing drops in price</div>
+      <div class="sms-block">{{first_name}}, price drop alert! {{property_address}} just dropped from {{old_price}} to {{new_price}} ({{price_drop_pct}}% off). You saved this one — want to take a second look? Reply YES and I'll set up a showing. — {{agent_name}}</div>
+      <div class="sms-char-count">≈ 200 characters · 2 SMS segments</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c2-logic">
+    <div class="code-section">
+      <div class="code-label">IDX listing alert automation</div>
+      <div class="code-wrap">
+        <button class="copy-btn no-print" onclick="copyEl('c2-code')">Copy</button>
+        <pre class="code-block" id="c2-code"><span class="cm">// ═══════════════════════════════════════════════════════
+// CAMPAIGN 2: IDX Listing Alert Drip
+// Platform: KVCore / Follow Up Boss / Zapier + Mailchimp
+// Trigger:  New MLS listing matches saved buyer search
+// ═══════════════════════════════════════════════════════</span>
+
+<span class="ck">const</span> listingAlertDrip = {
+
+  <span class="cm">// ── TRIGGER: New listing matches saved search ─────────</span>
+  trigger: {
+    type: <span class="cs">"mls_new_listing_event"</span>,
+    source: <span class="cs">"IDX feed (RETS / RESO Web API)"</span>,
+    condition: <span class="cs">"listing.match_score >= 70"</span>,  <span class="cm">// 0–100 relevance score</span>
+    fields_matched: [<span class="cs">"bedrooms"</span>, <span class="cs">"bathrooms"</span>, <span class="cs">"price_range"</span>, <span class="cs">"zip_codes"</span>, <span class="cs">"property_type"</span>]
+  },
+
+  <span class="cm">// ── INSTANT SMS (match score > 90 only) ──────────────</span>
+  instantSMS: {
+    condition: <span class="cs">"listing.match_score > 90 AND lead.sms_consent == true"</span>,
+    delay: <span class="cn">0</span>,
+    action: <span class="cs">"send_sms"</span>,
+    throttle: <span class="cs">"max_1_sms_per_day_per_lead"</span>,
+    body: <span class="cs">"{{first_name}}, new match! {{listing_address}} — {{beds}}bd/{{baths}}ba at {{price}}..."</span>
+  },
+
+  <span class="cm">// ── WEEKLY EMAIL DIGEST ───────────────────────────────</span>
+  weeklyDigest: {
+    schedule: <span class="cs">"CRON: 0 8 * * 1"</span>,   <span class="cm">// Every Monday at 8:00 AM</span>
+    condition: <span class="cs">"lead.stage NOT IN ['Under Contract','Closed','Paused','Unsubscribed']"</span>,
+    action: <span class="cs">"send_email"</span>,
+    template: <span class="cs">"weekly_listing_digest"</span>,
+    data_sources: {
+      listings:   <span class="cs">"mls_api.get_new_listings(lead.saved_search, days=7)"</span>,
+      avg_dom:    <span class="cs">"mls_api.avg_days_on_market(lead.zip_codes)"</span>,
+      median_price: <span class="cs">"mls_api.median_list_price(lead.zip_codes)"</span>,
+    },
+    skip_if: <span class="cs">"new_listings_count == 0"</span>
+  },
+
+  <span class="cm">// ── PRICE DROP ALERT ──────────────────────────────────</span>
+  priceDropAlert: {
+    trigger: <span class="cs">"mls_price_reduction_event on saved_listings"</span>,
+    delay: <span class="cn">0</span>,
+    action: <span class="cs">"send_sms"</span>,
+    condition: <span class="cs">"price_drop_pct >= 2 AND lead.sms_consent == true"</span>,
+    body: <span class="cs">"{{first_name}}, price drop alert on a home you saved!..."</span>
+  },
+
+  <span class="cm">// ── MONTHLY CHECK-IN ──────────────────────────────────</span>
+  monthlyCheckIn: {
+    schedule: <span class="cs">"day 30, 60, 90, 120 after registration"</span>,
+    condition: <span class="cs">"lead.showing_not_scheduled AND lead.active"</span>,
+    action: <span class="cs">"send_email"</span>,
+    template: <span class="cs">"monthly_checkin_with_market_update"</span>
+  },
+
+  <span class="cm">// ── RE-ENGAGEMENT (no opens in 60 days) ───────────────</span>
+  reEngagement: {
+    condition: <span class="cs">"lead.last_email_open > 60 days ago"</span>,
+    action: <span class="cs">"send_sms"</span>,
+    body: <span class="cs">"Hey {{first_name}}, still looking in {{city}}? Happy to adjust your search or pause alerts. Just reply YES to continue or PAUSE to take a break."</span>
+  },
+
+  <span class="cm">// ── EXIT CONDITIONS ───────────────────────────────────</span>
+  exitConditions: [
+    <span class="cs">"lead.showing_booked == true"</span>,
+    <span class="cs">"lead.replied 'not looking'"</span>,
+    <span class="cs">"lead.stage IN ['Under Contract','Closed']"</span>,
+    <span class="cs">"lead.unsubscribed == true"</span>
+  ],
+
+  <span class="cm">// ── RECOMMENDED IDX PLATFORMS ────────────────────────</span>
+  platforms: [<span class="cs">"KVCore (built-in)"</span>, <span class="cs">"Showcase IDX + Zapier"</span>, <span class="cs">"iHomefinder"</span>, <span class="cs">"Homes.com"</span>]
+};
+</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c2-crm">
+    <div class="tip-row">
+      <div class="tip-box" style="border-color:#0D9488;background:#E6FAF8;color:#0F766E;">
+        <strong>IDX Integration</strong>Connect your MLS IDX feed to your CRM's saved search feature. KVCore and Follow Up Boss handle this natively. For standalone IDX (Showcase IDX, iHomefinder), use Zapier to sync new match events.
+      </div>
+      <div class="tip-box" style="border-color:#6D28D9;background:#F5F3FF;color:#5B21B6;">
+        <strong>Match scoring</strong>Set instant SMS threshold to 90%+ match score to avoid over-texting. Email digests can include 70%+ matches. Most IDX platforms expose a match score field you can reference in your automation condition.
+      </div>
+      <div class="tip-box" style="border-color:#15803D;background:#F0FDF4;color:#166534;">
+        <strong>Frequency cap</strong>Never send more than 1 listing SMS per day per lead, regardless of how many new matches come in. Batch them into the Monday digest instead.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ──────────────────────────────────────
+     CAMPAIGN 3 · LONG-TERM NURTURE
+────────────────────────────────────────── -->
+<section class="campaign-section" id="c3">
+  <div class="camp-heading">
+    <span class="camp-num">03</span>
+    <div class="camp-title-block">
+      <h2>Long-term buyer nurture (6–18 months)
+        <span class="camp-pill" style="background:#F5F3FF;color:#6D28D9;">Pipeline builder</span>
+      </h2>
+      <p>Warms cold leads who aren't ready yet. 47% of buyers who didn't convert in month 1 purchase within 18 months — from whoever stayed in touch.</p>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">47%</div><div class="lbl">Cold leads buy within 18 months</div></div>
+    <div class="stat-box"><div class="num">Bi-weekly</div><div class="lbl">Optimal nurture cadence</div></div>
+    <div class="stat-box"><div class="num">6 touch</div><div class="lbl">Types in rotation</div></div>
+    <div class="stat-box"><div class="num">18 mo</div><div class="lbl">Full sequence length</div></div>
+  </div>
+
+  <div class="flow-wrap">
+    <div class="flow-step"><span class="flow-node" style="background:#F5F3FF;color:#6D28D9;">Tagged: cold lead</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F5F3FF;color:#6D28D9;">Month 1: Education</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F5F3FF;color:#6D28D9;">Month 2: Market data</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#EBF2FF;color:#1A56DB;">Month 3: Neighborhood guide</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#EBF2FF;color:#1A56DB;">Quarterly: Rate/inventory update</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F0FDF4;color:#15803D;">Re-engages → active buyer</span></div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('c3','email',this)">EMAIL COPY</button>
+    <button class="tab-btn" onclick="switchTab('c3','sms',this)">SMS COPY</button>
+    <button class="tab-btn" onclick="switchTab('c3','logic',this)">AUTOMATION LOGIC</button>
+  </div>
+
+  <div class="tab-content active" id="c3-email">
+    <div class="email-block">
+      <div class="email-header">
+        <span class="email-header-label">Month 1 · Touch 1 — Education</span>
+        <span class="email-subject">The honest truth about buying a home in {{city}} right now</span>
+        <button class="copy-btn no-print" onclick="copyEl('c3-email1')">Copy</button>
+      </div>
+      <div class="email-body" id="c3-email1">Hi {{first_name}},
+
+I know you're not quite ready to jump yet — and that's totally okay. I just wanted to share something that might be useful as you plan.
+
+One thing most buyers don't realize: the Orange and Seminole County market moves differently from the national headlines you see on the news.
+
+Here are 3 things I wish every buyer knew before they started:
+
+1. Pre-approval changes everything.
+   Sellers in competitive price ranges (under $450K) often get multiple offers. A pre-approval letter — not just a pre-qualification — puts you in a position to actually win.
+
+2. The "perfect home" mindset can cost you.
+   The buyers who get great deals are the ones who move fast on a "really good" home, not the ones waiting for perfect. Your must-haves vs. nice-to-haves list matters.
+
+3. Your agent doesn't cost you anything as a buyer.
+   In Florida, the seller typically covers buyer's agent commission. You get professional representation at no direct cost to you.
+
+When you're ready to get serious — or if you just want to talk through where the market is heading — I'm here.
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}</div>
+    </div>
+
+    <div class="email-block">
+      <div class="email-header">
+        <span class="email-header-label">Month 2 · Touch 3 — Market data</span>
+        <span class="email-subject">{{city}} real estate: what's actually happening right now</span>
+        <button class="copy-btn no-print" onclick="copyEl('c3-email2')">Copy</button>
+      </div>
+      <div class="email-body" id="c3-email2">Hi {{first_name}},
+
+Quick market update for {{city}} — since you're keeping an eye on things:
+
+📊 {{month}} {{year}} Snapshot:
+  Median sale price:      {{median_sale_price}}
+  Active listings:        {{active_listing_count}} homes
+  Avg. days on market:   {{avg_dom}} days
+  List-to-sale ratio:    {{list_to_sale_pct}}%
+  Interest rate (30yr):  {{current_rate}}%
+
+What this means for buyers:
+{{#if buyers_market}}
+Inventory is up and sellers are negotiating — this is a good window to buy if your finances are in order.
+{{else}}
+Competition is still real at the {{buyer_price_range}} level. Getting pre-approved and working with an agent who knows the off-market pipeline makes a meaningful difference.
+{{/if}}
+
+Anything specific you want me to watch for you?
+
+{{agent_name}}
+{{agent_phone}}</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c3-sms">
+    <div class="code-section">
+      <div class="code-label">Quarterly re-engagement SMS</div>
+      <div class="sms-block">Hey {{first_name}}, {{agent_name}} here — checking in from {{brokerage_name}}. It's been a few months since we connected. Still thinking about buying in {{city}}? The market's shifted a bit and I have some thoughts that might be useful. No pressure — just here when you're ready.</div>
+      <div class="sms-char-count">≈ 245 characters · 2 SMS segments</div>
+    </div>
+    <div class="code-section">
+      <div class="code-label">Rate drop alert SMS (triggered by rate change &gt; 0.25%)</div>
+      <div class="sms-block">{{first_name}}, rates just dropped to {{current_rate}}% — that's the lowest since {{last_rate_low_date}}. On a {{loan_amount}} loan, that's about {{monthly_savings}}/mo savings vs. last month. Might be worth revisiting your timeline? — {{agent_name}}</div>
+      <div class="sms-char-count">≈ 210 characters · 2 SMS segments</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c3-logic">
+    <div class="code-section">
+      <div class="code-label">Long-term nurture sequence logic</div>
+      <div class="code-wrap">
+        <button class="copy-btn no-print" onclick="copyEl('c3-code')">Copy</button>
+        <pre class="code-block" id="c3-code"><span class="cm">// ═══════════════════════════════════════════════════════
+// CAMPAIGN 3: Long-Term Buyer Nurture (6–18 months)
+// Platform: ActiveCampaign / Follow Up Boss / HubSpot
+// Trigger:  Lead tagged "cold" OR "long-term" OR no reply
+//           to speed-to-lead sequence after day 5
+// ═══════════════════════════════════════════════════════</span>
+
+<span class="ck">const</span> longTermNurtureFlow = {
+
+  entryConditions: [
+    <span class="cs">"lead tagged 'cold_buyer'"</span>,
+    <span class="cs">"lead tagged 'long_term_buyer'"</span>,
+    <span class="cs">"lead did not reply to speed-to-lead sequence"</span>,
+    <span class="cs">"lead self-reported timeline > 6 months"</span>
+  ],
+
+  <span class="cm">// ── EMAIL TOUCH ROTATION ─────────────────────────────</span>
+  <span class="cm">// Sends bi-weekly (every 14 days), rotating through 6 content types</span>
+  contentRotation: [
+    { type: <span class="cs">"education"</span>,       subject: <span class="cs">"The honest truth about buying in {{city}} right now"</span> },
+    { type: <span class="cs">"market_data"</span>,     subject: <span class="cs">"{{city}} real estate: what's actually happening"</span> },
+    { type: <span class="cs">"neighborhood"</span>,    subject: <span class="cs">"Living in {{neighborhood}}: what buyers always ask me"</span> },
+    { type: <span class="cs">"financing"</span>,       subject: <span class="cs">"How to get a better mortgage rate (even now)"</span> },
+    { type: <span class="cs">"success_story"</span>,   subject: <span class="cs">"How my buyers got this home for ${{savings_amount}} under asking"</span> },
+    { type: <span class="cs">"checklist"</span>,       subject: <span class="cs">"The 7-step checklist I give every buyer before we start"</span> },
+  ],
+  cadence: <span class="cs">"every_14_days"</span>,
+  max_duration_months: <span class="cn">18</span>,
+
+  <span class="cm">// ── EVENT-BASED TRIGGERS (fire anytime) ───────────────</span>
+  eventTriggers: {
+    rate_drop: {
+      condition: <span class="cs">"mortgage_rate_changes >= 0.25% downward"</span>,
+      action:    <span class="cs">"send_sms"</span>,
+      message:   <span class="cs">"{{first_name}}, rates just dropped to {{rate}}%..."</span>,
+      data_source: <span class="cs">"Freddie Mac Primary Mortgage Market Survey API"</span>
+    },
+    major_price_reduction: {
+      condition: <span class="cs">"mls: price_drop >= 5% on listing matching lead criteria"</span>,
+      action:    <span class="cs">"send_email"</span>,
+      subject:   <span class="cs">"Price drop on a home matching your search, {{first_name}}"</span>
+    },
+    inventory_spike: {
+      condition: <span class="cs">"active_listings in lead.zip_codes increases > 20% week-over-week"</span>,
+      action:    <span class="cs">"send_email"</span>,
+      subject:   <span class="cs">"More homes just hit the market in {{neighborhood}}"</span>
+    }
+  },
+
+  <span class="cm">// ── QUARTERLY SMS CHECK-INS ───────────────────────────</span>
+  quarterlyCheckIn: {
+    schedule: <span class="cs">"day_90, day_180, day_270, day_365"</span>,
+    action: <span class="cs">"send_sms"</span>,
+    message: <span class="cs">"Hey {{first_name}}, checking in — still thinking about buying in {{city}}?..."</span>
+  },
+
+  <span class="cm">// ── RE-ENGAGEMENT GATE (checks every 90 days) ─────────</span>
+  reEngagementGate: {
+    condition: <span class="cs">"no email opens in last 90 days"</span>,
+    action: <span class="cs">"send_reengagement_email"</span>,
+    subject: <span class="cs">"Should I keep sending these, {{first_name}}?"</span>,
+    if_no_response_in_7_days: <span class="cs">"move to annual_touch_only list"</span>
+  },
+
+  exitConditions: [
+    <span class="cs">"lead.replied with buying intent"</span>,
+    <span class="cs">"lead.booked showing"</span>,
+    <span class="cs">"lead.unsubscribed"</span>,
+    <span class="cs">"18 months elapsed with zero engagement"</span>
+  ]
+};
+</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ──────────────────────────────────────
+     CAMPAIGN 4 · PRE-APPROVAL PUSH
+────────────────────────────────────────── -->
+<section class="campaign-section" id="c4">
+  <div class="camp-heading">
+    <span class="camp-num">04</span>
+    <div class="camp-title-block">
+      <h2>Pre-approval push sequence
+        <span class="camp-pill" style="background:#FEF3C7;color:#B45309;">Conversion booster</span>
+      </h2>
+      <p>Moves engaged leads who haven't gotten pre-approved into a qualified buyer. Pre-approved buyers close at 3× the rate of unqualified leads.</p>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">3×</div><div class="lbl">Close rate vs. unqualified leads</div></div>
+    <div class="stat-box"><div class="num">67%</div><div class="lbl">Buyers who delay pre-approval regret it</div></div>
+    <div class="stat-box"><div class="num">3 touch</div><div class="lbl">Sequence length</div></div>
+    <div class="stat-box"><div class="num">7 days</div><div class="lbl">Urgency window</div></div>
+  </div>
+
+  <div class="flow-wrap">
+    <div class="flow-step"><span class="flow-node" style="background:#FEF3C7;color:#B45309;">Lead shows buying intent</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#FEF3C7;color:#B45309;">Check: pre-approved?</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#FEF3C7;color:#B45309;">Day 0: Lender intro email</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#EBF2FF;color:#1A56DB;">Day 2: Why it matters SMS</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#EBF2FF;color:#1A56DB;">Day 5: Lost offer story email</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F0FDF4;color:#15803D;">Pre-approved → showing flow</span></div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('c4','email',this)">EMAIL COPY</button>
+    <button class="tab-btn" onclick="switchTab('c4','sms',this)">SMS COPY</button>
+    <button class="tab-btn" onclick="switchTab('c4','logic',this)">AUTOMATION LOGIC</button>
+  </div>
+
+  <div class="tab-content active" id="c4-email">
+    <div class="email-block">
+      <div class="email-header">
+        <span class="email-header-label">Touch 1 — Day 0 · Lender intro</span>
+        <span class="email-subject">Before we start scheduling showings, {{first_name}} — one quick step</span>
+        <button class="copy-btn no-print" onclick="copyEl('c4-email1')">Copy</button>
+      </div>
+      <div class="email-body" id="c4-email1">Hi {{first_name}},
+
+I'm excited to help you find your home in {{city}}! Before we start scheduling showings, I want to set you up for success with one step that makes a real difference: getting pre-approved.
+
+Here's why it matters right now:
+  · In the {{price_range}} range, sellers often have 2–4 offers within the first week
+  · A pre-approval letter (not just pre-qualification) is required to make an offer
+  · The process takes about 20 minutes online and doesn't hurt your credit score if done within 45 days
+
+I work closely with a few trusted local lenders who I've seen get clients great rates and fast closings. I'd like to make a direct introduction if you're open to it:
+
+🏦 {{preferred_lender_name}}
+   {{preferred_lender_title}} · {{preferred_lender_company}}
+   {{preferred_lender_phone}} · {{preferred_lender_email}}
+   Specialty: {{preferred_lender_specialty}}
+
+Just tell them {{agent_name}} sent you — they'll take great care of you.
+
+Once you have your pre-approval in hand, we can move fast on any home that's right for you. I'll have a shortlist ready.
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}</div>
+    </div>
+
+    <div class="email-block">
+      <div class="email-header">
+        <span class="email-header-label">Touch 3 — Day 5 · Lost offer story</span>
+        <span class="email-subject">What happened to the last buyer who skipped pre-approval</span>
+        <button class="copy-btn no-print" onclick="copyEl('c4-email2')">Copy</button>
+      </div>
+      <div class="email-body" id="c4-email2">Hi {{first_name}},
+
+I want to share something that happened recently — not to scare you, just because I think it's important.
+
+A buyer I was working with found their dream home. Perfect neighborhood, right price, everything they wanted. They made an offer the same day.
+
+But they hadn't gotten pre-approved yet.
+
+The seller had two other offers — both with pre-approval letters attached. Our offer got declined even though it was the highest price, because the sellers weren't willing to wait on financing uncertainty.
+
+That buyer had to start their search over. It was heartbreaking.
+
+Getting pre-approved takes about 20 minutes. I don't want that to happen to you.
+
+If you'd like, I can walk you through the process or introduce you directly to a lender I trust. Just reply to this email or call me at {{agent_phone}}.
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c4-sms">
+    <div class="code-section">
+      <div class="code-label">Day 2 SMS — urgency / social proof</div>
+      <div class="sms-block">Hey {{first_name}}, {{agent_name}} here. Quick heads up — a home near {{search_area}} just went under contract in 3 days with 4 offers. Pre-approved buyers were the only ones able to move that fast. I can connect you with a great local lender in 5 min. Want that intro?</div>
+      <div class="sms-char-count">≈ 255 characters · 2 SMS segments</div>
+    </div>
+    <div class="code-section">
+      <div class="code-label">Confirmation SMS — when pre-approval is received</div>
+      <div class="sms-block">🎉 Congrats {{first_name}} on your pre-approval! You're officially ready to make an offer. I've got 3 homes in {{search_area}} I want to show you this week — does {{day}} or {{day2}} work better for you? — {{agent_name}}</div>
+      <div class="sms-char-count">≈ 210 characters · 2 SMS segments</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c4-logic">
+    <div class="code-section">
+      <div class="code-label">Pre-approval push logic</div>
+      <div class="code-wrap">
+        <button class="copy-btn no-print" onclick="copyEl('c4-code')">Copy</button>
+        <pre class="code-block" id="c4-code"><span class="cm">// ═══════════════════════════════════════════════════════
+// CAMPAIGN 4: Pre-Approval Push Sequence
+// Trigger:  Lead shows buying intent but is NOT pre-approved
+//           (replies to prior campaign, books showing, or
+//            agent manually tags "needs pre-approval")
+// ═══════════════════════════════════════════════════════</span>
+
+<span class="ck">const</span> preApprovalPush = {
+
+  entryConditions: [
+    <span class="cs">"lead.pre_approved == false OR null"</span>,
+    <span class="cs">"lead.buying_intent == true"</span>,   <span class="cm">// replied, clicked, or booked</span>
+    <span class="cs">"lead.stage IN ['Active Buyer','Warm Lead','Showing Requested']"</span>
+  ],
+
+  <span class="cm">// ── STEP 1: Lender intro email ────────────────────────</span>
+  step1: {
+    delay: <span class="cn">0</span>,
+    action: <span class="cs">"send_email"</span>,
+    template: <span class="cs">"pre_approval_lender_intro"</span>,
+    subject: <span class="cs">"Before we start scheduling showings — one quick step"</span>,
+    personalization: {
+      preferred_lender: <span class="cs">"pull from agent.preferred_lenders[lead.zip_code]"</span>
+    }
+  },
+
+  <span class="cm">// ── STEP 2: SMS urgency (day 2) ──────────────────────</span>
+  step2: {
+    delay: <span class="cn">172800</span>,   <span class="cm">// 48 hours</span>
+    action: <span class="cs">"send_sms"</span>,
+    condition: <span class="cs">"lead.pre_approved == false"</span>,
+    body: <span class="cs">"Hey {{first_name}}, quick heads up — a home near {{search_area}} just went under contract..."</span>
+  },
+
+  <span class="cm">// ── STEP 3: Lost offer story email (day 5) ───────────</span>
+  step3: {
+    delay: <span class="cn">432000</span>,   <span class="cm">// 5 days</span>
+    action: <span class="cs">"send_email"</span>,
+    condition: <span class="cs">"lead.pre_approved == false"</span>,
+    template: <span class="cs">"pre_approval_lost_offer_story"</span>
+  },
+
+  <span class="cm">// ── WHEN PRE-APPROVAL IS RECEIVED ────────────────────</span>
+  onPreApprovalReceived: {
+    trigger: <span class="cs">"lead.pre_approved updated to true"</span>,
+    <span class="cm">// Can be set by: agent manual update, lender webhook, or lead reply parse</span>
+    actions: [
+      { action: <span class="cs">"cancel_remaining_pre_approval_sequence"</span> },
+      { action: <span class="cs">"send_sms"</span>, body: <span class="cs">"🎉 Congrats {{first_name}} on your pre-approval!..."</span> },
+      { action: <span class="cs">"update_crm_stage"</span>, stage: <span class="cs">"Pre-Approved Buyer"</span> },
+      { action: <span class="cs">"enter_showing_scheduling_sequence"</span> },  <span class="cm">// Campaign 5</span>
+      { action: <span class="cs">"create_task"</span>, note: <span class="cs">"📞 Call {{first_name}} — pre-approved, ready to schedule showings"</span> }
+    ]
+  },
+
+  exitConditions: [
+    <span class="cs">"lead.pre_approved == true"</span>,
+    <span class="cs">"lead.unsubscribed == true"</span>,
+    <span class="cs">"agent manually exits lead"</span>
+  ]
+};
+</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ──────────────────────────────────────
+     CAMPAIGN 5 · POST-SHOWING FOLLOW-UP
+────────────────────────────────────────── -->
+<section class="campaign-section" id="c5">
+  <div class="camp-heading">
+    <span class="camp-num">05</span>
+    <div class="camp-title-block">
+      <h2>Post-showing follow-up &amp; offer push
+        <span class="camp-pill" style="background:#FDF2F8;color:#BE185D;">Highest intent</span>
+      </h2>
+      <p>Converts showings into offers within 72 hours. The highest-intent moment in the buyer journey — most agents lose deals here by going silent.</p>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="num">72hrs</div><div class="lbl">Critical decision window post-showing</div></div>
+    <div class="stat-box"><div class="num">58%</div><div class="lbl">Buyers decide within 24hrs of showing</div></div>
+    <div class="stat-box"><div class="num">4 touch</div><div class="lbl">Sequence length</div></div>
+    <div class="stat-box"><div class="num">Same day</div><div class="lbl">First touch timing</div></div>
+  </div>
+
+  <div class="flow-wrap">
+    <div class="flow-step"><span class="flow-node" style="background:#FDF2F8;color:#BE185D;">Showing completed</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#FDF2F8;color:#BE185D;">Same-day feedback SMS</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#FDF2F8;color:#BE185D;">Day 1: Comp analysis email</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#EBF2FF;color:#1A56DB;">Day 2: Offer strategy SMS</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#EBF2FF;color:#1A56DB;">Day 3: Competing offer alert</span><span class="flow-arrow">→</span></div>
+    <div class="flow-step"><span class="flow-node" style="background:#F0FDF4;color:#15803D;">Offer submitted → exit</span></div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('c5','email',this)">EMAIL COPY</button>
+    <button class="tab-btn" onclick="switchTab('c5','sms',this)">SMS COPY</button>
+    <button class="tab-btn" onclick="switchTab('c5','logic',this)">AUTOMATION LOGIC</button>
+  </div>
+
+  <div class="tab-content active" id="c5-email">
+    <div class="email-block">
+      <div class="email-header">
+        <span class="email-header-label">Touch 2 — Day 1 · Comp analysis</span>
+        <span class="email-subject">The numbers on {{property_address}} — is it priced right?</span>
+        <button class="copy-btn no-print" onclick="copyEl('c5-email1')">Copy</button>
+      </div>
+      <div class="email-body" id="c5-email1">Hi {{first_name}},
+
+Hope you enjoyed the tour yesterday at {{property_address}}! I wanted to send over the numbers while they're fresh.
+
+Here's how it compares to recent sales in {{neighborhood}}:
+
+📊 Comparable sales (last 90 days):
+{{comp1_address}} — {{comp1_beds}}bd/{{comp1_baths}}ba · Sold {{comp1_price}} on {{comp1_close_date}}
+{{comp2_address}} — {{comp2_beds}}bd/{{comp2_baths}}ba · Sold {{comp2_price}} on {{comp2_close_date}}
+{{comp3_address}} — {{comp3_beds}}bd/{{comp3_baths}}ba · Sold {{comp3_price}} on {{comp3_close_date}}
+
+Avg. sold price/sq ft in the area: {{avg_price_per_sqft}}
+{{property_address}} is listed at: {{listing_price_per_sqft}}/sq ft
+
+My read: {{#if overpriced}}This home is listed slightly above market — there may be room to negotiate.{{else}}{{#if underpriced}}This one is priced to move. If you like it, I'd suggest moving quickly.{{else}}The pricing looks fair for the area.{{/if}}{{/if}}
+
+Thinking about making an offer? Here's what I'd recommend as a starting strategy:
+  · Offer price: {{suggested_offer_range}}
+  · Earnest money: {{suggested_earnest}} (shows serious intent)
+  · Inspection period: 10 days (standard FL)
+  · Closing timeline: {{suggested_closing_timeline}}
+
+I can have a draft offer ready in about an hour if you want to move forward.
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}</div>
+    </div>
+
+    <div class="email-block">
+      <div class="email-header">
+        <span class="email-header-label">Touch 4 — Day 3 · Competing offer alert</span>
+        <span class="email-subject">Update on {{property_address}} — wanted you to know</span>
+        <button class="copy-btn no-print" onclick="copyEl('c5-email2')">Copy</button>
+      </div>
+      <div class="email-body" id="c5-email2">Hi {{first_name}},
+
+I wanted to give you a heads up — {{property_address}} has been getting activity.
+
+{{#if competing_offers_confirmed}}
+The listing agent confirmed they have {{offer_count}} offer(s) in hand. They're reviewing {{offer_deadline}}.
+
+If you're interested, now is the time to act. I can submit a competitive offer tonight.
+{{else}}
+I don't have confirmed competing offers, but this home has had {{showing_count}} showings since listing. In this market, that's a meaningful signal.
+{{/if}}
+
+I don't say this to pressure you — only you know if this is the right home. But I want to make sure you have the full picture before the window closes.
+
+If you want to move forward or just talk through whether it makes sense, I'm available right now.
+
+{{agent_name}}
+{{agent_phone}} | {{brokerage_name}}</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c5-sms">
+    <div class="code-section">
+      <div class="code-label">Touch 1 SMS — same day, 2 hours after showing</div>
+      <div class="sms-block">Hey {{first_name}}! Hope the showing at {{property_address}} was helpful. Quick question — overall impression: loved it, liked it, or not the one? Your gut reaction helps me zero in on exactly what you're looking for. — {{agent_name}}</div>
+      <div class="sms-char-count">≈ 225 characters · 2 SMS segments · This reply data feeds CRM stage update</div>
+    </div>
+    <div class="code-section">
+      <div class="code-label">Touch 3 SMS — Day 2 · Offer strategy nudge</div>
+      <div class="sms-block">{{first_name}}, I ran the comps on {{property_address}} and sent you an analysis — did you get a chance to look? If you're thinking about it, I can have a draft offer ready in about an hour. Just say the word. — {{agent_name}}</div>
+      <div class="sms-char-count">≈ 215 characters · 2 SMS segments</div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="c5-logic">
+    <div class="code-section">
+      <div class="code-label">Post-showing follow-up logic</div>
+      <div class="code-wrap">
+        <button class="copy-btn no-print" onclick="copyEl('c5-code')">Copy</button>
+        <pre class="code-block" id="c5-code"><span class="cm">// ═══════════════════════════════════════════════════════
+// CAMPAIGN 5: Post-Showing Follow-Up & Offer Push
+// Trigger:  Agent logs showing as "completed" in CRM
+//           OR calendar event with tag "showing" ends
+// Platform: Follow Up Boss / KVCore / HubSpot + Zapier
+// ═══════════════════════════════════════════════════════</span>
+
+<span class="ck">const</span> postShowingFlow = {
+
+  trigger: {
+    type: <span class="cs">"crm_event"</span>,
+    event: <span class="cs">"showing_status updated to 'completed'"</span>,
+    or: <span class="cs">"calendar event tagged 'showing' ends"</span>,
+    required_fields: [<span class="cs">"property_address"</span>, <span class="cs">"lead_id"</span>, <span class="cs">"showing_date"</span>]
+  },
+
+  <span class="cm">// ── STEP 1: Same-day feedback SMS ────────────────────</span>
+  step1: {
+    delay: <span class="cn">7200</span>,     <span class="cm">// 2 hours after showing_end_time</span>
+    action: <span class="cs">"send_sms"</span>,
+    body: <span class="cs">"Hey {{first_name}}! Hope the showing was helpful. Quick question — overall: loved it, liked it, or not the one?"</span>,
+    <span class="cm">// Parse reply to update CRM stage:</span>
+    reply_routing: {
+      <span class="cs">"loved"</span>:    <span class="cs">"stage = 'Hot Buyer' → expedite sequence"</span>,
+      <span class="cs">"liked"</span>:    <span class="cs">"stage = 'Warm Buyer' → standard sequence"</span>,
+      <span class="cs">"not"</span>:      <span class="cs">"stage = 'Active Searching' → return to listing alert drip"</span>
+    }
+  },
+
+  <span class="cm">// ── STEP 2: Comp analysis email (Day 1) ──────────────</span>
+  step2: {
+    delay: <span class="cn">86400</span>,    <span class="cm">// 24 hours</span>
+    action: <span class="cs">"send_email"</span>,
+    template: <span class="cs">"post_showing_comp_analysis"</span>,
+    subject: <span class="cs">"The numbers on {{property_address}} — is it priced right?"</span>,
+    data_fetch: {
+      comps: <span class="cs">"mls_api.get_sold_comps(property_address, radius=0.5mi, days=90)"</span>,
+      avg_ppsf: <span class="cs">"mls_api.avg_price_per_sqft(neighborhood)"</span>,
+      suggested_offer: <span class="cs">"calc: avg_ppsf * listing_sqft * agent_adjustment_factor"</span>
+    }
+  },
+
+  <span class="cm">// ── STEP 3: Offer nudge SMS (Day 2) ──────────────────</span>
+  step3: {
+    delay: <span class="cn">172800</span>,   <span class="cm">// 48 hours</span>
+    action: <span class="cs">"send_sms"</span>,
+    condition: <span class="cs">"lead.offer_submitted == false"</span>,
+    body: <span class="cs">"{{first_name}}, I ran the comps and sent you an analysis — did you get a chance to look?..."</span>
+  },
+
+  <span class="cm">// ── STEP 4: Competing offer alert (Day 3) ────────────</span>
+  step4: {
+    delay: <span class="cn">259200</span>,   <span class="cm">// 72 hours</span>
+    action: <span class="cs">"send_email"</span>,
+    condition: <span class="cs">"lead.offer_submitted == false"</span>,
+    template: <span class="cs">"competing_offer_urgency"</span>,
+    data_fetch: {
+      competing_offers: <span class="cs">"agent_manually_inputs OR listing_agent_confirmed"</span>,
+      showing_count:    <span class="cs">"mls_api.get_showing_count(property_id)"</span>
+    }
+  },
+
+  <span class="cm">// ── ON OFFER SUBMITTED ────────────────────────────────</span>
+  onOfferSubmitted: {
+    trigger: <span class="cs">"lead.offer_submitted == true"</span>,
+    actions: [
+      { action: <span class="cs">"cancel_all_pending_campaign_steps"</span> },
+      { action: <span class="cs">"update_stage"</span>, stage: <span class="cs">"Offer Submitted"</span> },
+      { action: <span class="cs">"send_sms"</span>, body: <span class="cs">"Offer is in, {{first_name}}! I'll update you as soon as I hear back. Fingers crossed! 🤞 — {{agent_name}}"</span> }
+    ]
+  },
+
+  <span class="cm">// ── OFFER REJECTED → RE-ENTER SEARCH ────────────────</span>
+  onOfferRejected: {
+    actions: [
+      { action: <span class="cs">"send_sms"</span>, body: <span class="cs">"{{first_name}}, offer wasn't accepted — I know that's disappointing. The right home is still out there. Let's regroup. When can we chat? — {{agent_name}}"</span> },
+      { action: <span class="cs">"re-enter listing_alert_drip sequence"</span> }
+    ]
+  },
+
+  exitConditions: [
+    <span class="cs">"lead.offer_submitted == true"</span>,
+    <span class="cs">"lead.under_contract == true"</span>,
+    <span class="cs">"lead.feedback == 'not the one' → re-enter listing_alert_drip"</span>,
+    <span class="cs">"lead.unsubscribed == true"</span>
+  ]
+};
+</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="doc-footer">
+  <span>Buyer Lead Automation Campaigns · LPT Realty · Orange &amp; Seminole County, FL</span>
+  <span>All SMS templates require A2P 10DLC registration · TCPA written consent required · Florida License required on all communications</span>
+</footer>
+
+<script>
+function scrollTo(id, btn) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.toc-item').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function switchTab(campId, tabName, clickedBtn) {
+  const allTabs = ['email','sms','logic','crm'];
+  allTabs.forEach(t => {
+    const el = document.getElementById(campId + '-' + t);
+    if (el) el.classList.remove('active');
+  });
+  const target = document.getElementById(campId + '-' + tabName);
+  if (target) target.classList.add('active');
+  const tabNav = clickedBtn.parentElement;
+  tabNav.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  clickedBtn.classList.add('active');
+}
+
+function copyEl(elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btns = document.querySelectorAll('.copy-btn');
+    btns.forEach(b => {
+      if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(elId)) {
+        const orig = b.textContent;
+        b.textContent = 'Copied!';
+        b.style.color = '#22c55e';
+        setTimeout(() => { b.textContent = 'Copy'; b.style.color = ''; }, 1800);
+      }
+    });
+  }).catch(() => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+// Highlight active section on scroll
+const sections = ['c1','c2','c3','c4','c5'];
+const tocItems = document.querySelectorAll('.toc-item');
+window.addEventListener('scroll', () => {
+  let current = 'c1';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && window.scrollY >= el.offsetTop - 80) current = id;
+  });
+  tocItems.forEach((item, i) => {
+    item.classList.toggle('active', sections[i] === current);
+  });
+}, { passive: true });
+</script>
+</body>
+</html>

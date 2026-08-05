@@ -59,6 +59,8 @@ Run in Supabase SQL editor:
 2. `supabase/schema-m3.sql`
 3. `supabase/schema-calendar.sql`
 4. `supabase/schema-contact-tasks.sql`
+5. `supabase/schema-integrations.sql` (Dotloop OAuth tokens)
+6. `supabase/schema-lead-engagement.sql` (buyer workflow fields + engagement score)
 
 Create Storage bucket: **`voice-assets`** (private).
 
