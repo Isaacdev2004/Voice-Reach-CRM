@@ -40,6 +40,15 @@ export const POST = withApiHandler(async (request) => {
   }
 
   const provider = process.env.VOICE_PROVIDER?.trim() || "slybroadcast";
+  const { data: latestVoice } = await supabaseAdmin
+    .from("voice_assets")
+    .select("id")
+    .eq("owner_id", ownerId)
+    .eq("approved", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   const { data: record, error } = await supabaseAdmin
     .from("campaigns")
     .insert({
@@ -48,6 +57,7 @@ export const POST = withApiHandler(async (request) => {
       script_id: `template-${body.templateKey}`,
       provider,
       status: "draft",
+      voice_asset_id: latestVoice?.id ?? null,
     })
     .select("*")
     .single();
@@ -99,8 +109,10 @@ export const POST = withApiHandler(async (request) => {
       campaignId: record.id,
       automationRuleId,
       alreadyExisted: false,
-      message:
-        "Cold Lead Re-engagement is ready. Open it, add consented contacts, link a voice recording, then Run sequence → Live send.",
+      voiceAttached: Boolean(latestVoice?.id),
+      message: latestVoice?.id
+        ? "Cold Lead Re-engagement is ready with your latest approved voice. Open it, add consented contacts, then Run sequence → Live send."
+        : "Cold Lead Re-engagement is ready. Open it, add consented contacts, approve a voice recording, then Run sequence → Live send.",
     },
     { status: 201 },
   );

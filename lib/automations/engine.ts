@@ -210,10 +210,18 @@ async function runAction(
       if (enrollment.recipientIds.length) {
         const { data: campaign } = await supabaseAdmin
           .from("campaigns")
-          .select("status")
+          .select("status, voice_asset_id")
           .eq("id", campaignId)
           .eq("owner_id", ownerId)
           .maybeSingle();
+        if (campaign?.status === "draft" && campaign.voice_asset_id) {
+          await supabaseAdmin
+            .from("campaigns")
+            .update({ status: "queued", updated_at: new Date().toISOString() })
+            .eq("id", campaignId)
+            .eq("owner_id", ownerId);
+          campaign.status = "queued";
+        }
         if (campaign && ["queued", "sending", "partial", "sent"].includes(campaign.status)) {
           await scheduleStepRunsForRecipients(ownerId, campaignId, enrollment.recipientIds);
         }

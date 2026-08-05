@@ -9,6 +9,7 @@ import { useUpgradePlan } from "@/components/billing/upgrade-plan-provider";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import { connectDotloop } from "@/lib/connect-dotloop";
 import { connectGoogleCalendar } from "@/lib/connect-google-calendar";
 import { formatRelativeTime } from "@/lib/activity/format";
 import { TIMEZONE_OPTIONS } from "@/lib/settings/defaults";
@@ -120,9 +121,43 @@ export function SettingsWorkspacePage() {
     }
   }, []);
 
+  const syncLiveIntegrations = useCallback(async () => {
+    try {
+      const res = await fetch("/api/integrations/status");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      setSettings((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          integrations: prev.integrations.map((item) => {
+            if (item.id === "claude") {
+              return {
+                ...item,
+                connected: Boolean(data.claude?.configured),
+                accountLabel: data.claude?.configured ? data.claude.model : undefined,
+              };
+            }
+            if (item.id === "dotloop") {
+              return {
+                ...item,
+                connected: Boolean(data.dotloop?.connected),
+                accountLabel: data.dotloop?.accountLabel ?? undefined,
+              };
+            }
+            return item;
+          }),
+        };
+      });
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   useEffect(() => {
     void syncGoogleCalendarStatus();
-  }, [syncGoogleCalendarStatus]);
+    void syncLiveIntegrations();
+  }, [syncGoogleCalendarStatus, syncLiveIntegrations]);
 
   useEffect(() => {
     const requestedTab = searchParams.get("tab");
@@ -137,6 +172,7 @@ export function SettingsWorkspacePage() {
     }
 
     const calendar = searchParams.get("calendar");
+    const dotloop = searchParams.get("dotloop");
     const reason = searchParams.get("reason");
     if (calendar === "connected") {
       void load();
@@ -151,6 +187,21 @@ export function SettingsWorkspacePage() {
             : reason === "missing_code_or_session"
               ? "Session expired — click Connect again (stay signed in to VoiceReach)."
               : `Google Calendar connection failed${reason ? `: ${reason}` : ""}.`;
+      showToast(message, "error");
+      router.replace("/dashboard/settings?tab=workspace", { scroll: false });
+    } else if (dotloop === "connected") {
+      void load();
+      showToast("Dotloop connected.");
+      router.replace("/dashboard/settings?tab=workspace", { scroll: false });
+    } else if (dotloop === "error") {
+      const message =
+        reason === "database_table_missing"
+          ? "Dotloop database not set up yet — run supabase/schema-integrations.sql."
+          : reason === "access_denied"
+            ? "Dotloop access was denied. Try Connect again and click Allow."
+            : reason === "missing_code_or_session"
+              ? "Session expired — click Connect again (stay signed in)."
+              : `Dotloop connection failed${reason ? `: ${reason}` : ""}.`;
       showToast(message, "error");
       router.replace("/dashboard/settings?tab=workspace", { scroll: false });
     }
@@ -638,6 +689,55 @@ export function SettingsWorkspacePage() {
                               })();
                               return;
                             }
+                            if (integration.id === "dotloop" && !integration.connected) {
+                              const result = connectDotloop();
+                              if (result.blocked) {
+                                showToast(
+                                  "Open ARI in Safari or Chrome, then connect Dotloop.",
+                                  "error",
+                                );
+                              }
+                              return;
+                            }
+                            if (integration.id === "dotloop" && integration.connected) {
+                              void (async () => {
+                                const res = await fetch("/api/integrations/dotloop/status", {
+                                  method: "DELETE",
+                                });
+                                if (res.ok) {
+                                  setSettings((prev) =>
+                                    prev
+                                      ? {
+                                          ...prev,
+                                          integrations: prev.integrations.map((item) =>
+                                            item.id === "dotloop"
+                                              ? {
+                                                  ...item,
+                                                  connected: false,
+                                                  accountLabel: undefined,
+                                                  lastSync: undefined,
+                                                }
+                                              : item,
+                                          ),
+                                        }
+                                      : prev,
+                                  );
+                                  showToast("Dotloop disconnected.");
+                                } else {
+                                  showToast("Could not disconnect Dotloop.", "error");
+                                }
+                              })();
+                              return;
+                            }
+                            if (integration.id === "claude") {
+                              showToast(
+                                integration.connected
+                                  ? "Claude is live. Open AI Assist to generate emails, SMS, and scripts."
+                                  : "Add ANTHROPIC_API_KEY in Vercel to turn on live Claude drafts.",
+                                integration.connected ? "success" : "error",
+                              );
+                              return;
+                            }
                             setIntegrationModal(integration);
                           }}
                           className={cn(
@@ -649,9 +749,13 @@ export function SettingsWorkspacePage() {
                         >
                           {integration.id === "google-calendar" && integration.connected
                             ? "Disconnect"
-                            : integration.connected
-                              ? "Configure"
-                              : "Connect"}
+                            : integration.id === "dotloop" && integration.connected
+                              ? "Disconnect"
+                              : integration.id === "claude" && integration.connected
+                                ? "Live"
+                                : integration.connected
+                                  ? "Configure"
+                                  : "Connect"}
                         </button>
                       </div>
                     ))}

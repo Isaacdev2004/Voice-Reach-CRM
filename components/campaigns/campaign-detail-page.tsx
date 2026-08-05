@@ -189,12 +189,22 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
 
   const tickRunner = async () => {
     setTickingRunner(true);
-    const envelope = await safeFetch<{ processed: number }>("/api/campaigns/runner", {
+    const envelope = await safeFetch<{
+      processed?: number;
+      executed?: unknown[];
+      inactive?: { scanned: number; triggered: number };
+    }>("/api/campaigns/runner", {
       method: "POST",
     });
     setTickingRunner(false);
     if (envelope.success) {
-      showToast(`Processed ${envelope.data.processed} step run${envelope.data.processed === 1 ? "" : "s"}`);
+      const processed = envelope.data.processed ?? envelope.data.executed?.length ?? 0;
+      const inactive = envelope.data.inactive;
+      showToast(
+        `Processed ${processed} step run${processed === 1 ? "" : "s"}${
+          inactive ? ` · inactive leads scanned ${inactive.scanned}, enrolled ${inactive.triggered}` : ""
+        }`,
+      );
       void refresh();
     } else {
       showToast(envelope.error, "error");
@@ -367,6 +377,92 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
           ) : null}
         </div>
       </header>
+
+      {(() => {
+        const voiceReady = Boolean(campaign.voice_asset_id && campaign.voice_assets?.approved !== false);
+        const peopleReady = counts.total > 0;
+        const consentReady = counts.eligible > 0;
+        const liveReady = campaign.provider !== "mock";
+        const items = [
+          {
+            ok: voiceReady,
+            label: "Approved voice linked",
+            hint: voiceReady
+              ? campaign.voice_assets?.title || "Voice attached"
+              : "Upload and approve a voice recording, then attach it here.",
+            href: "/dashboard/voice-scripts",
+          },
+          {
+            ok: peopleReady,
+            label: "People enrolled",
+            hint: peopleReady ? `${counts.total} on this campaign` : "Add contacts before sending.",
+          },
+          {
+            ok: consentReady,
+            label: "Consent-eligible recipients",
+            hint: consentReady
+              ? `${counts.eligible} ready to receive`
+              : "Record TCPA consent (date + source) on each contact.",
+            href: "/dashboard/contacts",
+          },
+          {
+            ok: liveReady,
+            label: "Live send provider",
+            hint: liveReady
+              ? `Sending via ${campaign.provider}`
+              : "Simulation mode — set VOICE_PROVIDER to slybroadcast/twilio for live.",
+          },
+          {
+            ok: campaign.status !== "draft",
+            label: "Campaign activated",
+            hint:
+              campaign.status !== "draft"
+                ? `Status: ${campaign.status}`
+                : "Add people or run the sequence to leave draft and start scheduling.",
+          },
+        ];
+        const readyCount = items.filter((item) => item.ok).length;
+        return (
+          <LuxuryCard padding="lg">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="font-serif text-[22px] font-semibold text-ink">Live-send checklist</h2>
+                <p className="mt-1 text-[13px] text-taupe">
+                  {readyCount}/{items.length} ready
+                  {campaign.script_id?.startsWith("template-cold-lead")
+                    ? " · inactive leads auto-enroll when you run the scheduler"
+                    : ""}
+                </p>
+              </div>
+            </div>
+            <ul className="grid gap-3 md:grid-cols-2">
+              {items.map((item) => (
+                <li
+                  key={item.label}
+                  className="flex items-start gap-3 rounded-xl border border-outline-variant/15 bg-champagne/30 px-4 py-3"
+                >
+                  <Icon
+                    name={item.ok ? "check_circle" : "radio_button_unchecked"}
+                    className={item.ok ? "text-emerald-muted" : "text-taupe"}
+                  />
+                  <div>
+                    <p className="text-[14px] font-medium text-ink">{item.label}</p>
+                    <p className="mt-0.5 text-[12px] text-taupe">{item.hint}</p>
+                    {!item.ok && item.href ? (
+                      <Link
+                        href={item.href}
+                        className="mt-1 inline-flex text-[12px] font-medium text-rose-gold-deep hover:underline"
+                      >
+                        Fix this
+                      </Link>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </LuxuryCard>
+        );
+      })()}
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-6">
         {[

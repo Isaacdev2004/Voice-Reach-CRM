@@ -1,4 +1,5 @@
 import { getGoogleConnection } from "@/lib/calendar/google";
+import { getDotloopConnection } from "@/lib/integrations/dotloop";
 import type { IntegrationConfig } from "./types";
 
 /** Merge saved integration rows with defaults so new integrations (e.g. Google Calendar) are never dropped. */
@@ -18,18 +19,45 @@ export async function applyLiveIntegrationStatus(
   ownerId: string,
   integrations: IntegrationConfig[],
 ): Promise<IntegrationConfig[]> {
-  const connection = await getGoogleConnection(ownerId).catch(() => null);
+  const [google, dotloop] = await Promise.all([
+    getGoogleConnection(ownerId).catch(() => null),
+    getDotloopConnection(ownerId).catch(() => null),
+  ]);
+  const claudeReady = Boolean(process.env.ANTHROPIC_API_KEY?.trim());
 
   return integrations.map((item) => {
-    if (item.id !== "google-calendar") return item;
-    if (!connection) {
-      return { ...item, connected: false, accountLabel: undefined, lastSync: undefined };
+    if (item.id === "google-calendar") {
+      if (!google) {
+        return { ...item, connected: false, accountLabel: undefined, lastSync: undefined };
+      }
+      return {
+        ...item,
+        connected: true,
+        accountLabel: google.account_email ?? "Google account",
+        lastSync: google.updated_at ?? new Date().toISOString(),
+      };
     }
-    return {
-      ...item,
-      connected: true,
-      accountLabel: connection.account_email ?? "Google account",
-      lastSync: connection.updated_at ?? new Date().toISOString(),
-    };
+    if (item.id === "dotloop") {
+      if (!dotloop) {
+        return { ...item, connected: false, accountLabel: undefined, lastSync: undefined };
+      }
+      return {
+        ...item,
+        connected: true,
+        accountLabel: dotloop.account_label ?? "Dotloop account",
+        lastSync: dotloop.updated_at ?? new Date().toISOString(),
+      };
+    }
+    if (item.id === "claude") {
+      return {
+        ...item,
+        connected: claudeReady,
+        accountLabel: claudeReady
+          ? process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-5"
+          : undefined,
+        lastSync: claudeReady ? new Date().toISOString() : undefined,
+      };
+    }
+    return item;
   });
 }
