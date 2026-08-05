@@ -52,45 +52,45 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
       {
         order: 1,
         type: "email",
-        title: "Market update (value-first)",
+        title: "Market update / saved-search digest",
         description:
-          "Subject: A quick look at [Market] this week\n\nHi [FirstName],\n\nNo ask — just a short market snapshot for your area. Inventory and pricing have shifted a bit, and I thought you'd want the numbers without another \"just checking in.\"\n\nIf useful, I can send a saved-search digest tailored to what you were looking at before.\n\nWarmly,\n[Agent]",
+          "Subject: [City] market update for you, [FirstName]\n\nHi [FirstName],\n\nI've been watching the [City] market and wanted to share a quick snapshot — no check-in ask, just useful info.\n\nThis week's snapshot:\n· Median list price: [MedianListPrice]\n· Avg. days on market: [AvgDOM] days\n· New listings this week: [NewListingsCount]\n\nIf you're still keeping an eye on homes in [Neighborhood], a few that stood out:\n• [Listing1Address] — [Listing1Price]\n• [Listing2Address] — [Listing2Price]\n• [Listing3Address] — [Listing3Price]\n\nHappy to adjust what I'm watching for you anytime.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 1",
-        timeLabel: "10:00 AM",
+        timeLabel: "9:00 AM",
       },
       {
         order: 2,
         type: "sms",
-        title: "Search-status SMS",
+        title: "Casual search-status SMS",
         description:
-          "Hi [FirstName] — still exploring a move this season, or has timing changed? One-word reply is perfect. — [Agent] Reply STOP to opt out.",
+          "Hey [FirstName], [Agent] here — still looking in [City], or has your timeline shifted? Either answer is fine. Reply STOP to opt out.",
         dayLabel: "Day 3",
         timeLabel: "11:00 AM",
       },
       {
         order: 3,
         type: "voicemail",
-        title: "Warm availability voicemail",
+        title: "Low-pressure availability VM",
         description:
-          "Hi [FirstName], it's [Agent]. We connected a while back about your home plans. No pressure — just checking in to see if timing is better this season. Happy to help whenever you're ready.",
+          "Hi [FirstName], this is [Agent] with [Brokerage]. Just leaving a quick note — I'm around if you want to talk through the [City] market or tweak your search. No pressure at all. You have my number whenever timing feels right. Take care.",
         dayLabel: "Day 7",
         timeLabel: "10:00 AM",
       },
       {
         order: 4,
         type: "email",
-        title: "Opt-down / should I pause?",
+        title: "Opt-down / should I stop?",
         description:
-          "Subject: Should I pause outreach, [FirstName]?\n\nHi [FirstName],\n\nI don't want to fill your inbox if the timing isn't right. Would you rather I:\n1) Pause for now, or\n2) Keep sending occasional market updates only?\n\nJust reply 1 or 2 — either is perfectly fine.\n\n[Agent]",
+          "Subject: Should I keep sending these, [FirstName]?\n\nHi [FirstName],\n\nI've reached out a few times and don't want to fill your inbox if the timing isn't right.\n\nShould I keep sending market updates and listing ideas for [City], or would you rather I stop for now?\n\nJust reply:\n· YES — keep me on the list\n· PAUSE — hold off for a bit\n· STOP — remove me\n\nEither way is completely fine — I only want to be useful.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 14",
-        timeLabel: "10:00 AM",
+        timeLabel: "9:00 AM",
       },
       {
         order: 5,
         type: "callback",
-        title: "Move to monthly nurture",
+        title: "Move to nurture cadence",
         description:
-          "If still quiet: set lead_status = nurture and add to Long-term Buyer Nurture. If they replied or listened, call personally within 24 hours.",
+          "Set lead_status = nurture. Enroll in Long-term Buyer Nurture if still silent. If they replied or listened, call personally within 24 hours.",
         dayLabel: "Day 21",
         timeLabel: "9:00 AM",
       },
@@ -103,13 +103,13 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
     id: "tpl-speed-to-lead",
     name: "Speed-to-Lead Instant Response",
     description:
-      "Highest-ROI inbound sequence: SMS under a minute, email in 2 minutes, then Day 1 / 3 / 5 follow-ups if no reply.",
-    audience: "New inbound leads (Zillow, Realtor.com, form, FB ads)",
+      "Fires within 60 seconds of any form fill, Zillow/Realtor.com inquiry, or Facebook lead ad — SMS, email, CRM task, then Day 1/3/5 follow-ups if no reply.",
+    audience: "Brand-new buyer leads (form, IDX, portal, lead ads)",
     durationDays: 5,
     goals: [
-      "Respond before competitors",
-      "Qualify intent fast",
-      "Book a call or showing",
+      "Respond in under 60 seconds before competitors call",
+      "Qualify interest and book a short call or showing",
+      "Exit to nurture if silent after Day 5 breakup",
     ],
     stats: { reach: 0, replies: 0, responseRate: 0 },
     automation: {
@@ -124,7 +124,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Instant SMS (<60s)",
         description:
-          "Hi [FirstName]! This is [Agent] — I just saw your inquiry. Great timing. I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
+          "Hi [FirstName]! This is [Agent] from [Brokerage] — I just saw your inquiry about [PropertyAddress]. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
         dayLabel: "Day 1",
         timeLabel: "Immediate",
       },
@@ -133,7 +133,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Instant email (<2 min)",
         description:
-          "Subject: I found homes matching your search — [FirstName]\n\nHi [FirstName],\n\nThanks for reaching out! I'm [Agent], your local real estate specialist.\n\nI want to make sure you don't miss out. Here's what I can do in the next 15 minutes:\n→ Send a shortlist of 3–5 similar homes (including some not yet widely listed)\n→ Answer questions about neighborhood, schools, or pricing\n→ Set up instant alerts for new matches\n\nIs now a good time for a quick 10-minute call?\n\nTalk soon,\n[Agent]",
+          "Subject: I found homes matching your search — [FirstName]\n\nHi [FirstName],\n\nThanks for reaching out! I'm [Agent], your local real estate specialist covering [MarketArea].\n\nI pulled up the listing you were looking at — [PropertyAddress] — and I want to make sure you don't miss out. Homes in that price range in [Neighborhood] are averaging just [AvgDOM] days on market right now.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes (including some not yet on Zillow)\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\n[Agent]\n[Brokerage] · [AgentPhone]",
         dayLabel: "Day 1",
         timeLabel: "Immediate +2m",
       },
@@ -142,25 +142,25 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "callback",
         title: "Agent call task",
         description:
-          "Call [FirstName] within 15 minutes. Log outcome. If answered, cancel remaining sequence.",
+          "Call [FirstName] — new lead from [LeadSource] interested in [PropertyAddress]. Confirm timeline, budget, and whether they want a shortlist or showing. Due within 4 hours.",
         dayLabel: "Day 1",
         timeLabel: "Immediate +5m",
       },
       {
         order: 4,
         type: "email",
-        title: "Day 1 follow-up (no reply)",
+        title: "Day 1 comps follow-up (no reply)",
         description:
-          "Subject: Still searching? 3 homes worth seeing\n\nHi [FirstName],\n\nI wanted to follow up in case my first message got buried.\n\nI pulled three options that match what you were looking at and wanted to share them before they're gone. No pressure — just good options in front of you.\n\nIf any catch your eye, I can get you in for a showing as early as tomorrow.\n\n[Agent]",
+          "Subject: Still searching? 3 homes near [PropertyAddress] worth seeing\n\nHi [FirstName],\n\nI wanted to follow up in case my first message got buried.\n\nI pulled three homes near [PropertyAddress] that match your criteria and wanted to share them before they're gone:\n\n1. [Comp1Address] — [Comp1Beds]bd/[Comp1Baths]ba · [Comp1Price]\n2. [Comp2Address] — [Comp2Beds]bd/[Comp2Baths]ba · [Comp2Price]\n3. [Comp3Address] — [Comp3Beds]bd/[Comp3Baths]ba · [Comp3Price]\n\nNo pressure at all — just wanted to make sure you have good options in front of you.\n\nIf any of these catch your eye, I can get you in for a showing as early as tomorrow.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 2",
         timeLabel: "10:00 AM",
       },
       {
         order: 5,
         type: "sms",
-        title: "Day 3 nurture SMS",
+        title: "Day 3 new-listing nudge",
         description:
-          "Hey [FirstName], [Agent] again. Still looking? A strong new option just hit your criteria. Want a showing? — [Agent] Reply STOP to opt out.",
+          "Hey [FirstName], [Agent] again. Still looking in [Neighborhood]? A home just listed at [NewListingAddress] — [Beds]bd/[Baths]ba at [Price]. Only been on [DaysOnMarket] days. Want a showing? — [Agent] Reply STOP to opt out.",
         dayLabel: "Day 3",
         timeLabel: "11:00 AM",
       },
@@ -169,7 +169,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Day 5 breakup text",
         description:
-          "Hi [FirstName], I don't want to keep bugging you — just wanted to make sure you have my number if you ever need a local expert. No pressure at all. Wishing you the best! — [Agent] Reply STOP to opt out.",
+          "Hi [FirstName], I don't want to keep bugging you — just wanted to make sure you have my number if you ever need a local expert in [MarketArea]. No pressure at all. Wishing you the best! — [Agent] [AgentPhone] Reply STOP to opt out.",
         dayLabel: "Day 5",
         timeLabel: "10:00 AM",
       },
@@ -411,18 +411,18 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
       {
         order: 1,
         type: "sms",
-        title: "Same-day thank-you",
+        title: "Same-day thank-you + reaction",
         description:
-          "Hi [FirstName] — thank you for touring today. What stood out most (or didn't)? One reply helps me narrow the next options. — [Agent] Reply STOP to opt out.",
+          "Hey [FirstName]! Hope the showing at [PropertyAddress] was helpful. Quick question — overall impression: loved it, liked it, or not the one? Your gut reaction helps me zero in on exactly what you're looking for. — [Agent] Reply STOP to opt out.",
         dayLabel: "Day 1",
         timeLabel: "Same day",
       },
       {
         order: 2,
         type: "email",
-        title: "Comp analysis",
+        title: "Comp analysis — priced right?",
         description:
-          "Subject: How today's tour compares\n\nHi [FirstName],\n\nHere's a quick comparison of the home we saw versus 2–3 nearby comps — price, condition, and what recent sales suggest.\n\nIf you want to write an offer or see a similar option, I can move quickly.\n\n[Agent]",
+          "Subject: The numbers on [PropertyAddress] — is it priced right?\n\nHi [FirstName],\n\nHope you enjoyed the tour yesterday at [PropertyAddress]! Here's how it compares to recent sales in [Neighborhood]:\n\n[Comp1Address] — Sold [Comp1Price]\n[Comp2Address] — Sold [Comp2Price]\n[Comp3Address] — Sold [Comp3Price]\n\nAvg. sold price/sq ft: [AvgPricePerSqft]\nListed at: [ListingPricePerSqft]/sq ft\n\nThinking about an offer? I can have a draft ready in about an hour.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 2",
         timeLabel: "10:00 AM",
       },
@@ -431,25 +431,34 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Offer strategy nudge",
         description:
-          "[FirstName] — if you're leaning toward an offer, I can outline a clean strategy (price, contingencies, timing) in 10 minutes. Want that? — [Agent]",
+          "[FirstName], I ran the comps on [PropertyAddress] and sent you an analysis — did you get a chance to look? If you're thinking about it, I can have a draft offer ready in about an hour. Just say the word. — [Agent] Reply STOP to opt out.",
         dayLabel: "Day 3",
-        timeLabel: "11:00 AM",
+        timeLabel: "2:00 PM",
       },
       {
         order: 4,
         type: "email",
-        title: "Objection isolator / next step",
+        title: "Activity / competing-offer alert",
         description:
-          "Subject: Was it price, location, or the home itself?\n\nHi [FirstName],\n\nTotally fine if today wasn't the one. Knowing whether it was price, location, or the property helps me only bring you better fits.\n\nReply with whichever fits — or tell me what you'd change.\n\n[Agent]",
-        dayLabel: "Day 5",
-        timeLabel: "10:00 AM",
+          "Subject: Update on [PropertyAddress] — wanted you to know\n\nHi [FirstName],\n\nI wanted to give you a heads up — [PropertyAddress] has been getting activity. This home has had [ShowingCount] showings since listing.\n\nI don't say this to pressure you — only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
+        dayLabel: "Day 4",
+        timeLabel: "4:00 PM",
       },
       {
         order: 5,
+        type: "sms",
+        title: "Objection isolator",
+        description:
+          "Hi [FirstName], checking in on [PropertyAddress] — was it mainly price, location, or the house itself that didn't click? Knowing that helps me find a better match fast. — [Agent] Reply STOP to opt out.",
+        dayLabel: "Day 5",
+        timeLabel: "11:00 AM",
+      },
+      {
+        order: 6,
         type: "callback",
         title: "Agent personal follow-up",
         description:
-          "If no reply: call personally. If silent after this, route to Cold Lead / Long-term Nurture.",
+          "If no reply: call personally. If silent after this, route to Cold Lead / Long-term Nurture. If they said 'not the one', add to Listing Alert Drip.",
         dayLabel: "Day 7",
         timeLabel: "9:00 AM",
       },
