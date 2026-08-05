@@ -47,6 +47,18 @@ export const DEFAULT_SETTINGS: UserSettings = {
       icon: "calendar_today",
       connected: false,
     },
+    {
+      id: "claude",
+      name: "Claude (Anthropic)",
+      icon: "auto_awesome",
+      connected: false,
+    },
+    {
+      id: "dotloop",
+      name: "Dotloop",
+      icon: "folder_shared",
+      connected: false,
+    },
   ],
   apiKeys: [
     {

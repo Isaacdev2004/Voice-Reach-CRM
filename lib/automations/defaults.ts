@@ -1,41 +1,42 @@
 import type { AutomationWorkflow } from "./types";
 
 export const DEFAULT_WORKFLOW: AutomationWorkflow = {
-  id: "wf-new-contact-nurture",
-  name: "New Contact Nurture",
-  description: "Welcome sequence when a contact is added from your website form.",
+  id: "wf-cold-lead-reengage",
+  name: "Cold Lead Re-engagement",
+  description:
+    "When a lead goes quiet, start the Cold Lead Re-engagement campaign (voicemail → SMS → email → callback).",
   status: "draft",
   updatedAt: new Date().toISOString(),
   nodes: [
     {
       id: "n1",
       kind: "trigger",
-      title: "New Contact Upload",
-      description: "Source: Main Website Form",
-      meta: "Last activity: 2m ago",
+      title: "Lead inactive",
+      description: "No opens, replies, or listens for 14+ days",
+      meta: "Trigger: lead_inactive",
     },
     {
       id: "n2",
       kind: "action",
-      title: "Send Ringless Voicemail",
-      description: "File: Welcome_Message_v2.mp3",
-      meta: "Retry enabled (3x)",
+      title: "Start campaign",
+      description: "Cold Lead Re-engagement sequence",
+      meta: "Action: start_campaign",
     },
     {
       id: "n3",
       kind: "delay",
-      title: "Wait 24 Hours",
-      description: "Until: Next business day",
-      meta: "Timezone: UTC-5",
+      title: "Wait 48 hours",
+      description: "Give the first voicemail + SMS time to land",
+      meta: "Timezone: local",
     },
     {
       id: "n4",
       kind: "decision",
-      title: "If No Response?",
-      description: "Check: Last 24 hours activity",
+      title: "If they reply or listen?",
+      description: "Check engagement after first touches",
       decision: {
-        yes: { title: "End Workflow", description: "Contact engaged — stop sequence" },
-        no: { title: "Send SMS", description: "Concise follow-up text message" },
+        yes: { title: "Notify agent", description: "Create callback task — personal follow-up" },
+        no: { title: "Continue sequence", description: "Let email + Day 6 SMS run" },
       },
     },
   ],

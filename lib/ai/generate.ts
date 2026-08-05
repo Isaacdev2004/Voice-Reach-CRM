@@ -20,7 +20,58 @@ function pick<T>(arr: T[], seed: string): T {
   return arr[code % arr.length];
 }
 
+async function generateWithClaude(
+  task: AiTaskType,
+  ctx: AiContext,
+  brief?: string,
+): Promise<Record<string, unknown> | null> {
+  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  if (!apiKey) return null;
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-5",
+      max_tokens: 800,
+      system: `${systemPromptFor(task)}\nReturn valid JSON only, no markdown.`,
+      messages: [{ role: "user", content: userPromptFor(task, ctx, brief) }],
+    }),
+  });
+
+  if (!response.ok) {
+    console.warn("[ai] Claude request failed", response.status, await response.text().catch(() => ""));
+    return null;
+  }
+
+  const json = (await response.json()) as {
+    content?: Array<{ type?: string; text?: string }>;
+  };
+  const text = json.content?.find((part) => part.type === "text")?.text?.trim();
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return { body: text, message: text };
+  }
+}
+
 export async function generate(task: AiTaskType, ctx: AiContext, brief?: string): Promise<AiResult> {
+  const claudeOutput = await generateWithClaude(task, ctx, brief).catch(() => null);
+  if (claudeOutput) {
+    return {
+      task,
+      output: claudeOutput,
+      generatedAt: new Date().toISOString(),
+      provider: "claude",
+    };
+  }
+
   const seed = `${task}-${ctx.contactName ?? "client"}-${ctx.tone ?? "warm"}`;
   const name = ctx.contactName?.split(" ")[0] ?? "there";
   const goal = ctx.goal ?? "deepen the relationship";
@@ -116,6 +167,10 @@ export async function generate(task: AiTaskType, ctx: AiContext, brief?: string)
       _userPrompt: userPromptFor(task, ctx, brief),
     },
     generatedAt: new Date().toISOString(),
-    provider: process.env.OPENAI_API_KEY ? "openai (configured)" : "template",
+    provider: process.env.ANTHROPIC_API_KEY
+      ? "claude (configured)"
+      : process.env.OPENAI_API_KEY
+        ? "openai (configured)"
+        : "template",
   };
 }

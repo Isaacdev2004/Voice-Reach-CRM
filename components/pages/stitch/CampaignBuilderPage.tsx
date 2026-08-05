@@ -11,7 +11,7 @@ import { cn } from "@/lib/cn";
 import { campaignFromApi, createBlankCampaign } from "@/lib/crm/campaign-blueprint";
 import { saveCampaignBuilder, saveTemplateLocally } from "@/lib/crm/campaign-storage";
 import { campaignDurationFromSteps, reorderSteps } from "@/lib/crm/campaign-steps";
-import { DEFAULT_CAMPAIGN } from "@/lib/crm/mock-data";
+import { instantiateTemplate, PRODUCT_CAMPAIGN_TEMPLATES } from "@/lib/crm/campaign-templates";
 import type { ActivateCampaignOptions, CampaignDefinition, CampaignStep } from "@/lib/crm/types";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -53,19 +53,13 @@ export function CampaignBuilderPage() {
     setCampaignStatus("editing");
   }, []);
 
-  const loadSampleTemplate = useCallback(() => {
-    setCampaign({
-      ...DEFAULT_CAMPAIGN,
-      id: `campaign-${crypto.randomUUID()}`,
-      steps: DEFAULT_CAMPAIGN.steps.map((s) => ({
-        ...s,
-        id: `step-${crypto.randomUUID()}`,
-        status: "draft" as const,
-      })),
-    });
+  const loadSampleTemplate = useCallback((templateKey = "cold-lead-reengage") => {
+    const next = instantiateTemplate(templateKey);
+    if (!next) return;
+    setCampaign(next);
     setDbCampaignId(null);
     setCampaignStatus("editing");
-    showToast("Sample template loaded — remove any steps you do not need.");
+    showToast(`“${next.name}” template loaded — edit steps, then save or activate.`);
   }, []);
 
   useEffect(() => {
@@ -282,14 +276,17 @@ export function CampaignBuilderPage() {
               <Icon name="add" className="text-[18px]" />
               New campaign
             </button>
-            <button
-              type="button"
-              onClick={loadSampleTemplate}
-              className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/30 px-4 py-1.5 text-[13px] font-medium text-taupe hover:bg-champagne"
-            >
-              <Icon name="content_copy" className="text-[18px]" />
-              Load sample template
-            </button>
+            {PRODUCT_CAMPAIGN_TEMPLATES.map((tpl) => (
+              <button
+                key={tpl.templateKey}
+                type="button"
+                onClick={() => loadSampleTemplate(tpl.templateKey)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/30 px-4 py-1.5 text-[13px] font-medium text-taupe hover:bg-champagne"
+              >
+                <Icon name="content_copy" className="text-[18px]" />
+                {tpl.featured ? "Load: Cold lead re-engage" : `Load: ${tpl.name}`}
+              </button>
+            ))}
           </div>
 
           <div className="mt-4 flex flex-wrap items-end gap-4">
