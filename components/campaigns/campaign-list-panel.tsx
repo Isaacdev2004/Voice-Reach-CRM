@@ -5,6 +5,7 @@ import { Icon } from "@/components/ui/icon";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type CampaignRow = {
@@ -27,9 +28,11 @@ const STATUS_STYLES: Record<CampaignRow["status"], string> = {
 };
 
 export function CampaignListPanel() {
+  const router = useRouter();
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -41,6 +44,25 @@ export function CampaignListPanel() {
     })();
   }, []);
 
+  const createColdLead = async () => {
+    setCreating(true);
+    setError(null);
+    const envelope = await safeFetch<{ campaignId: string; message: string }>(
+      "/api/campaigns/from-template",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateKey: "cold-lead-reengage", createAutomation: true }),
+      },
+    );
+    setCreating(false);
+    if (!envelope.success) {
+      setError(envelope.error);
+      return;
+    }
+    router.push(`/dashboard/campaigns/${envelope.data.campaignId}`);
+  };
+
   return (
     <LuxuryCard padding="lg">
       <div className="mb-4 flex items-center justify-between">
@@ -50,12 +72,22 @@ export function CampaignListPanel() {
           </p>
           <h2 className="mt-1 font-serif text-[22px] font-semibold text-ink">All campaigns</h2>
         </div>
-        <Link
-          href="/dashboard/campaigns?new=1#campaign-builder"
-          className="text-[13px] font-medium text-rose-gold-deep hover:underline"
-        >
-          + Build new
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void createColdLead()}
+            disabled={creating}
+            className="rounded-full bg-rose-gold px-4 py-1.5 text-[13px] font-medium text-ivory disabled:opacity-50"
+          >
+            {creating ? "Creating…" : "Create cold lead campaign"}
+          </button>
+          <Link
+            href="/dashboard/campaigns?new=1#campaign-builder"
+            className="text-[13px] font-medium text-rose-gold-deep hover:underline"
+          >
+            + Build new
+          </Link>
+        </div>
       </div>
 
       {loading ? (

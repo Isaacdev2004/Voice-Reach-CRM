@@ -202,11 +202,36 @@ async function runAction(
       return;
     }
 
-    case "trigger_ai_follow_up":
-    case "start_campaign":
+    case "start_campaign": {
+      const campaignId = String(action.config.campaignId ?? "");
+      if (!campaignId || !contactId) return;
+      const { enrollContacts, scheduleStepRunsForRecipients } = await import("@/lib/campaigns/enroll");
+      const enrollment = await enrollContacts(ownerId, campaignId, { contactIds: [contactId] });
+      if (enrollment.recipientIds.length) {
+        const { data: campaign } = await supabaseAdmin
+          .from("campaigns")
+          .select("status")
+          .eq("id", campaignId)
+          .eq("owner_id", ownerId)
+          .maybeSingle();
+        if (campaign && ["queued", "sending", "partial", "sent"].includes(campaign.status)) {
+          await scheduleStepRunsForRecipients(ownerId, campaignId, enrollment.recipientIds);
+        }
+      }
       await writeAuditLog({
         ownerId,
-        action: `AUTOMATION_${action.type.toUpperCase()}`,
+        action: "AUTOMATION_START_CAMPAIGN",
+        entityType: "campaign",
+        entityId: campaignId,
+        metadata: { contactId, enrollment, ...metadata },
+      });
+      return;
+    }
+
+    case "trigger_ai_follow_up":
+      await writeAuditLog({
+        ownerId,
+        action: "AUTOMATION_TRIGGER_AI_FOLLOW_UP",
         entityType: "automation_action",
         entityId: null,
         metadata: { contactId, ...action.config, ...metadata },
