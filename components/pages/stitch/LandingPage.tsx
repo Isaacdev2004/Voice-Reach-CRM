@@ -504,9 +504,14 @@ export function LandingPage() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="transition-colors hover:text-secondary">
+                  <Link href="/privacy" className="transition-colors hover:text-secondary">
                     Privacy Policy
-                  </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/sms-consent" className="transition-colors hover:text-secondary">
+                    SMS Consent
+                  </Link>
                 </li>
               </ul>
             </div>
