@@ -1,6 +1,16 @@
 import { evaluateTriggers } from "@/lib/automations/engine";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+type InactiveContactRow = {
+  id: string;
+  last_contacted?: string | null;
+  last_engagement_at?: string | null;
+  created_at?: string | null;
+  dnc?: boolean | null;
+  opt_out_requested?: boolean | null;
+  sequence_active?: string | null;
+};
+
 /**
  * Finds contacts with no recent contact / engagement and fires lead_inactive rules.
  * Skips DNC and opt_out_requested contacts when the column exists.
@@ -31,29 +41,26 @@ export async function runInactiveLeadScan(options: { ownerId?: string; limit?: n
 
   for (const [ownerId, days] of ownerDays) {
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-    const { data: contacts, error: contactsError } = await supabaseAdmin
+    let contactRows: InactiveContactRow[] = [];
+
+    const enriched = await supabaseAdmin
       .from("contacts")
       .select("id, last_contacted, last_engagement_at, created_at, dnc, opt_out_requested, sequence_active")
       .eq("owner_id", ownerId)
       .eq("dnc", false)
       .limit(limit);
 
-    // If lead-engagement columns aren't migrated yet, fall back to core fields.
-    const contactRows =
-      contacts ??
-      (
-        contactsError
-          ? (
-              await supabaseAdmin
-                .from("contacts")
-                .select("id, last_contacted, created_at, dnc")
-                .eq("owner_id", ownerId)
-                .eq("dnc", false)
-                .limit(limit)
-            ).data
-          : null
-      ) ??
-      [];
+    if (!enriched.error && enriched.data) {
+      contactRows = enriched.data as InactiveContactRow[];
+    } else {
+      const fallback = await supabaseAdmin
+        .from("contacts")
+        .select("id, last_contacted, created_at, dnc")
+        .eq("owner_id", ownerId)
+        .eq("dnc", false)
+        .limit(limit);
+      contactRows = (fallback.data ?? []) as InactiveContactRow[];
+    }
 
     for (const contact of contactRows) {
       scanned += 1;
@@ -87,6 +94,15 @@ export async function runInactiveLeadScan(options: { ownerId?: string; limit?: n
 
   return { scanned, triggered };
 }
+
+type EngagedContactRow = {
+  id: string;
+  engagement_score?: number | null;
+  tour_count?: number | null;
+  dnc?: boolean | null;
+  opt_out_requested?: boolean | null;
+  sequence_active?: string | null;
+};
 
 /**
  * Fires engagement_score rules for contacts who crossed the threshold and have no tours.
@@ -126,9 +142,13 @@ export async function runEngagementScoreScan(options: { ownerId?: string; limit?
 
     if (requireNoTours) contactsQuery = contactsQuery.eq("tour_count", 0);
 
-    const { data: contacts } = await contactsQuery;
+    const { data: contacts, error: contactsError } = await contactsQuery;
+    if (contactsError) {
+      // Lead-engagement columns may not be migrated yet.
+      continue;
+    }
 
-    for (const contact of contacts ?? []) {
+    for (const contact of (contacts ?? []) as EngagedContactRow[]) {
       scanned += 1;
       if (contact.opt_out_requested || contact.sequence_active) continue;
 
