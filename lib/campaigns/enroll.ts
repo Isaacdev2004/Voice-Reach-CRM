@@ -51,7 +51,7 @@ export async function enrollContacts(
       await documentTestConsent(ownerId, needingConsent);
       const { data: refreshed, error: refreshError } = await supabaseAdmin
         .from("contacts")
-        .select("id, phone, dnc, consent_records(*)")
+        .select("id, phone, dnc, opt_out_requested, consent_records(*)")
         .eq("owner_id", ownerId)
         .in("id", options.contactIds);
       if (refreshError) throw new Error(refreshError.message);
