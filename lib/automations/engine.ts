@@ -149,29 +149,40 @@ async function runAction(
       if (!contactId) return;
       const { data: contact } = await supabaseAdmin
         .from("contacts")
-        .select("id, phone, email, dnc")
+        .select("id, phone, email, dnc, first_name, last_name, source, notes, type, opt_out_requested")
         .eq("id", contactId)
         .eq("owner_id", ownerId)
         .maybeSingle();
 
       if (!contact) return;
-      if (contact.dnc) {
+      if (contact.dnc || contact.opt_out_requested) {
         await writeAuditLog({
           ownerId,
           action: "AUTOMATION_BLOCKED",
           entityType: "contact",
           entityId: contactId,
-          metadata: { reason: "DNC", action: action.type },
+          metadata: { reason: contact.opt_out_requested ? "opt_out" : "DNC", action: action.type },
         });
         return;
       }
 
+      const { loadWorkspaceSettings } = await import("@/lib/settings/load-workspace");
+      const { applyMergeFields, splitEmailSubjectBody } = await import("@/lib/campaigns/merge-fields");
+      const { workspace, profile } = await loadWorkspaceSettings(ownerId);
+
       const channel = action.type === "send_email" ? "email" : "sms";
-      const body =
+      const rawBody =
         String(action.config.body ?? action.config.message ?? "") ||
         (channel === "email"
           ? "Following up — reply anytime if you have questions."
           : "Hi — just following up. Reply STOP to opt out.");
+      const merged = applyMergeFields(rawBody, {
+        contact,
+        agentName: workspace.defaultSenderName || profile.fullName,
+        agentPhone: profile.phone,
+        brokerage: workspace.name,
+      });
+      const emailParts = channel === "email" ? splitEmailSubjectBody(merged) : null;
 
       const result = await sendToContact({
         ownerId,
@@ -179,8 +190,8 @@ async function runAction(
         channel,
         campaignId: `automation-${ruleId}`,
         recipientId: contactId,
-        body,
-        subject: String(action.config.subject ?? "Message from your agent"),
+        body: emailParts?.body ?? merged,
+        subject: emailParts?.subject ?? String(action.config.subject ?? "Message from your agent"),
         recordEngagement: true,
       });
 

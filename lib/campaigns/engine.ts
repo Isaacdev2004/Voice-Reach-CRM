@@ -1,8 +1,11 @@
 import { writeAuditLog } from "@/lib/audit";
 import { syncCallbackStepToCalendar } from "@/lib/calendar/sync";
+import { applyMergeFields, splitEmailSubjectBody } from "@/lib/campaigns/merge-fields";
 import { evaluateEligibility } from "@/lib/compliance";
+import { isInQuietHours, nextQuietHoursEnd } from "@/lib/compliance/quiet-hours";
 import { recordEngagementEvent } from "@/lib/engagement/record";
 import { sendToContact } from "@/lib/providers/dispatch-message";
+import { loadWorkspaceSettings } from "@/lib/settings/load-workspace";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { signVoiceAssetUrl, voiceAssetReady } from "@/lib/voice/signed-audio";
 
@@ -121,6 +124,17 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
   if (error) throw new Error(error.message);
 
   const executed: { runId: string; status: string }[] = [];
+  const settingsCache = new Map<
+    string,
+    Awaited<ReturnType<typeof loadWorkspaceSettings>>
+  >();
+
+  async function workspaceFor(ownerId: string) {
+    if (!settingsCache.has(ownerId)) {
+      settingsCache.set(ownerId, await loadWorkspaceSettings(ownerId));
+    }
+    return settingsCache.get(ownerId)!;
+  }
 
   for (const run of runs ?? []) {
     const step = run.campaign_steps;
@@ -134,16 +148,42 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       continue;
     }
 
+    const { workspace, profile } = await workspaceFor(run.owner_id);
+
+    if (
+      isInQuietHours({
+        quietHoursStart: workspace.quietHoursStart,
+        quietHoursEnd: workspace.quietHoursEnd,
+        timeZone: profile.timezone,
+      })
+    ) {
+      const resumeAt = nextQuietHoursEnd({
+        quietHoursStart: workspace.quietHoursStart,
+        quietHoursEnd: workspace.quietHoursEnd,
+        timeZone: profile.timezone,
+      });
+      await supabaseAdmin
+        .from("campaign_step_runs")
+        .update({ scheduled_at: resumeAt.toISOString() })
+        .eq("id", run.id);
+      executed.push({ runId: run.id, status: "deferred_quiet_hours" });
+      continue;
+    }
+
     const eligibility = evaluateEligibility({
       phone: contact.phone,
       dnc: contact.dnc,
+      opt_out_requested: contact.opt_out_requested,
       consent_records: contact.consent_records ?? [],
     });
-    if (!eligibility.eligible) {
-      await markRun(run.id, "blocked", { issues: eligibility.issues });
+    const issues = workspace.requireConsentProof
+      ? eligibility.issues
+      : eligibility.issues.filter((i) => i !== "Missing consent proof/reference");
+    if (issues.length) {
+      await markRun(run.id, "blocked", { issues });
       await supabaseAdmin
         .from("campaign_recipients")
-        .update({ eligibility_status: "blocked", eligibility_issues: eligibility.issues })
+        .update({ eligibility_status: "blocked", eligibility_issues: issues })
         .eq("id", recipient.id);
       executed.push({ runId: run.id, status: "blocked" });
       continue;
@@ -232,6 +272,28 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       }
     }
 
+    const mergeCtx = {
+      contact: {
+        first_name: contact.first_name,
+        last_name: contact.last_name,
+        phone: contact.phone,
+        email: contact.email,
+        notes: contact.notes,
+        source: contact.source,
+        type: contact.type,
+      },
+      agentName: workspace.defaultSenderName || profile.fullName,
+      agentPhone: profile.phone,
+      brokerage: workspace.name,
+      marketArea: workspace.industry,
+      city: undefined,
+    };
+
+    const mergedDescription = applyMergeFields(step.description ?? step.title ?? "", mergeCtx);
+    const mergedTitle = applyMergeFields(step.title ?? "", mergeCtx);
+    const emailParts =
+      channel === "email" ? splitEmailSubjectBody(mergedDescription) : null;
+
     const sendResult = await sendToContact({
       ownerId: run.owner_id,
       contact: {
@@ -243,8 +305,8 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       campaignId: campaign?.id ?? recipient.campaign_id,
       recipientId: recipient.id,
       stepId: step.id,
-      body: step.description ?? step.title,
-      subject: step.title,
+      body: emailParts?.body ?? mergedDescription,
+      subject: emailParts?.subject ?? mergedTitle,
       audioUrl,
       providerId: preferredProvider,
       recordEngagement: true,

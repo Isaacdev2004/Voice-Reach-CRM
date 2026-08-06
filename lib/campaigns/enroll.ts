@@ -33,7 +33,7 @@ export async function enrollContacts(
 ): Promise<EnrollResult> {
   let query = supabaseAdmin
     .from("contacts")
-    .select("id, phone, dnc, consent_records(*)")
+    .select("id, phone, dnc, opt_out_requested, consent_records(*)")
     .eq("owner_id", ownerId);
 
   if (options?.contactIds?.length) {

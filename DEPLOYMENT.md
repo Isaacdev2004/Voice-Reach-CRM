@@ -70,7 +70,10 @@ Create Storage bucket: **`voice-assets`** (private).
 |---|---|
 | Slybroadcast | `https://voice-reach-crm.vercel.app/api/webhooks/voice?provider=slybroadcast` |
 | Twilio (SMS status) | `https://voice-reach-crm.vercel.app/api/webhooks/voice?provider=twilio` |
+| Twilio (inbound STOP/HELP) | `https://voice-reach-crm.vercel.app/api/webhooks/twilio/sms` |
 | Resend (email events) | `https://voice-reach-crm.vercel.app/api/webhooks/voice?provider=resend` |
+
+**Twilio inbound:** Phone Number → Messaging → “A message comes in” → webhook URL above (HTTP POST). Required for STOP → DNC.
 
 ## Verify
 

@@ -9,6 +9,7 @@ type ConsentRecord = {
 type ContactForEligibility = {
   phone: string;
   dnc: boolean;
+  opt_out_requested?: boolean | null;
   consent_records?: ConsentRecord[];
 };
 
@@ -30,6 +31,7 @@ export function evaluateEligibility(contact: ContactForEligibility) {
   const consent = latestConsent(contact.consent_records);
 
   if (contact.dnc) issues.push("Internal do-not-contact flag");
+  if (contact.opt_out_requested) issues.push("Contact opted out of messaging");
   if (!contact.phone || contact.phone.replace(/[^0-9]/g, "").length < 10) {
     issues.push("Invalid phone number");
   }
@@ -40,6 +42,7 @@ export function evaluateEligibility(contact: ContactForEligibility) {
   if (consent?.status === "Yes" && !hasValue(consent.source)) {
     issues.push("Missing consent source");
   }
+  // Proof is recommended; only required when workspace.requireConsentProof is enforced at call site.
   if (consent?.status === "Yes" && !hasValue(consent.proof_reference)) {
     issues.push("Missing consent proof/reference");
   }
