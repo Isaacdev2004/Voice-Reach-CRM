@@ -20,3 +20,5 @@ create index if not exists idx_contacts_lead_status
   on public.contacts(owner_id, lead_status);
 create index if not exists idx_contacts_engagement
   on public.contacts(owner_id, engagement_score desc, last_engagement_at desc);
+
+-- Idempotent: safe to re-run after partial applies.

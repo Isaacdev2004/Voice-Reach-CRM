@@ -17,5 +17,7 @@ create table if not exists public.integration_connections (
 create index if not exists idx_integration_connections_owner on public.integration_connections(owner_id);
 
 alter table public.integration_connections enable row level security;
+drop policy if exists "server owned integration_connections"
+  on public.integration_connections;
 create policy "server owned integration_connections"
   on public.integration_connections for all using (true) with check (true);
