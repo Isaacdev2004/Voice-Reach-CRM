@@ -17,6 +17,19 @@ type AddContactModalProps = {
   openProfileAfterSave?: boolean;
 };
 
+const CONSENT_SOURCE_OPTIONS = [
+  "Website form",
+  "Zillow",
+  "Verbal opt-in",
+  "SMS reply",
+  "Email confirmation",
+  "Event / open house",
+  "Partner referral",
+  "Owner test",
+  "Signed agreement",
+  "Other",
+];
+
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-4">
@@ -24,6 +37,10 @@ function FormSection({ title, children }: { title: string; children: React.React
       {children}
     </section>
   );
+}
+
+function todayInput() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 export function AddContactModal({
@@ -43,8 +60,13 @@ export function AddContactModal({
     type: "Cold Lead",
     source: "Manual entry",
     consent: "Unknown" as "Yes" | "No" | "Unknown",
+    consentDate: todayInput(),
+    consentSource: "Owner test",
+    proof: "Owner-initiated test",
     notes: "",
   });
+
+  const consentYes = form.consent === "Yes";
 
   const reset = () => {
     setForm({
@@ -55,6 +77,9 @@ export function AddContactModal({
       type: "Cold Lead",
       source: "Manual entry",
       consent: "Unknown",
+      consentDate: todayInput(),
+      consentSource: "Owner test",
+      proof: "Owner-initiated test",
       notes: "",
     });
     setError(null);
@@ -72,6 +97,20 @@ export function AddContactModal({
       setError("First name and phone are required.");
       return;
     }
+    if (consentYes) {
+      if (!form.consentDate.trim()) {
+        setError("Consent date is required when consent is Yes.");
+        return;
+      }
+      if (!form.consentSource.trim()) {
+        setError("Consent source is required when consent is Yes.");
+        return;
+      }
+      if (!form.proof.trim()) {
+        setError("Proof reference is required when consent is Yes.");
+        return;
+      }
+    }
 
     setSubmitting(true);
     try {
@@ -86,6 +125,9 @@ export function AddContactModal({
           type: form.type,
           source: form.source.trim() || "Manual entry",
           consent: form.consent,
+          consentDate: consentYes ? form.consentDate : undefined,
+          consentSource: consentYes ? form.consentSource.trim() : undefined,
+          proof: consentYes ? form.proof.trim() : undefined,
           notes: form.notes.trim(),
         }),
       });
@@ -191,7 +233,7 @@ export function AddContactModal({
                 onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}
               />
             </ModalField>
-            <ModalField label="Consent status">
+            <ModalField label="Consent status" required>
               <select
                 className={modalInputClass}
                 value={form.consent}
@@ -205,6 +247,49 @@ export function AddContactModal({
               </select>
             </ModalField>
           </div>
+
+          {consentYes ? (
+            <div className="mt-2 rounded-2xl border border-outline-variant/15 bg-cream/40 p-4">
+              <p className="mb-3 text-[13px] text-slate-text">
+                Consent is <strong>Yes</strong> — date, source, and proof are required for live sends.
+              </p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <ModalField label="Consent date" required>
+                  <input
+                    type="date"
+                    className={modalInputClass}
+                    value={form.consentDate}
+                    onChange={(e) => setForm((f) => ({ ...f, consentDate: e.target.value }))}
+                    required
+                  />
+                </ModalField>
+                <ModalField label="Consent source" required>
+                  <input
+                    className={modalInputClass}
+                    list="add-consent-source-options"
+                    value={form.consentSource}
+                    onChange={(e) => setForm((f) => ({ ...f, consentSource: e.target.value }))}
+                    placeholder="Where they opted in"
+                    required
+                  />
+                  <datalist id="add-consent-source-options">
+                    {CONSENT_SOURCE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt} />
+                    ))}
+                  </datalist>
+                </ModalField>
+                <ModalField label="Proof reference" required>
+                  <input
+                    className={modalInputClass}
+                    value={form.proof}
+                    onChange={(e) => setForm((f) => ({ ...f, proof: e.target.value }))}
+                    placeholder="e.g. Owner test, form #4821"
+                    required
+                  />
+                </ModalField>
+              </div>
+            </div>
+          ) : null}
         </FormSection>
 
         <ModalField label="Notes">
