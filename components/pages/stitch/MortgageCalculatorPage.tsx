@@ -6,16 +6,40 @@ import { Icon } from "@/components/ui/icon";
 import { calculateMortgage, formatUsd } from "@/lib/mortgage/calculate";
 import { useEffect, useMemo, useState } from "react";
 
+function parseMoney(raw: string): number {
+  const cleaned = raw.replace(/[^0-9.]/g, "");
+  if (!cleaned) return 0;
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatMoneyInput(value: number): string {
+  if (!value) return "";
+  return Math.round(value).toLocaleString("en-US");
+}
+
+function parseRate(raw: string): number {
+  const cleaned = raw.replace(/[^0-9.]/g, "");
+  if (!cleaned) return 0;
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export function MortgageCalculatorPage() {
-  const [homePrice, setHomePrice] = useState(850000);
-  const [downPayment, setDownPayment] = useState(170000);
-  const [interestRate, setInterestRate] = useState(6.85);
-  const [termYears, setTermYears] = useState(30);
+  const [homePriceText, setHomePriceText] = useState("850,000");
+  const [downPaymentText, setDownPaymentText] = useState("170,000");
+  const [interestRateText, setInterestRateText] = useState("6.85");
+  const [termYearsText, setTermYearsText] = useState("30");
   const [rates, setRates] = useState<{ rate30: number; rate15: number; source: string } | null>(
     null,
   );
   const [ratesError, setRatesError] = useState<string | null>(null);
   const [loadingRates, setLoadingRates] = useState(false);
+
+  const homePrice = parseMoney(homePriceText);
+  const downPayment = parseMoney(downPaymentText);
+  const interestRate = parseRate(interestRateText);
+  const termYears = Math.max(1, Math.round(parseMoney(termYearsText)) || 30);
 
   const loadRates = async () => {
     setLoadingRates(true);
@@ -25,7 +49,9 @@ export function MortgageCalculatorPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not load rates");
       setRates({ rate30: data.rate30, rate15: data.rate15, source: data.source });
-      if (typeof data.rate30 === "number") setInterestRate(Number(data.rate30.toFixed(2)));
+      if (typeof data.rate30 === "number") {
+        setInterestRateText(data.rate30.toFixed(2));
+      }
     } catch (e) {
       setRatesError(e instanceof Error ? e.message : "Could not load rates");
     } finally {
@@ -52,20 +78,6 @@ export function MortgageCalculatorPage() {
     [homePrice, downPayment, interestRate, termYears],
   );
 
-  const field = (label: string, value: number, onChange: (n: number) => void, step = 1) => (
-    <label className="block">
-      <span className="mb-2 block text-[13px] font-medium text-taupe">{label}</span>
-      <input
-        type="number"
-        min={0}
-        step={step}
-        className={modalInputClass}
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(e) => onChange(Number(e.target.value) || 0)}
-      />
-    </label>
-  );
-
   return (
     <div className="luxury-page mx-auto w-full max-w-[720px] space-y-8 p-4 sm:p-8">
       <header>
@@ -79,7 +91,7 @@ export function MortgageCalculatorPage() {
           onClick={() => void loadRates()}
           className="mt-5 inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-5 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne"
         >
-          <Icon name="refresh" className={loadingRates ? "animate-spin text-[18px]" : "text-[18px]"} />
+          <Icon name={loadingRates ? "progress_activity" : "refresh"} className={loadingRates ? "animate-spin text-[18px]" : "text-[18px]"} />
           Refresh rates
         </button>
       </header>
@@ -90,10 +102,52 @@ export function MortgageCalculatorPage() {
           <h2 className="font-serif text-[22px] font-semibold text-ink">Loan Estimate</h2>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          {field("Home price", homePrice, setHomePrice, 1000)}
-          {field("Down payment", downPayment, setDownPayment, 1000)}
-          {field("Interest rate (%)", interestRate, setInterestRate, 0.01)}
-          {field("Loan term (years)", termYears, setTermYears, 1)}
+          <label className="block">
+            <span className="mb-2 block text-[13px] font-medium text-taupe">Home price</span>
+            <input
+              inputMode="numeric"
+              className={modalInputClass}
+              value={homePriceText}
+              onChange={(e) => setHomePriceText(e.target.value.replace(/[^0-9,]/g, ""))}
+              onBlur={() => setHomePriceText(formatMoneyInput(homePrice))}
+              placeholder="850,000"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-[13px] font-medium text-taupe">Down payment</span>
+            <input
+              inputMode="numeric"
+              className={modalInputClass}
+              value={downPaymentText}
+              onChange={(e) => setDownPaymentText(e.target.value.replace(/[^0-9,]/g, ""))}
+              onBlur={() => setDownPaymentText(formatMoneyInput(downPayment))}
+              placeholder="170,000"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-[13px] font-medium text-taupe">Interest rate (%)</span>
+            <input
+              inputMode="decimal"
+              className={modalInputClass}
+              value={interestRateText}
+              onChange={(e) => setInterestRateText(e.target.value.replace(/[^0-9.]/g, ""))}
+              onBlur={() => {
+                if (interestRate > 0) setInterestRateText(interestRate.toFixed(2));
+              }}
+              placeholder="6.85"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-[13px] font-medium text-taupe">Loan term (years)</span>
+            <input
+              inputMode="numeric"
+              className={modalInputClass}
+              value={termYearsText}
+              onChange={(e) => setTermYearsText(e.target.value.replace(/[^0-9]/g, ""))}
+              onBlur={() => setTermYearsText(String(termYears))}
+              placeholder="30"
+            />
+          </label>
         </div>
       </LuxuryCard>
 
@@ -138,7 +192,7 @@ export function MortgageCalculatorPage() {
           <div className="grid grid-cols-2 gap-4">
             <button
               type="button"
-              onClick={() => setInterestRate(Number(rates.rate30.toFixed(2)))}
+              onClick={() => setInterestRateText(rates.rate30.toFixed(2))}
               className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
             >
               <p className="text-[12px] text-taupe">30-year fixed</p>
@@ -147,8 +201,8 @@ export function MortgageCalculatorPage() {
             <button
               type="button"
               onClick={() => {
-                setInterestRate(Number(rates.rate15.toFixed(2)));
-                setTermYears(15);
+                setInterestRateText(rates.rate15.toFixed(2));
+                setTermYearsText("15");
               }}
               className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
             >
