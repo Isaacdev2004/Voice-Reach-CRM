@@ -20,13 +20,8 @@ type QuickNoteModalProps = {
   onSaved: () => void;
 };
 
-function noteTitleFromBody(body: string): string {
-  const line = body.trim().split(/\n/)[0]?.trim() ?? "";
-  if (!line) return "Note";
-  return line.length > 80 ? `${line.slice(0, 77)}…` : line;
-}
-
 export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) {
+  const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [contactId, setContactId] = useState("");
   const [contacts, setContacts] = useState<ContactOption[]>([]);
@@ -35,6 +30,7 @@ export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) 
 
   useEffect(() => {
     if (!open) return;
+    setTitle("");
     setBody("");
     setContactId("");
     setError(null);
@@ -42,8 +38,7 @@ export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) 
     void fetch("/api/contacts")
       .then((r) => r.json())
       .then((data) => {
-        const list = (data.contacts ?? []) as ContactOption[];
-        setContacts(list);
+        setContacts((data.contacts ?? []) as ContactOption[]);
       })
       .catch(() => setContacts([]));
   }, [open]);
@@ -55,14 +50,14 @@ export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) 
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch("/api/tasks", {
+      const res = await fetch("/api/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: noteTitleFromBody(body),
-          notes: body.trim(),
-          contactId: contactId || undefined,
-          addToCalendar: false,
+          title: title.trim() || body.trim().slice(0, 80),
+          body: body.trim(),
+          kind: "note",
+          contactId: contactId || null,
         }),
       });
       const data = await res.json();
@@ -82,7 +77,7 @@ export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) 
       open={open}
       onClose={onClose}
       title="Add note"
-      description="Save a quick note — linked to a contact or kept in My tasks."
+      description="Saved under Notes & Strategy — link to a client if you want."
       icon="sticky_note_2"
       size="md"
       footer={
@@ -105,6 +100,15 @@ export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) 
           </p>
         ) : null}
 
+        <ModalField label="Title">
+          <input
+            className={modalInputClass}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Optional — defaults to first line"
+          />
+        </ModalField>
+
         <ModalField label="Note" required>
           <textarea
             className={modalInputClass}
@@ -122,7 +126,7 @@ export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) 
             value={contactId}
             onChange={(e) => setContactId(e.target.value)}
           >
-            <option value="">My tasks (general)</option>
+            <option value="">Workspace note</option>
             {contacts.map((c) => (
               <option key={c.id} value={c.id}>
                 {`${c.first_name} ${c.last_name ?? ""}`.trim()}

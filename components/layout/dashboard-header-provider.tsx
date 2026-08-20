@@ -519,6 +519,22 @@ export function DashboardHeaderProvider({
               },
             },
             {
+              label: "Mortgage",
+              icon: "calculate",
+              action: () => {
+                setQuickCreateOpen(false);
+                router.push("/dashboard/mortgage");
+              },
+            },
+            {
+              label: "Property Finder",
+              icon: "location_on",
+              action: () => {
+                setQuickCreateOpen(false);
+                router.push("/dashboard/properties");
+              },
+            },
+            {
               label: "Add contact",
               icon: "person_add",
               action: () => {

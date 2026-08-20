@@ -4,11 +4,13 @@ import { hasClerkEnv } from "@/lib/clerk-env";
 import { isElevenLabsConfigured } from "@/lib/providers/elevenlabs";
 import { isLiveProvidersConfigured } from "@/lib/providers/registry";
 import { isSupabaseConfigured } from "@/lib/server-config";
+import { isStripeConfigured, stripePublishableKey } from "@/lib/stripe/config";
 
 export const GET = withApiHandler(async () => {
   const supabase = isSupabaseConfigured();
   const clerk = hasClerkEnv();
   const providers = isLiveProvidersConfigured();
+  const stripe = isStripeConfigured();
 
   return apiOk({
     status: supabase && clerk ? "ok" : "degraded",
@@ -17,6 +19,10 @@ export const GET = withApiHandler(async () => {
     providers,
     voiceAi: isElevenLabsConfigured(),
     googleCalendar: isGoogleCalendarConfigured(),
+    stripe: {
+      configured: stripe,
+      publishableKey: Boolean(stripePublishableKey()),
+    },
     liveSending: providers.voicemail || providers.sms || providers.email,
     message:
       supabase && clerk

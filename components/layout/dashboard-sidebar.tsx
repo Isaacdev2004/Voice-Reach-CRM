@@ -75,8 +75,7 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
 
         <div className="mt-auto space-y-3 px-4">
           <p className="text-center text-[11px] text-taupe">
-            {billing.planName} · {billing.voiceMinutesUsed.toLocaleString()}/
-            {billing.voiceMinutesLimit.toLocaleString()} min
+            {billing.planName} · ${billing.monthlyPrice}/mo
           </p>
           <button
             type="button"

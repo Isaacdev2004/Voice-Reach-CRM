@@ -61,6 +61,7 @@ Run in Supabase SQL editor:
 4. `supabase/schema-contact-tasks.sql`
 5. `supabase/schema-integrations.sql` (Dotloop OAuth tokens)
 6. `supabase/schema-lead-engagement.sql` (buyer workflow fields + engagement score)
+7. `supabase/schema-contact-notes.sql` (Notes & Strategy + Property Finder fields)
 
 Create Storage bucket: **`voice-assets`** (private).
 
@@ -74,6 +75,24 @@ Create Storage bucket: **`voice-assets`** (private).
 | Resend (email events) | `https://voice-reach-crm.vercel.app/api/webhooks/voice?provider=resend` |
 
 **Twilio inbound:** Phone Number → Messaging → “A message comes in” → webhook URL above (HTTP POST). Required for STOP → DNC.
+
+## Stripe (agent membership)
+
+| Variable | Notes |
+|---|---|
+| `STRIPE_SECRET_KEY` | Dashboard → Developers → API keys (Secret) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Publishable key |
+| `STRIPE_WEBHOOK_SECRET` | From webhook endpoint below |
+
+**Stripe Dashboard → Developers → Webhooks → Add endpoint:**
+
+`https://voice-reach-crm.vercel.app/api/webhooks/stripe`
+
+Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+
+Optional: create three recurring Products ($49 / $97 / $197) and set `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_GROWTH`, `STRIPE_PRICE_PRO`. If omitted, checkout creates prices automatically.
+
+After env vars are set, **Redeploy**. Agent flow: Sign up → pick plan → Stripe Checkout → dashboard unlocked.
 
 ## Verify
 

@@ -3,7 +3,7 @@
 import { Modal, ModalFooterActions } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
-import { PLAN_OPTIONS } from "@/lib/settings/defaults";
+import { PLAN_OPTIONS } from "@/lib/billing/plans";
 import type { BillingSettings } from "@/lib/settings/types";
 
 type UpgradePlanModalProps = {
@@ -11,6 +11,8 @@ type UpgradePlanModalProps = {
   onClose: () => void;
   currentPlanId: string;
   onSelect: (plan: BillingSettings) => void;
+  onCheckout?: (planId: string) => void;
+  checkoutLoading?: boolean;
 };
 
 export function UpgradePlanModal({
@@ -18,13 +20,15 @@ export function UpgradePlanModal({
   onClose,
   currentPlanId,
   onSelect,
+  onCheckout,
+  checkoutLoading,
 }: UpgradePlanModalProps) {
   return (
     <Modal
       open={open}
       onClose={onClose}
       title="Choose your plan"
-      description="Upgrade or change plans anytime. Usage resets each billing cycle."
+      description="Secure checkout with Stripe. Your plan unlocks as soon as payment completes."
       icon="workspace_premium"
       size="lg"
       footer={<ModalFooterActions onCancel={onClose} cancelLabel="Close" primaryLabel="Close" onPrimary={onClose} />}
@@ -36,12 +40,17 @@ export function UpgradePlanModal({
             <button
               key={plan.id}
               type="button"
+              disabled={checkoutLoading}
               onClick={() => {
+                if (onCheckout) {
+                  onCheckout(plan.id);
+                  return;
+                }
                 onSelect({
                   planId: plan.id,
                   planName: plan.name,
                   monthlyPrice: plan.price,
-                  voiceMinutesLimit: plan.minutes,
+                  voiceMinutesLimit: plan.rvmIncluded || plan.smsIncluded || 0,
                   voiceMinutesUsed: 0,
                 });
               }}
@@ -58,7 +67,12 @@ export function UpgradePlanModal({
                 <span className="text-[14px] font-normal text-taupe">/mo</span>
               </p>
               <p className="mt-2 text-[13px] text-taupe">
-                {plan.minutes.toLocaleString()} voice minutes
+                {plan.contactLimit
+                  ? `Up to ${plan.contactLimit.toLocaleString()} contacts`
+                  : "Unlimited contacts"}
+                {plan.smsIncluded
+                  ? ` · ${plan.smsIncluded.toLocaleString()} SMS`
+                  : " · pay-as-you-go SMS"}
               </p>
               <ul className="mt-4 space-y-2">
                 {plan.features.map((f) => (

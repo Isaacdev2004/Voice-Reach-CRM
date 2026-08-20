@@ -10,6 +10,7 @@ import {
   VoicemailIcon,
 } from "@/components/icons/landing-icons";
 import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
+import { PLAN_OPTIONS } from "@/lib/billing/plans";
 
 const PARTNERS = [
   "Northgate Realty",
@@ -18,51 +19,17 @@ const PARTNERS = [
   "Harbor Solar",
 ];
 
-const PRICING_TIERS = [
-  {
-    name: "Growth",
-    description: "For emerging teams",
-    price: "$99",
-    priceSuffix: "/mo",
-    cta: "Get Started",
-    ctaStyle: "outline" as const,
-    features: [
-      "5,000 deliveries / month",
-      "Basic CRM integration",
-      "TCPA scrubbing",
-      "Email support",
-    ],
-  },
-  {
-    name: "Scale",
-    description: "For high-velocity operations",
-    price: "$249",
-    priceSuffix: "/mo",
-    cta: "Get Pro Access",
-    ctaStyle: "primary" as const,
-    featured: true,
-    features: [
-      "25,000 deliveries / month",
-      "Advanced automation",
-      "Priority AI routing",
-      "Dedicated success manager",
-    ],
-  },
-  {
-    name: "Elite",
-    description: "Custom enterprise needs",
-    price: "Custom",
-    priceSuffix: "",
-    cta: "Talk to Sales",
-    ctaStyle: "outline" as const,
-    features: [
-      "Unlimited deliveries",
-      "Dedicated compliance officer",
-      "White-label CRM options",
-      "Custom API & SLAs",
-    ],
-  },
-];
+const PRICING_TIERS = PLAN_OPTIONS.map((plan) => ({
+  id: plan.id,
+  name: plan.name,
+  description: plan.description,
+  price: `$${plan.price}`,
+  priceSuffix: "/mo",
+  cta: plan.cta,
+  ctaStyle: plan.featured ? ("primary" as const) : ("outline" as const),
+  featured: plan.featured,
+  features: plan.features,
+}));
 
 const VOICEMAIL_IMAGE =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuA4mY1HqyEWkMw4eP-V9ZXnHoPW63iJJ3NTQDKCE-y5YFQMLLLiFQdBL1CtAFg-W-rkiilQ8QhbkG6I3uZ2Y9fj193cXJE79WpYSXk2x5Dmkh696UFgMxOTooDa4iC9PoHFbuUEFyDvPGiTlSXVSlnIqpI0CKyd0isXXU66rwSZFH2hkNkMc3cWzVQL0ELouIZCNVl1VvfQdjeo6nRrmviLtIS-ZOB2AoxxT3LbE-ez53Sc6Y0VyeM02wRnJHzZIrxUPCICNUIqUZNU";
@@ -377,7 +344,7 @@ export function LandingPage() {
                     )}
                   </div>
                   <Link
-                    href="/sign-up"
+                    href={`/sign-up?plan=${tier.id}`}
                     className={`mb-10 w-full rounded-full py-4 text-center text-label-md font-bold transition-all ${
                       tier.ctaStyle === "primary"
                         ? "bg-rose-gold text-ivory shadow-card hover:opacity-95"

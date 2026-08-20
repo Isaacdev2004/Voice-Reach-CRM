@@ -5,6 +5,7 @@ import { ContactAvatar } from "@/components/crm/contact-avatar";
 import { DashboardDeckHero } from "@/components/crm/dashboard-deck-hero";
 import { KpiCard } from "@/components/crm/kpi-card";
 import { LuxuryCard } from "@/components/crm/luxury-card";
+import { MarketingPulse } from "@/components/crm/marketing-pulse";
 import { Icon } from "@/components/ui/icon";
 import { contactSegment } from "@/lib/contacts/lifecycle";
 import { DASHBOARD_ACTIVITY } from "@/lib/crm/mock-data";
@@ -68,6 +69,8 @@ export function OperationalDashboardPage() {
   return (
     <div className="luxury-page w-full max-w-[1400px] mx-auto space-y-6 px-4 py-6 sm:p-8">
       <DashboardDeckHero />
+
+      <MarketingPulse />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {kpis.map((kpi) => (

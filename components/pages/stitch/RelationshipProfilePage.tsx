@@ -6,6 +6,7 @@ import { AiSuggestionPanel } from "@/components/crm/ai-suggestion-panel";
 import { ComplianceBadge } from "@/components/crm/compliance-badge";
 import { ContactAvatar } from "@/components/crm/contact-avatar";
 import { ContactInfoLinks, ContactQuickActions } from "@/components/crm/contact-quick-actions";
+import { ContactNotesPanel } from "@/components/crm/contact-notes-panel";
 import { ContactTasksPanel } from "@/components/crm/contact-tasks-panel";
 import { EditContactModal } from "@/components/crm/edit-contact-modal";
 import { LuxuryCard } from "@/components/crm/luxury-card";
@@ -189,15 +190,7 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
         </LuxuryCard>
 
         <div className="lg:col-span-4 space-y-6">
-          <LuxuryCard padding="lg">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-serif text-[20px] font-semibold text-ink">Notes</h2>
-              <button type="button" className="text-[13px] font-medium text-rose-gold-deep">
-                + Add note
-              </button>
-            </div>
-            <p className="text-[15px] leading-relaxed text-slate-text">{profile.notes}</p>
-          </LuxuryCard>
+          <ContactNotesPanel contactId={contactId} fallback={profile.notes} isDemo={isDemo} />
 
           <LuxuryCard padding="lg">
             <h2 className="mb-4 font-serif text-[20px] font-semibold text-ink">Contact details</h2>

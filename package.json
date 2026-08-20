@@ -23,6 +23,7 @@
     "postcss": "^8.5.14",
     "react": "latest",
     "react-dom": "latest",
+    "stripe": "^22.5.0",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.0",
     "zod": "latest"

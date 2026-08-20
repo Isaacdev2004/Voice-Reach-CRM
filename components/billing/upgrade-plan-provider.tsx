@@ -3,6 +3,7 @@
 import { UpgradePlanModal } from "@/components/settings/upgrade-plan-modal";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import { planById, type PlanId } from "@/lib/billing/plans";
 import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
 import { fetchSettings, persistSettings, saveSettingsLocal } from "@/lib/settings/storage";
 import type { BillingSettings, UserSettings } from "@/lib/settings/types";
@@ -12,12 +13,14 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 
 type UpgradePlanContextValue = {
   openUpgrade: () => void;
+  startCheckout: (planId: PlanId) => Promise<void>;
   currentPlanId: string;
   billing: BillingSettings;
   lastUpgradedAt: number;
@@ -45,6 +48,7 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
     null,
   );
   const [lastUpgradedAt, setLastUpgradedAt] = useState(0);
+  const checkoutStarted = useRef(false);
 
   const billing = settings?.billing ?? DEFAULT_SETTINGS.billing;
 
@@ -65,6 +69,38 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
     void loadSettings();
   }, [loadSettings]);
 
+  const startCheckout = useCallback(
+    async (planId: PlanId) => {
+      setSaving(true);
+      setToast(null);
+      try {
+        const res = await fetch("/api/billing/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planId }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error ?? "Could not start checkout");
+        }
+        if (data.url) {
+          window.location.assign(data.url);
+          return;
+        }
+        throw new Error("Stripe checkout URL missing");
+      } catch (e) {
+        setToast({
+          message: e instanceof Error ? e.message : "Checkout failed",
+          tone: "error",
+        });
+        window.setTimeout(() => setToast(null), 5000);
+      } finally {
+        setSaving(false);
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     if (searchParams.get("upgrade") !== "1") return;
     setOpen(true);
@@ -73,6 +109,34 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
     const qs = next.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }, [searchParams, pathname, router]);
+
+  useEffect(() => {
+    const checkout = searchParams.get("checkout");
+    if (checkout === "success") {
+      void loadSettings().then((s) => {
+        setLastUpgradedAt(Date.now());
+        setToast({
+          message: `Payment received — you're on ${s.billing.planName}.`,
+          tone: "success",
+        });
+        window.setTimeout(() => setToast(null), 5000);
+      });
+      const next = new URLSearchParams(searchParams.toString());
+      next.delete("checkout");
+      next.delete("plan");
+      const qs = next.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }
+  }, [searchParams, pathname, router, loadSettings]);
+
+  useEffect(() => {
+    const planParam = searchParams.get("plan");
+    if (!planParam || checkoutStarted.current) return;
+    const plan = planById(planParam);
+    if (!plan) return;
+    checkoutStarted.current = true;
+    void startCheckout(plan.id);
+  }, [searchParams, startCheckout]);
 
   const openUpgrade = useCallback(() => {
     void loadSettings();
@@ -122,6 +186,7 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
     <UpgradePlanContext.Provider
       value={{
         openUpgrade,
+        startCheckout,
         currentPlanId: billing.planId,
         billing,
         lastUpgradedAt,
@@ -134,6 +199,8 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
         onClose={() => !saving && setOpen(false)}
         currentPlanId={billing.planId}
         onSelect={(plan) => void handleSelect(plan)}
+        onCheckout={(planId) => void startCheckout(planId as PlanId)}
+        checkoutLoading={saving}
       />
 
       {saving ? (
@@ -143,7 +210,7 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
         >
           <div className="flex items-center gap-3 rounded-xl bg-ivory px-6 py-4 shadow-card">
             <Icon name="progress_activity" className="animate-spin text-rose-gold-deep" />
-            <span className="text-[14px] text-ink">Updating your plan…</span>
+            <span className="text-[14px] text-ink">Redirecting to secure checkout…</span>
           </div>
         </div>
       ) : null}

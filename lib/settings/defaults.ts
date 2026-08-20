@@ -1,4 +1,7 @@
+import { PLAN_OPTIONS } from "@/lib/billing/plans";
 import type { UserSettings } from "./types";
+
+export { PLAN_OPTIONS };
 
 export const DEFAULT_SETTINGS: UserSettings = {
   profile: {
@@ -109,11 +112,11 @@ export const DEFAULT_SETTINGS: UserSettings = {
     },
   ],
   billing: {
-    planId: "enterprise_plus",
-    planName: "Enterprise Plus",
-    monthlyPrice: 499,
-    voiceMinutesLimit: 100000,
-    voiceMinutesUsed: 72000,
+    planId: "growth",
+    planName: "Growth",
+    monthlyPrice: 97,
+    voiceMinutesLimit: 250,
+    voiceMinutesUsed: 0,
   },
   notifications: {
     emailDigest: true,
@@ -133,28 +136,4 @@ export const TIMEZONE_OPTIONS = [
   { value: "America/Los_Angeles", label: "Pacific Time (PT)" },
   { value: "Europe/London", label: "Greenwich Mean Time (GMT)" },
   { value: "Europe/Paris", label: "Central European Time (CET)" },
-];
-
-export const PLAN_OPTIONS = [
-  {
-    id: "starter",
-    name: "Starter",
-    price: 99,
-    minutes: 10000,
-    features: ["5,000 contacts", "Basic automations", "Email support"],
-  },
-  {
-    id: "growth",
-    name: "Growth",
-    price: 249,
-    minutes: 40000,
-    features: ["25,000 contacts", "Advanced automations", "Priority support"],
-  },
-  {
-    id: "enterprise_plus",
-    name: "Enterprise Plus",
-    price: 499,
-    minutes: 100000,
-    features: ["Unlimited contacts", "Compliance engine", "Dedicated CSM"],
-  },
 ];
