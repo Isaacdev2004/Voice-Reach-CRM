@@ -77,15 +77,17 @@ export function PropertyFinderPage() {
     : null;
 
   return (
-    <div className="luxury-page mx-auto w-full max-w-[720px] space-y-8 p-4 sm:p-8">
-      <header>
+    <div className="luxury-page mx-auto w-full min-w-0 max-w-[720px] space-y-6 p-4 sm:p-8">
+      <LuxuryCard padding="lg" className="w-full min-w-0">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Search</p>
-        <h1 className="mt-1 font-serif text-[36px] font-semibold text-ink">Property Finder</h1>
-        <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
+        <h1 className="mt-2 font-serif text-[32px] font-semibold leading-tight text-ink sm:text-[40px]">
+          Property Finder
+        </h1>
+        <p className="mt-3 w-full text-[15px] leading-relaxed text-slate-text sm:max-w-2xl">
           Select a client to generate a tailored Zillow search from their criteria, then send it in
           one tap.
         </p>
-      </header>
+      </LuxuryCard>
 
       <label className="block">
         <span className="mb-2 block text-[13px] font-medium text-taupe">Client</span>

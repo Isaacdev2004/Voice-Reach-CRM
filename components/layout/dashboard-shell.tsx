@@ -73,6 +73,21 @@ const headerConfig: Record<
     showQuickCreate: true,
     fullWidth: true,
   },
+  "/dashboard/notes": {
+    searchPlaceholder: "Search notes and strategy...",
+    showQuickCreate: true,
+    fullWidth: true,
+  },
+  "/dashboard/mortgage": {
+    searchPlaceholder: "Mortgage calculator...",
+    showQuickCreate: false,
+    fullWidth: true,
+  },
+  "/dashboard/properties": {
+    searchPlaceholder: "Search clients for property finder...",
+    showQuickCreate: true,
+    fullWidth: true,
+  },
 };
 
 export function DashboardShell({ children }: DashboardShellProps) {

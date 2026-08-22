@@ -79,13 +79,19 @@ export function NotesStrategyPage() {
   };
 
   return (
-    <div className="luxury-page mx-auto w-full max-w-[900px] space-y-8 p-4 sm:p-8">
-      <header>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Thinking</p>
-        <h1 className="mt-1 font-serif text-[36px] font-semibold text-ink">Notes & Strategy</h1>
-        <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-slate-text">
-          Capture ideas, shape your strategy, and set goals — all in one refined space.
-        </p>
+    <div className="luxury-page mx-auto w-full min-w-0 max-w-[900px] space-y-6 p-4 sm:p-8">
+      <LuxuryCard padding="lg" className="w-full min-w-0">
+        <div className="w-full min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
+            Thinking
+          </p>
+          <h1 className="mt-2 font-serif text-[32px] font-semibold leading-tight text-ink sm:text-[40px]">
+            Notes & Strategy
+          </h1>
+          <p className="mt-3 w-full text-[15px] leading-relaxed text-slate-text sm:max-w-2xl">
+            Capture ideas, shape your strategy, and set goals — all in one refined space.
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => {
@@ -97,10 +103,10 @@ export function NotesStrategyPage() {
           <Icon name="add" className="text-[18px]" />
           New Entry
         </button>
-      </header>
+      </LuxuryCard>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex rounded-full bg-champagne p-1">
+      <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="inline-flex w-full min-w-0 rounded-full bg-champagne p-1 sm:w-auto">
           {TABS.map((item) => (
             <button
               key={item.id}
@@ -121,13 +127,13 @@ export function NotesStrategyPage() {
             setEditing(null);
             setModalOpen(true);
           }}
-          className="text-[13px] font-medium text-rose-gold-deep hover:underline"
+          className="shrink-0 self-start text-[13px] font-medium text-rose-gold-deep hover:underline sm:self-center"
         >
           + Add {tab === "all" ? "Note" : kindLabel(tab as NoteKind)}
         </button>
       </div>
 
-        {error ? (
+      {error ? (
           <p className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
             {error.includes("contact_notes") ||
             error.includes("schema") ||

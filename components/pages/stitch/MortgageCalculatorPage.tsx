@@ -79,11 +79,13 @@ export function MortgageCalculatorPage() {
   );
 
   return (
-    <div className="luxury-page mx-auto w-full max-w-[720px] space-y-8 p-4 sm:p-8">
-      <header>
+    <div className="luxury-page mx-auto w-full min-w-0 max-w-[720px] space-y-6 p-4 sm:p-8">
+      <LuxuryCard padding="lg" className="w-full min-w-0">
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Planning</p>
-        <h1 className="mt-1 font-serif text-[36px] font-semibold text-ink">Mortgage Calculator</h1>
-        <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
+        <h1 className="mt-2 font-serif text-[32px] font-semibold leading-tight text-ink sm:text-[40px]">
+          Mortgage Calculator
+        </h1>
+        <p className="mt-3 w-full text-[15px] leading-relaxed text-slate-text sm:max-w-2xl">
           Estimate monthly payments with today’s average rates, refreshed daily.
         </p>
         <button
@@ -94,9 +96,9 @@ export function MortgageCalculatorPage() {
           <Icon name={loadingRates ? "progress_activity" : "refresh"} className={loadingRates ? "animate-spin text-[18px]" : "text-[18px]"} />
           Refresh rates
         </button>
-      </header>
+      </LuxuryCard>
 
-      <LuxuryCard padding="lg">
+      <LuxuryCard padding="lg" className="w-full min-w-0">
         <div className="mb-6 flex items-center gap-2">
           <Icon name="calculate" className="text-rose-gold-deep" />
           <h2 className="font-serif text-[22px] font-semibold text-ink">Loan Estimate</h2>
