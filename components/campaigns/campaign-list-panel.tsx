@@ -107,15 +107,15 @@ export function CampaignListPanel() {
   return (
     <div className="space-y-6">
       <LuxuryCard padding="lg">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-          <div>
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 w-full flex-1">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
               Recommended from your playbook
             </p>
             <h2 className="mt-1 font-serif text-[22px] font-semibold text-ink">
               Priority campaigns
             </h2>
-            <p className="mt-1 max-w-xl text-[13px] text-taupe">
+            <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-taupe">
               Cold re-engage, long-term nurture, listing alerts, speed-to-lead, engaged-no-tour,
               and post-tour — ready to install with one click.
             </p>
@@ -124,7 +124,7 @@ export function CampaignListPanel() {
             type="button"
             onClick={() => void installAllRecommended()}
             disabled={Boolean(creatingKey)}
-            className="rounded-full bg-rose-gold px-4 py-2 text-[13px] font-medium text-ivory disabled:opacity-50"
+            className="w-full shrink-0 self-start rounded-full bg-rose-gold px-4 py-2 text-[13px] font-medium text-ivory disabled:opacity-50 sm:w-auto"
           >
             {creatingKey ? "Installing…" : "Install all recommended"}
           </button>
@@ -139,19 +139,21 @@ export function CampaignListPanel() {
                 className="flex flex-col rounded-2xl border border-outline-variant/15 bg-champagne/30 p-4"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="font-medium text-ink">{tpl.name}</p>
                     <p className="mt-1 text-[12px] text-taupe">
                       {tpl.durationDays} days · {tpl.steps.length} steps · {tpl.audience}
                     </p>
                   </div>
                   {tpl.featured ? (
-                    <span className="rounded-full bg-rose-gold/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-gold-deep">
+                    <span className="shrink-0 rounded-full bg-rose-gold/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-gold-deep">
                       Priority
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-2 flex-1 text-[13px] text-slate-text">{tpl.description}</p>
+                <p className="mt-2 flex-1 text-[13px] leading-relaxed text-slate-text">
+                  {tpl.description}
+                </p>
                 <button
                   type="button"
                   disabled={installed || creatingKey === tpl.templateKey}
