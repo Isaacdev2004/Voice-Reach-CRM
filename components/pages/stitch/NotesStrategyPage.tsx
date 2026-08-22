@@ -127,13 +127,15 @@ export function NotesStrategyPage() {
         </button>
       </div>
 
-      {error ? (
-        <p className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
-          {error.includes("contact_notes") || error.includes("schema")
-            ? "Notes table isn’t in Supabase yet — run supabase/schema-contact-notes.sql, then refresh."
-            : error}
-        </p>
-      ) : null}
+        {error ? (
+          <p className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
+            {error.includes("contact_notes") ||
+            error.includes("schema") ||
+            error.toLowerCase().includes("does not exist")
+              ? "Notes storage isn’t set up yet on the database. Your admin needs to run the Notes SQL setup once, then refresh this page."
+              : error}
+          </p>
+        ) : null}
 
       {loading ? (
         <p className="text-taupe">Loading entries…</p>
