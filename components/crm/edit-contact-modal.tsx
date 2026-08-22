@@ -70,6 +70,8 @@ export function EditContactModal({
     type: "Cold Lead",
     source: "",
     notes: "",
+    preferredArea: "",
+    propertyAddress: "",
     dnc: false,
     consent: "Unknown" as "Yes" | "No" | "Unknown",
     consentDate: "",
@@ -88,6 +90,8 @@ export function EditContactModal({
       type: contact.type ?? "Cold Lead",
       source: contact.source ?? "",
       notes: contact.notes ?? "",
+      preferredArea: contact.preferred_area ?? "",
+      propertyAddress: contact.property_address ?? "",
       dnc: Boolean(contact.dnc),
       consent: (rec?.status as "Yes" | "No" | "Unknown") || "Unknown",
       consentDate: toDateInput(rec?.consent_date),
@@ -141,6 +145,8 @@ export function EditContactModal({
           type: form.type,
           source: form.source.trim(),
           notes: form.notes.trim(),
+          preferredArea: form.preferredArea.trim() || null,
+          propertyAddress: form.propertyAddress.trim() || null,
           dnc: form.dnc,
           consent: form.consent,
           consentDate: form.consentDate || undefined,
@@ -262,6 +268,22 @@ export function EditContactModal({
               value={form.source}
               onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}
               placeholder="e.g. Referral, Zillow, Open house"
+            />
+          </ModalField>
+          <ModalField label="Preferred area">
+            <input
+              className={modalInputClass}
+              value={form.preferredArea}
+              onChange={(e) => setForm((f) => ({ ...f, preferredArea: e.target.value }))}
+              placeholder="e.g. Winter Park, Lake Nona"
+            />
+          </ModalField>
+          <ModalField label="Property of interest">
+            <input
+              className={modalInputClass}
+              value={form.propertyAddress}
+              onChange={(e) => setForm((f) => ({ ...f, propertyAddress: e.target.value }))}
+              placeholder="Address they toured or inquired about"
             />
           </ModalField>
         </div>

@@ -348,8 +348,22 @@ export function CampaignBuilderPage() {
           <div>
             <h2 className="font-serif text-[22px] font-semibold text-ink">Automation sequence</h2>
             <p className="text-[14px] text-slate-text">
-              Add steps you want to send. Click the × on any card to remove it (including AI video or
-              retargeting placeholders).
+              Add steps you want to send. Use merge fields like{" "}
+              <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
+                {"{{first_name}}"}
+              </code>
+              ,{" "}
+              <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
+                {"{{property_address}}"}
+              </code>
+              ,{" "}
+              <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">{"{{area}}"}</code>
+              ,{" "}
+              <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
+                {"{{agent_name}}"}
+              </code>{" "}
+              — they autofill from the contact and your Settings. Don&apos;t leave raw comps like
+              [Comp1Price] in the copy unless you paste real numbers first.
             </p>
           </div>
           <button

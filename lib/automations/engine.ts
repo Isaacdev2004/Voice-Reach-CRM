@@ -149,7 +149,9 @@ async function runAction(
       if (!contactId) return;
       const { data: contact } = await supabaseAdmin
         .from("contacts")
-        .select("id, phone, email, dnc, first_name, last_name, source, notes, type, opt_out_requested")
+        .select(
+          "id, phone, email, dnc, first_name, last_name, source, notes, type, opt_out_requested, preferred_area, property_address, budget",
+        )
         .eq("id", contactId)
         .eq("owner_id", ownerId)
         .maybeSingle();
@@ -167,7 +169,11 @@ async function runAction(
       }
 
       const { loadWorkspaceSettings } = await import("@/lib/settings/load-workspace");
-      const { applyMergeFields, splitEmailSubjectBody } = await import("@/lib/campaigns/merge-fields");
+      const {
+        applyMergeFields,
+        findUnresolvedMergeFields,
+        splitEmailSubjectBody,
+      } = await import("@/lib/campaigns/merge-fields");
       const { workspace, profile } = await loadWorkspaceSettings(ownerId);
 
       const channel = action.type === "send_email" ? "email" : "sms";
@@ -181,8 +187,27 @@ async function runAction(
         agentName: workspace.defaultSenderName || profile.fullName,
         agentPhone: profile.phone,
         brokerage: workspace.name,
+        marketArea: contact.preferred_area || undefined,
+        city: contact.preferred_area || undefined,
       });
       const emailParts = channel === "email" ? splitEmailSubjectBody(merged) : null;
+      const body = emailParts?.body ?? merged;
+      const subject = emailParts?.subject ?? String(action.config.subject ?? "Message from your agent");
+      const unresolved = findUnresolvedMergeFields(`${subject}\n${body}`);
+      if (unresolved.length) {
+        await writeAuditLog({
+          ownerId,
+          action: "AUTOMATION_BLOCKED",
+          entityType: "contact",
+          entityId: contactId,
+          metadata: {
+            reason: "unresolved_merge_fields",
+            unresolved,
+            action: action.type,
+          },
+        });
+        return;
+      }
 
       const result = await sendToContact({
         ownerId,
@@ -190,8 +215,8 @@ async function runAction(
         channel,
         campaignId: `automation-${ruleId}`,
         recipientId: contactId,
-        body: emailParts?.body ?? merged,
-        subject: emailParts?.subject ?? String(action.config.subject ?? "Message from your agent"),
+        body,
+        subject,
         recordEngagement: true,
       });
 

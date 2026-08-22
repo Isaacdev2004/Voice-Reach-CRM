@@ -37,3 +37,4 @@ where title is null or title = '';
 
 alter table public.contacts add column if not exists preferred_area text;
 alter table public.contacts add column if not exists budget numeric;
+alter table public.contacts add column if not exists property_address text;

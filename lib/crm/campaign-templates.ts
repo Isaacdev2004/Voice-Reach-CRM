@@ -54,7 +54,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Market update / saved-search digest",
         description:
-          "Subject: [City] market update for you, [FirstName]\n\nHi [FirstName],\n\nI've been watching the [City] market and wanted to share a quick snapshot — no check-in ask, just useful info.\n\nThis week's snapshot:\n· Median list price: [MedianListPrice]\n· Avg. days on market: [AvgDOM] days\n· New listings this week: [NewListingsCount]\n\nIf you're still keeping an eye on homes in [Neighborhood], a few that stood out:\n• [Listing1Address] — [Listing1Price]\n• [Listing2Address] — [Listing2Price]\n• [Listing3Address] — [Listing3Price]\n\nHappy to adjust what I'm watching for you anytime.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
+          "Subject: {{area}} market update for you, {{first_name}}\n\nHi {{first_name}},\n\nI've been watching the {{area}} market and wanted to share a quick snapshot — no check-in ask, just useful info.\n\nIf you're still keeping an eye on homes in {{area}}, reply UPDATE and I'll send this week's pricing pulse plus 2–3 standout listings.\n\nHappy to adjust what I'm watching for you anytime.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 1",
         timeLabel: "9:00 AM",
       },
@@ -133,7 +133,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Instant email (<2 min)",
         description:
-          "Subject: I found homes matching your search — [FirstName]\n\nHi [FirstName],\n\nThanks for reaching out! I'm [Agent], your local real estate specialist covering [MarketArea].\n\nI pulled up the listing you were looking at — [PropertyAddress] — and I want to make sure you don't miss out. Homes in that price range in [Neighborhood] are averaging just [AvgDOM] days on market right now.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes (including some not yet on Zillow)\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\n[Agent]\n[Brokerage] · [AgentPhone]",
+          "Subject: I found homes matching your search — {{first_name}}\n\nHi {{first_name}},\n\nThanks for reaching out! I'm {{agent_name}}, your local real estate specialist covering {{area}}.\n\nI pulled up the listing you were looking at — {{property_address}} — and I want to make sure you don't miss out.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\n{{agent_name}}\n[Brokerage] · [AgentPhone]",
         dayLabel: "Day 1",
         timeLabel: "Immediate +2m",
       },
@@ -151,7 +151,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Day 1 comps follow-up (no reply)",
         description:
-          "Subject: Still searching? 3 homes near [PropertyAddress] worth seeing\n\nHi [FirstName],\n\nI wanted to follow up in case my first message got buried.\n\nI pulled three homes near [PropertyAddress] that match your criteria and wanted to share them before they're gone:\n\n1. [Comp1Address] — [Comp1Beds]bd/[Comp1Baths]ba · [Comp1Price]\n2. [Comp2Address] — [Comp2Beds]bd/[Comp2Baths]ba · [Comp2Price]\n3. [Comp3Address] — [Comp3Beds]bd/[Comp3Baths]ba · [Comp3Price]\n\nNo pressure at all — just wanted to make sure you have good options in front of you.\n\nIf any of these catch your eye, I can get you in for a showing as early as tomorrow.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
+          "Subject: Still searching? A few homes near {{property_address}} worth seeing\n\nHi {{first_name}},\n\nI wanted to follow up in case my first message got buried.\n\nI pulled a short list of homes near {{property_address}} that match what you're looking for in {{area}} and wanted to share them before they're gone.\n\nReply LIST and I'll send the 3 strongest options with beds, baths, and price — no pressure at all.\n\nIf any catch your eye, I can get you in for a showing as early as tomorrow.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 2",
         timeLabel: "10:00 AM",
       },
@@ -160,7 +160,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Day 3 new-listing nudge",
         description:
-          "Hey [FirstName], [Agent] again. Still looking in [Neighborhood]? A home just listed at [NewListingAddress] — [Beds]bd/[Baths]ba at [Price]. Only been on [DaysOnMarket] days. Want a showing? — [Agent] Reply STOP to opt out.",
+          "Hey {{first_name}}, {{agent_name}} again. Still looking in {{area}}? A strong match just hit — want details or a showing this week? — {{agent_name}} Reply STOP to opt out.",
         dayLabel: "Day 3",
         timeLabel: "11:00 AM",
       },
@@ -422,7 +422,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Comp analysis — priced right?",
         description:
-          "Subject: The numbers on [PropertyAddress] — is it priced right?\n\nHi [FirstName],\n\nHope you enjoyed the tour yesterday at [PropertyAddress]! Here's how it compares to recent sales in [Neighborhood]:\n\n[Comp1Address] — Sold [Comp1Price]\n[Comp2Address] — Sold [Comp2Price]\n[Comp3Address] — Sold [Comp3Price]\n\nAvg. sold price/sq ft: [AvgPricePerSqft]\nListed at: [ListingPricePerSqft]/sq ft\n\nThinking about an offer? I can have a draft ready in about an hour.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
+          "Subject: Quick thoughts after your tour of {{property_address}}\n\nHi {{first_name}},\n\nHope you enjoyed the tour yesterday at {{property_address}}! I pulled recent nearby sales so you can see how it stacks up in {{area}}.\n\nI'll text you the shortlist of comps next — or reply COMPS and I'll send them right away.\n\nThinking about an offer? I can have a draft ready in about an hour.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 2",
         timeLabel: "10:00 AM",
       },
@@ -440,7 +440,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Activity / competing-offer alert",
         description:
-          "Subject: Update on [PropertyAddress] — wanted you to know\n\nHi [FirstName],\n\nI wanted to give you a heads up — [PropertyAddress] has been getting activity. This home has had [ShowingCount] showings since listing.\n\nI don't say this to pressure you — only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
+          "Subject: Update on {{property_address}} — wanted you to know\n\nHi {{first_name}},\n\nI wanted to give you a heads up — {{property_address}} has been getting activity since we toured.\n\nI don't say this to pressure you — only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 4",
         timeLabel: "4:00 PM",
       },

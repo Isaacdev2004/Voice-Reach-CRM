@@ -31,6 +31,7 @@ export const PatchContactSchema = z.object({
   dnc: z.boolean().optional(),
   notes: z.string().optional(),
   preferredArea: z.string().max(200).optional().nullable(),
+  propertyAddress: z.string().max(300).optional().nullable(),
   budget: z.number().nonnegative().optional().nullable(),
   leadType: z.enum(["buyer", "seller", "investor", "partner"]).optional().nullable(),
   consent: ConsentSchema.optional(),

@@ -96,6 +96,8 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   if (body.dnc !== undefined) updates.dnc = body.dnc;
   if (body.notes !== undefined) updates.notes = body.notes;
   if (body.preferredArea !== undefined) updates.preferred_area = body.preferredArea?.trim() || null;
+  if (body.propertyAddress !== undefined)
+    updates.property_address = body.propertyAddress?.trim() || null;
   if (body.budget !== undefined) updates.budget = body.budget;
   if (body.leadType !== undefined) updates.lead_type = body.leadType;
 

@@ -16,6 +16,7 @@ export type ApiContact = {
   notes?: string | null;
   lead_type?: string | null;
   preferred_area?: string | null;
+  property_address?: string | null;
   budget?: number | string | null;
   dnc?: boolean;
   consent_records?: {

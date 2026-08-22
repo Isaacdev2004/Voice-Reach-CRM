@@ -1,6 +1,10 @@
 import { writeAuditLog } from "@/lib/audit";
 import { syncCallbackStepToCalendar } from "@/lib/calendar/sync";
-import { applyMergeFields, splitEmailSubjectBody } from "@/lib/campaigns/merge-fields";
+import {
+  applyMergeFields,
+  findUnresolvedMergeFields,
+  splitEmailSubjectBody,
+} from "@/lib/campaigns/merge-fields";
 import { evaluateEligibility } from "@/lib/compliance";
 import { isInQuietHours, nextQuietHoursEnd } from "@/lib/compliance/quiet-hours";
 import { recordEngagementEvent } from "@/lib/engagement/record";
@@ -281,18 +285,35 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
         notes: contact.notes,
         source: contact.source,
         type: contact.type,
+        preferred_area: contact.preferred_area,
+        property_address: contact.property_address,
+        budget: contact.budget,
       },
       agentName: workspace.defaultSenderName || profile.fullName,
       agentPhone: profile.phone,
       brokerage: workspace.name,
-      marketArea: workspace.industry,
-      city: undefined,
+      // Prefer contact area — never use industry label ("Real Estate") as a place name
+      marketArea: contact.preferred_area || undefined,
+      city: contact.preferred_area || undefined,
     };
 
     const mergedDescription = applyMergeFields(step.description ?? step.title ?? "", mergeCtx);
     const mergedTitle = applyMergeFields(step.title ?? "", mergeCtx);
     const emailParts =
       channel === "email" ? splitEmailSubjectBody(mergedDescription) : null;
+    const outboundBody = emailParts?.body ?? mergedDescription;
+    const outboundSubject = emailParts?.subject ?? mergedTitle;
+    const unresolved = findUnresolvedMergeFields(
+      `${outboundSubject ?? ""}\n${outboundBody ?? ""}`,
+    );
+    if (unresolved.length) {
+      await markRun(run.id, "failed", {
+        error: `Message still has unfilled merge fields: ${unresolved.join(", ")}. Edit the step copy or fill contact property/area before sending.`,
+        unresolvedMergeFields: unresolved,
+      });
+      executed.push({ runId: run.id, status: "failed" });
+      continue;
+    }
 
     const sendResult = await sendToContact({
       ownerId: run.owner_id,
@@ -305,8 +326,8 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       campaignId: campaign?.id ?? recipient.campaign_id,
       recipientId: recipient.id,
       stepId: step.id,
-      body: emailParts?.body ?? mergedDescription,
-      subject: emailParts?.subject ?? mergedTitle,
+      body: outboundBody,
+      subject: outboundSubject,
       audioUrl,
       providerId: preferredProvider,
       recordEngagement: true,
