@@ -3,9 +3,9 @@
 import { Icon } from "@/components/ui/icon";
 
 const EDITOR_FEATURES = [
+  { icon: "edit", label: "Edit step copy" },
   { icon: "schedule", label: "Step timing" },
   { icon: "verified_user", label: "Compliance" },
-  { icon: "hub", label: "Integrations soon" },
 ] as const;
 
 export function CampaignEditorStrip() {
@@ -21,8 +21,9 @@ export function CampaignEditorStrip() {
               Sequence editor
             </p>
             <p className="mt-0.5 text-[14px] text-slate-text">
-              Set timing and compliance on each step. Voice &amp; email providers plug in next
-              milestone.
+              Click <strong className="text-ink">Edit copy</strong> on any step to change SMS or email
+              text. Then Save as template. Live SMS/email/voicemail use Twilio, Resend, and
+              Slybroadcast.
             </p>
           </div>
         </div>

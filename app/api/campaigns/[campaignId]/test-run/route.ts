@@ -39,28 +39,55 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
   if (campaignError) return apiError(campaignError.message, { status: 500 });
   if (!campaign) return apiError("Campaign not found", { status: 404, code: "not_found" });
 
-  const voice = Array.isArray(campaign.voice_assets)
-    ? campaign.voice_assets[0]
-    : campaign.voice_assets;
-
-  if (!campaign.voice_asset_id || !voice?.approved) {
-    return apiError(
-      "Approve a voice recording and link it to this campaign (Voice Scripts → Approve → Use for campaign) before running a test.",
-      { status: 400, code: "voice_asset_required" },
-    );
-  }
-
-  const { count: stepCount } = await supabaseAdmin
+  const { data: steps, error: stepsError } = await supabaseAdmin
     .from("campaign_steps")
-    .select("id", { count: "exact", head: true })
+    .select("id, type")
     .eq("campaign_id", campaignId)
     .eq("owner_id", ownerId);
 
-  if (!stepCount) {
+  if (stepsError) return apiError(stepsError.message, { status: 500 });
+  if (!steps?.length) {
     return apiError("This campaign has no steps yet. Save/activate the sequence from the builder first.", {
       status: 400,
       code: "no_steps",
     });
+  }
+
+  const needsVoicemail = steps.some((s) => s.type === "voicemail");
+  const needsSms = steps.some((s) => s.type === "sms");
+  const needsEmail = steps.some((s) => s.type === "email");
+
+  if (live) {
+    if (needsSms && !providers.sms) {
+      return apiError(
+        "This sequence has SMS steps, but Twilio is not configured (TWILIO_ACCOUNT_SID / AUTH_TOKEN / FROM_NUMBER).",
+        { status: 400, code: "sms_not_configured" },
+      );
+    }
+    if (needsEmail && !providers.email) {
+      return apiError(
+        "This sequence has email steps, but Resend is not configured (RESEND_API_KEY / RESEND_FROM_EMAIL).",
+        { status: 400, code: "email_not_configured" },
+      );
+    }
+    if (needsVoicemail && !providers.voicemail) {
+      return apiError(
+        "This sequence has ringless voicemail steps, but Slybroadcast is not configured.",
+        { status: 400, code: "voicemail_not_configured" },
+      );
+    }
+  }
+
+  const voice = Array.isArray(campaign.voice_assets)
+    ? campaign.voice_assets[0]
+    : campaign.voice_assets;
+
+  // Voice recording is only required when the sequence includes a voicemail step.
+  if (needsVoicemail && (!campaign.voice_asset_id || !voice?.approved)) {
+    return apiError(
+      "This sequence has a ringless voicemail step. Approve a voice recording and link it (Voice Scripts → Approve → Use for campaign) before running Live.",
+      { status: 400, code: "voice_asset_required" },
+    );
   }
 
   const provider = live

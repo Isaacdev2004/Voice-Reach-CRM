@@ -11,24 +11,24 @@ import { cn } from "@/lib/cn";
 import {
   CAMPAIGN_STEP_TYPES,
   getStepTypeOption,
-  suggestNextScheduling,
+  parseDayNumber,
 } from "@/lib/crm/campaign-steps";
 import type { CampaignStep, CampaignStepType } from "@/lib/crm/types";
 import { useEffect, useState } from "react";
 
-type AddCampaignStepModalProps = {
+type EditCampaignStepModalProps = {
   open: boolean;
+  step: CampaignStep | null;
   onClose: () => void;
-  existingSteps: CampaignStep[];
-  onAdd: (step: CampaignStep) => void;
+  onSave: (step: CampaignStep) => void;
 };
 
-export function AddCampaignStepModal({
+export function EditCampaignStepModal({
   open,
+  step,
   onClose,
-  existingSteps,
-  onAdd,
-}: AddCampaignStepModalProps) {
+  onSave,
+}: EditCampaignStepModalProps) {
   const [type, setType] = useState<CampaignStepType>("email");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -36,63 +36,48 @@ export function AddCampaignStepModal({
   const [timeLabel, setTimeLabel] = useState("9:00 AM");
 
   useEffect(() => {
-    if (!open) return;
-    const suggested = suggestNextScheduling(existingSteps);
-    const option = getStepTypeOption("email");
-    setType("email");
-    setTitle(option.defaultTitle);
-    setDescription(option.defaultDescription);
-    setDay(suggested.day);
-    setTimeLabel(suggested.timeLabel);
-  }, [open, existingSteps]);
+    if (!open || !step) return;
+    setType(step.type);
+    setTitle(step.title);
+    setDescription(step.description);
+    setDay(parseDayNumber(step.dayLabel));
+    setTimeLabel(step.timeLabel || "9:00 AM");
+  }, [open, step]);
 
-  const applyTypeDefaults = (nextType: CampaignStepType) => {
-    const option = getStepTypeOption(nextType);
-    setType(nextType);
-    setTitle(option.defaultTitle);
-    setDescription(option.defaultDescription);
-    setTimeLabel(option.defaultTime);
-  };
-
-  const handleClose = () => onClose();
+  if (!step) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-
-    const step: CampaignStep = {
-      id: `step-${crypto.randomUUID()}`,
-      order: existingSteps.length + 1,
+    onSave({
+      ...step,
       type,
       title: title.trim(),
       description: description.trim() || getStepTypeOption(type).defaultDescription,
       dayLabel: `Day ${Math.max(1, day)}`,
       timeLabel: timeLabel.trim() || "9:00 AM",
-      status: "draft",
-    };
-
-    onAdd(step);
-    handleClose();
+    });
+    onClose();
   };
 
   return (
     <Modal
       open={open}
-      onClose={handleClose}
-      title="Add automation step"
-      description="Choose a touchpoint, schedule it, and add it to your sequence."
-      icon="add_circle"
+      onClose={onClose}
+      title="Edit sequence step"
+      description="Update the message copy, channel, and timing. Save the campaign afterward to keep changes."
+      icon="edit"
       size="lg"
       footer={
         <ModalFooterActions
-          onCancel={handleClose}
-          primaryLabel="Add to sequence"
+          onCancel={onClose}
+          primaryLabel="Save step"
           primaryType="submit"
-          formId="add-campaign-step-form"
+          formId="edit-campaign-step-form"
         />
       }
     >
-      <form id="add-campaign-step-form" onSubmit={handleSubmit} className="space-y-6">
+      <form id="edit-campaign-step-form" onSubmit={handleSubmit} className="space-y-6">
         <div>
           <p className={cn("mb-3 text-[13px] font-medium text-taupe")}>Touchpoint type</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -100,7 +85,7 @@ export function AddCampaignStepModal({
               <button
                 key={option.type}
                 type="button"
-                onClick={() => applyTypeDefaults(option.type)}
+                onClick={() => setType(option.type)}
                 className={cn(
                   "flex flex-col items-center gap-2 rounded-xl border px-3 py-3 text-center transition-all",
                   type === option.type
@@ -120,23 +105,28 @@ export function AddCampaignStepModal({
             className={modalInputClass}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Follow-up email"
             required
           />
         </ModalField>
 
-        <ModalField label="Description / message copy">
+        <ModalField
+          label={
+            type === "email"
+              ? "Email copy (optional first line: Subject: …)"
+              : type === "sms"
+                ? "SMS text"
+                : "Script / description"
+          }
+        >
           <textarea
-            className={`${modalInputClass} min-h-[120px] resize-y py-3`}
+            className={`${modalInputClass} min-h-[140px] resize-y py-3`}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={5}
+            rows={6}
             placeholder={
               type === "sms"
                 ? "Hi {{first_name}}, this is {{agent_name}}…"
-                : type === "email"
-                  ? "Subject: …\n\nHi {{first_name}},…"
-                  : "Script or notes for this step"
+                : "Subject: …\n\nHi {{first_name}},…"
             }
           />
         </ModalField>
@@ -157,14 +147,17 @@ export function AddCampaignStepModal({
               className={modalInputClass}
               value={timeLabel}
               onChange={(e) => setTimeLabel(e.target.value)}
-              placeholder="9:00 AM"
             />
           </ModalField>
         </div>
 
         <p className="rounded-xl bg-champagne/50 px-4 py-3 text-[13px] text-taupe">
-          New steps are saved as <strong className="text-ink">Draft</strong> until you activate the
-          campaign. Compliance checks run before each send.
+          Use{" "}
+          <code className="rounded bg-ivory px-1 text-[12px]">{"{{first_name}}"}</code>,{" "}
+          <code className="rounded bg-ivory px-1 text-[12px]">{"{{property_address}}"}</code>,{" "}
+          <code className="rounded bg-ivory px-1 text-[12px]">{"{{area}}"}</code>,{" "}
+          <code className="rounded bg-ivory px-1 text-[12px]">{"{{agent_name}}"}</code> — they autofill
+          when the campaign runs.
         </p>
       </form>
     </Modal>

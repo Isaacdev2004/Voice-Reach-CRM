@@ -1,6 +1,7 @@
 "use client";
 
 import { AddCampaignStepModal } from "@/components/crm/add-campaign-step-modal";
+import { EditCampaignStepModal } from "@/components/crm/edit-campaign-step-modal";
 import { ActivateCampaignModal } from "@/components/crm/activate-campaign-modal";
 import { CampaignEditorStrip } from "@/components/crm/campaign-editor-strip";
 import { CampaignFlow } from "@/components/crm/campaign-flow-step";
@@ -31,6 +32,7 @@ export function CampaignBuilderPage() {
   const [dbCampaignId, setDbCampaignId] = useState<string | null>(null);
   const [campaignStatus, setCampaignStatus] = useState<"editing" | "draft" | "queued">("editing");
   const [addStepOpen, setAddStepOpen] = useState(false);
+  const [editingStep, setEditingStep] = useState<CampaignStep | null>(null);
   const [activateOpen, setActivateOpen] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [activating, setActivating] = useState(false);
@@ -137,6 +139,24 @@ export function CampaignBuilderPage() {
     if (campaignStatus === "queued") setCampaignStatus("editing");
     showToast("Step removed");
   }, [campaignStatus]);
+
+  const handleUpdateStep = useCallback(
+    (updated: CampaignStep) => {
+      setCampaign((prev) => {
+        const steps = reorderSteps(
+          prev.steps.map((s) => (s.id === updated.id ? { ...updated, order: s.order } : s)),
+        );
+        return {
+          ...prev,
+          steps,
+          durationDays: campaignDurationFromSteps(steps),
+        };
+      });
+      if (campaignStatus === "queued") setCampaignStatus("editing");
+      showToast("Step updated — click Save as template to keep it");
+    },
+    [campaignStatus],
+  );
 
   const scrollToSequence = () => {
     document
@@ -388,6 +408,7 @@ export function CampaignBuilderPage() {
             steps={campaign.steps}
             editable
             onRemoveStep={handleRemoveStep}
+            onEditStep={(step) => setEditingStep(step)}
           />
         )}
       </section>
@@ -423,6 +444,13 @@ export function CampaignBuilderPage() {
           handleAddStep(step);
           window.setTimeout(scrollToSequence, 150);
         }}
+      />
+
+      <EditCampaignStepModal
+        open={Boolean(editingStep)}
+        step={editingStep}
+        onClose={() => setEditingStep(null)}
+        onSave={handleUpdateStep}
       />
 
       <ActivateCampaignModal

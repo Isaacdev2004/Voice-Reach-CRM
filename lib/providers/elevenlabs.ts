@@ -72,6 +72,16 @@ export async function synthesizeSpeech(options: {
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
+    if (response.status === 401) {
+      throw new Error(
+        "ElevenLabs rejected the API key (401). In Vercel, set ELEVENLABS_API_KEY to the secret that starts with sk_ (not the key ID), then Redeploy.",
+      );
+    }
+    if (response.status === 404) {
+      throw new Error(
+        "ElevenLabs voice ID not found. Link your voice in Voice Scripts (paste Voice ID from ElevenLabs → Voices), or set ELEVENLABS_VOICE_ID in Vercel.",
+      );
+    }
     throw new Error(`ElevenLabs TTS failed (${response.status}): ${detail.slice(0, 200)}`);
   }
 

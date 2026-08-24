@@ -331,6 +331,13 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/dashboard/campaigns?edit=${campaignId}#campaign-builder`}
+            className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-ivory px-5 py-2 text-[13px] font-medium text-ink hover:bg-champagne"
+          >
+            <Icon name="edit" className="text-[18px]" />
+            Edit sequence
+          </Link>
           <button
             type="button"
             onClick={() => setTestRunOpen(true)}
@@ -693,7 +700,15 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
       </div>
 
       <LuxuryCard padding="lg">
-        <h2 className="mb-4 font-serif text-[22px] font-semibold text-ink">Sequence</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-serif text-[22px] font-semibold text-ink">Sequence</h2>
+          <Link
+            href={`/dashboard/campaigns?edit=${campaignId}#campaign-builder`}
+            className="text-[13px] font-medium text-rose-gold-deep hover:underline"
+          >
+            Edit SMS / email copy →
+          </Link>
+        </div>
         {steps.length === 0 ? (
           <p className="text-[13px] text-taupe">
             No persisted steps. The builder will save steps when you activate or save as template.
@@ -703,25 +718,35 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             {steps.map((step) => (
               <li
                 key={step.id}
-                className="flex items-center gap-3 rounded-xl border border-outline-variant/15 bg-ivory px-4 py-3"
+                className="rounded-xl border border-outline-variant/15 bg-ivory px-4 py-3"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-gold text-[13px] font-semibold text-ivory">
-                  {step.step_order}
-                </span>
-                <Icon
-                  name={STEP_ICONS[step.type] ?? "circle"}
-                  className="text-[20px] text-rose-gold-deep"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-ink">{step.title}</p>
-                  <p className="text-[12px] text-taupe">
-                    {step.day_label ?? `Δ ${step.delay_minutes} min`}
-                    {step.time_label ? ` · ${step.time_label}` : ""} · {step.type.replace("_", " ")}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-gold text-[13px] font-semibold text-ivory">
+                    {step.step_order}
+                  </span>
+                  <Icon
+                    name={STEP_ICONS[step.type] ?? "circle"}
+                    className="shrink-0 text-[20px] text-rose-gold-deep"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-ink">{step.title}</p>
+                    <p className="text-[12px] text-taupe">
+                      {step.day_label ?? `Δ ${step.delay_minutes} min`}
+                      {step.time_label ? ` · ${step.time_label}` : ""} ·{" "}
+                      {step.type.replace("_", " ")}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-cream px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-taupe">
+                    {step.status}
+                  </span>
                 </div>
-                <span className="rounded-full bg-cream px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-taupe">
-                  {step.status}
-                </span>
+                {step.description ? (
+                  <p className="mt-2 whitespace-pre-wrap rounded-lg bg-cream/60 px-3 py-2 text-[12px] leading-relaxed text-slate-text">
+                    {step.description.length > 280
+                      ? `${step.description.slice(0, 280)}…`
+                      : step.description}
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>

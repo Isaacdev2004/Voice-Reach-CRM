@@ -44,6 +44,7 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
   const [sampleAssetId, setSampleAssetId] = useState("");
   const [linking, setLinking] = useState(false);
   const [cloning, setCloning] = useState(false);
+  const [apiConfigured, setApiConfigured] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,18 +52,22 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
     const envelope = await safeFetch<{
       profiles: VoiceProfile[];
       envVoice: EnvVoice | null;
+      configured?: boolean;
       defaultProfileId: string | null;
     }>("/api/voice-assets/profiles");
     if (!envelope.success) return;
 
-    const { profiles: loaded, envVoice: env, defaultProfileId } = envelope.data;
+    const { profiles: loaded, envVoice: env, defaultProfileId, configured } = envelope.data;
     setProfiles(loaded ?? []);
     setEnvVoice(env);
+    setApiConfigured(Boolean(configured));
 
     if (defaultProfileId) {
       setSelectedVoiceKey(defaultProfileId);
     } else if (env?.voiceId) {
       setSelectedVoiceKey(`${ENV_VOICE_PREFIX}${env.voiceId}`);
+    } else if (configured) {
+      setSelectedVoiceKey("default");
     }
   };
 
@@ -79,9 +84,10 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
       setError("Add at least 10 characters to your script first.");
       return;
     }
-    if (!hasVoice) {
-      setError("Link your ElevenCreative voice first (button below).");
-      setLinkOpen(true);
+    if (!apiConfigured && !hasVoice) {
+      setError(
+        "ElevenLabs is not configured. Add ELEVENLABS_API_KEY (sk_…) in Vercel and Redeploy — or Link my voice after the key is set.",
+      );
       return;
     }
     setGenerating(true);
@@ -95,7 +101,7 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
 
     if (selectedVoiceKey.startsWith(ENV_VOICE_PREFIX)) {
       payload.voiceId = selectedVoiceKey.slice(ENV_VOICE_PREFIX.length);
-    } else if (selectedVoiceKey) {
+    } else if (selectedVoiceKey && selectedVoiceKey !== "default") {
       payload.voiceProfileId = selectedVoiceKey;
     }
 
@@ -172,6 +178,7 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
   };
 
   const hasVoice = Boolean(envVoice?.voiceId || profiles.length > 0);
+  const canGenerate = apiConfigured || hasVoice;
 
   return (
     <>
@@ -183,23 +190,35 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
-                AI voice (ElevenCreative)
+                AI voice (ElevenLabs)
               </p>
               <p className="mt-0.5 text-[14px] leading-relaxed text-slate-text">
-                Link your ElevenCreative voice once, write any script above, then generate audio in
-                your voice.
+                Write any script above, generate audio, approve it, then link it to a campaign for
+                ringless voicemail.
               </p>
             </div>
           </div>
 
-          {!hasVoice ? (
+          {!apiConfigured ? (
+            <div className="rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] leading-relaxed text-error">
+              <p className="font-medium">ElevenLabs API key missing or invalid</p>
+              <p className="mt-1 text-[13px]">
+                In Vercel → Environment Variables, set <code>ELEVENLABS_API_KEY</code> to the secret
+                starting with <strong>sk_</strong> (not the key ID), optional{" "}
+                <code>ELEVENLABS_VOICE_ID</code>, then Redeploy.
+              </p>
+            </div>
+          ) : !hasVoice ? (
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[14px] leading-relaxed text-amber-950">
-              <p className="font-medium">Set up your voice (one time)</p>
+              <p className="font-medium">Optional: use your own voice</p>
               <ol className="mt-2 list-decimal space-y-1 pl-5">
-                <li>Create or clone your voice in ElevenCreative / ElevenLabs</li>
-                <li>Copy the <strong>Voice ID</strong> from your voice settings</li>
-                <li>Click <strong>Link my voice</strong> below and paste the ID</li>
-                <li>Then use <strong>Generate audio</strong> — no API cloning needed</li>
+                <li>In ElevenLabs → Voices → copy your Voice ID</li>
+                <li>
+                  Click <strong>Link my voice</strong> and paste it
+                </li>
+                <li>
+                  Or generate now with the default voice, then swap later
+                </li>
               </ol>
             </div>
           ) : (
@@ -208,7 +227,7 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
                 <span className="font-medium text-ink">1.</span> Write your script above
               </li>
               <li className="rounded-xl bg-cream/80 px-3 py-2">
-                <span className="font-medium text-ink">2.</span> Select <strong>My voice</strong>
+                <span className="font-medium text-ink">2.</span> Select voice under Speak as
               </li>
               <li className="rounded-xl bg-cream/80 px-3 py-2">
                 <span className="font-medium text-ink">3.</span> Generate → Approve → Campaign
@@ -224,6 +243,9 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
                 value={selectedVoiceKey}
                 onChange={(e) => setSelectedVoiceKey(e.target.value)}
               >
+                {apiConfigured && !hasVoice ? (
+                  <option value="default">Default ElevenLabs voice</option>
+                ) : null}
                 {envVoice ? (
                   <option value={`${ENV_VOICE_PREFIX}${envVoice.voiceId}`}>{envVoice.label}</option>
                 ) : null}
@@ -232,9 +254,7 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
                     {p.label}
                   </option>
                 ))}
-                {!hasVoice ? (
-                  <option value="">Link my voice first…</option>
-                ) : null}
+                {!canGenerate ? <option value="">Configure ElevenLabs first…</option> : null}
               </select>
             </label>
             <label className="text-[12px] text-taupe sm:col-span-2">

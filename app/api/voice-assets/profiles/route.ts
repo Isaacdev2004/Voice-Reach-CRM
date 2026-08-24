@@ -23,6 +23,7 @@ export const GET = withApiHandler(async () => {
       return apiOk({
         profiles: [],
         envVoice,
+        configured: isElevenLabsConfigured(),
         defaultProfileId: null,
         defaultVoiceId: envVoice?.voiceId ?? null,
         warning: "Run supabase/schema-calendar.sql to enable saved voice profiles.",
@@ -38,6 +39,7 @@ export const GET = withApiHandler(async () => {
   return apiOk({
     profiles,
     envVoice,
+    configured: isElevenLabsConfigured(),
     defaultProfileId,
     defaultVoiceId: profiles[0]?.provider_voice_id ?? envVoice?.voiceId ?? null,
   });

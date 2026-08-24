@@ -257,6 +257,32 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
           ? campaign?.provider || undefined
           : undefined;
 
+    // Live campaigns must not silently mock SMS/email when credentials are missing.
+    if (campaign?.provider !== "mock") {
+      const liveProviders = (await import("@/lib/providers/registry")).isLiveProvidersConfigured();
+      if (channel === "sms" && !liveProviders.sms) {
+        await markRun(run.id, "failed", {
+          error: "Twilio SMS is not configured. Add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER.",
+        });
+        executed.push({ runId: run.id, status: "failed" });
+        continue;
+      }
+      if (channel === "email" && !liveProviders.email) {
+        await markRun(run.id, "failed", {
+          error: "Resend email is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL.",
+        });
+        executed.push({ runId: run.id, status: "failed" });
+        continue;
+      }
+      if (channel === "voicemail" && !liveProviders.voicemail) {
+        await markRun(run.id, "failed", {
+          error: "Slybroadcast is not configured for ringless voicemail.",
+        });
+        executed.push({ runId: run.id, status: "failed" });
+        continue;
+      }
+    }
+
     let audioUrl: string | undefined;
     if (channel === "voicemail") {
       const voiceRaw = campaign?.voice_assets;
