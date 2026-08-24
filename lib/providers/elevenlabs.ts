@@ -1,7 +1,17 @@
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1";
 
+function elevenLabsApiKey(): string | null {
+  const raw = process.env.ELEVENLABS_API_KEY?.trim();
+  if (!raw) return null;
+  // Common mistake: people paste the key *name/id* instead of the secret.
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(raw) || (!raw.startsWith("sk_") && raw.length < 20)) {
+    return raw; // still try; clearer error below if 401
+  }
+  return raw;
+}
+
 export function isElevenLabsConfigured(): boolean {
-  return Boolean(process.env.ELEVENLABS_API_KEY);
+  return Boolean(elevenLabsApiKey());
 }
 
 export function defaultElevenLabsVoiceId(): string {
@@ -50,7 +60,7 @@ export async function synthesizeSpeech(options: {
   voiceId?: string;
   modelId?: string;
 }): Promise<ArrayBuffer> {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
+  const apiKey = elevenLabsApiKey();
   if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not configured");
 
   const voiceId = options.voiceId ?? defaultElevenLabsVoiceId();
@@ -73,8 +83,11 @@ export async function synthesizeSpeech(options: {
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     if (response.status === 401) {
+      const looksLikeId = !apiKey.startsWith("sk_");
       throw new Error(
-        "ElevenLabs rejected the API key (401). In Vercel, set ELEVENLABS_API_KEY to the secret that starts with sk_ (not the key ID), then Redeploy.",
+        looksLikeId
+          ? "ElevenLabs 401 — that value is not a valid API secret. In ElevenLabs → Developers → API Keys, create a key and copy the full secret (usually starts with sk_). Paste that into Vercel as ELEVENLABS_API_KEY (Production), then Redeploy. Do not paste the Key ID / name."
+          : "ElevenLabs rejected the API key (401). Create a new key in ElevenLabs → Developers → API Keys (enable Text to Speech), paste the full secret into Vercel ELEVENLABS_API_KEY, then Redeploy.",
       );
     }
     if (response.status === 404) {
@@ -93,7 +106,7 @@ export async function cloneVoiceFromSample(options: {
   sampleBuffer: ArrayBuffer;
   sampleFileName?: string;
 }): Promise<{ voiceId: string }> {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
+  const apiKey = elevenLabsApiKey();
   if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not configured");
 
   const form = new FormData();
