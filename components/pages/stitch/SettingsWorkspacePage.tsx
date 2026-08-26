@@ -991,7 +991,7 @@ export function SettingsWorkspacePage() {
                         {planUsage.smsUsed.toLocaleString()}
                         {planUsage.smsIncluded > 0
                           ? ` / ${planUsage.smsIncluded.toLocaleString()} included`
-                          : " · pay as you go"}
+                          : " · $0.03 / SMS"}
                       </span>
                     </li>
                     <li className="flex justify-between gap-3">
@@ -1000,7 +1000,7 @@ export function SettingsWorkspacePage() {
                         {planUsage.rvmUsed.toLocaleString()}
                         {planUsage.rvmIncluded > 0
                           ? ` / ${planUsage.rvmIncluded.toLocaleString()} included`
-                          : " · pay as you go"}
+                          : " · $0.10 / drop"}
                       </span>
                     </li>
                     <li className="flex justify-between gap-3">
@@ -1061,9 +1061,8 @@ export function SettingsWorkspacePage() {
                   </button>
                 ) : null}
                 <p className="mt-3 text-[12px] text-taupe">
-                  Starter SMS &amp; ringless are pay-as-you-go (usage billed outside the monthly
-                  allotment). Growth/Pro include monthly SMS &amp; RVM drops; when those run out,
-                  upgrade or wait for next month.
+                  Starter pay-as-you-go: SMS $0.03 each · RVM $0.10 per drop. Growth/Pro include
+                  monthly allotments; when those run out, upgrade or wait until next month.
                 </p>
               </div>
               <p className="text-[14px] text-slate-text">

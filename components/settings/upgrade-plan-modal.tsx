@@ -3,7 +3,7 @@
 import { Modal } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
-import { PLAN_OPTIONS } from "@/lib/billing/plans";
+import { formatPaygRvm, formatPaygSms, PLAN_OPTIONS } from "@/lib/billing/plans";
 import type { BillingSettings } from "@/lib/settings/types";
 
 type UpgradePlanModalProps = {
@@ -106,7 +106,8 @@ export function UpgradePlanModal({
         })}
       </div>
       <p className="mt-5 text-center text-[12px] text-taupe">
-        Use the × to dismiss. Manage or cancel anytime in Settings → Billing.
+        Starter usage: {formatPaygSms()}, {formatPaygRvm()}. Manage or cancel anytime in Settings →
+        Billing.
       </p>
     </Modal>
   );

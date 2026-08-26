@@ -89,7 +89,7 @@ export async function assertCanAddContacts(ownerId: string, adding = 1) {
 
 /**
  * Gate live SMS / RVM against included monthly allotment.
- * Starter is pay-as-you-go (included = 0) → allowed (metered separately later).
+ * Starter is pay-as-you-go ($0.03 SMS / $0.10 RVM) → allowed (included = 0).
  * Growth/Pro: block when included allotment is exhausted (upgrade or wait for next month).
  */
 export async function assertCanSendChannel(

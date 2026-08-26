@@ -94,7 +94,7 @@ function CheckoutInner() {
           Selected: {selected.name} · ${selected.price}/mo
         </p>
         <ul className="mt-3 space-y-1 text-[13px] text-slate-text">
-          {selected.features.slice(0, 4).map((f) => (
+          {selected.features.map((f) => (
             <li key={f}>· {f}</li>
           ))}
         </ul>

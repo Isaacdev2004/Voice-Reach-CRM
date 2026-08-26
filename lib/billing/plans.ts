@@ -6,9 +6,9 @@ export type PlanOption = {
   description: string;
   price: number;
   contactLimit: number | null;
-  /** Included SMS / month (0 = pay-as-you-go) */
+  /** Included SMS / month (0 = pay-as-you-go at PAYG_RATES.sms) */
   smsIncluded: number;
-  /** Included ringless drops / month (0 = pay-as-you-go) */
+  /** Included ringless drops / month (0 = pay-as-you-go at PAYG_RATES.rvm) */
   rvmIncluded: number;
   /** Included email sends / month */
   emailIncluded: number;
@@ -16,6 +16,20 @@ export type PlanOption = {
   cta: string;
   features: string[];
 };
+
+/** Starter (and overage) usage rates confirmed with Kikzeny */
+export const PAYG_RATES = {
+  sms: 0.03,
+  rvm: 0.1,
+} as const;
+
+export function formatPaygSms() {
+  return `$${PAYG_RATES.sms.toFixed(2)} per SMS`;
+}
+
+export function formatPaygRvm() {
+  return `$${PAYG_RATES.rvm.toFixed(2)} per RVM drop`;
+}
 
 /**
  * Matches Kikzeny's voice-reach-pricing-strategy PDF.
@@ -38,7 +52,8 @@ export const PLAN_OPTIONS: PlanOption[] = [
       "Mortgage calculator",
       "Calendar, tasks & appointments",
       "Email campaigns — 1,000 sends/mo",
-      "SMS, calls & RVM — pay as you go",
+      `SMS — ${formatPaygSms()} (pay as you go)`,
+      `Ringless voicemail — ${formatPaygRvm()}`,
     ],
   },
   {
