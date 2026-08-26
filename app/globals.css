@@ -4,6 +4,7 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+  --font-hand: "Caveat", "Segoe Print", "Bradley Hand", cursive;
 
   /* Luxury palette — warm, relationship-first */
   --color-cream: #faf7f2;

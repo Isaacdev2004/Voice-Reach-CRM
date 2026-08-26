@@ -68,6 +68,9 @@ export function NotesStrategyPage() {
   >([]);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [fontSize, setFontSize] = useState<"sm" | "md" | "lg">("sm");
+  const [fontFamily, setFontFamily] = useState<"serif" | "sans" | "hand">("serif");
+  const [inkColor, setInkColor] = useState<"ink" | "slate" | "rose" | "sage">("ink");
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const saveTimer = useRef<number | null>(null);
@@ -143,6 +146,30 @@ export function NotesStrategyPage() {
     setSaveError(null);
     window.setTimeout(() => textareaRef.current?.focus(), 40);
   }, []);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("ari-notes-editor-prefs");
+      if (!raw) return;
+      const prefs = JSON.parse(raw) as {
+        fontSize?: "sm" | "md" | "lg";
+        fontFamily?: "serif" | "sans" | "hand";
+        inkColor?: "ink" | "slate" | "rose" | "sage";
+      };
+      if (prefs.fontSize) setFontSize(prefs.fontSize);
+      if (prefs.fontFamily) setFontFamily(prefs.fontFamily);
+      if (prefs.inkColor) setInkColor(prefs.inkColor);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "ari-notes-editor-prefs",
+      JSON.stringify({ fontSize, fontFamily, inkColor }),
+    );
+  }, [fontSize, fontFamily, inkColor]);
 
   useEffect(() => {
     void refresh().then((list) => {
@@ -261,6 +288,32 @@ export function NotesStrategyPage() {
 
   const liveTitle = titleFromFreeform(draftText);
 
+  const selectClass =
+    "appearance-none rounded-lg border border-outline-variant/20 bg-ivory bg-[length:12px] bg-[right_0.65rem_center] bg-no-repeat py-1.5 pl-2.5 pr-8 text-[12px] text-ink";
+  const selectChevron =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238C857B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")";
+
+  const editorFontClass =
+    fontFamily === "sans"
+      ? "font-sans"
+      : fontFamily === "hand"
+        ? "font-[family-name:var(--font-hand)]"
+        : "font-serif";
+  const editorSizeClass =
+    fontSize === "lg"
+      ? "text-[18px] sm:text-[20px]"
+      : fontSize === "md"
+        ? "text-[15px] sm:text-[16px]"
+        : "text-[13px] sm:text-[14px]";
+  const editorColorClass =
+    inkColor === "slate"
+      ? "text-slate-text"
+      : inkColor === "rose"
+        ? "text-rose-gold-deep"
+        : inkColor === "sage"
+          ? "text-emerald-muted"
+          : "text-ink";
+
   return (
     <div className="luxury-page mx-auto flex h-[calc(100vh-7rem)] min-h-[520px] w-full max-w-[1100px] flex-col gap-4 p-4 sm:p-6">
       <div className="flex shrink-0 items-end justify-between gap-4">
@@ -366,11 +419,11 @@ export function NotesStrategyPage() {
                   const next = e.target.value as NoteKind;
                   setKind(next);
                   kindRef.current = next;
-                  // Keep list filter in sync so the note doesn’t “vanish” or stick wrongly
                   if (tab !== "all") setTab(next);
                   scheduleSave();
                 }}
-                className="rounded-lg border border-outline-variant/20 bg-ivory px-2 py-1.5 text-[12px] text-ink"
+                className={selectClass}
+                style={{ backgroundImage: selectChevron }}
               >
                 <option value="note">Note</option>
                 <option value="strategy">Strategy</option>
@@ -387,7 +440,8 @@ export function NotesStrategyPage() {
                   contactIdRef.current = next;
                   scheduleSave();
                 }}
-                className="max-w-[160px] rounded-lg border border-outline-variant/20 bg-ivory px-2 py-1.5 text-[12px] text-ink"
+                className={cn(selectClass, "max-w-[170px]")}
+                style={{ backgroundImage: selectChevron }}
               >
                 <option value="">None</option>
                 {contacts.map((c) => (
@@ -395,6 +449,48 @@ export function NotesStrategyPage() {
                     {`${c.first_name} ${c.last_name ?? ""}`.trim()}
                   </option>
                 ))}
+              </select>
+            </label>
+            <label className="flex items-center gap-1.5 text-[11px] text-taupe">
+              Size
+              <select
+                value={fontSize}
+                onChange={(e) => setFontSize(e.target.value as "sm" | "md" | "lg")}
+                className={selectClass}
+                style={{ backgroundImage: selectChevron }}
+              >
+                <option value="sm">Small</option>
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-1.5 text-[11px] text-taupe">
+              Font
+              <select
+                value={fontFamily}
+                onChange={(e) => setFontFamily(e.target.value as "serif" | "sans" | "hand")}
+                className={selectClass}
+                style={{ backgroundImage: selectChevron }}
+              >
+                <option value="serif">Serif</option>
+                <option value="sans">Sans</option>
+                <option value="hand">Handwriting</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-1.5 text-[11px] text-taupe">
+              Color
+              <select
+                value={inkColor}
+                onChange={(e) =>
+                  setInkColor(e.target.value as "ink" | "slate" | "rose" | "sage")
+                }
+                className={selectClass}
+                style={{ backgroundImage: selectChevron }}
+              >
+                <option value="ink">Black</option>
+                <option value="slate">Gray</option>
+                <option value="rose">Rose</option>
+                <option value="sage">Green</option>
               </select>
             </label>
             <button
@@ -446,7 +542,12 @@ export function NotesStrategyPage() {
               void persist();
             }}
             placeholder={"Title\n\nStart writing freely…\n\n- [ ] Optional checklist item"}
-            className="min-h-0 flex-1 resize-none border-0 bg-transparent px-5 py-6 font-serif text-[20px] leading-relaxed text-ink shadow-none outline-none ring-0 placeholder:text-taupe/50 focus:border-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 sm:px-8 sm:text-[22px]"
+            className={cn(
+              "min-h-0 flex-1 resize-none border-0 bg-transparent px-5 py-5 leading-relaxed shadow-none outline-none ring-0 placeholder:text-taupe/50 focus:border-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 sm:px-8",
+              editorFontClass,
+              editorSizeClass,
+              editorColorClass,
+            )}
             spellCheck
           />
         </section>
