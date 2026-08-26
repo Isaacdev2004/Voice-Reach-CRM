@@ -1,6 +1,7 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import { titleFromFreeform } from "@/lib/notes/freeform";
 import { isUuid } from "@/lib/contacts/is-uuid";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
@@ -8,8 +9,8 @@ import { z } from "zod";
 type RouteContext = { params: Promise<{ id: string }> };
 
 const PatchNoteSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  body: z.string().min(1).max(8000).optional(),
+  title: z.string().max(200).optional(),
+  body: z.string().max(8000).optional(),
   kind: z.enum(["note", "strategy", "goal"]).optional(),
   contactId: z.string().uuid().optional().nullable(),
 });
@@ -19,12 +20,18 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   const { id } = await context.params;
   if (!isUuid(id)) return apiError("Invalid id", { status: 400 });
 
-  const body = PatchNoteSchema.parse(await request.json());
+  const parsed = PatchNoteSchema.parse(await request.json());
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  if (body.title !== undefined) updates.title = body.title.trim();
-  if (body.body !== undefined) updates.body = body.body.trim();
-  if (body.kind !== undefined) updates.kind = body.kind;
-  if (body.contactId !== undefined) updates.contact_id = body.contactId;
+
+  if (parsed.body !== undefined) {
+    updates.body = parsed.body;
+    updates.title = titleFromFreeform(parsed.body, parsed.title);
+  } else if (parsed.title !== undefined) {
+    updates.title = parsed.title.trim() || "Untitled";
+  }
+
+  if (parsed.kind !== undefined) updates.kind = parsed.kind;
+  if (parsed.contactId !== undefined) updates.contact_id = parsed.contactId;
 
   const { data, error } = await supabaseAdmin
     .from("contact_notes")
