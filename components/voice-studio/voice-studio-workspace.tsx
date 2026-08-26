@@ -10,6 +10,7 @@ import { useCampaignOptions } from "@/lib/hooks/use-campaign-options";
 import { useVoiceAssets, type VoiceAsset } from "@/lib/hooks/use-voice-assets";
 import {
   addLocalRecording,
+  DEFAULT_VOICE_SCRIPT,
   formatDuration,
   loadCampaignAssignment,
   loadLocalRecordings,
@@ -415,12 +416,26 @@ export function VoiceStudioWorkspace() {
         <div className="col-span-12 md:col-span-3 space-y-4">
           <LuxuryCard padding="md">
             <h3 className="font-medium text-ink mb-3">Current script</h3>
+            <p className="mb-2 text-[12px] text-taupe">
+              Neutral sample for any agent — replace merge fields or rewrite before you record.
+            </p>
             <textarea
-              className="w-full min-h-[120px] resize-none rounded-xl border border-outline-variant/35 bg-cream p-3 text-[14px] italic leading-relaxed text-slate-text outline-none focus:border-rose-gold/50"
               value={scriptText}
               onChange={(e) => setScriptText(e.target.value)}
               onBlur={handleScriptBlur}
+              rows={8}
+              className="w-full resize-y rounded-xl border border-outline-variant/20 bg-champagne/40 p-4 text-[14px] leading-relaxed text-ink outline-none focus:border-rose-gold/40"
             />
+            <button
+              type="button"
+              onClick={() => {
+                setScriptText(DEFAULT_VOICE_SCRIPT);
+                saveScriptText(DEFAULT_VOICE_SCRIPT);
+              }}
+              className="mt-2 text-[12px] font-medium text-rose-gold-deep hover:underline"
+            >
+              Reset to neutral sample
+            </button>
           </LuxuryCard>
           <LuxuryCard padding="md">
             <h3 className="font-medium text-ink mb-3">Assign to campaign</h3>

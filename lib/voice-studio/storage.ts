@@ -7,7 +7,7 @@ export type AvatarDraft = {
   createdAt: string;
 };
 
-const SCRIPT_KEY = "voicereach-studio-script";
+const SCRIPT_KEY = "voicereach-studio-script-v2";
 const ASSIGNMENT_KEY = "voicereach-studio-campaign-id";
 const AVATAR_KEY = "voicereach-avatar-drafts";
 const NOTIFY_KEY = "voicereach-voice-clone-notify";
@@ -22,12 +22,13 @@ export type LocalRecording = {
   approved: boolean;
 };
 
-const DEFAULT_SCRIPT =
-  "Hello — this is a warm, personal check-in recorded in your own voice. I wanted to reach out personally and see how you're doing with your goals this season.";
+/** Neutral sample for any subscriber — edit before recording or sending. */
+export const DEFAULT_VOICE_SCRIPT =
+  "Hi [FirstName], this is [Agent] with [Brokerage]. I wanted to leave a quick note and see if I can help with anything in [City] this week. No pressure — just a friendly check-in. Feel free to call or text me back when you have a moment. Talk soon.";
 
 export function loadScriptText(): string {
-  if (typeof window === "undefined") return DEFAULT_SCRIPT;
-  return localStorage.getItem(SCRIPT_KEY) || DEFAULT_SCRIPT;
+  if (typeof window === "undefined") return DEFAULT_VOICE_SCRIPT;
+  return localStorage.getItem(SCRIPT_KEY) || DEFAULT_VOICE_SCRIPT;
 }
 
 export function saveScriptText(text: string) {
