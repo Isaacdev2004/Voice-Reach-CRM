@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-type ModalSize = "sm" | "md" | "lg";
+type ModalSize = "sm" | "md" | "lg" | "xl";
 
 type ModalProps = {
   open: boolean;
@@ -25,6 +25,7 @@ const sizeWidth: Record<ModalSize, string> = {
   sm: "max-w-[28rem]",
   md: "max-w-[32rem]",
   lg: "max-w-[36rem]",
+  xl: "max-w-[56rem]",
 };
 
 export function Modal({

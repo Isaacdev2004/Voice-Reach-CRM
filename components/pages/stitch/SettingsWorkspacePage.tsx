@@ -53,7 +53,9 @@ export function SettingsWorkspacePage() {
   const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { openUpgrade, billing: sharedBilling, lastUpgradedAt } = useUpgradePlan();
+  const { openUpgrade, billing: sharedBilling, lastUpgradedAt, subscriptionActive } =
+    useUpgradePlan();
+  const [portalLoading, setPortalLoading] = useState(false);
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [planUsage, setPlanUsage] = useState<{
@@ -1017,8 +1019,52 @@ export function SettingsWorkspacePage() {
                   onClick={openUpgrade}
                   className="mt-4 rounded-full bg-rose-gold px-6 py-2.5 text-[14px] font-medium text-ivory"
                 >
-                  Upgrade plan
+                  {settings.billing.subscriptionStatus === "active"
+                    ? "Change plan"
+                    : "Choose a plan & pay"}
                 </button>
+                {settings.billing.subscriptionStatus === "active" || subscriptionActive ? (
+                  <button
+                    type="button"
+                    disabled={portalLoading}
+                    onClick={() => {
+                      setPortalLoading(true);
+                      void (async () => {
+                        try {
+                          const res = await fetch("/api/billing/portal", { method: "POST" });
+                          const data = await res.json().catch(() => ({}));
+                          if (!res.ok) {
+                            throw new Error(
+                              (data as { error?: string }).error ??
+                                "Could not open billing portal",
+                            );
+                          }
+                          const url = (data as { url?: string }).url;
+                          if (!url) throw new Error("Portal URL missing");
+                          window.location.assign(url);
+                        } catch (e) {
+                          setToast({
+                            message:
+                              e instanceof Error
+                                ? e.message
+                                : "Could not open Stripe billing portal",
+                            tone: "error",
+                          });
+                          window.setTimeout(() => setToast(null), 6000);
+                          setPortalLoading(false);
+                        }
+                      })();
+                    }}
+                    className="ml-3 mt-4 rounded-full border border-outline-variant/40 bg-ivory px-6 py-2.5 text-[14px] font-medium text-ink"
+                  >
+                    {portalLoading ? "Opening…" : "Manage / cancel subscription"}
+                  </button>
+                ) : null}
+                <p className="mt-3 text-[12px] text-taupe">
+                  Starter SMS &amp; ringless are pay-as-you-go (usage billed outside the monthly
+                  allotment). Growth/Pro include monthly SMS &amp; RVM drops; when those run out,
+                  upgrade or wait for next month.
+                </p>
               </div>
               <p className="text-[14px] text-slate-text">
                 Each tier has its own contact and send limits. Higher tiers keep everything below and
@@ -1159,7 +1205,7 @@ export function SettingsWorkspacePage() {
               onClick={openUpgrade}
               className="mt-4 w-full rounded-full bg-rose-gold py-3 text-[14px] font-medium text-ivory"
             >
-              Upgrade plan
+              {subscriptionActive ? "Change plan" : "Choose a plan & pay"}
             </button>
           </LuxuryCard>
         </div>

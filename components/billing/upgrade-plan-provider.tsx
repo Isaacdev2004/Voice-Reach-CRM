@@ -222,6 +222,7 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
           if (!saving) setOpen(false);
         }}
         currentPlanId={subscriptionActive ? billing.planId : "none"}
+        subscriptionActive={subscriptionActive}
         onSelect={() => undefined}
         onCheckout={(planId) => void startCheckout(planId as PlanId)}
         checkoutLoading={saving}
