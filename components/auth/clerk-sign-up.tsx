@@ -1,15 +1,17 @@
 "use client";
 
-import { SignUp } from "@clerk/nextjs";
+import { SignUp, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { planById } from "@/lib/billing/plans";
 import { clearPendingPlan, rememberPendingPlan } from "@/lib/billing/pending-plan";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import { AUTH_AFTER_URL } from "@/lib/clerk-env";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function ClerkSignUp() {
+  const router = useRouter();
+  const { isLoaded, isSignedIn } = useAuth();
   const searchParams = useSearchParams();
   const plan = searchParams.get("plan");
   const sessionId = searchParams.get("session_id");
@@ -19,6 +21,7 @@ export function ClerkSignUp() {
   const [paidOk, setPaidOk] = useState<boolean | null>(sessionId || paidFlag ? null : false);
   const [paidPlanName, setPaidPlanName] = useState<string | null>(selected?.name ?? null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [claiming, setClaiming] = useState(false);
 
   useEffect(() => {
     if (selected) rememberPendingPlan(selected.id);
@@ -62,9 +65,37 @@ export function ClerkSignUp() {
     };
   }, [sessionId, selected?.name]);
 
-  // After Clerk finishes, claim the paid session for this user (dashboard also claims once)
+  // Already signed in (e.g. returned from Stripe while logged in) — claim & go to dashboard
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !paidOk || !sessionId) return;
+    let cancelled = false;
+    setClaiming(true);
+    void (async () => {
+      try {
+        await fetch("/api/billing/claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        });
+        if (typeof window !== "undefined") {
+          window.sessionStorage.removeItem("ari_checkout_session_id");
+        }
+        clearPendingPlan();
+      } catch {
+        /* dashboard paywall can still claim */
+      } finally {
+        if (!cancelled) router.replace(AUTH_AFTER_URL);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded, isSignedIn, paidOk, sessionId, router]);
+
+  // After new sign-up: attach paid session (dashboard also claims once)
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (isSignedIn) return;
     const id = window.sessionStorage.getItem("ari_checkout_session_id");
     if (!id) return;
 
@@ -95,12 +126,16 @@ export function ClerkSignUp() {
       });
     }, 3000);
     return () => window.clearInterval(t);
-  }, []);
+  }, [isSignedIn]);
 
-  if (paidOk === null) {
+  if (!isLoaded || paidOk === null || (isSignedIn && paidOk) || claiming) {
     return (
       <div className="w-full rounded-[24px] border border-outline-variant/15 bg-ivory px-6 py-10 text-center shadow-card">
-        <p className="text-[15px] text-slate-text">Confirming your Stripe payment…</p>
+        <p className="text-[15px] text-slate-text">
+          {isSignedIn && paidOk
+            ? "Payment confirmed — opening your dashboard…"
+            : "Confirming your Stripe payment…"}
+        </p>
       </div>
     );
   }
@@ -130,6 +165,20 @@ export function ClerkSignUp() {
             Sign in
           </Link>
         </p>
+      </div>
+    );
+  }
+
+  if (isSignedIn) {
+    return (
+      <div className="w-full rounded-[24px] border border-outline-variant/15 bg-ivory px-6 py-10 text-center shadow-card">
+        <p className="text-[15px] text-slate-text">You&apos;re already signed in. Redirecting…</p>
+        <Link
+          href={AUTH_AFTER_URL}
+          className="mt-4 inline-block text-[14px] font-medium text-rose-gold-deep hover:underline"
+        >
+          Go to dashboard
+        </Link>
       </div>
     );
   }
