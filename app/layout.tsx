@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { hasClerkEnv } from "@/lib/clerk-env";
+import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
 const inter = Inter({
@@ -18,9 +19,8 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "ARI | The Relationship Operating System",
-  description:
-    "ARI — The Relationship Operating System. Consent-based CRM and ringless voicemail campaign automation.",
+  title: `${BRAND_NAME} | ${BRAND_TAGLINE}`,
+  description: `${BRAND_NAME} — ${BRAND_TAGLINE}. Consent-based CRM and ringless voicemail campaign automation.`,
 };
 
 export default function RootLayout({

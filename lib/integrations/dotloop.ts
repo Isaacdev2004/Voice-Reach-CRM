@@ -16,7 +16,7 @@ export function appBaseUrl() {
   return (
     process.env.APP_BASE_URL?.replace(/\/$/, "") ||
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
-    "https://voice-reach-crm.vercel.app"
+    "https://myari.io"
   );
 }
 

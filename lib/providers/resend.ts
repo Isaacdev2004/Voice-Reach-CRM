@@ -4,7 +4,7 @@ function getFromAddress(): string | null {
   const from = process.env.RESEND_FROM_EMAIL?.trim();
   if (!from) return null;
   if (from.includes("<") && from.includes(">")) return from;
-  if (from.includes("@")) return `Voice Reach <${from}>`;
+  if (from.includes("@")) return `ARI <${from}>`;
   return null;
 }
 
@@ -57,7 +57,7 @@ export const resendProvider: ProviderAdapter = {
         body: JSON.stringify({
           from,
           to: [request.to],
-          subject: request.subject ?? "Message from Voice Reach",
+          subject: request.subject ?? "Message from ARI",
           html: htmlBody,
           text: textBody.replace(/<[^>]+>/g, ""),
           tags: [

@@ -9,7 +9,7 @@ import {
   VerifiedBadgeIcon,
   VoicemailIcon,
 } from "@/components/icons/landing-icons";
-import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
+import { BRAND_DOMAIN, BRAND_NAME, BRAND_TAGLINE, BRAND_URL } from "@/lib/brand";
 import { PLAN_OPTIONS } from "@/lib/billing/plans";
 
 const PARTNERS = [
@@ -418,6 +418,12 @@ export function LandingPage() {
                 {BRAND_NAME}
               </span>
               <p className="mb-4 text-[13px] italic text-taupe">{BRAND_TAGLINE}</p>
+              <a
+                href={BRAND_URL}
+                className="mb-4 block text-[13px] font-medium text-rose-gold-deep hover:underline"
+              >
+                {BRAND_DOMAIN}
+              </a>
               <p className="text-body-md text-slate-text">
                 Enterprise-grade communication automation for modern sales teams.
                 Precision. Compliance. Growth.
@@ -488,7 +494,7 @@ export function LandingPage() {
               </h4>
               <div className="mb-6 flex gap-4">
                 <a
-                  href="mailto:hello@voicereach.com"
+                  href="mailto:hello@myari.io"
                   className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-container transition-all hover:bg-secondary hover:text-white"
                   aria-label="Email us"
                 >
