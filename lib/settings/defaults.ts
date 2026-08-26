@@ -112,11 +112,12 @@ export const DEFAULT_SETTINGS: UserSettings = {
     },
   ],
   billing: {
-    planId: "growth",
-    planName: "Growth",
-    monthlyPrice: 97,
-    voiceMinutesLimit: 250,
+    planId: "starter",
+    planName: "Choose a plan",
+    monthlyPrice: 0,
+    voiceMinutesLimit: 0,
     voiceMinutesUsed: 0,
+    subscriptionStatus: "none",
   },
   notifications: {
     emailDigest: true,

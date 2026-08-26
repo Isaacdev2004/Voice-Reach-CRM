@@ -28,10 +28,18 @@ export function UpgradePlanModal({
       open={open}
       onClose={onClose}
       title="Choose your plan"
-      description="Secure checkout with Stripe. Your plan unlocks as soon as payment completes."
+      description="Secure Stripe checkout. Your plan unlocks only after payment completes — nothing is free after sign-up."
       icon="workspace_premium"
       size="lg"
-      footer={<ModalFooterActions onCancel={onClose} cancelLabel="Close" primaryLabel="Close" onPrimary={onClose} />}
+      footer={
+        <ModalFooterActions
+          onCancel={onClose}
+          cancelLabel={checkoutLoading ? "Please wait…" : "Close"}
+          primaryLabel="Close"
+          onPrimary={onClose}
+          primaryDisabled={checkoutLoading}
+        />
+      }
     >
       <div className="grid gap-4 sm:grid-cols-3">
         {PLAN_OPTIONS.map((plan) => {

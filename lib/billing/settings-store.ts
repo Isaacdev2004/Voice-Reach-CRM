@@ -52,6 +52,7 @@ export function billingFromPlan(planId: PlanId, usedMinutes = 0): BillingSetting
     monthlyPrice: plan.price,
     voiceMinutesLimit: plan.rvmIncluded || plan.smsIncluded || 0,
     voiceMinutesUsed: usedMinutes,
+    subscriptionStatus: "active",
   };
 }
 

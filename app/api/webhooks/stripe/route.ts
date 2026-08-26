@@ -32,7 +32,21 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   }
 
   if (subscription.status === "canceled" || subscription.status === "unpaid") {
-    await applyBillingPlan(ownerId, "starter");
+    const saved = await applyBillingPlan(ownerId, "starter");
+    // Downgrade is still a known plan; mark canceled so paywall can prompt upgrade again
+    const { writeAuditLog } = await import("@/lib/audit");
+    await writeAuditLog({
+      ownerId,
+      action: "SETTINGS_SAVED",
+      entityType: "user_settings",
+      metadata: {
+        settings: {
+          ...saved,
+          billing: { ...saved.billing, subscriptionStatus: "canceled", monthlyPrice: 0, planName: "Choose a plan" },
+        },
+        source: "stripe_canceled",
+      },
+    });
   }
 }
 
