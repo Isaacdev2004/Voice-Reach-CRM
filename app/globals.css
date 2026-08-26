@@ -289,6 +289,12 @@
     box-shadow: 0 0 0 3px rgba(196, 164, 132, 0.28);
     border-radius: inherit;
   }
+  /* Notes canvas — no browser blue focus ring while typing */
+  textarea:focus,
+  textarea:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
 }
 
 .material-symbols-outlined {

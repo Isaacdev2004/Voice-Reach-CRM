@@ -278,7 +278,7 @@ export function NotesStrategyPage() {
         <button
           type="button"
           onClick={() => startNew(tab)}
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-rose-gold-deep px-5 py-2.5 text-[14px] font-medium text-ivory"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-rose-gold-deep px-5 py-2.5 text-[14px] font-medium text-ivory shadow-none outline-none ring-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0"
         >
           <Icon name="edit_square" className="text-[18px]" />
           New {tab === "goal" ? "goal" : tab === "strategy" ? "strategy" : "note"}
@@ -446,7 +446,7 @@ export function NotesStrategyPage() {
               void persist();
             }}
             placeholder={"Title\n\nStart writing freely…\n\n- [ ] Optional checklist item"}
-            className="min-h-0 flex-1 resize-none bg-transparent px-5 py-6 font-serif text-[20px] leading-relaxed text-ink outline-none placeholder:text-taupe/50 sm:px-8 sm:text-[22px]"
+            className="min-h-0 flex-1 resize-none border-0 bg-transparent px-5 py-6 font-serif text-[20px] leading-relaxed text-ink shadow-none outline-none ring-0 placeholder:text-taupe/50 focus:border-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 sm:px-8 sm:text-[22px]"
             spellCheck
           />
         </section>
