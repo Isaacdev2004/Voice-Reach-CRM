@@ -1,6 +1,7 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { applyBillingPlan } from "@/lib/billing/settings-store";
+import { linkStripeCustomerFromSession } from "@/lib/billing/payg-usage";
 import { planById, type PlanId } from "@/lib/billing/plans";
 import { getStripe, isStripeConfigured } from "@/lib/stripe/config";
 import { z } from "zod";
@@ -42,6 +43,7 @@ export const POST = withApiHandler(async (request) => {
     await stripe.customers.update(session.customer, {
       metadata: { ownerId, planId },
     });
+    await linkStripeCustomerFromSession(ownerId, session.customer);
   }
 
   await applyBillingPlan(ownerId, planId);

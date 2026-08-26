@@ -1,4 +1,4 @@
-import { planById, type PlanId, type PlanOption } from "@/lib/billing/plans";
+import { planById, type PlanId, type PlanOption, PAYG_RATES } from "@/lib/billing/plans";
 import { loadSavedSettings } from "@/lib/billing/settings-store";
 import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -14,6 +14,10 @@ export type PlanUsage = {
   rvmIncluded: number;
   emailUsed: number;
   emailIncluded: number;
+  /** Estimated Starter PAYG charges for SMS+RVM this month (cents) */
+  paygEstimatedCents: number;
+  paygSmsCents: number;
+  paygRvmCents: number;
   periodStart: string;
 };
 
@@ -25,7 +29,7 @@ function startOfMonthIso() {
 export async function resolveOwnerPlan(ownerId: string): Promise<PlanOption> {
   const saved = await loadSavedSettings(ownerId);
   const planId = (saved?.billing.planId ?? DEFAULT_SETTINGS.billing.planId) as PlanId;
-  return planById(planId) ?? planById("growth")!;
+  return planById(planId) ?? planById("starter")!;
 }
 
 async function countChannelSends(ownerId: string, channel: "sms" | "email" | "voicemail") {
@@ -57,6 +61,11 @@ export async function getPlanUsage(ownerId: string): Promise<PlanUsage> {
     countChannelSends(ownerId, "voicemail"),
   ]);
 
+  const paygSmsCents =
+    plan.smsIncluded <= 0 ? Math.round(smsUsed * PAYG_RATES.sms * 100) : 0;
+  const paygRvmCents =
+    plan.rvmIncluded <= 0 ? Math.round(rvmUsed * PAYG_RATES.rvm * 100) : 0;
+
   return {
     plan,
     planId: plan.id,
@@ -68,6 +77,9 @@ export async function getPlanUsage(ownerId: string): Promise<PlanUsage> {
     rvmIncluded: plan.rvmIncluded,
     emailUsed,
     emailIncluded: plan.emailIncluded,
+    paygSmsCents,
+    paygRvmCents,
+    paygEstimatedCents: paygSmsCents + paygRvmCents,
     periodStart: startOfMonthIso(),
   };
 }

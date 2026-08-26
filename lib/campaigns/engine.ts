@@ -395,6 +395,24 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
           provider_message_id: sendResult.providerMessageId ?? null,
         })
         .eq("id", recipient.id);
+
+      if (
+        (channel === "sms" || channel === "voicemail") &&
+        sendResult.status !== "mock_sent" &&
+        campaign?.provider !== "mock"
+      ) {
+        const { billPaygUsage } = await import("@/lib/billing/payg-usage");
+        await billPaygUsage({
+          ownerId: run.owner_id,
+          channel,
+          idempotencyKey: `payg-${channel}-${run.id}-${sendResult.providerMessageId ?? "ok"}`,
+          simulated: false,
+          metadata: {
+            campaignId: String(campaign?.id ?? ""),
+            runId: String(run.id),
+          },
+        }).catch(() => undefined);
+      }
     } else {
       await markRun(run.id, "failed", { error: sendResult.error });
     }

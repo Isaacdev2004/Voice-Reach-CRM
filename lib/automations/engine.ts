@@ -177,6 +177,21 @@ async function runAction(
       const { workspace, profile } = await loadWorkspaceSettings(ownerId);
 
       const channel = action.type === "send_email" ? "email" : "sms";
+      if (channel === "sms") {
+        const { assertCanSendChannel } = await import("@/lib/billing/plan-limits");
+        const quota = await assertCanSendChannel(ownerId, "sms");
+        if (!quota.ok) {
+          await writeAuditLog({
+            ownerId,
+            action: "AUTOMATION_BLOCKED",
+            entityType: "contact",
+            entityId: contactId,
+            metadata: { reason: quota.code, error: quota.error, action: action.type },
+          });
+          return;
+        }
+      }
+
       const rawBody =
         String(action.config.body ?? action.config.message ?? "") ||
         (channel === "email"
@@ -219,6 +234,16 @@ async function runAction(
         subject,
         recordEngagement: true,
       });
+
+      if (result.ok && channel === "sms" && result.status !== "mock_sent") {
+        const { billPaygUsage } = await import("@/lib/billing/payg-usage");
+        await billPaygUsage({
+          ownerId,
+          channel: "sms",
+          idempotencyKey: `payg-sms-auto-${ruleId}-${contactId}-${result.providerMessageId ?? Date.now()}`,
+          metadata: { ruleId, contactId },
+        }).catch(() => undefined);
+      }
 
       await writeAuditLog({
         ownerId,

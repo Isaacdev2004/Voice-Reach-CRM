@@ -67,6 +67,9 @@ export function SettingsWorkspacePage() {
     rvmIncluded: number;
     emailUsed: number;
     emailIncluded: number;
+    paygEstimatedCents?: number;
+    paygSmsCents?: number;
+    paygRvmCents?: number;
   } | null>(null);
   const [savedSnapshot, setSavedSnapshot] = useState<string>("");
   const [email, setEmail] = useState("");
@@ -1010,6 +1013,17 @@ export function SettingsWorkspacePage() {
                         {planUsage.emailIncluded.toLocaleString()} included
                       </span>
                     </li>
+                    {(planUsage.paygEstimatedCents ?? 0) > 0 ? (
+                      <li className="flex justify-between gap-3 border-t border-outline-variant/20 pt-3">
+                        <span>PAYG charges this month</span>
+                        <span className="font-medium text-ink">
+                          ${((planUsage.paygEstimatedCents ?? 0) / 100).toFixed(2)}
+                          <span className="block text-right text-[11px] font-normal text-taupe">
+                            billed on next Stripe invoice
+                          </span>
+                        </span>
+                      </li>
+                    ) : null}
                   </ul>
                 ) : (
                   <p className="mt-4 text-[13px] text-taupe">Usage loads with your plan limits.</p>
@@ -1061,8 +1075,9 @@ export function SettingsWorkspacePage() {
                   </button>
                 ) : null}
                 <p className="mt-3 text-[12px] text-taupe">
-                  Starter pay-as-you-go: SMS $0.03 each · RVM $0.10 per drop. Growth/Pro include
-                  monthly allotments; when those run out, upgrade or wait until next month.
+                  Starter pay-as-you-go: ARI tracks each live SMS ($0.03) and RVM ($0.10) and adds
+                  them to your next Stripe invoice automatically. Growth/Pro use included monthly
+                  allotments first.
                 </p>
               </div>
               <p className="text-[14px] text-slate-text">

@@ -79,6 +79,20 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
       continue;
     }
 
+    if (campaign.provider !== "mock") {
+      const { assertCanSendChannel } = await import("@/lib/billing/plan-limits");
+      const quota = await assertCanSendChannel(ownerId, "voicemail");
+      if (!quota.ok) {
+        results.push({
+          recipientId: recipient.id,
+          contactId: contact.id,
+          status: "failed",
+          issues: [quota.error],
+        });
+        continue;
+      }
+    }
+
     const voicemailProvider =
       campaign.provider === "mock"
         ? "mock"
@@ -123,6 +137,16 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
         channel: "voicemail",
         metadata: { provider: campaign.provider, providerMessageId: providerResult.providerMessageId },
       }).catch(() => undefined);
+
+      if (providerResult.status !== "mock_sent" && campaign.provider !== "mock") {
+        const { billPaygUsage } = await import("@/lib/billing/payg-usage");
+        await billPaygUsage({
+          ownerId,
+          channel: "voicemail",
+          idempotencyKey: `payg-voicemail-${recipient.id}-${providerResult.providerMessageId ?? "ok"}`,
+          metadata: { campaignId, recipientId: recipient.id },
+        }).catch(() => undefined);
+      }
     }
 
     results.push({

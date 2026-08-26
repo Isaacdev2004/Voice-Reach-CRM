@@ -18,6 +18,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const planId = planFromMetadata(session.metadata);
   if (!ownerId || !planId) return;
 
+  if (typeof session.customer === "string") {
+    const { saveStripeCustomerId } = await import("@/lib/billing/settings-store");
+    await saveStripeCustomerId(ownerId, session.customer);
+  }
+
   await applyBillingPlan(ownerId, planId);
 }
 
