@@ -27,7 +27,10 @@ const TABS: { id: NoteKind | "all"; label: string }[] = [
 
 function previewLine(note: NoteRow) {
   const doc = freeformDocument(note.title, note.body);
-  const lines = doc.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = doc
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   return lines[1] || lines[0] || "Empty note";
 }
 
@@ -44,6 +47,13 @@ function formatWhen(iso: string) {
   }
 }
 
+function kindLabel(kind: NoteKind | "all") {
+  if (kind === "all") return "notes";
+  if (kind === "note") return "notes";
+  if (kind === "strategy") return "strategy notes";
+  return "goals";
+}
+
 export function NotesStrategyPage() {
   const [notes, setNotes] = useState<NoteRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,13 +68,23 @@ export function NotesStrategyPage() {
   >([]);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const saveTimer = useRef<number | null>(null);
   const creatingRef = useRef(false);
+  const selectedIdRef = useRef<string | null>(null);
+  const kindRef = useRef<NoteKind>("note");
+  const contactIdRef = useRef("");
+  const draftTextRef = useRef("");
 
-  const selected = useMemo(
-    () => notes.find((n) => n.id === selectedId) ?? null,
-    [notes, selectedId],
+  selectedIdRef.current = selectedId;
+  kindRef.current = kind;
+  contactIdRef.current = contactId;
+  draftTextRef.current = draftText;
+
+  const filtered = useMemo(
+    () => (tab === "all" ? notes : notes.filter((n) => n.kind === tab)),
+    [notes, tab],
   );
 
   const refresh = useCallback(async () => {
@@ -75,7 +95,7 @@ export function NotesStrategyPage() {
       if (!res.ok) throw new Error(data.error ?? "Could not load notes");
       const list = (data.notes ?? []) as NoteRow[];
       setNotes(list);
-      setError(data.error ?? null);
+      setError(typeof data.error === "string" ? data.error : null);
       return list;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load notes");
@@ -86,79 +106,82 @@ export function NotesStrategyPage() {
     }
   }, []);
 
+  const openNote = useCallback((note: NoteRow) => {
+    if (saveTimer.current) {
+      window.clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    setSelectedId(note.id);
+    selectedIdRef.current = note.id;
+    const doc = freeformDocument(note.title, note.body);
+    setDraftText(doc);
+    draftTextRef.current = doc;
+    setKind(note.kind);
+    kindRef.current = note.kind;
+    setContactId(note.contact_id ?? "");
+    contactIdRef.current = note.contact_id ?? "";
+    setSaveState("idle");
+    setSaveError(null);
+    window.setTimeout(() => textareaRef.current?.focus(), 40);
+  }, []);
+
+  const startNew = useCallback((forTab?: NoteKind | "all") => {
+    if (saveTimer.current) {
+      window.clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    const nextKind = !forTab || forTab === "all" ? "note" : forTab;
+    setSelectedId(null);
+    selectedIdRef.current = null;
+    setDraftText("");
+    draftTextRef.current = "";
+    setKind(nextKind);
+    kindRef.current = nextKind;
+    setContactId("");
+    contactIdRef.current = "";
+    setSaveState("idle");
+    setSaveError(null);
+    window.setTimeout(() => textareaRef.current?.focus(), 40);
+  }, []);
+
   useEffect(() => {
     void refresh().then((list) => {
-      if (list[0] && !selectedId) {
-        setSelectedId(list[0].id);
-        setDraftText(freeformDocument(list[0].title, list[0].body));
-        setKind(list[0].kind);
-        setContactId(list[0].contact_id ?? "");
-      }
+      if (list[0]) openNote(list[0]);
+      else startNew("all");
     });
     void fetch("/api/contacts")
       .then((r) => r.json())
       .then((data) => setContacts(data.contacts ?? []))
       .catch(() => setContacts([]));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- initial load only
-  }, []);
+  }, [refresh, openNote, startNew]);
 
-  const filtered = useMemo(
-    () => (tab === "all" ? notes : notes.filter((n) => n.kind === tab)),
-    [notes, tab],
-  );
+  // When filter tab changes, only keep the editor on a note that belongs in that tab
+  useEffect(() => {
+    const currentId = selectedIdRef.current;
+    if (currentId) {
+      const stillVisible = filtered.some((n) => n.id === currentId);
+      if (stillVisible) return;
+    }
+    if (filtered[0]) openNote(filtered[0]);
+    else startNew(tab);
+  }, [tab, filtered, openNote, startNew]);
 
-  const openNote = (note: NoteRow) => {
-    setSelectedId(note.id);
-    setDraftText(freeformDocument(note.title, note.body));
-    setKind(note.kind);
-    setContactId(note.contact_id ?? "");
-    setSaveState("idle");
+  const persist = useCallback(async () => {
+    const text = draftTextRef.current;
+    const nextKind = kindRef.current;
+    const nextContactId = contactIdRef.current;
+    let id = selectedIdRef.current;
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    setSaveState("saving");
     setSaveError(null);
-    window.setTimeout(() => textareaRef.current?.focus(), 50);
-  };
-
-  const startNew = () => {
-    setSelectedId(null);
-    setDraftText("");
-    setKind(tab === "all" ? "note" : tab);
-    setContactId("");
-    setSaveState("idle");
-    setSaveError(null);
-    window.setTimeout(() => textareaRef.current?.focus(), 50);
-  };
-
-  const persist = useCallback(
-    async (text: string, nextKind: NoteKind, nextContactId: string, id: string | null) => {
-      const trimmed = text.trim();
-      if (!trimmed) return id;
-
-      setSaveState("saving");
-      setSaveError(null);
-      try {
-        if (!id) {
-          if (creatingRef.current) return id;
-          creatingRef.current = true;
-          const res = await fetch("/api/notes", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              body: text,
-              kind: nextKind,
-              contactId: nextContactId || null,
-            }),
-          });
-          const data = await res.json();
-          creatingRef.current = false;
-          if (!res.ok) throw new Error(data.error ?? "Could not save");
-          const note = data.note as NoteRow;
-          setNotes((prev) => [note, ...prev.filter((n) => n.id !== note.id)]);
-          setSelectedId(note.id);
-          setSaveState("saved");
-          return note.id;
-        }
-
-        const res = await fetch(`/api/notes/${id}`, {
-          method: "PATCH",
+    try {
+      if (!id) {
+        if (creatingRef.current) return;
+        creatingRef.current = true;
+        const res = await fetch("/api/notes", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             body: text,
@@ -167,33 +190,56 @@ export function NotesStrategyPage() {
           }),
         });
         const data = await res.json();
+        creatingRef.current = false;
         if (!res.ok) throw new Error(data.error ?? "Could not save");
         const note = data.note as NoteRow;
         setNotes((prev) => [note, ...prev.filter((n) => n.id !== note.id)]);
+        setSelectedId(note.id);
+        selectedIdRef.current = note.id;
         setSaveState("saved");
-        return note.id;
-      } catch (e) {
-        creatingRef.current = false;
-        setSaveState("error");
-        setSaveError(e instanceof Error ? e.message : "Could not save");
-        return id;
+        return;
       }
-    },
-    [],
-  );
 
-  const scheduleSave = (text: string, nextKind = kind, nextContact = contactId) => {
+      const res = await fetch(`/api/notes/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          body: text,
+          kind: nextKind,
+          contactId: nextContactId || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not save");
+      const note = data.note as NoteRow;
+      setNotes((prev) => {
+        const rest = prev.filter((n) => n.id !== note.id);
+        return [note, ...rest];
+      });
+      setSaveState("saved");
+    } catch (e) {
+      creatingRef.current = false;
+      setSaveState("error");
+      setSaveError(e instanceof Error ? e.message : "Could not save");
+    }
+  }, []);
+
+  const scheduleSave = () => {
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
-      void persist(text, nextKind, nextContact, selectedId);
-    }, 700);
+      void persist();
+    }, 650);
   };
 
   const remove = async (id: string) => {
+    if (saveTimer.current) {
+      window.clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
     const res = await fetch(`/api/notes/${id}`, { method: "DELETE" });
     if (!res.ok) return;
     setNotes((prev) => prev.filter((n) => n.id !== id));
-    if (selectedId === id) startNew();
+    if (selectedIdRef.current === id) startNew(tab);
   };
 
   const insertChecklist = () => {
@@ -204,7 +250,8 @@ export function NotesStrategyPage() {
     const insert = start === 0 || draftText[start - 1] === "\n" ? "- [ ] " : "\n- [ ] ";
     const next = draftText.slice(0, start) + insert + draftText.slice(end);
     setDraftText(next);
-    scheduleSave(next);
+    draftTextRef.current = next;
+    scheduleSave();
     window.setTimeout(() => {
       el.focus();
       const pos = start + insert.length;
@@ -230,11 +277,11 @@ export function NotesStrategyPage() {
         </div>
         <button
           type="button"
-          onClick={startNew}
+          onClick={() => startNew(tab)}
           className="inline-flex shrink-0 items-center gap-2 rounded-full bg-rose-gold-deep px-5 py-2.5 text-[14px] font-medium text-ivory"
         >
           <Icon name="edit_square" className="text-[18px]" />
-          New note
+          New {tab === "goal" ? "goal" : tab === "strategy" ? "strategy" : "note"}
         </button>
       </div>
 
@@ -249,7 +296,6 @@ export function NotesStrategyPage() {
       ) : null}
 
       <div className="grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-outline-variant/15 bg-ivory shadow-card md:grid-cols-[260px_1fr]">
-        {/* Sidebar list */}
         <aside className="flex min-h-0 flex-col border-b border-outline-variant/15 md:border-b-0 md:border-r">
           <div className="flex gap-1 overflow-x-auto border-b border-outline-variant/10 p-2">
             {TABS.map((item) => (
@@ -271,7 +317,7 @@ export function NotesStrategyPage() {
               <p className="p-4 text-[13px] text-taupe">Loading…</p>
             ) : filtered.length === 0 ? (
               <p className="p-4 text-[13px] leading-relaxed text-taupe">
-                No notes yet. Tap New note and start writing.
+                No {kindLabel(tab)} here yet. Tap New to create one in this folder.
               </p>
             ) : (
               <ul>
@@ -290,9 +336,16 @@ export function NotesStrategyPage() {
                         <p className="truncate font-serif text-[16px] font-semibold text-ink">
                           {note.title || "Untitled"}
                         </p>
-                        <p className="mt-0.5 truncate text-[12px] text-taupe">{previewLine(note)}</p>
+                        <p className="mt-0.5 truncate text-[12px] text-taupe">
+                          {previewLine(note)}
+                        </p>
                         <p className="mt-1 text-[11px] text-taupe/80">
-                          {formatWhen(note.updated_at || note.created_at)}
+                          {formatWhen(note.updated_at || note.created_at)} ·{" "}
+                          {note.kind === "note"
+                            ? "Note"
+                            : note.kind === "strategy"
+                              ? "Strategy"
+                              : "Goal"}
                         </p>
                       </button>
                     </li>
@@ -303,40 +356,47 @@ export function NotesStrategyPage() {
           </div>
         </aside>
 
-        {/* Canvas */}
         <section className="flex min-h-0 flex-col bg-cream/40">
           <div className="flex flex-wrap items-center gap-2 border-b border-outline-variant/10 px-3 py-2">
-            <select
-              value={kind}
-              onChange={(e) => {
-                const next = e.target.value as NoteKind;
-                setKind(next);
-                scheduleSave(draftText, next, contactId);
-              }}
-              className="rounded-lg border border-outline-variant/20 bg-ivory px-2 py-1.5 text-[12px] text-ink"
-              aria-label="Note type"
-            >
-              <option value="note">Note</option>
-              <option value="strategy">Strategy</option>
-              <option value="goal">Goal</option>
-            </select>
-            <select
-              value={contactId}
-              onChange={(e) => {
-                const next = e.target.value;
-                setContactId(next);
-                scheduleSave(draftText, kind, next);
-              }}
-              className="max-w-[160px] rounded-lg border border-outline-variant/20 bg-ivory px-2 py-1.5 text-[12px] text-ink"
-              aria-label="Link client"
-            >
-              <option value="">No client</option>
-              {contacts.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {`${c.first_name} ${c.last_name ?? ""}`.trim()}
-                </option>
-              ))}
-            </select>
+            <label className="flex items-center gap-1.5 text-[11px] text-taupe">
+              Type
+              <select
+                value={kind}
+                onChange={(e) => {
+                  const next = e.target.value as NoteKind;
+                  setKind(next);
+                  kindRef.current = next;
+                  // Keep list filter in sync so the note doesn’t “vanish” or stick wrongly
+                  if (tab !== "all") setTab(next);
+                  scheduleSave();
+                }}
+                className="rounded-lg border border-outline-variant/20 bg-ivory px-2 py-1.5 text-[12px] text-ink"
+              >
+                <option value="note">Note</option>
+                <option value="strategy">Strategy</option>
+                <option value="goal">Goal</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-1.5 text-[11px] text-taupe">
+              Client
+              <select
+                value={contactId}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setContactId(next);
+                  contactIdRef.current = next;
+                  scheduleSave();
+                }}
+                className="max-w-[160px] rounded-lg border border-outline-variant/20 bg-ivory px-2 py-1.5 text-[12px] text-ink"
+              >
+                <option value="">None</option>
+                {contacts.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {`${c.first_name} ${c.last_name ?? ""}`.trim()}
+                  </option>
+                ))}
+              </select>
+            </label>
             <button
               type="button"
               onClick={insertChecklist}
@@ -352,7 +412,7 @@ export function NotesStrategyPage() {
                   : saveState === "saved"
                     ? "Saved"
                     : saveState === "error"
-                      ? saveError ?? "Save failed"
+                      ? (saveError ?? "Save failed")
                       : liveTitle !== "Untitled"
                         ? liveTitle
                         : "Start typing…"}
@@ -375,11 +435,15 @@ export function NotesStrategyPage() {
             value={draftText}
             onChange={(e) => {
               setDraftText(e.target.value);
-              scheduleSave(e.target.value);
+              draftTextRef.current = e.target.value;
+              scheduleSave();
             }}
             onBlur={() => {
-              if (saveTimer.current) window.clearTimeout(saveTimer.current);
-              void persist(draftText, kind, contactId, selectedId);
+              if (saveTimer.current) {
+                window.clearTimeout(saveTimer.current);
+                saveTimer.current = null;
+              }
+              void persist();
             }}
             placeholder={"Title\n\nStart writing freely…\n\n- [ ] Optional checklist item"}
             className="min-h-0 flex-1 resize-none bg-transparent px-5 py-6 font-serif text-[20px] leading-relaxed text-ink outline-none placeholder:text-taupe/50 sm:px-8 sm:text-[22px]"
