@@ -20,6 +20,7 @@ export default async function proxy(req: NextRequest, event: NextFetchEvent) {
     "/",
     "/sign-in(.*)",
     "/sign-up(.*)",
+    "/checkout(.*)",
     "/sms-consent",
     "/privacy",
   ]);

@@ -3,10 +3,9 @@
 import { UpgradePlanModal } from "@/components/settings/upgrade-plan-modal";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
-import { planById, type PlanId } from "@/lib/billing/plans";
+import { type PlanId } from "@/lib/billing/plans";
 import {
   clearPendingPlan,
-  readPendingPlan,
   rememberPendingPlan,
 } from "@/lib/billing/pending-plan";
 import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
@@ -55,10 +54,9 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
   );
   const [lastUpgradedAt, setLastUpgradedAt] = useState(0);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const checkoutStarted = useRef(false);
+  const claimAttempted = useRef(false);
 
   const billing = settings?.billing ?? DEFAULT_SETTINGS.billing;
-  // Explicit "none" = unpaid. Missing status on older accounts = grandfathered (already using the app).
   const subscriptionActive =
     billing.subscriptionStatus === "active" ||
     (billing.subscriptionStatus == null && billing.monthlyPrice > 0);
@@ -78,6 +76,37 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void loadSettings();
+  }, [loadSettings]);
+
+  // After pay-then-signup: attach Stripe session to this user once
+  useEffect(() => {
+    if (claimAttempted.current || typeof window === "undefined") return;
+    const sessionId = window.sessionStorage.getItem("ari_checkout_session_id");
+    if (!sessionId) return;
+    claimAttempted.current = true;
+
+    void (async () => {
+      try {
+        const res = await fetch("/api/billing/claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        });
+        if (res.ok) {
+          window.sessionStorage.removeItem("ari_checkout_session_id");
+          clearPendingPlan();
+          const s = await loadSettings();
+          setLastUpgradedAt(Date.now());
+          setToast({
+            message: `You're on ${s.billing.planName}.`,
+            tone: "success",
+          });
+          window.setTimeout(() => setToast(null), 5000);
+        }
+      } catch {
+        /* paywall still shows; user can pay again if needed */
+      }
+    })();
   }, [loadSettings]);
 
   const startCheckout = useCallback(async (planId: PlanId) => {
@@ -100,17 +129,16 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
       }
       const url = (data as { url?: string }).url;
       if (url) {
-        // Keep pending plan until webhook confirms payment; Stripe redirect is next.
         window.location.assign(url);
         return;
       }
       throw new Error("Stripe checkout URL missing");
     } catch (e) {
       const message = e instanceof Error ? e.message : "Checkout failed";
+      clearPendingPlan();
       setCheckoutError(message);
       setToast({ message, tone: "error" });
       window.setTimeout(() => setToast(null), 8000);
-      checkoutStarted.current = false;
     } finally {
       setSaving(false);
     }
@@ -147,6 +175,7 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     }
     if (checkout === "cancel") {
+      clearPendingPlan();
       setToast({
         message: "Checkout canceled — pick a plan to unlock full access.",
         tone: "error",
@@ -160,28 +189,11 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
     }
   }, [searchParams, pathname, router, loadSettings]);
 
-  // After sign-up: URL ?plan= OR localStorage pending plan → Stripe Checkout
-  useEffect(() => {
-    if (checkoutStarted.current || saving) return;
-    if (subscriptionActive) {
-      clearPendingPlan();
-      return;
-    }
-
-    const fromUrl = searchParams.get("plan");
-    const pending = fromUrl && planById(fromUrl) ? (fromUrl as PlanId) : readPendingPlan();
-    if (!pending) return;
-
-    checkoutStarted.current = true;
-    void startCheckout(pending);
-  }, [searchParams, startCheckout, subscriptionActive, saving]);
-
-  // Unpaid accounts: open plan picker (unless checkout already running)
+  // Unpaid accounts: open plan picker (manual click only — no auto Stripe loop)
   useEffect(() => {
     if (!settings) return;
     if (subscriptionActive) return;
     if (saving) return;
-    if (readPendingPlan()) return;
     setOpen(true);
   }, [settings, subscriptionActive, saving]);
 
@@ -195,7 +207,7 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
       value={{
         openUpgrade,
         startCheckout,
-        currentPlanId: billing.planId,
+        currentPlanId: subscriptionActive ? billing.planId : "none",
         billing,
         lastUpgradedAt,
         subscriptionActive,
@@ -206,17 +218,16 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
       <UpgradePlanModal
         open={open}
         onClose={() => {
-          // Don't dismiss paywall until they've paid
           if (!subscriptionActive) return;
           if (!saving) setOpen(false);
         }}
-        currentPlanId={billing.planId}
+        currentPlanId={subscriptionActive ? billing.planId : "none"}
         onSelect={() => undefined}
         onCheckout={(planId) => void startCheckout(planId as PlanId)}
         checkoutLoading={saving}
       />
 
-      {!subscriptionActive && !saving ? (
+      {!subscriptionActive && !saving && !open ? (
         <div className="fixed inset-0 z-[185] flex items-center justify-center bg-ink/40 p-4 backdrop-blur-[2px]">
           <div className="w-full max-w-md rounded-2xl border border-outline-variant/20 bg-ivory p-6 shadow-card">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">

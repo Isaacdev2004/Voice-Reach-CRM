@@ -112,7 +112,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     },
   ],
   billing: {
-    planId: "starter",
+    planId: "none",
     planName: "Choose a plan",
     monthlyPrice: 0,
     voiceMinutesLimit: 0,

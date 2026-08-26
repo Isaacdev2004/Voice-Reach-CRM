@@ -4,9 +4,9 @@ import {
   loadSavedSettings,
   loadStripeCustomerId,
   saveStripeCustomerId,
-  stripePriceIdForPlan,
 } from "@/lib/billing/settings-store";
 import { planById, type PlanId } from "@/lib/billing/plans";
+import { createSubscriptionSession, stripeMessage } from "@/lib/billing/stripe-checkout";
 import { appBaseUrl, getStripe, isStripeConfigured } from "@/lib/stripe/config";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
@@ -15,12 +15,13 @@ const BodySchema = z.object({
   planId: z.enum(["starter", "growth", "pro"]),
 });
 
+/** Authenticated checkout (logged-in upgrade / retry). */
 export const POST = withApiHandler(async (request) => {
   if (!isStripeConfigured()) {
-    return apiError("Stripe is not configured on the server.", {
-      status: 503,
-      code: "stripe_not_configured",
-    });
+    return apiError(
+      "Stripe is not configured. Add STRIPE_SECRET_KEY (live sk_live_…) in Vercel Production, then Redeploy.",
+      { status: 503, code: "stripe_not_configured" },
+    );
   }
 
   const ownerId = await requireUserId();
@@ -45,58 +46,67 @@ export const POST = withApiHandler(async (request) => {
   const stripe = getStripe();
   let customerId = await loadStripeCustomerId(ownerId);
   if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: email || undefined,
-      name: name || undefined,
-      metadata: { ownerId },
-    });
-    customerId = customer.id;
-    await saveStripeCustomerId(ownerId, customerId);
+    try {
+      const customer = await stripe.customers.create({
+        email: email || undefined,
+        name: name || undefined,
+        metadata: { ownerId },
+      });
+      customerId = customer.id;
+      await saveStripeCustomerId(ownerId, customerId);
+    } catch (err) {
+      return apiError(stripeMessage(err), { status: 500, code: "stripe_customer_failed" });
+    }
   }
 
   const base = appBaseUrl();
-  const priceId = stripePriceIdForPlan(planId as PlanId);
   const saved = await loadSavedSettings(ownerId);
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    client_reference_id: ownerId,
-    line_items: priceId
-      ? [{ price: priceId, quantity: 1 }]
-      : [
-          {
-            quantity: 1,
-            price_data: {
-              currency: "usd",
-              unit_amount: plan.price * 100,
-              recurring: { interval: "month" },
-              product_data: {
-                name: `ARI ${plan.name}`,
-                description: plan.description,
-              },
-            },
-          },
-        ],
-    subscription_data: {
-      metadata: { ownerId, planId },
-    },
-    metadata: { ownerId, planId },
-    success_url: `${base}/dashboard/settings?tab=billing&checkout=success&plan=${planId}`,
-    cancel_url: `${base}/dashboard/settings?tab=billing&checkout=cancel`,
-    allow_promotion_codes: true,
-    billing_address_collection: "auto",
-    customer_update: email ? { address: "auto", name: "auto" } : undefined,
-  });
-
-  if (!session.url) {
-    return apiError("Stripe did not return a checkout URL.", { status: 500 });
+  async function run(customer: string) {
+    return createSubscriptionSession({
+      planId: planId as PlanId,
+      customerId: customer,
+      ownerId,
+      successUrl: `${base}/dashboard/settings?tab=billing&checkout=success&plan=${planId}`,
+      cancelUrl: `${base}/dashboard/settings?tab=billing&checkout=cancel`,
+    });
   }
 
-  return apiOk({
-    url: session.url,
-    planId,
-    planName: plan.name,
-    currentPlanId: saved?.billing.planId ?? null,
-  });
+  try {
+    const session = await run(customerId);
+    if (!session.url) {
+      return apiError("Stripe did not return a checkout URL.", { status: 500 });
+    }
+    return apiOk({
+      url: session.url,
+      planId,
+      planName: plan.name,
+      currentPlanId: saved?.billing.planId ?? null,
+    });
+  } catch (err) {
+    const msg = stripeMessage(err);
+    if (/No such customer/i.test(msg)) {
+      try {
+        const customer = await stripe.customers.create({
+          email: email || undefined,
+          name: name || undefined,
+          metadata: { ownerId },
+        });
+        await saveStripeCustomerId(ownerId, customer.id);
+        const session = await run(customer.id);
+        if (!session.url) {
+          return apiError("Stripe did not return a checkout URL.", { status: 500 });
+        }
+        return apiOk({
+          url: session.url,
+          planId,
+          planName: plan.name,
+          currentPlanId: saved?.billing.planId ?? null,
+        });
+      } catch (retryErr) {
+        return apiError(stripeMessage(retryErr), { status: 500, code: "stripe_checkout_failed" });
+      }
+    }
+    return apiError(msg, { status: 500, code: "stripe_checkout_failed" });
+  }
 });

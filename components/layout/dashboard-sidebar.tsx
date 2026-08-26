@@ -75,7 +75,9 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
 
         <div className="mt-auto space-y-3 px-4">
           <p className="text-center text-[11px] text-taupe">
-            {billing.planName} · ${billing.monthlyPrice}/mo
+            {billing.subscriptionStatus === "active"
+              ? `${billing.planName} · $${billing.monthlyPrice}/mo`
+              : "No active plan"}
           </p>
           <button
             type="button"

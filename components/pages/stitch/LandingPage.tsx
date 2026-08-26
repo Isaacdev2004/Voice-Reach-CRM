@@ -88,10 +88,10 @@ export function LandingPage() {
               Sign In
             </Link>
             <Link
-              href="/sign-up"
+              href="/checkout?plan=growth"
               className="rounded-full bg-rose-gold px-6 py-2.5 text-label-md font-semibold text-ivory shadow-card transition-all hover:opacity-95 active:scale-95"
             >
-              Start Free Trial
+              Get started
             </Link>
           </div>
         </nav>
@@ -115,10 +115,10 @@ export function LandingPage() {
             </p>
             <div className="mb-16 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
-                href="/sign-up"
+                href="/checkout?plan=growth"
                 className="w-full rounded-full bg-rose-gold px-10 py-4 text-label-md font-semibold text-ivory shadow-card transition-all hover:opacity-95 active:scale-95 sm:w-auto"
               >
-                Start Free Trial
+                Choose a plan
               </Link>
               <a
                 href="#pricing"
@@ -344,7 +344,7 @@ export function LandingPage() {
                     )}
                   </div>
                   <Link
-                    href={`/sign-up?plan=${tier.id}`}
+                    href={`/checkout?plan=${tier.id}`}
                     className={`mb-10 w-full rounded-full py-4 text-center text-label-md font-bold transition-all ${
                       tier.ctaStyle === "primary"
                         ? "bg-rose-gold text-ivory shadow-card hover:opacity-95"
@@ -393,10 +393,10 @@ export function LandingPage() {
             </p>
             <div className="relative z-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
               <Link
-                href="/sign-up"
+                href="/checkout?plan=growth"
                 className="w-full rounded-full bg-ivory px-12 py-5 text-label-md font-bold text-ink shadow-card transition-all hover:bg-champagne active:scale-95 sm:w-auto"
               >
-                Claim your free trial
+                Choose a plan &amp; pay
               </Link>
               <Link
                 href="/sign-in"
@@ -444,7 +444,7 @@ export function LandingPage() {
                   </a>
                 </li>
                 <li>
-                  <a href="/sign-up" className="transition-colors hover:text-secondary">
+                  <a href="/checkout?plan=growth" className="transition-colors hover:text-secondary">
                     Get Started
                   </a>
                 </li>

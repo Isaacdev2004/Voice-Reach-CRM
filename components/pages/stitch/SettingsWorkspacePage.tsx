@@ -963,10 +963,14 @@ export function SettingsWorkspacePage() {
               <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">Billing & usage</h2>
               <div className="mb-6 rounded-2xl border border-outline-variant/15 bg-champagne/40 p-6">
                 <p className="font-serif text-[24px] font-semibold text-ink">
-                  {settings.billing.planName}
+                  {settings.billing.subscriptionStatus === "active"
+                    ? settings.billing.planName
+                    : "No active plan"}
                 </p>
                 <p className="text-[15px] text-slate-text">
-                  ${settings.billing.monthlyPrice.toFixed(2)} / month
+                  {settings.billing.subscriptionStatus === "active"
+                    ? `$${settings.billing.monthlyPrice.toFixed(2)} / month`
+                    : "Pay with Stripe to unlock your workspace"}
                 </p>
                 {planUsage ? (
                   <ul className="mt-4 space-y-3 text-[13px] text-slate-text">
@@ -1129,10 +1133,14 @@ export function SettingsWorkspacePage() {
               Plan details
             </h3>
             <p className="font-serif text-[20px] font-semibold text-ink">
-              {settings.billing.planName}
+              {settings.billing.subscriptionStatus === "active"
+                ? settings.billing.planName
+                : "No active plan"}
             </p>
             <p className="text-[14px] text-slate-text">
-              ${settings.billing.monthlyPrice} / month
+              {settings.billing.subscriptionStatus === "active"
+                ? `$${settings.billing.monthlyPrice} / month`
+                : "Complete Stripe checkout to activate"}
             </p>
             <div className="mt-4 h-2 overflow-hidden rounded-full bg-champagne">
               <div

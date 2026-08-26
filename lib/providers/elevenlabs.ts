@@ -145,7 +145,7 @@ export class ElevenLabsCloneNotAllowedError extends Error {
 }
 
 export async function verifyElevenLabsVoice(voiceId: string): Promise<boolean> {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
+  const apiKey = elevenLabsApiKey();
   if (!apiKey) return false;
 
   const response = await fetch(`${ELEVENLABS_BASE}/voices/${encodeURIComponent(voiceId)}`, {

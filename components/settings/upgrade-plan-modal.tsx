@@ -97,7 +97,11 @@ export function UpgradePlanModal({
                 <span className="mt-4 inline-block text-[12px] font-semibold uppercase text-rose-gold-deep">
                   Current plan
                 </span>
-              ) : null}
+              ) : (
+                <span className="mt-4 inline-block text-[12px] font-semibold uppercase text-taupe">
+                  Select &amp; pay
+                </span>
+              )}
             </button>
           );
         })}
