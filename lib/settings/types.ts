@@ -91,5 +91,8 @@ export type SettingsResponse = {
     rvmIncluded: number;
     emailUsed: number;
     emailIncluded: number;
+    paygEstimatedCents?: number;
+    paygSmsCents?: number;
+    paygRvmCents?: number;
   } | null;
 };
