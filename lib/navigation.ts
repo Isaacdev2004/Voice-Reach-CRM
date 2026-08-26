@@ -14,7 +14,6 @@ export const dashboardNav: NavItem[] = [
   { label: "Notes & Strategy", href: "/dashboard/notes", icon: "edit_note" },
   { label: "Tasks", href: "/dashboard/tasks", icon: "task_alt" },
   { label: "Voice Scripts", href: "/dashboard/voice-scripts", icon: "description" },
-  { label: "Automations", href: "/dashboard/automations", icon: "auto_mode" },
   { label: "Activity Logs", href: "/dashboard/activity", icon: "history" },
   { label: "Analytics", href: "/dashboard/analytics", icon: "analytics" },
   { label: "Settings", href: "/dashboard/settings", icon: "settings" },

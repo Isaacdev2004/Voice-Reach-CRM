@@ -38,11 +38,6 @@ const headerConfig: Record<
     showQuickCreate: true,
     fullWidth: true,
   },
-  "/dashboard/automations": {
-    searchPlaceholder: "Search workflows...",
-    showQuickCreate: true,
-    fullWidth: true,
-  },
   "/dashboard/analytics": {
     searchPlaceholder: "Search analytics data...",
     showQuickCreate: true,

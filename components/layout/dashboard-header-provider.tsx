@@ -567,14 +567,6 @@ export function DashboardHeaderProvider({
               },
             },
             {
-              label: "Automation",
-              icon: "auto_mode",
-              action: () => {
-                setQuickCreateOpen(false);
-                router.push("/dashboard/automations");
-              },
-            },
-            {
               label: "View calendar",
               icon: "calendar_month",
               action: () => {
