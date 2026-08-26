@@ -80,4 +80,14 @@ export type SettingsResponse = {
   settings: UserSettings;
   email: string;
   clerkImageUrl?: string;
+  planUsage?: {
+    contactsUsed: number;
+    contactsLimit: number | null;
+    smsUsed: number;
+    smsIncluded: number;
+    rvmUsed: number;
+    rvmIncluded: number;
+    emailUsed: number;
+    emailIncluded: number;
+  } | null;
 };

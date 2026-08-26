@@ -58,6 +58,12 @@ export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const body = CreateContactSchema.parse(await request.json());
 
+  const { assertCanAddContacts } = await import("@/lib/billing/plan-limits");
+  const limitCheck = await assertCanAddContacts(ownerId, 1);
+  if (!limitCheck.ok) {
+    return apiError(limitCheck.error, { status: 403, code: limitCheck.code });
+  }
+
   if (body.consent === "Yes") {
     if (!body.consentDate?.trim()) {
       return apiError("Consent date is required when consent is Yes.", {

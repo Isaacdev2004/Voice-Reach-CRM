@@ -281,6 +281,18 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
         executed.push({ runId: run.id, status: "failed" });
         continue;
       }
+
+      const { assertCanSendChannel } = await import("@/lib/billing/plan-limits");
+      const quota = await assertCanSendChannel(run.owner_id, channel);
+      if (!quota.ok) {
+        await markRun(run.id, "failed", {
+          error: quota.error,
+          code: quota.code,
+          planId: quota.usage.planId,
+        });
+        executed.push({ runId: run.id, status: "failed" });
+        continue;
+      }
     }
 
     let audioUrl: string | undefined;

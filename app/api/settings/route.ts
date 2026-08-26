@@ -168,7 +168,10 @@ export const GET = withApiHandler(async () => {
     if (owner) owner.email = email;
   }
 
-  return apiOk({ settings, email, clerkImageUrl: clerkImageUrl ?? null });
+  const { getPlanUsage } = await import("@/lib/billing/plan-limits");
+  const planUsage = await getPlanUsage(ownerId).catch(() => null);
+
+  return apiOk({ settings, email, clerkImageUrl: clerkImageUrl ?? null, planUsage });
 });
 
 export const POST = withApiHandler(async (request) => {

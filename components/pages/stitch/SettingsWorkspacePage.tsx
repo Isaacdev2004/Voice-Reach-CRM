@@ -56,6 +56,16 @@ export function SettingsWorkspacePage() {
   const { openUpgrade, billing: sharedBilling, lastUpgradedAt } = useUpgradePlan();
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [planUsage, setPlanUsage] = useState<{
+    contactsUsed: number;
+    contactsLimit: number | null;
+    smsUsed: number;
+    smsIncluded: number;
+    rvmUsed: number;
+    rvmIncluded: number;
+    emailUsed: number;
+    emailIncluded: number;
+  } | null>(null);
   const [savedSnapshot, setSavedSnapshot] = useState<string>("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
@@ -81,6 +91,7 @@ export function SettingsWorkspacePage() {
     try {
       const data = await fetchSettings();
       setSettings(data.settings);
+      setPlanUsage(data.planUsage ?? null);
       setSavedSnapshot(JSON.stringify(data.settings));
       setEmail(data.email || user?.primaryEmailAddress?.emailAddress || "");
       saveSettingsLocal(data.settings);
@@ -957,18 +968,46 @@ export function SettingsWorkspacePage() {
                 <p className="text-[15px] text-slate-text">
                   ${settings.billing.monthlyPrice.toFixed(2)} / month
                 </p>
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-champagne">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-rose-gold to-sage"
-                    style={{
-                      width: `${Math.min(100, (settings.billing.voiceMinutesUsed / settings.billing.voiceMinutesLimit) * 100)}%`,
-                    }}
-                  />
-                </div>
-                <p className="mt-2 text-[13px] text-taupe">
-                  {settings.billing.voiceMinutesUsed.toLocaleString()} /{" "}
-                  {settings.billing.voiceMinutesLimit.toLocaleString()} voice minutes used
-                </p>
+                {planUsage ? (
+                  <ul className="mt-4 space-y-3 text-[13px] text-slate-text">
+                    <li className="flex justify-between gap-3">
+                      <span>Contacts</span>
+                      <span className="font-medium text-ink">
+                        {planUsage.contactsUsed.toLocaleString()}
+                        {planUsage.contactsLimit == null
+                          ? " / Unlimited"
+                          : ` / ${planUsage.contactsLimit.toLocaleString()}`}
+                      </span>
+                    </li>
+                    <li className="flex justify-between gap-3">
+                      <span>SMS this month</span>
+                      <span className="font-medium text-ink">
+                        {planUsage.smsUsed.toLocaleString()}
+                        {planUsage.smsIncluded > 0
+                          ? ` / ${planUsage.smsIncluded.toLocaleString()} included`
+                          : " · pay as you go"}
+                      </span>
+                    </li>
+                    <li className="flex justify-between gap-3">
+                      <span>Ringless (RVM) this month</span>
+                      <span className="font-medium text-ink">
+                        {planUsage.rvmUsed.toLocaleString()}
+                        {planUsage.rvmIncluded > 0
+                          ? ` / ${planUsage.rvmIncluded.toLocaleString()} included`
+                          : " · pay as you go"}
+                      </span>
+                    </li>
+                    <li className="flex justify-between gap-3">
+                      <span>Email this month</span>
+                      <span className="font-medium text-ink">
+                        {planUsage.emailUsed.toLocaleString()} /{" "}
+                        {planUsage.emailIncluded.toLocaleString()} included
+                      </span>
+                    </li>
+                  </ul>
+                ) : (
+                  <p className="mt-4 text-[13px] text-taupe">Usage loads with your plan limits.</p>
+                )}
                 <button
                   type="button"
                   onClick={openUpgrade}
@@ -978,7 +1017,8 @@ export function SettingsWorkspacePage() {
                 </button>
               </div>
               <p className="text-[14px] text-slate-text">
-                Usage syncs from campaign deliveries. View detailed metrics in{" "}
+                Each tier has its own contact and send limits. Higher tiers keep everything below and
+                raise the caps. View detailed metrics in{" "}
                 <Link href="/dashboard/analytics" className="text-rose-gold-deep hover:underline">
                   Analytics
                 </Link>

@@ -71,8 +71,11 @@ export function UpgradePlanModal({
                   ? `Up to ${plan.contactLimit.toLocaleString()} contacts`
                   : "Unlimited contacts"}
                 {plan.smsIncluded
-                  ? ` · ${plan.smsIncluded.toLocaleString()} SMS`
-                  : " · pay-as-you-go SMS"}
+                  ? ` · ${plan.smsIncluded.toLocaleString()} SMS/mo`
+                  : " · SMS pay as you go"}
+                {plan.rvmIncluded
+                  ? ` · ${plan.rvmIncluded.toLocaleString()} RVM/mo`
+                  : " · RVM pay as you go"}
               </p>
               <ul className="mt-4 space-y-2">
                 {plan.features.map((f) => (

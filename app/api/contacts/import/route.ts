@@ -40,11 +40,36 @@ export const POST = withApiHandler(async (request) => {
     );
   }
 
+  const { assertCanAddContacts } = await import("@/lib/billing/plan-limits");
+  const limitCheck = await assertCanAddContacts(ownerId, rows.length);
+  if (!limitCheck.ok) {
+    // Allow partial import up to remaining slots
+    const remaining =
+      limitCheck.usage.contactsLimit == null
+        ? rows.length
+        : Math.max(0, limitCheck.usage.contactsLimit - limitCheck.usage.contactsUsed);
+    if (remaining <= 0) {
+      return apiError(limitCheck.error, { status: 403, code: limitCheck.code });
+    }
+  }
+
   const imported = [];
   const errors: { row: number; error: string }[] = [];
   const rowOffset = headerIndex >= 0 ? headerIndex + 2 : 2;
+  let slotsLeft =
+    limitCheck.ok || limitCheck.usage.contactsLimit == null
+      ? Infinity
+      : Math.max(0, limitCheck.usage.contactsLimit - limitCheck.usage.contactsUsed);
 
   for (const [index, row] of rows.entries()) {
+    if (slotsLeft <= 0) {
+      errors.push({
+        row: index + rowOffset,
+        error: "Contact limit reached for your plan — remaining rows skipped",
+      });
+      continue;
+    }
+
     const firstName = (row.firstName || row.first_name || "").trim();
     const phone = (row.phone || "").trim();
 
@@ -78,6 +103,8 @@ export const POST = withApiHandler(async (request) => {
       errors.push({ row: index + rowOffset, error: contactError.message });
       continue;
     }
+
+    slotsLeft -= 1;
 
     const consent = enrichConsentForImport(row, file.name, index);
 
