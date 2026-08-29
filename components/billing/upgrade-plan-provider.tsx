@@ -189,13 +189,8 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
     }
   }, [searchParams, pathname, router, loadSettings]);
 
-  // Unpaid accounts: open plan picker (manual click only — no auto Stripe loop)
-  useEffect(() => {
-    if (!settings) return;
-    if (subscriptionActive) return;
-    if (saving) return;
-    setOpen(true);
-  }, [settings, subscriptionActive, saving]);
+  // Open upgrade modal only when explicitly triggered (e.g. ?upgrade=1 or via Settings)
+  // No forced lockouts so you can freely build, demo, and test accounts without Stripe payment
 
   const openUpgrade = useCallback(() => {
     void loadSettings();
@@ -207,10 +202,10 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
       value={{
         openUpgrade,
         startCheckout,
-        currentPlanId: subscriptionActive ? billing.planId : "none",
+        currentPlanId: billing.planId || "growth",
         billing,
         lastUpgradedAt,
-        subscriptionActive,
+        subscriptionActive: true,
       }}
     >
       {children}
@@ -218,44 +213,14 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
       <UpgradePlanModal
         open={open}
         onClose={() => {
-          if (!subscriptionActive) return;
           if (!saving) setOpen(false);
         }}
-        currentPlanId={subscriptionActive ? billing.planId : "none"}
-        subscriptionActive={subscriptionActive}
+        currentPlanId={billing.planId || "growth"}
+        subscriptionActive={true}
         onSelect={() => undefined}
         onCheckout={(planId) => void startCheckout(planId as PlanId)}
         checkoutLoading={saving}
       />
-
-      {!subscriptionActive && !saving && !open ? (
-        <div className="fixed inset-0 z-[185] flex items-center justify-center bg-ink/40 p-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-md rounded-2xl border border-outline-variant/20 bg-ivory p-6 shadow-card">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
-              Complete payment
-            </p>
-            <h2 className="mt-2 font-serif text-[26px] font-semibold text-ink">
-              Choose a plan to continue
-            </h2>
-            <p className="mt-2 text-[14px] leading-relaxed text-slate-text">
-              Your account is ready. Stripe checkout unlocks contacts, campaigns, and ringless
-              voicemail for the tier you pick — nothing is active until payment completes.
-            </p>
-            {checkoutError ? (
-              <p className="mt-3 rounded-xl border border-error/20 bg-error/5 px-3 py-2 text-[13px] text-error">
-                {checkoutError}
-              </p>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              className="mt-5 w-full rounded-full bg-rose-gold px-5 py-3 text-[14px] font-medium text-ivory"
-            >
-              View plans &amp; pay
-            </button>
-          </div>
-        </div>
-      ) : null}
 
       {saving ? (
         <div
