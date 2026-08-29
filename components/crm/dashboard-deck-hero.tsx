@@ -13,7 +13,10 @@ export function DashboardDeckHero() {
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  const firstName = user?.firstName?.trim() || "there";
+  const firstName =
+    user?.firstName?.trim() ||
+    user?.fullName?.trim()?.split(/\s+/)[0] ||
+    "";
 
   return (
     <section className="overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card">
@@ -24,7 +27,7 @@ export function DashboardDeckHero() {
               Home dashboard
             </p>
             <h1 className="mt-3 font-serif text-[32px] font-semibold leading-tight text-ink sm:text-[40px]">
-              {greeting}, {firstName}
+              {firstName ? `${greeting}, ${firstName}` : greeting}
             </h1>
             <p className="mt-3 text-[16px] leading-relaxed text-slate-text">
               Let&apos;s make today exceptional.
