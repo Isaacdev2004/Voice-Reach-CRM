@@ -119,7 +119,11 @@ function CheckoutInner() {
       </div>
 
         <p className="mt-8 text-center text-[13px] text-taupe">
-          Already have an account?{" "}
+          Want to test for free first?{" "}
+          <Link href="/sign-up" className="font-semibold text-rose-gold-deep hover:underline">
+            Create free demo account
+          </Link>
+          {" · "}
           <Link href="/sign-in" className="font-medium text-rose-gold-deep hover:underline">
             Sign in
           </Link>
