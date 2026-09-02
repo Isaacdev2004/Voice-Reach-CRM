@@ -10,18 +10,15 @@ import { Modal, ModalField, ModalFooterActions, modalInputClass } from "@/compon
 import { Icon } from "@/components/ui/icon";
 import { DEMO_CONTACT } from "@/lib/crm/mock-data";
 import {
-  CONTACT_MARKET_TABS,
   CONTACT_SEGMENT_TABS,
   CONTACT_TYPE_OPTIONS,
-  contactMarket,
   contactSegment,
-  marketBadgeClass,
-  marketBadgeLabel,
   segmentBadgeClass,
   segmentBadgeLabel,
-  type ContactMarket,
   type ContactSegment,
 } from "@/lib/contacts/lifecycle";
+import { DEFAULT_CONTACT_CATEGORIES } from "@/lib/contacts/categories";
+import { ManageCategoriesModal } from "@/components/crm/manage-categories-modal";
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
 import { useContacts, type ApiContact } from "@/lib/hooks/use-contacts";
 import { safeFetch } from "@/lib/api-response";
@@ -53,23 +50,30 @@ export function ContactManagementPage() {
   const headerQuery = useDashboardSearch();
   const searchParams = useSearchParams();
   const initialSegment = (searchParams.get("segment") ?? "all") as ContactSegment;
-  const initialMarket = (searchParams.get("market") ?? "all") as ContactMarket;
+  const initialCategory = searchParams.get("category") ?? searchParams.get("market") ?? "all";
   const [segment, setSegment] = useState<ContactSegment>(
     CONTACT_SEGMENT_TABS.some((t) => t.id === initialSegment) ? initialSegment : "all",
   );
-  const [market, setMarket] = useState<ContactMarket>(
-    CONTACT_MARKET_TABS.some((t) => t.id === initialMarket) ? initialMarket : "all",
+  const [category, setCategory] = useState(initialCategory);
+  const [customCategories, setCustomCategories] = useState<string[]>([
+    ...DEFAULT_CONTACT_CATEGORIES,
+  ]);
+  const [manageCatsOpen, setManageCatsOpen] = useState(false);
+  const { contacts, loading, error, refresh, meta } = useContacts(
+    headerQuery,
+    segment,
+    category,
   );
-  const { contacts, loading, error, refresh, meta } = useContacts(headerQuery, segment, market);
   const rows: ApiContact[] = contacts.length > 0 ? contacts : FALLBACK_ROWS;
   const total = meta?.total ?? (contacts.length > 0 ? contacts.length : rows.length);
 
   const selectableRows = useMemo<ApiContact[]>(() => (contacts.length > 0 ? contacts : []), [contacts]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
-  const [bulkOpen, setBulkOpen] = useState<null | "consent" | "delete" | "type">(null);
+  const [bulkOpen, setBulkOpen] = useState<null | "consent" | "delete" | "type" | "category">(null);
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
   const [bulkError, setBulkError] = useState<string | null>(null);
   const [bulkType, setBulkType] = useState("Residential Lead");
+  const [bulkCategory, setBulkCategory] = useState("Residential");
   const [bulkConsent, setBulkConsent] = useState({
     consent: "Yes" as "Yes" | "No" | "Unknown",
     consentDate: new Date().toISOString().slice(0, 10),
@@ -154,6 +158,30 @@ export function ContactManagementPage() {
   };
 
   const counts = meta?.counts;
+  const categoryTabs = meta?.categories?.length ? meta.categories : customCategories;
+
+  const runBulkCategory = async () => {
+    if (selectedIds.length === 0) return;
+    setBulkSubmitting(true);
+    setBulkError(null);
+    const envelope = await safeFetch<{ updated: number }>("/api/contacts/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "set_category",
+        ids: selectedIds,
+        category: bulkCategory || null,
+      }),
+    });
+    setBulkSubmitting(false);
+    if (!envelope.success) {
+      setBulkError(envelope.error);
+      return;
+    }
+    setSelected({});
+    closeBulk();
+    void refresh();
+  };
 
   const runBulkConsent = async () => {
     if (selectedIds.length === 0) return;
@@ -175,6 +203,15 @@ export function ContactManagementPage() {
 
   return (
     <div className="luxury-page p-8 max-w-[1400px] w-full mx-auto space-y-6">
+      <ManageCategoriesModal
+        open={manageCatsOpen}
+        onClose={() => setManageCatsOpen(false)}
+        categories={categoryTabs}
+        onChanged={(next) => {
+          setCustomCategories(next);
+          void refresh();
+        }}
+      />
       <BulkConsentModal
         open={bulkOpen === "consent"}
         onClose={closeBulk}
@@ -203,6 +240,17 @@ export function ContactManagementPage() {
         submitting={bulkSubmitting}
         error={bulkError}
       />
+      <BulkCategoryModal
+        open={bulkOpen === "category"}
+        onClose={closeBulk}
+        count={selectedIds.length}
+        value={bulkCategory}
+        options={categoryTabs}
+        onChange={setBulkCategory}
+        onSubmit={() => void runBulkCategory()}
+        submitting={bulkSubmitting}
+        error={bulkError}
+      />
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
@@ -217,28 +265,38 @@ export function ContactManagementPage() {
       </header>
 
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-2">
-          {CONTACT_MARKET_TABS.map((tab) => {
-            const count =
-              tab.id === "all"
-                ? counts?.all
-                : tab.id === "residential"
-                  ? counts?.residential
-                  : counts?.commercial;
-            const active = market === tab.id;
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setCategory("all")}
+            className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+              category === "all"
+                ? "bg-ink text-ivory shadow-sm"
+                : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
+            }`}
+          >
+            All categories
+            {counts?.all !== undefined ? (
+              <span className={`ml-2 ${category === "all" ? "text-ivory/80" : "text-taupe"}`}>
+                ({counts.all})
+              </span>
+            ) : null}
+          </button>
+          {categoryTabs.map((name) => {
+            const active = category.toLowerCase() === name.toLowerCase();
+            const count = counts?.byCategory?.[name] ?? counts?.byCategory?.[name.toLowerCase()];
             return (
               <button
-                key={tab.id}
+                key={name}
                 type="button"
-                onClick={() => setMarket(tab.id)}
+                onClick={() => setCategory(name)}
                 className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
                   active
                     ? "bg-ink text-ivory shadow-sm"
                     : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
                 }`}
-                title={tab.description}
               >
-                {tab.label}
+                {name}
                 {count !== undefined ? (
                   <span className={`ml-2 ${active ? "text-ivory/80" : "text-taupe"}`}>
                     ({count})
@@ -247,6 +305,14 @@ export function ContactManagementPage() {
               </button>
             );
           })}
+          <button
+            type="button"
+            onClick={() => setManageCatsOpen(true)}
+            className="inline-flex items-center gap-1 rounded-full border border-dashed border-outline-variant/40 bg-ivory px-4 py-2 text-[13px] font-medium text-rose-gold-deep hover:bg-champagne"
+          >
+            <Icon name="add" className="text-[16px]" />
+            Manage categories
+          </button>
         </div>
         <div className="flex flex-wrap gap-2">
           {CONTACT_SEGMENT_TABS.map((tab) => {
@@ -283,12 +349,10 @@ export function ContactManagementPage() {
         </div>
       </div>
 
-      {market !== "all" ? (
+      {category !== "all" ? (
         <p className="rounded-2xl border border-outline-variant/15 bg-ivory px-4 py-3 text-[14px] text-slate-text">
-          Showing {market === "commercial" ? "commercial" : "residential"} contacts only. Set a
-          contact&apos;s type to <span className="font-medium text-ink">Commercial Lead</span> or{" "}
-          <span className="font-medium text-ink">Residential Lead</span> (or use bulk Change type)
-          so they appear here.
+          Showing <span className="font-medium text-ink">{category}</span> only. Select contacts →
+          Set category to move people into your groups.
         </p>
       ) : null}
 
@@ -314,6 +378,15 @@ export function ContactManagementPage() {
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={selectedIds.length === 0}
+              onClick={() => setBulkOpen("category")}
+              className="inline-flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-50"
+            >
+              <Icon name="category" className="text-[18px]" />
+              Set category
+            </button>
             <button
               type="button"
               disabled={selectedIds.length === 0}
@@ -457,14 +530,12 @@ export function ContactManagementPage() {
                     <td className="px-6 py-4 align-middle whitespace-nowrap">
                       {(() => {
                         const seg = contactSegment(contact.type);
-                        const mkt = contactMarket(contact.type);
+                        const cat = contact.category?.trim();
                         return (
                           <div className="flex flex-wrap items-center gap-1.5">
-                            {mkt ? (
-                              <span
-                                className={`inline-flex items-center whitespace-nowrap rounded-lg px-2.5 py-1 text-[12px] font-medium leading-none ${marketBadgeClass(mkt)}`}
-                              >
-                                {marketBadgeLabel(mkt)}
+                            {cat ? (
+                              <span className="inline-flex items-center whitespace-nowrap rounded-lg bg-ink/10 px-2.5 py-1 text-[12px] font-medium leading-none text-ink">
+                                {cat}
                               </span>
                             ) : null}
                             <span
@@ -642,6 +713,63 @@ function BulkTypeModal(props: {
         </ModalField>
         <p className="text-[12px] text-taupe">
           Mark closed transactions as Past client so they stay out of cold outreach campaigns.
+        </p>
+      </div>
+    </Modal>
+  );
+}
+
+function BulkCategoryModal(props: {
+  open: boolean;
+  onClose: () => void;
+  count: number;
+  value: string;
+  options: string[];
+  onChange: (next: string) => void;
+  onSubmit: () => void;
+  submitting: boolean;
+  error: string | null;
+}) {
+  const { open, onClose, count, value, options, onChange, onSubmit, submitting, error } = props;
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Set category"
+      description={`Assign a custom group to ${count} selected contact${count === 1 ? "" : "s"}.`}
+      icon="category"
+      size="md"
+      footer={
+        <ModalFooterActions
+          onCancel={onClose}
+          primaryLabel={submitting ? "Saving…" : "Set category"}
+          onPrimary={onSubmit}
+          primaryDisabled={submitting}
+          primaryLoading={submitting}
+        />
+      }
+    >
+      <div className="space-y-4">
+        {error ? (
+          <p className="rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
+            {error}
+          </p>
+        ) : null}
+        <ModalField label="Category">
+          <select
+            className={modalInputClass}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          >
+            {options.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </ModalField>
+        <p className="text-[12px] text-taupe">
+          Add more groups anytime with Manage categories. No code changes needed.
         </p>
       </div>
     </Modal>

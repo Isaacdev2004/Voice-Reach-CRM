@@ -8,6 +8,7 @@ export const CreateContactSchema = z.object({
   phone: z.string().min(7),
   email: z.string().email().optional().or(z.literal("")),
   type: z.string().optional().default("Cold Lead"),
+  category: z.string().max(40).optional().nullable(),
   source: z.string().optional().default("Manual entry"),
   dnc: z.boolean().optional().default(false),
   notes: z.string().optional().default(""),
@@ -27,6 +28,7 @@ export const PatchContactSchema = z.object({
     .optional()
     .or(z.literal("")),
   type: z.string().optional(),
+  category: z.string().max(40).optional().nullable(),
   source: z.string().optional(),
   dnc: z.boolean().optional(),
   notes: z.string().optional(),

@@ -92,6 +92,7 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   if (body.phone !== undefined) updates.phone = normalizePhone(body.phone);
   if (body.email !== undefined) updates.email = body.email || null;
   if (body.type !== undefined) updates.type = body.type;
+  if (body.category !== undefined) updates.category = body.category?.trim() || null;
   if (body.source !== undefined) updates.source = body.source;
   if (body.dnc !== undefined) updates.dnc = body.dnc;
   if (body.notes !== undefined) updates.notes = body.notes;

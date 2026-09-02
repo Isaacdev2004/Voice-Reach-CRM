@@ -1,7 +1,7 @@
 "use client";
 
 import { isUuid } from "@/lib/contacts/is-uuid";
-import type { ContactMarket, ContactSegment } from "@/lib/contacts/lifecycle";
+import type { ContactSegment } from "@/lib/contacts/lifecycle";
 import { humanizeDatabaseError } from "@/lib/supabase-errors";
 import { useCallback, useEffect, useState } from "react";
 
@@ -12,6 +12,7 @@ export type ApiContact = {
   phone: string;
   email?: string | null;
   type?: string | null;
+  category?: string | null;
   source?: string | null;
   notes?: string | null;
   lead_type?: string | null;
@@ -36,12 +37,13 @@ export type ContactCounts = {
   pastClient: number;
   residential?: number;
   commercial?: number;
+  byCategory?: Record<string, number>;
 };
 
 export function useContacts(
   query?: string,
   segment: ContactSegment = "all",
-  market: ContactMarket = "all",
+  category: string = "all",
 ) {
   const [contacts, setContacts] = useState<ApiContact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +52,7 @@ export function useContacts(
     total: number;
     filtered: number;
     counts?: ContactCounts;
+    categories?: string[];
   } | null>(null);
 
   const refresh = useCallback(async () => {
@@ -60,7 +63,7 @@ export function useContacts(
       const q = query?.trim();
       if (q) params.set("q", q);
       if (segment !== "all") params.set("segment", segment);
-      if (market !== "all") params.set("market", market);
+      if (category !== "all") params.set("category", category);
       const qs = params.toString();
       const url = qs ? `/api/contacts?${qs}` : "/api/contacts";
       const res = await fetch(url, { cache: "no-store" });
@@ -76,6 +79,7 @@ export function useContacts(
         total: data.total ?? data.contacts?.length ?? 0,
         filtered: data.filtered ?? data.contacts?.length ?? 0,
         counts: data.counts,
+        categories: data.categories ?? [],
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load contacts");
@@ -84,7 +88,7 @@ export function useContacts(
     } finally {
       setLoading(false);
     }
-  }, [query, segment, market]);
+  }, [query, segment, category]);
 
   useEffect(() => {
     void refresh();

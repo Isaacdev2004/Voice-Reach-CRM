@@ -24,7 +24,18 @@ const BulkTypeSchema = z.object({
   type: z.string().min(2),
 });
 
-const BodySchema = z.union([BulkDeleteSchema, BulkConsentSchema, BulkTypeSchema]);
+const BulkCategorySchema = z.object({
+  action: z.literal("set_category"),
+  ids: z.array(z.string().uuid()).min(1).max(5000),
+  category: z.string().min(1).max(40).nullable(),
+});
+
+const BodySchema = z.union([
+  BulkDeleteSchema,
+  BulkConsentSchema,
+  BulkTypeSchema,
+  BulkCategorySchema,
+]);
 
 export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
@@ -65,6 +76,29 @@ export const POST = withApiHandler(async (request) => {
       entityType: "contacts",
       entityId: null,
       metadata: { count: body.ids.length, type: body.type },
+    });
+
+    return apiOk({ ok: true, updated: body.ids.length });
+  }
+
+  if (body.action === "set_category") {
+    const { error } = await supabaseAdmin
+      .from("contacts")
+      .update({
+        category: body.category?.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("owner_id", ownerId)
+      .in("id", body.ids);
+
+    if (error) return apiError(error.message, { status: 500 });
+
+    await writeAuditLog({
+      ownerId,
+      action: "CONTACTS_BULK_CATEGORY_SET",
+      entityType: "contacts",
+      entityId: null,
+      metadata: { count: body.ids.length, category: body.category },
     });
 
     return apiOk({ ok: true, updated: body.ids.length });

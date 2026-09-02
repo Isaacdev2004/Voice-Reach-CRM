@@ -5,13 +5,19 @@ import { evaluateTriggers } from "@/lib/automations/engine";
 import { evaluateEligibility } from "@/lib/compliance";
 import { CreateContactSchema, filterContactsByQuery } from "@/lib/contacts/schemas";
 import {
+  categoriesUsedOnContacts,
+  contactMatchesCategory,
+  filterContactsByCategory,
+  mergeCategoryLists,
+} from "@/lib/contacts/categories";
+import {
   contactMarket,
   contactSegment,
-  filterContactsByMarket,
   filterContactsBySegment,
-  type ContactMarket,
   type ContactSegment,
 } from "@/lib/contacts/lifecycle";
+import { loadSavedSettings } from "@/lib/billing/settings-store";
+import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
 import { normalizePhone } from "@/lib/phone";
 import { apiErrorFromSupabase } from "@/lib/supabase-errors";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -21,7 +27,15 @@ export const GET = withApiHandler(async (request) => {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim() ?? "";
   const segment = (searchParams.get("segment") ?? "all") as ContactSegment;
-  const market = (searchParams.get("market") ?? "all") as ContactMarket;
+  const category = searchParams.get("category")?.trim() || "all";
+  // Back-compat with older ?market=residential|commercial links
+  const marketParam = searchParams.get("market")?.trim();
+  const categoryFilter =
+    category !== "all"
+      ? category
+      : marketParam && marketParam !== "all"
+        ? marketParam
+        : "all";
 
   const { data, error } = await supabaseAdmin
     .from("contacts")
@@ -34,9 +48,10 @@ export const GET = withApiHandler(async (request) => {
     if (mapped) return mapped;
   }
 
+  const saved = await loadSavedSettings(ownerId);
   const raw = q ? filterContactsByQuery(data ?? [], q) : (data ?? []);
-  const byMarket = filterContactsByMarket(raw, market);
-  const segmented = filterContactsBySegment(byMarket, segment);
+  const byCategory = filterContactsByCategory(raw, categoryFilter);
+  const segmented = filterContactsBySegment(byCategory, segment);
   const contacts = segmented.map((contact) => ({
     ...contact,
     eligibility: evaluateEligibility(contact),
@@ -45,6 +60,15 @@ export const GET = withApiHandler(async (request) => {
   }));
   const eligibleCount = contacts.filter((c) => c.eligibility.eligible).length;
   const allRows = data ?? [];
+  const categories = mergeCategoryLists(
+    saved?.contactCategories ?? DEFAULT_SETTINGS.contactCategories,
+    categoriesUsedOnContacts(allRows),
+  );
+  const categoryCounts: Record<string, number> = { all: allRows.length };
+  for (const name of categories) {
+    categoryCounts[name] = allRows.filter((c) => contactMatchesCategory(c, name)).length;
+  }
+
   return apiOk({
     contacts,
     total: allRows.length,
@@ -52,14 +76,16 @@ export const GET = withApiHandler(async (request) => {
     eligibleCount,
     q,
     segment,
-    market,
+    category: categoryFilter,
+    categories,
     counts: {
       all: allRows.length,
       coldLead: filterContactsBySegment(allRows, "cold-lead").length,
       activeLead: filterContactsBySegment(allRows, "active-lead").length,
       pastClient: filterContactsBySegment(allRows, "past-client").length,
-      residential: filterContactsByMarket(allRows, "residential").length,
-      commercial: filterContactsByMarket(allRows, "commercial").length,
+      residential: allRows.filter((c) => contactMatchesCategory(c, "Residential")).length,
+      commercial: allRows.filter((c) => contactMatchesCategory(c, "Commercial")).length,
+      byCategory: categoryCounts,
     },
   });
 });
@@ -95,21 +121,33 @@ export const POST = withApiHandler(async (request) => {
     }
   }
 
-  const { data: contact, error: contactError } = await supabaseAdmin
+  const baseRow = {
+    owner_id: ownerId,
+    first_name: body.firstName,
+    last_name: body.lastName,
+    phone: normalizePhone(body.phone),
+    email: body.email || null,
+    type: body.type || "Cold Lead",
+    source: body.source,
+    dnc: body.dnc,
+    notes: body.notes,
+  };
+
+  let { data: contact, error: contactError } = await supabaseAdmin
     .from("contacts")
     .insert({
-      owner_id: ownerId,
-      first_name: body.firstName,
-      last_name: body.lastName,
-      phone: normalizePhone(body.phone),
-      email: body.email || null,
-      type: body.type || "Cold Lead",
-      source: body.source,
-      dnc: body.dnc,
-      notes: body.notes,
+      ...baseRow,
+      category: body.category?.trim() || null,
     })
     .select("*")
     .single();
+
+  // Older DBs may not have category yet — retry without it
+  if (contactError?.message?.toLowerCase().includes("category")) {
+    const retry = await supabaseAdmin.from("contacts").insert(baseRow).select("*").single();
+    contact = retry.data;
+    contactError = retry.error;
+  }
 
   if (contactError) {
     const mapped = apiErrorFromSupabase(contactError);

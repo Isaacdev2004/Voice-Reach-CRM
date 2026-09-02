@@ -75,6 +75,7 @@ const SettingsSchema = z.object({
   security: z.object({
     twoFactorEnabled: z.boolean(),
   }),
+  contactCategories: z.array(z.string().min(1).max(40)).max(40).optional(),
   updatedAt: z.string(),
 });
 

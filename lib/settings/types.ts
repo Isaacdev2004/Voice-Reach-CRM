@@ -75,6 +75,8 @@ export type UserSettings = {
   billing: BillingSettings;
   notifications: NotificationSettings;
   security: SecuritySettings;
+  /** User-managed contact groups (e.g. Residential, Commercial, Investors) */
+  contactCategories?: string[];
   updatedAt: string;
 };
 

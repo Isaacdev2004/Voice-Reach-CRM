@@ -127,6 +127,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   security: {
     twoFactorEnabled: true,
   },
+  contactCategories: ["Residential", "Commercial"],
   updatedAt: new Date().toISOString(),
 };
 

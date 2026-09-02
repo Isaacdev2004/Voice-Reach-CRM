@@ -8,7 +8,7 @@ import {
 } from "@/components/crm/modal";
 import { CONTACT_TYPE_OPTIONS } from "@/lib/contacts/lifecycle";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type AddContactModalProps = {
   open: boolean;
@@ -57,7 +57,8 @@ export function AddContactModal({
     lastName: "",
     phone: "",
     email: "",
-    type: "Residential Lead",
+    type: "Cold Lead",
+    category: "Residential",
     source: "Manual entry",
     consent: "Unknown" as "Yes" | "No" | "Unknown",
     consentDate: todayInput(),
@@ -65,6 +66,7 @@ export function AddContactModal({
     proof: "Owner-initiated test",
     notes: "",
   });
+  const [categories, setCategories] = useState<string[]>(["Residential", "Commercial"]);
 
   const consentYes = form.consent === "Yes";
 
@@ -74,7 +76,8 @@ export function AddContactModal({
       lastName: "",
       phone: "",
       email: "",
-      type: "Residential Lead",
+      type: "Cold Lead",
+      category: categories[0] ?? "Residential",
       source: "Manual entry",
       consent: "Unknown",
       consentDate: todayInput(),
@@ -89,6 +92,28 @@ export function AddContactModal({
     reset();
     onClose();
   };
+
+  useEffect(() => {
+    if (!open) return;
+    void (async () => {
+      try {
+        const res = await fetch("/api/contacts/categories", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data.categories) && data.categories.length) {
+          setCategories(data.categories);
+          setForm((f) => ({
+            ...f,
+            category: data.categories.includes(f.category)
+              ? f.category
+              : data.categories[0],
+          }));
+        }
+      } catch {
+        /* keep defaults */
+      }
+    })();
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,6 +148,7 @@ export function AddContactModal({
           phone: form.phone.trim(),
           email: form.email.trim(),
           type: form.type,
+          category: form.category.trim() || null,
           source: form.source.trim() || "Manual entry",
           consent: form.consent,
           consentDate: consentYes ? form.consentDate : undefined,
@@ -222,6 +248,19 @@ export function AddContactModal({
                 {CONTACT_TYPE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
+                  </option>
+                ))}
+              </select>
+            </ModalField>
+            <ModalField label="Category">
+              <select
+                className={modalInputClass}
+                value={form.category}
+                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+              >
+                {categories.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
                   </option>
                 ))}
               </select>
