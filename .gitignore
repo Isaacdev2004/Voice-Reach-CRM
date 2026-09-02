@@ -17,3 +17,5 @@ npm-debug.log*
 # build artifacts
 tsconfig.tsbuildinfo
 dev-server.log
+
+supabase/.temp/
