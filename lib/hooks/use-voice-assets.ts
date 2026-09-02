@@ -61,7 +61,7 @@ export function useVoiceAssets() {
     await refresh();
   };
 
-  const assignToCampaign = async (assetId: string, campaignId: string) => {
+  const assignToCampaign = async (assetId: string, campaignId: string, stepId?: string) => {
     if (!isUuid(campaignId)) {
       throw new Error(
         "Pick a real campaign from Campaigns first — demo placeholders can’t be linked.",
@@ -73,12 +73,15 @@ export function useVoiceAssets() {
     const res = await fetch(`/api/campaigns/${campaignId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ voiceAssetId: assetId }),
+      body: JSON.stringify({ voiceAssetId: assetId, stepId: stepId ?? null }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error ?? "Could not link recording to campaign");
     await assignScript(assetId, campaignId);
     await refresh();
+    return data as {
+      link?: { message?: string; linkedTo?: string; stepOrder?: number | null };
+    };
   };
 
   const remove = async (id: string) => {

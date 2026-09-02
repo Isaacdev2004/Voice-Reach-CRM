@@ -52,7 +52,7 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
 
   const { data: steps, error: stepsError } = await supabaseAdmin
     .from("campaign_steps")
-    .select("id, type")
+    .select("id, type, voice_asset_id, conditions")
     .eq("campaign_id", campaignId)
     .eq("owner_id", ownerId);
 
@@ -94,9 +94,14 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
     : campaign.voice_assets;
 
   // Voice recording is only required when the sequence includes a voicemail step.
-  if (needsVoicemail && (!campaign.voice_asset_id || !voice?.approved)) {
+  const anyStepHasVoice = (steps ?? []).some((s) => {
+    if (s.type !== "voicemail") return false;
+    const conditions = s.conditions as { voiceAssetId?: string } | null;
+    return Boolean(s.voice_asset_id || conditions?.voiceAssetId);
+  });
+  if (needsVoicemail && !campaign.voice_asset_id && !anyStepHasVoice) {
     return apiError(
-      "This sequence has a ringless voicemail step. Approve a voice recording and link it (Voice Scripts → Approve → Use for campaign) before running Live.",
+      "This sequence has ringless voicemail steps. Approve a voice recording and tap Use for campaign for each voicemail step (or link one as the campaign default).",
       { status: 400, code: "voice_asset_required" },
     );
   }

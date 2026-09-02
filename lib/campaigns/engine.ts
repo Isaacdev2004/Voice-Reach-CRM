@@ -316,11 +316,36 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
 
     let audioUrl: string | undefined;
     if (channel === "voicemail") {
-      const voiceRaw = campaign?.voice_assets;
-      const voiceAsset = Array.isArray(voiceRaw) ? voiceRaw[0] : voiceRaw;
+      const stepVoiceId =
+        (step as { voice_asset_id?: string | null }).voice_asset_id ||
+        (step.conditions as { voiceAssetId?: string } | null)?.voiceAssetId ||
+        null;
+
+      let voiceAsset: {
+        id: string;
+        approved?: boolean;
+        storage_path?: string;
+        audio_url?: string | null;
+      } | null = null;
+
+      if (stepVoiceId) {
+        const { data: stepVoice } = await supabaseAdmin
+          .from("voice_assets")
+          .select("id, approved, storage_path, audio_url")
+          .eq("id", stepVoiceId)
+          .maybeSingle();
+        voiceAsset = stepVoice;
+      }
+
+      if (!voiceAsset) {
+        const voiceRaw = campaign?.voice_assets;
+        voiceAsset = Array.isArray(voiceRaw) ? voiceRaw[0] : voiceRaw;
+      }
+
       if (!voiceAssetReady(voiceAsset)) {
         await markRun(run.id, "failed", {
-          error: "Campaign needs an approved voice recording before voicemail steps can send.",
+          error:
+            "This voicemail step needs an approved voice recording. Link one in Voice Scripts (Use for campaign) — each voicemail step can have its own recording.",
         });
         executed.push({ runId: run.id, status: "failed" });
         continue;

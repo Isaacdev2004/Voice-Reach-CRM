@@ -1,308 +1,159 @@
 "use client";
 
-
-
 import Link from "next/link";
-
 import { AddCalendarEventModal } from "@/components/crm/add-calendar-event-modal";
-
 import { CalendarDayPanel } from "@/components/crm/calendar-day-panel";
-
 import { InAppBrowserBanner } from "@/components/auth/in-app-browser-banner";
-
 import { LuxuryCard } from "@/components/crm/luxury-card";
-
 import { MonthCalendar } from "@/components/crm/month-calendar";
-
 import { Icon } from "@/components/ui/icon";
 import { connectGoogleCalendar } from "@/lib/connect-google-calendar";
-
 import { useSearchParams } from "next/navigation";
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-
-
 type AgendaItem = {
-
   id: string;
-
   title: string;
-
   starts_at: string;
-
   ends_at?: string | null;
-
   contact_id?: string | null;
-
   contacts?: { first_name: string; last_name?: string | null } | null;
-
   source: "google" | "crm" | "task";
-
   htmlLink?: string | null;
-
 };
 
-
-
 function formatWhen(iso: string) {
-
   const d = new Date(iso);
-
   return d.toLocaleString(undefined, {
-
     weekday: "short",
-
     month: "short",
-
     day: "numeric",
-
     hour: "numeric",
-
     minute: "2-digit",
-
   });
-
 }
-
-
 
 function contactName(c?: { first_name: string; last_name?: string | null } | null) {
-
   if (!c) return null;
-
   return `${c.first_name} ${c.last_name ?? ""}`.trim();
-
 }
-
-
 
 function sourceLabel(source: AgendaItem["source"]) {
-
   switch (source) {
-
     case "google":
-
       return "Google";
-
     case "task":
-
       return "Task";
-
     default:
-
       return "CRM";
-
   }
-
 }
-
-
 
 function monthParam(d: Date): string {
-
   const y = d.getFullYear();
-
   const m = String(d.getMonth() + 1).padStart(2, "0");
-
   return `${y}-${m}`;
-
 }
-
-
 
 function sameDay(a: Date, b: Date): boolean {
-
   return (
-
     a.getFullYear() === b.getFullYear() &&
-
     a.getMonth() === b.getMonth() &&
-
     a.getDate() === b.getDate()
-
   );
-
 }
 
-
-
 export function CalendarPage() {
-
   const searchParams = useSearchParams();
-
   const [loading, setLoading] = useState(true);
-
   const [refreshing, setRefreshing] = useState(false);
-
   const [connected, setConnected] = useState(false);
-
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
-
   const [agenda, setAgenda] = useState<AgendaItem[]>([]);
-
   const [counts, setCounts] = useState({ google: 0, crm: 0, tasks: 0 });
-
   const [error, setError] = useState<string | null>(null);
-
   const [viewDate, setViewDate] = useState(() => new Date());
-
   const [selectedDate, setSelectedDate] = useState<Date | null>(() => new Date());
-
   const [addEventOpen, setAddEventOpen] = useState(false);
   const [connectHint, setConnectHint] = useState<string | null>(null);
   const [mobileDayView, setMobileDayView] = useState(false);
 
-
-
   const load = useCallback(
-
     async (isRefresh = false) => {
-
       if (isRefresh) setRefreshing(true);
-
       else setLoading(true);
-
       try {
-
         const res = await fetch(`/api/calendar/events?month=${monthParam(viewDate)}`, {
-
           cache: "no-store",
-
         });
-
         const data = await res.json();
-
         if (!res.ok) throw new Error(data.error ?? "Could not load calendar");
-
         setConnected(Boolean(data.connected));
-
         setAccountEmail(data.accountEmail ?? null);
-
         setAgenda(data.agenda ?? []);
-
         setCounts(data.counts ?? { google: 0, crm: 0, tasks: 0 });
-
         const errors = [data.googleError, data.eventsError, data.tasksError].filter(Boolean);
-
         setError(errors[0] ?? null);
-
       } catch (e) {
-
         setError(e instanceof Error ? e.message : "Could not load calendar");
-
         setAgenda([]);
-
       } finally {
-
         setLoading(false);
-
         setRefreshing(false);
-
       }
-
     },
-
     [viewDate],
-
   );
 
-
-
   useEffect(() => {
-
     void load();
-
   }, [load]);
 
-
-
   useEffect(() => {
-
     if (searchParams.get("new") === "event") setAddEventOpen(true);
-
   }, [searchParams]);
 
-
-
   const selectedDayEvents = useMemo(() => {
-
     if (!selectedDate) return [];
-
     return agenda.filter((item) => sameDay(new Date(item.starts_at), selectedDate));
-
   }, [agenda, selectedDate]);
 
-
-
   const handleDayClick = useCallback((day: Date) => {
-
     setSelectedDate(day);
-
     if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
-
       setMobileDayView(true);
-
     }
-
   }, []);
 
-
-
   const hour = new Date().getHours();
-
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
-
-
   return (
-
-    <div className="luxury-page w-full max-w-[1400px] space-y-6 px-4 py-6 sm:p-8 mx-auto">
-
-      <header className="flex w-full flex-wrap items-start justify-between gap-4">
-
+    <div className="luxury-page mx-auto w-full max-w-[1400px] space-y-4 px-3 py-4 sm:space-y-6 sm:px-4 sm:py-6 sm:p-8">
+      <header className="flex w-full items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
-
-          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-taupe">
-
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-taupe sm:text-[11px] sm:tracking-[0.25em]">
             Calendar
-
           </p>
-
-          <h1 className="font-serif text-[36px] font-semibold tracking-tight text-ink md:text-[40px]">
-
+          <h1 className="truncate font-serif text-[26px] font-semibold tracking-tight text-ink sm:text-[36px] md:text-[40px]">
             {greeting}
-
           </h1>
-
-          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-slate-text">
-
+          <p className="mt-1 hidden text-[15px] leading-relaxed text-slate-text sm:mt-2 sm:block sm:max-w-2xl">
             Your full schedule in one place — add events here and they sync to Google Calendar when
-
             connected.
-
           </p>
-
           {connected && accountEmail ? (
-
-            <p className="mt-2 text-[13px] text-taupe">Synced with {accountEmail}</p>
-
+            <p className="mt-1 truncate text-[12px] text-taupe sm:mt-2 sm:text-[13px]">
+              Synced with {accountEmail}
+            </p>
           ) : null}
-
         </div>
-
-        <div className="flex shrink-0 flex-wrap gap-3">
-
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <button
-
             type="button"
-
             onClick={() => setAddEventOpen(true)}
-
-            className="inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory hover:bg-rose-gold-deep"
-
+            className="inline-flex items-center gap-1.5 rounded-full bg-rose-gold px-3 py-2 text-[13px] font-medium text-ivory hover:bg-rose-gold-deep sm:gap-2 sm:px-5 sm:py-2.5 sm:text-[14px]"
           >
-
             <svg
               className="h-4 w-4"
               viewBox="0 0 24 24"
@@ -314,260 +165,136 @@ export function CalendarPage() {
             >
               <path d="M12 5v14M5 12h14" />
             </svg>
-
-            Add event
-
+            <span className="sm:hidden">Add</span>
+            <span className="hidden sm:inline">Add event</span>
           </button>
-
           <button
-
             type="button"
-
             onClick={() => void load(true)}
-
             disabled={loading || refreshing}
-
-            className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-5 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne disabled:opacity-50"
-
+            className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 p-2 text-[14px] font-medium text-ink hover:bg-champagne disabled:opacity-50 sm:px-5 sm:py-2.5"
+            aria-label="Refresh"
           >
-
             <Icon name="refresh" className="text-[18px]" />
-
-            {refreshing ? "Refreshing…" : "Refresh"}
-
+            <span className="hidden sm:inline">{refreshing ? "Refreshing…" : "Refresh"}</span>
           </button>
-
           {!connected ? (
-
             <button
-
               type="button"
-
               onClick={() => {
-
                 const result = connectGoogleCalendar();
-
                 if (result.blocked) {
-
                   setConnectHint(
-
                     "Google Calendar can’t connect inside this browser. Open VoiceReach in Safari or Chrome, then try again.",
-
                   );
-
                 }
-
               }}
-
-              className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-5 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne"
-
+              className="hidden items-center gap-2 rounded-full border border-outline-variant/30 px-5 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne sm:inline-flex"
             >
-
               <Icon name="calendar_today" className="text-[18px]" />
-
               Connect Google
-
             </button>
-
           ) : null}
-
         </div>
-
       </header>
-
-
 
       {!connected ? <InAppBrowserBanner context="google-calendar" /> : null}
 
-
-
       {connectHint ? (
-
         <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[14px] text-amber-900">
-
           {connectHint}
-
         </p>
-
       ) : null}
 
-
-
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {[
-
           {
-
             label: "Google events",
-
             value: loading ? "…" : String(counts.google),
-
             icon: "event",
-
             tone: "bg-sage-light text-emerald-muted",
-
           },
-
           {
-
             label: "Open tasks",
-
             value: loading ? "…" : String(counts.tasks),
-
             icon: "task_alt",
-
             tone: "bg-champagne text-taupe",
-
           },
-
           {
-
             label: "CRM callbacks",
-
             value: loading ? "…" : String(counts.crm),
-
             icon: "phone_callback",
-
             tone: "bg-rose-gold/15 text-rose-gold-deep",
-
           },
-
         ].map((stat) => (
-
-          <LuxuryCard key={stat.label} padding="md" className="transition-shadow hover:shadow-nav">
-
-            <div className="flex items-start justify-between">
-
-              <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${stat.tone}`}>
-
-                <Icon name={stat.icon} className="text-[20px]" />
-
+          <LuxuryCard key={stat.label} padding="md" className="min-w-0 transition-shadow hover:shadow-nav">
+            <div className="flex items-start justify-between gap-1">
+              <div
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10 sm:rounded-2xl ${stat.tone}`}
+              >
+                <Icon name={stat.icon} className="text-[18px] sm:text-[20px]" />
               </div>
-
               {connected && stat.label === "Google events" ? (
-
-                <span className="rounded-full bg-sage-light px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-muted">
-
+                <span className="rounded-full bg-sage-light px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-muted sm:px-2 sm:text-[10px]">
                   Live
-
                 </span>
-
               ) : null}
-
             </div>
-
-            <p className="mt-4 text-[13px] text-taupe">{stat.label}</p>
-
-            <p className="font-serif text-[32px] font-semibold text-ink">{stat.value}</p>
-
+            <p className="mt-2 truncate text-[11px] text-taupe sm:mt-4 sm:text-[13px]">{stat.label}</p>
+            <p className="font-serif text-[24px] font-semibold text-ink sm:text-[32px]">{stat.value}</p>
           </LuxuryCard>
-
         ))}
-
       </div>
 
-
-
       {error ? (
-
         <div className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
-
           <p>{error.includes("invalid_grant") || error.includes("expired") ? "Your Google Calendar connection expired. Reconnect to sync live events — your in-app events still work." : error}</p>
-
           {error.includes("expired") || error.includes("invalid_grant") || error.includes("Reconnect") ? (
-
             <button
-
               type="button"
-
               onClick={() => {
-
                 const result = connectGoogleCalendar();
-
                 if (result.blocked) {
-
                   setConnectHint(
-
                     "Open VoiceReach in Safari or Chrome, then reconnect Google Calendar.",
-
                   );
-
                 }
-
               }}
-
               className="mt-3 inline-flex items-center gap-2 rounded-full bg-rose-gold px-4 py-2 text-[13px] font-medium text-ivory"
-
             >
-
               Reconnect Google Calendar
-
             </button>
-
           ) : null}
-
         </div>
-
       ) : null}
 
-
-
       <div className="grid w-full gap-6 lg:grid-cols-[1fr_340px]">
-
         <LuxuryCard padding="lg" className="w-full min-w-0">
-
           {loading ? (
-
             <p className="py-12 text-center text-taupe">Loading calendar…</p>
-
           ) : mobileDayView && selectedDate ? (
-
             <CalendarDayPanel
-
               date={selectedDate}
-
               events={selectedDayEvents}
-
               onAddEvent={() => setAddEventOpen(true)}
-
               onBack={() => setMobileDayView(false)}
-
             />
-
           ) : (
-
             <MonthCalendar
-
               viewDate={viewDate}
-
               onViewDateChange={setViewDate}
-
               events={agenda}
-
               selectedDate={selectedDate}
-
               onSelectDate={setSelectedDate}
-
               onDayClick={handleDayClick}
-
             />
-
           )}
-
           {!loading && !mobileDayView ? (
-
             <p className="mt-4 text-[13px] text-taupe">
-
               Tap a day to view its schedule. On mobile, opens a focused day view.
-
             </p>
-
           ) : null}
-
         </LuxuryCard>
-
-
 
         <LuxuryCard padding="lg" className="hidden w-full min-w-0 lg:block">
           {selectedDate ? (
@@ -580,10 +307,7 @@ export function CalendarPage() {
             <p className="text-[14px] text-taupe">Select a day on the calendar to view its schedule.</p>
           )}
         </LuxuryCard>
-
       </div>
-
-
 
       {loading ? (
         <LuxuryCard padding="lg" className="w-full">
@@ -655,7 +379,6 @@ export function CalendarPage() {
           </ul>
         </LuxuryCard>
       )}
-
       <AddCalendarEventModal
         open={addEventOpen}
         onClose={() => setAddEventOpen(false)}
@@ -666,5 +389,4 @@ export function CalendarPage() {
     </div>
   );
 }
-
 

@@ -22,6 +22,7 @@ type MonthCalendarProps = {
 };
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAYS_SHORT = ["S", "M", "T", "W", "T", "F", "S"];
 
 function dateKey(d: Date): string {
   const y = d.getFullYear();
@@ -97,21 +98,21 @@ export function MonthCalendar({
   };
 
   return (
-    <div className="w-full">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h2 className="font-serif text-[26px] font-semibold text-ink">{monthLabel}</h2>
-        <div className="flex items-center gap-2">
+    <div className="w-full min-w-0">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 sm:mb-6 sm:gap-4">
+        <h2 className="font-serif text-[20px] font-semibold text-ink sm:text-[26px]">{monthLabel}</h2>
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={goToday}
-            className="rounded-full border border-outline-variant/30 px-4 py-2 text-[13px] font-medium text-ink hover:bg-champagne"
+            className="rounded-full border border-outline-variant/30 px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-champagne sm:px-4 sm:py-2 sm:text-[13px]"
           >
             Today
           </button>
           <button
             type="button"
             onClick={prevMonth}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant/30 hover:bg-champagne"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-outline-variant/30 hover:bg-champagne sm:h-10 sm:w-10"
             aria-label="Previous month"
           >
             <Icon name="chevron_left" className="text-[22px]" />
@@ -119,7 +120,7 @@ export function MonthCalendar({
           <button
             type="button"
             onClick={nextMonth}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant/30 hover:bg-champagne"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-outline-variant/30 hover:bg-champagne sm:h-10 sm:w-10"
             aria-label="Next month"
           >
             <Icon name="chevron_right" className="text-[22px]" />
@@ -127,13 +128,14 @@ export function MonthCalendar({
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-2xl border border-outline-variant/20 bg-outline-variant/15">
-        {WEEKDAYS.map((day) => (
+      <div className="grid w-full grid-cols-7 gap-px overflow-hidden rounded-2xl border border-outline-variant/20 bg-outline-variant/15">
+        {WEEKDAYS.map((day, i) => (
           <div
-            key={day}
-            className="bg-cream/80 px-2 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-taupe"
+            key={`${day}-${i}`}
+            className="bg-cream/80 px-0.5 py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-taupe sm:px-2 sm:py-3 sm:text-[11px]"
           >
-            {day}
+            <span className="sm:hidden">{WEEKDAYS_SHORT[i]}</span>
+            <span className="hidden sm:inline">{day}</span>
           </div>
         ))}
 
@@ -153,7 +155,7 @@ export function MonthCalendar({
               }}
               title="Tap to view this day"
               className={cn(
-                "min-h-[88px] bg-ivory p-2 text-left transition-colors hover:bg-cream/70 sm:min-h-[100px]",
+                "min-h-[52px] bg-ivory p-1 text-left transition-colors hover:bg-cream/70 sm:min-h-[88px] sm:p-2 md:min-h-[100px]",
                 !inMonth && "bg-cream/40 text-taupe/60",
                 isSelected && "ring-2 ring-inset ring-rose-gold-deep/50",
                 onDayClick && "cursor-pointer hover:ring-1 hover:ring-inset hover:ring-rose-gold/30",
@@ -161,14 +163,14 @@ export function MonthCalendar({
             >
               <span
                 className={cn(
-                  "inline-flex h-7 w-7 items-center justify-center rounded-full text-[13px] font-medium",
+                  "inline-flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-medium sm:h-7 sm:w-7 sm:text-[13px]",
                   isToday && "bg-sage text-ivory",
                   !isToday && "text-ink",
                 )}
               >
                 {day.getDate()}
               </span>
-              <div className="mt-1 space-y-0.5">
+              <div className="mt-0.5 hidden space-y-0.5 sm:mt-1 sm:block">
                 {dayEvents.slice(0, 2).map((ev) => (
                   <p
                     key={ev.id}
@@ -181,6 +183,13 @@ export function MonthCalendar({
                   <p className="text-[10px] font-medium text-taupe">+{dayEvents.length - 2} more</p>
                 ) : null}
               </div>
+              {dayEvents.length > 0 ? (
+                <div className="mt-0.5 flex justify-center gap-0.5 sm:hidden">
+                  {dayEvents.slice(0, 3).map((ev) => (
+                    <span key={ev.id} className="h-1 w-1 rounded-full bg-sage" />
+                  ))}
+                </div>
+              ) : null}
             </button>
           );
         })}

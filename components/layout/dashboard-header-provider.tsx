@@ -413,11 +413,11 @@ export function DashboardHeaderProvider({
             ) : null}
           </div>
 
-          <div ref={profileRef} className="relative">
+          <div ref={profileRef} className="relative shrink-0">
             <button
               type="button"
               onClick={() => setProfileOpen((o) => !o)}
-              className="flex items-center gap-2 rounded-full py-1 pl-1 pr-1 transition-colors hover:bg-surface-container-low sm:pr-2"
+              className="flex items-center gap-1.5 rounded-full p-0.5 transition-colors hover:bg-surface-container-low sm:gap-2 sm:py-1 sm:pl-1 sm:pr-2"
               aria-label="Account menu"
               aria-expanded={profileOpen}
             >
@@ -429,12 +429,12 @@ export function DashboardHeaderProvider({
                 <Image
                   src={avatarUrl}
                   alt={displayName}
-                  width={40}
-                  height={40}
-                  className="rounded-full border border-outline-variant object-cover"
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 rounded-full object-cover ring-1 ring-outline-variant/30"
                 />
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant bg-champagne font-semibold text-ink">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-champagne text-[13px] font-semibold text-ink ring-1 ring-outline-variant/30">
                   {displayName[0]?.toUpperCase() ?? "?"}
                 </div>
               )}

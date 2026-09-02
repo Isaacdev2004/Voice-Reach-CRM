@@ -38,6 +38,8 @@ type Step = {
   day_label: string | null;
   time_label: string | null;
   status: string;
+  voice_asset_id?: string | null;
+  conditions?: { voiceAssetId?: string } | null;
 };
 
 type BlockedRecipient = {
@@ -833,6 +835,15 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                       {step.day_label ?? `Δ ${step.delay_minutes} min`}
                       {step.time_label ? ` · ${step.time_label}` : ""} ·{" "}
                       {step.type.replace("_", " ")}
+                      {step.type === "voicemail"
+                        ? step.voice_asset_id || step.conditions?.voiceAssetId
+                          ? " · voice linked"
+                          : campaign.voice_asset_id && step.step_order === Math.min(
+                              ...steps.filter((s) => s.type === "voicemail").map((s) => s.step_order),
+                            )
+                            ? " · uses campaign default voice"
+                            : " · needs its own voice"
+                        : ""}
                     </p>
                   </div>
                   <span className="rounded-full bg-cream px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-taupe">

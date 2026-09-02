@@ -246,8 +246,8 @@ export function VoiceStudioWorkspace() {
     }
     if (activeAssetId && id) {
       try {
-        await assignToCampaign(activeAssetId, id);
-        showToast("Voice recording linked to campaign");
+        const result = await assignToCampaign(activeAssetId, id);
+        showToast(result.link?.message ?? "Voice recording linked to campaign");
       } catch (e) {
         showToast(e instanceof Error ? e.message : "Could not link to campaign", "error");
       }
@@ -275,8 +275,8 @@ export function VoiceStudioWorkspace() {
       if (!asset.approved) {
         await approve(asset.id);
       }
-      await assignToCampaign(asset.id, campaignId);
-      showToast(`"${asset.title}" approved and linked to campaign`);
+      const result = await assignToCampaign(asset.id, campaignId);
+      showToast(result.link?.message ?? `"${asset.title}" approved and linked to campaign`);
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Could not link to campaign", "error");
     }
@@ -439,6 +439,9 @@ export function VoiceStudioWorkspace() {
           </LuxuryCard>
           <LuxuryCard padding="md">
             <h3 className="font-medium text-ink mb-3">Assign to campaign</h3>
+            <p className="mb-3 text-[12px] leading-relaxed text-taupe">
+              Campaigns with multiple voicemail steps: tap <span className="font-medium text-ink">Use for campaign</span> once per recording — each click fills the next empty voicemail step.
+            </p>
             {campaignsLoading ? (
               <p className="text-[13px] text-taupe">Loading campaigns…</p>
             ) : campaigns.length === 0 ? (

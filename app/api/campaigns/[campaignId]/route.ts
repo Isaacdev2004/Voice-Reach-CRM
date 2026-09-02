@@ -130,6 +130,8 @@ export const GET = withApiHandler<RouteContext>(async (_request, context) => {
 
 const PatchSchema = z.object({
   voiceAssetId: z.string().uuid().nullable().optional(),
+  /** When set with voiceAssetId, link that recording to this voicemail step */
+  stepId: z.string().uuid().optional().nullable(),
   name: z.string().min(1).optional(),
   /** mock = simulation; any other id (e.g. slybroadcast) = live when ALLOW_LIVE_OUTBOUND=true */
   provider: z.string().min(1).optional(),
@@ -141,6 +143,8 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   const invalid = requireCampaignUuid(campaignId);
   if (invalid) return invalid;
   const body = PatchSchema.parse(await request.json());
+
+  let linkResult: Awaited<ReturnType<typeof linkVoiceAssetToCampaign>> | null = null;
 
   if (body.voiceAssetId) {
     const { data: asset, error: assetError } = await supabaseAdmin
@@ -158,10 +162,24 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
         code: "voice_asset_not_approved",
       });
     }
+
+    try {
+      const { linkVoiceAssetToCampaign } = await import("@/lib/campaigns/link-voice");
+      linkResult = await linkVoiceAssetToCampaign({
+        ownerId,
+        campaignId,
+        voiceAssetId: body.voiceAssetId,
+        stepId: body.stepId,
+      });
+    } catch (e) {
+      return apiError(e instanceof Error ? e.message : "Could not link voice", { status: 400 });
+    }
+  } else if (body.voiceAssetId === null) {
+    // Explicit unlink of campaign default only
   }
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  if (body.voiceAssetId !== undefined) updates.voice_asset_id = body.voiceAssetId;
+  if (body.voiceAssetId === null) updates.voice_asset_id = null;
   if (body.name) updates.name = body.name;
   if (body.provider !== undefined) {
     if (isLiveCampaignProvider(body.provider) && !isLiveOutboundAllowed()) {
@@ -189,8 +207,8 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     action: "CAMPAIGN_UPDATED",
     entityType: "campaign",
     entityId: campaignId,
-    metadata: body,
+    metadata: { ...body, linkResult },
   });
 
-  return apiOk({ campaign: data });
+  return apiOk({ campaign: data, link: linkResult });
 });
