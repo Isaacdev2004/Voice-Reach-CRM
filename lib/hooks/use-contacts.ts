@@ -1,7 +1,7 @@
 "use client";
 
 import { isUuid } from "@/lib/contacts/is-uuid";
-import type { ContactSegment } from "@/lib/contacts/lifecycle";
+import type { ContactMarket, ContactSegment } from "@/lib/contacts/lifecycle";
 import { humanizeDatabaseError } from "@/lib/supabase-errors";
 import { useCallback, useEffect, useState } from "react";
 
@@ -19,6 +19,7 @@ export type ApiContact = {
   property_address?: string | null;
   budget?: number | string | null;
   dnc?: boolean;
+  market?: "residential" | "commercial" | null;
   consent_records?: {
     status: string;
     consent_date?: string | null;
@@ -33,9 +34,15 @@ export type ContactCounts = {
   coldLead: number;
   activeLead: number;
   pastClient: number;
+  residential?: number;
+  commercial?: number;
 };
 
-export function useContacts(query?: string, segment: ContactSegment = "all") {
+export function useContacts(
+  query?: string,
+  segment: ContactSegment = "all",
+  market: ContactMarket = "all",
+) {
   const [contacts, setContacts] = useState<ApiContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +60,7 @@ export function useContacts(query?: string, segment: ContactSegment = "all") {
       const q = query?.trim();
       if (q) params.set("q", q);
       if (segment !== "all") params.set("segment", segment);
+      if (market !== "all") params.set("market", market);
       const qs = params.toString();
       const url = qs ? `/api/contacts?${qs}` : "/api/contacts";
       const res = await fetch(url, { cache: "no-store" });
@@ -76,7 +84,7 @@ export function useContacts(query?: string, segment: ContactSegment = "all") {
     } finally {
       setLoading(false);
     }
-  }, [query, segment]);
+  }, [query, segment, market]);
 
   useEffect(() => {
     void refresh();

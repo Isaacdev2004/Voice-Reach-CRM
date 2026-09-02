@@ -5,8 +5,11 @@ import { evaluateTriggers } from "@/lib/automations/engine";
 import { evaluateEligibility } from "@/lib/compliance";
 import { CreateContactSchema, filterContactsByQuery } from "@/lib/contacts/schemas";
 import {
+  contactMarket,
   contactSegment,
+  filterContactsByMarket,
   filterContactsBySegment,
+  type ContactMarket,
   type ContactSegment,
 } from "@/lib/contacts/lifecycle";
 import { normalizePhone } from "@/lib/phone";
@@ -18,6 +21,7 @@ export const GET = withApiHandler(async (request) => {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim() ?? "";
   const segment = (searchParams.get("segment") ?? "all") as ContactSegment;
+  const market = (searchParams.get("market") ?? "all") as ContactMarket;
 
   const { data, error } = await supabaseAdmin
     .from("contacts")
@@ -31,25 +35,31 @@ export const GET = withApiHandler(async (request) => {
   }
 
   const raw = q ? filterContactsByQuery(data ?? [], q) : (data ?? []);
-  const segmented = filterContactsBySegment(raw, segment);
+  const byMarket = filterContactsByMarket(raw, market);
+  const segmented = filterContactsBySegment(byMarket, segment);
   const contacts = segmented.map((contact) => ({
     ...contact,
     eligibility: evaluateEligibility(contact),
     lifecycleSegment: contactSegment(contact.type),
+    market: contactMarket(contact.type),
   }));
   const eligibleCount = contacts.filter((c) => c.eligibility.eligible).length;
+  const allRows = data ?? [];
   return apiOk({
     contacts,
-    total: (data ?? []).length,
+    total: allRows.length,
     filtered: contacts.length,
     eligibleCount,
     q,
     segment,
+    market,
     counts: {
-      all: (data ?? []).length,
-      coldLead: filterContactsBySegment(data ?? [], "cold-lead").length,
-      activeLead: filterContactsBySegment(data ?? [], "active-lead").length,
-      pastClient: filterContactsBySegment(data ?? [], "past-client").length,
+      all: allRows.length,
+      coldLead: filterContactsBySegment(allRows, "cold-lead").length,
+      activeLead: filterContactsBySegment(allRows, "active-lead").length,
+      pastClient: filterContactsBySegment(allRows, "past-client").length,
+      residential: filterContactsByMarket(allRows, "residential").length,
+      commercial: filterContactsByMarket(allRows, "commercial").length,
     },
   });
 });

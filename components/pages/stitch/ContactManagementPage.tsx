@@ -10,10 +10,16 @@ import { Modal, ModalField, ModalFooterActions, modalInputClass } from "@/compon
 import { Icon } from "@/components/ui/icon";
 import { DEMO_CONTACT } from "@/lib/crm/mock-data";
 import {
+  CONTACT_MARKET_TABS,
   CONTACT_SEGMENT_TABS,
+  CONTACT_TYPE_OPTIONS,
+  contactMarket,
   contactSegment,
+  marketBadgeClass,
+  marketBadgeLabel,
   segmentBadgeClass,
   segmentBadgeLabel,
+  type ContactMarket,
   type ContactSegment,
 } from "@/lib/contacts/lifecycle";
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
@@ -47,10 +53,14 @@ export function ContactManagementPage() {
   const headerQuery = useDashboardSearch();
   const searchParams = useSearchParams();
   const initialSegment = (searchParams.get("segment") ?? "all") as ContactSegment;
+  const initialMarket = (searchParams.get("market") ?? "all") as ContactMarket;
   const [segment, setSegment] = useState<ContactSegment>(
     CONTACT_SEGMENT_TABS.some((t) => t.id === initialSegment) ? initialSegment : "all",
   );
-  const { contacts, loading, error, refresh, meta } = useContacts(headerQuery, segment);
+  const [market, setMarket] = useState<ContactMarket>(
+    CONTACT_MARKET_TABS.some((t) => t.id === initialMarket) ? initialMarket : "all",
+  );
+  const { contacts, loading, error, refresh, meta } = useContacts(headerQuery, segment, market);
   const rows: ApiContact[] = contacts.length > 0 ? contacts : FALLBACK_ROWS;
   const total = meta?.total ?? (contacts.length > 0 ? contacts.length : rows.length);
 
@@ -59,7 +69,7 @@ export function ContactManagementPage() {
   const [bulkOpen, setBulkOpen] = useState<null | "consent" | "delete" | "type">(null);
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
   const [bulkError, setBulkError] = useState<string | null>(null);
-  const [bulkType, setBulkType] = useState("Past Client");
+  const [bulkType, setBulkType] = useState("Residential Lead");
   const [bulkConsent, setBulkConsent] = useState({
     consent: "Yes" as "Yes" | "No" | "Unknown",
     consentDate: new Date().toISOString().slice(0, 10),
@@ -206,39 +216,81 @@ export function ContactManagementPage() {
         <ContactPageActions onRefresh={refresh} />
       </header>
 
-      <div className="flex flex-wrap gap-2">
-        {CONTACT_SEGMENT_TABS.map((tab) => {
-          const count =
-            tab.id === "all"
-              ? counts?.all
-              : tab.id === "cold-lead"
-                ? counts?.coldLead
-                : tab.id === "active-lead"
-                  ? counts?.activeLead
-                  : counts?.pastClient;
-          const active = segment === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setSegment(tab.id)}
-              className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
-                active
-                  ? "bg-sage text-ivory shadow-sm"
-                  : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
-              }`}
-              title={tab.description}
-            >
-              {tab.label}
-              {count !== undefined ? (
-                <span className={`ml-2 ${active ? "text-ivory/80" : "text-taupe"}`}>
-                  ({count})
-                </span>
-              ) : null}
-            </button>
-          );
-        })}
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
+          {CONTACT_MARKET_TABS.map((tab) => {
+            const count =
+              tab.id === "all"
+                ? counts?.all
+                : tab.id === "residential"
+                  ? counts?.residential
+                  : counts?.commercial;
+            const active = market === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setMarket(tab.id)}
+                className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+                  active
+                    ? "bg-ink text-ivory shadow-sm"
+                    : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
+                }`}
+                title={tab.description}
+              >
+                {tab.label}
+                {count !== undefined ? (
+                  <span className={`ml-2 ${active ? "text-ivory/80" : "text-taupe"}`}>
+                    ({count})
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {CONTACT_SEGMENT_TABS.map((tab) => {
+            const count =
+              tab.id === "all"
+                ? counts?.all
+                : tab.id === "cold-lead"
+                  ? counts?.coldLead
+                  : tab.id === "active-lead"
+                    ? counts?.activeLead
+                    : counts?.pastClient;
+            const active = segment === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setSegment(tab.id)}
+                className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+                  active
+                    ? "bg-sage text-ivory shadow-sm"
+                    : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
+                }`}
+                title={tab.description}
+              >
+                {tab.label}
+                {count !== undefined ? (
+                  <span className={`ml-2 ${active ? "text-ivory/80" : "text-taupe"}`}>
+                    ({count})
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {market !== "all" ? (
+        <p className="rounded-2xl border border-outline-variant/15 bg-ivory px-4 py-3 text-[14px] text-slate-text">
+          Showing {market === "commercial" ? "commercial" : "residential"} contacts only. Set a
+          contact&apos;s type to <span className="font-medium text-ink">Commercial Lead</span> or{" "}
+          <span className="font-medium text-ink">Residential Lead</span> (or use bulk Change type)
+          so they appear here.
+        </p>
+      ) : null}
 
       {segment === "past-client" ? (
         <p className="rounded-2xl border border-emerald-muted/20 bg-sage-light/40 px-4 py-3 text-[14px] text-emerald-muted">
@@ -405,12 +457,22 @@ export function ContactManagementPage() {
                     <td className="px-6 py-4 align-middle whitespace-nowrap">
                       {(() => {
                         const seg = contactSegment(contact.type);
+                        const mkt = contactMarket(contact.type);
                         return (
-                          <span
-                            className={`inline-flex items-center whitespace-nowrap rounded-lg px-2.5 py-1 text-[12px] font-medium leading-none ${segmentBadgeClass(seg)}`}
-                          >
-                            {segmentBadgeLabel(seg)}
-                          </span>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {mkt ? (
+                              <span
+                                className={`inline-flex items-center whitespace-nowrap rounded-lg px-2.5 py-1 text-[12px] font-medium leading-none ${marketBadgeClass(mkt)}`}
+                              >
+                                {marketBadgeLabel(mkt)}
+                              </span>
+                            ) : null}
+                            <span
+                              className={`inline-flex items-center whitespace-nowrap rounded-lg px-2.5 py-1 text-[12px] font-medium leading-none ${segmentBadgeClass(seg)}`}
+                            >
+                              {segmentBadgeLabel(seg)}
+                            </span>
+                          </div>
                         );
                       })()}
                     </td>
@@ -546,7 +608,7 @@ function BulkTypeModal(props: {
       open={open}
       onClose={onClose}
       title="Change contact type"
-      description={`Updates lifecycle type for ${count} selected contact${count === 1 ? "" : "s"}.`}
+      description={`Set market + stage for ${count} selected contact${count === 1 ? "" : "s"}.`}
       icon="label"
       size="md"
       footer={
@@ -571,10 +633,11 @@ function BulkTypeModal(props: {
             value={value}
             onChange={(e) => onChange(e.target.value)}
           >
-            <option value="Past Client">Past client (closed)</option>
-            <option value="Cold Lead">Cold lead</option>
-            <option value="Active Lead">Active lead</option>
-            <option value="Imported Contact">Imported / unclassified</option>
+            {CONTACT_TYPE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
         </ModalField>
         <p className="text-[12px] text-taupe">
