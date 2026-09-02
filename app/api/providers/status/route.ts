@@ -1,14 +1,18 @@
 import { apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
+import { isLiveOutboundAllowed } from "@/lib/billing/live-outbound";
 import { isLiveProvidersConfigured, listAdapters } from "@/lib/providers/registry";
 
 export const GET = withApiHandler(async () => {
   await requireUserId();
   const configured = isLiveProvidersConfigured();
+  const liveOutboundAllowed = isLiveOutboundAllowed();
+  const providersReady = configured.voicemail || configured.sms || configured.email;
   return apiOk({
     configured,
     adapters: listAdapters(),
-    canSendLive: configured.voicemail || configured.sms || configured.email,
+    liveOutboundAllowed,
+    canSendLive: liveOutboundAllowed && providersReady,
     missing: {
       voicemail: configured.voicemail
         ? null

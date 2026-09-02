@@ -41,7 +41,8 @@ export const POST = withApiHandler(async (request) => {
     });
   }
 
-  const provider = process.env.VOICE_PROVIDER?.trim() || "slybroadcast";
+  // Always start in Simulation so template campaigns never auto-fire live RVM.
+  const provider = "mock";
   const { data: latestVoice } = await supabaseAdmin
     .from("voice_assets")
     .select("id")

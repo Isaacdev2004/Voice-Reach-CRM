@@ -141,6 +141,8 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
   const [toast, setToast] = useState<Toast | null>(null);
   const [sending, setSending] = useState(false);
   const [tickingRunner, setTickingRunner] = useState(false);
+  const [modeSaving, setModeSaving] = useState(false);
+  const [liveOutboundAllowed, setLiveOutboundAllowed] = useState(false);
   const [addPeopleOpen, setAddPeopleOpen] = useState(false);
   const [testRunOpen, setTestRunOpen] = useState(false);
 
@@ -165,10 +167,70 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     void refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    void (async () => {
+      const envelope = await safeFetch<{ liveOutboundAllowed?: boolean; canSendLive?: boolean }>(
+        "/api/providers/status",
+      );
+      if (envelope.success) {
+        setLiveOutboundAllowed(Boolean(envelope.data.liveOutboundAllowed));
+      }
+    })();
+  }, []);
+
+  const setCampaignMode = async (next: "mock" | "live") => {
+    if (next === "live") {
+      if (!liveOutboundAllowed) {
+        showToast(
+          "Live outbound is paused for demo safety. Set ALLOW_LIVE_OUTBOUND=true in Vercel when ready.",
+          "error",
+        );
+        return;
+      }
+      const ok = window.confirm(
+        "Switch this campaign to LIVE?\n\nScheduled steps and Send will use real Slybroadcast / Twilio / email. Confirm only when you intend to reach real phones.",
+      );
+      if (!ok) return;
+    } else {
+      const ok = window.confirm(
+        "Switch this campaign to Simulation?\n\nNo real voicemails, SMS, or emails will be delivered from this campaign.",
+      );
+      if (!ok) return;
+    }
+
+    setModeSaving(true);
+    const envelope = await safeFetch<{ campaign: Campaign }>(`/api/campaigns/${campaignId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        provider: next === "mock" ? "mock" : "slybroadcast",
+      }),
+    });
+    setModeSaving(false);
+    if (envelope.success) {
+      showToast(
+        next === "mock"
+          ? "Campaign is in Simulation — nothing will hit real phones."
+          : "Campaign is LIVE — confirm carefully before sending.",
+      );
+      void refresh();
+    } else {
+      showToast(envelope.error, "error");
+    }
+  };
+
   const triggerSend = async () => {
     if (!data?.campaign.voice_asset_id) {
       showToast("Attach an approved voice asset before sending.", "error");
       return;
+    }
+    const isLive = data.campaign.provider !== "mock";
+    if (isLive) {
+      const count = data.counts.eligible || data.counts.total || 0;
+      const ok = window.confirm(
+        `Send LIVE ringless voicemails to up to ${count} recipient${count === 1 ? "" : "s"}?\n\nThis uses Slybroadcast and cannot be undone.`,
+      );
+      if (!ok) return;
     }
     setSending(true);
     const envelope = await safeFetch<{
@@ -188,6 +250,13 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
   };
 
   const tickRunner = async () => {
+    const isLive = data?.campaign.provider !== "mock";
+    if (isLive) {
+      const ok = window.confirm(
+        "Run the scheduler for this account?\n\nIf any LIVE campaign steps are due, real SMS / voicemails / emails may send. Prefer Simulation mode while testing.",
+      );
+      if (!ok) return;
+    }
     setTickingRunner(true);
     const envelope = await safeFetch<{
       processed?: number;
@@ -322,15 +391,45 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
               <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
                 Simulation — not live phone/SMS
               </span>
-            ) : null}
+            ) : (
+              <span className="rounded-full bg-error/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-error">
+                LIVE — real phones
+              </span>
+            )}
           </div>
           <h1 className="mt-2 font-serif text-[36px] font-semibold text-ink">{campaign.name}</h1>
           <p className="mt-1 text-[13px] text-taupe">
             Created {new Date(campaign.created_at).toLocaleDateString()} · last updated{" "}
             {new Date(campaign.updated_at).toLocaleString()}
           </p>
+          {!liveOutboundAllowed ? (
+            <p className="mt-3 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-950">
+              Live outbound is paused for demo safety. The auto-scheduler will not deliver real
+              voicemails or SMS. Use Simulation, or set{" "}
+              <span className="font-medium">ALLOW_LIVE_OUTBOUND=true</span> in Vercel when ready to
+              go live.
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={modeSaving || campaign.provider === "mock"}
+            onClick={() => void setCampaignMode("mock")}
+            className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-[13px] font-medium text-amber-950 disabled:opacity-50"
+          >
+            <Icon name="science" className="text-[18px]" />
+            {modeSaving ? "Saving…" : "Use Simulation"}
+          </button>
+          <button
+            type="button"
+            disabled={modeSaving || campaign.provider !== "mock"}
+            onClick={() => void setCampaignMode("live")}
+            className="inline-flex items-center gap-2 rounded-full border border-error/30 bg-error/5 px-4 py-2 text-[13px] font-medium text-error disabled:opacity-50"
+          >
+            <Icon name="campaign" className="text-[18px]" />
+            {modeSaving ? "Saving…" : "Switch to Live"}
+          </button>
           <Link
             href={`/dashboard/campaigns?edit=${campaignId}#campaign-builder`}
             className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-ivory px-5 py-2 text-[13px] font-medium text-ink hover:bg-champagne"

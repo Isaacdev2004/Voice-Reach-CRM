@@ -1,6 +1,11 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import {
+  isLiveCampaignProvider,
+  isLiveOutboundAllowed,
+  liveOutboundBlockedMessage,
+} from "@/lib/billing/live-outbound";
 import { isUuid } from "@/lib/contacts/is-uuid";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
@@ -126,6 +131,8 @@ export const GET = withApiHandler<RouteContext>(async (_request, context) => {
 const PatchSchema = z.object({
   voiceAssetId: z.string().uuid().nullable().optional(),
   name: z.string().min(1).optional(),
+  /** mock = simulation; any other id (e.g. slybroadcast) = live when ALLOW_LIVE_OUTBOUND=true */
+  provider: z.string().min(1).optional(),
 });
 
 export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
@@ -156,6 +163,15 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (body.voiceAssetId !== undefined) updates.voice_asset_id = body.voiceAssetId;
   if (body.name) updates.name = body.name;
+  if (body.provider !== undefined) {
+    if (isLiveCampaignProvider(body.provider) && !isLiveOutboundAllowed()) {
+      return apiError(liveOutboundBlockedMessage(), {
+        status: 403,
+        code: "live_outbound_paused",
+      });
+    }
+    updates.provider = body.provider;
+  }
 
   const { data, error } = await supabaseAdmin
     .from("campaigns")

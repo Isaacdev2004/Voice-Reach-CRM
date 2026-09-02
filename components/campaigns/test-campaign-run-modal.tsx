@@ -17,6 +17,7 @@ type ContactRow = {
 type ProviderStatus = {
   configured: { voicemail: boolean; sms: boolean; email: boolean };
   canSendLive: boolean;
+  liveOutboundAllowed?: boolean;
   missing: { voicemail: string | null; sms: string | null; email: string | null };
 };
 
@@ -89,9 +90,17 @@ export function TestCampaignRunModal({
     if (selectedIds.size === 0) return;
     if (mode === "live" && providers && !providers.canSendLive) {
       setError(
-        "Live providers are not configured in Vercel yet. Use Simulation, or add Twilio / Slybroadcast / Resend keys first.",
+        providers.liveOutboundAllowed === false
+          ? "Live outbound is paused for demo safety. Use Simulation until ALLOW_LIVE_OUTBOUND is enabled in Vercel."
+          : "Live providers are not configured in Vercel yet. Use Simulation, or add Twilio / Slybroadcast / Resend keys first.",
       );
       return;
+    }
+    if (mode === "live") {
+      const ok = window.confirm(
+        `Send LIVE messages to ${selectedIds.size} contact${selectedIds.size === 1 ? "" : "s"}?\n\nThis will use real SMS / ringless voicemail / email. This cannot be undone.`,
+      );
+      if (!ok) return;
     }
     setRunning(true);
     setError(null);
@@ -199,6 +208,11 @@ export function TestCampaignRunModal({
                 )}
               </li>
             </ul>
+            {mode === "live" && providers && providers.liveOutboundAllowed === false ? (
+              <p className="mt-2 text-amber-900">
+                Live outbound is paused while ARI is in demo mode. Simulation still works.
+              </p>
+            ) : null}
             {mode === "live" && !providers.canSendLive ? (
               <p className="mt-2 text-error">
                 Add at least one provider’s env vars in Vercel before live send will work.

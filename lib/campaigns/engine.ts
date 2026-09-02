@@ -1,4 +1,9 @@
 import { writeAuditLog } from "@/lib/audit";
+import {
+  isLiveCampaignProvider,
+  isLiveOutboundAllowed,
+  liveOutboundBlockedMessage,
+} from "@/lib/billing/live-outbound";
 import { syncCallbackStepToCalendar } from "@/lib/calendar/sync";
 import {
   applyMergeFields,
@@ -256,6 +261,20 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
         : channel === "voicemail"
           ? campaign?.provider || undefined
           : undefined;
+
+    // Demo / pre-launch kill-switch: never auto-deliver live SMS / RVM / email.
+    if (
+      isLiveCampaignProvider(campaign?.provider) &&
+      !isLiveOutboundAllowed() &&
+      (channel === "voicemail" || channel === "sms" || channel === "email")
+    ) {
+      await markRun(run.id, "skipped", {
+        error: liveOutboundBlockedMessage(),
+        code: "live_outbound_paused",
+      });
+      executed.push({ runId: run.id, status: "skipped" });
+      continue;
+    }
 
     // Live campaigns must not silently mock SMS/email when credentials are missing.
     if (campaign?.provider !== "mock") {

@@ -1,6 +1,11 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import {
+  isLiveCampaignProvider,
+  isLiveOutboundAllowed,
+  liveOutboundBlockedMessage,
+} from "@/lib/billing/live-outbound";
 import { evaluateEligibility } from "@/lib/compliance";
 import { recordEngagementEvent } from "@/lib/engagement/record";
 import { dispatch } from "@/lib/providers/registry";
@@ -21,6 +26,13 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
 
   if (campaignError || !campaign) {
     return apiError(campaignError?.message || "Campaign not found", { status: 404 });
+  }
+
+  if (isLiveCampaignProvider(campaign.provider) && !isLiveOutboundAllowed()) {
+    return apiError(liveOutboundBlockedMessage(), {
+      status: 403,
+      code: "live_outbound_paused",
+    });
   }
 
   if (!campaign.voice_assets?.approved) {

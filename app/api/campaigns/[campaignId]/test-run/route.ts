@@ -1,6 +1,10 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import {
+  isLiveOutboundAllowed,
+  liveOutboundBlockedMessage,
+} from "@/lib/billing/live-outbound";
 import { runDueStepRuns } from "@/lib/campaigns/engine";
 import { enrollContacts, scheduleStepRunsForRecipients } from "@/lib/campaigns/enroll";
 import { isLiveProvidersConfigured } from "@/lib/providers/registry";
@@ -21,6 +25,13 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
   const body = BodySchema.parse(await request.json());
   const live = body.mode === "live";
   const providers = isLiveProvidersConfigured();
+
+  if (live && !isLiveOutboundAllowed()) {
+    return apiError(liveOutboundBlockedMessage(), {
+      status: 403,
+      code: "live_outbound_paused",
+    });
+  }
 
   if (live && !providers.voicemail && !providers.sms && !providers.email) {
     return apiError(
