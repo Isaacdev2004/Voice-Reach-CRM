@@ -14,7 +14,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     name: "Enterprise CRM",
     slug: "enterprise-crm",
     industry: "Real Estate",
-    defaultSenderName: "VoiceReach Team",
+    defaultSenderName: "ARI Team",
     quietHoursStart: "21:00",
     quietHoursEnd: "08:00",
     requireConsentProof: true,
@@ -76,7 +76,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     {
       id: "tm-owner",
       name: "Marcus Sterling",
-      email: "marcus.s@voicereach.io",
+      email: "marcus.s@myari.io",
       role: "owner",
       status: "active",
       lastActive: new Date().toISOString(),
@@ -86,7 +86,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     {
       id: "tm-2",
       name: "Elena Rodriguez",
-      email: "elena.r@voicereach.io",
+      email: "elena.r@myari.io",
       role: "admin",
       status: "active",
       lastActive: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
@@ -96,7 +96,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     {
       id: "tm-3",
       name: "James Wilson",
-      email: "j.wilson@voicereach.io",
+      email: "j.wilson@myari.io",
       role: "billing",
       status: "active",
       lastActive: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
@@ -106,7 +106,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     {
       id: "tm-4",
       name: "Sarah Chen",
-      email: "sarah.c@voicereach.io",
+      email: "sarah.c@myari.io",
       role: "user",
       status: "pending",
     },

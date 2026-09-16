@@ -201,7 +201,7 @@ export function SettingsWorkspacePage() {
           : reason === "access_denied"
             ? "Google access was denied. Try Connect again and click Allow."
             : reason === "missing_code_or_session"
-              ? "Session expired — click Connect again (stay signed in to VoiceReach)."
+              ? "Session expired — click Connect again (stay signed in to ARI)."
               : `Google Calendar connection failed${reason ? `: ${reason}` : ""}.`;
       showToast(message, "error");
       router.replace("/dashboard/settings?tab=workspace", { scroll: false });
@@ -669,7 +669,7 @@ export function SettingsWorkspacePage() {
                               const result = connectGoogleCalendar();
                               if (result.blocked) {
                                 showToast(
-                                  "Open VoiceReach in Safari or Chrome, then connect Google Calendar.",
+                                  "Open ARI in Safari or Chrome, then connect Google Calendar.",
                                   "error",
                                 );
                               }
@@ -817,7 +817,7 @@ export function SettingsWorkspacePage() {
                 <div>
                   <h2 className="font-serif text-[22px] font-semibold text-ink">API keys</h2>
                   <p className="text-[14px] text-slate-text">
-                    Authenticate server requests to VoiceReach APIs.
+                    Authenticate server requests to ARI APIs.
                   </p>
                 </div>
                 <button

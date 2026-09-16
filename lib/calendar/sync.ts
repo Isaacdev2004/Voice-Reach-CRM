@@ -95,7 +95,7 @@ export async function syncCallbackStepToCalendar(options: {
     options.stepDescription,
     options.contact.phone ? `Phone: ${options.contact.phone}` : null,
     options.contact.email ? `Email: ${options.contact.email}` : null,
-    "Created by VoiceReach",
+    "Created by ARI",
   ]
     .filter(Boolean)
     .join("\n");

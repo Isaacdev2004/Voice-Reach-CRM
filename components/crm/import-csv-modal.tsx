@@ -62,7 +62,7 @@ export function ImportCsvModal({ open, onClose, onSuccess }: ImportCsvModalProps
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "voicereach-contacts-sample.csv";
+    a.download = "ari-contacts-sample.csv";
     a.click();
     URL.revokeObjectURL(url);
   };

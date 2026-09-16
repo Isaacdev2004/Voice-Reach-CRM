@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { AriLogo } from "@/components/brand/ari-logo";
 import { CheckCircleIcon } from "@/components/icons/landing-icons";
-import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
+import { BRAND_DOMAIN, BRAND_TAGLINE } from "@/lib/brand";
 
 type AuthBrandPanelProps = {
   mode: "sign-in" | "sign-up";
@@ -12,26 +13,6 @@ const FEATURES = [
   "Appointments and follow-ups synced automatically",
 ];
 
-function AriMark({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" />
-      <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
-      <path d="M12 18v3" />
-      <path d="M8 21h8" />
-    </svg>
-  );
-}
-
 export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
   const isSignUp = mode === "sign-up";
 
@@ -41,16 +22,13 @@ export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
       <div className="pointer-events-none absolute -left-20 top-1/4 h-64 w-64 rounded-full bg-white/5 blur-2xl" />
 
       <header className="relative z-10 px-12 pt-12">
-        <Link href="/" className="inline-flex items-center gap-3.5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur-sm">
-            <AriMark className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="font-serif text-[24px] font-semibold leading-none text-white">{BRAND_NAME}</p>
-            <p className="mt-1.5 max-w-[220px] text-[11px] font-medium leading-snug text-white/75">
-              {BRAND_TAGLINE}
-            </p>
-          </div>
+        <Link href="/" className="inline-flex flex-col gap-2">
+          <span className="inline-flex rounded-2xl bg-white/95 px-3 py-2 shadow-card">
+            <AriLogo height={40} />
+          </span>
+          <p className="max-w-[240px] text-[12px] font-medium leading-snug text-white/80">
+            {BRAND_TAGLINE} · {BRAND_DOMAIN}
+          </p>
         </Link>
       </header>
 

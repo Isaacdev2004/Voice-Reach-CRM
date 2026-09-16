@@ -54,7 +54,7 @@ export const SEED_ANALYTICS: AnalyticsSnapshot = {
     { label: "Sun", connected: 280, failed: 18 },
   ],
   providers: [
-    { id: "mock", name: "VoiceReach (mock)", count: 8060, percent: 65 },
+    { id: "mock", name: "ARI (mock)", count: 8060, percent: 65 },
     { id: "twilio", name: "Twilio", count: 3100, percent: 25 },
     { id: "other", name: "Other providers", count: 1240, percent: 10 },
   ],

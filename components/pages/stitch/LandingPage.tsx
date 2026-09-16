@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { AriLogo } from "@/components/brand/ari-logo";
 import {
   AutomationIcon,
   CheckCircleIcon,
@@ -52,38 +53,46 @@ const HERO_IMAGE =
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-cream text-ink">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-outline-variant/15 bg-ivory/90 backdrop-blur-md">
-        <nav className="mx-auto flex h-14 w-full max-w-[90rem] items-center justify-between px-4 md:px-8 lg:px-10">
-          <Link href="/" className="flex flex-col leading-tight">
-            <span className="font-serif text-[20px] font-semibold tracking-tight text-ink">
-              {BRAND_NAME}
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-outline-variant/20 bg-champagne/95 backdrop-blur-md">
+        <nav className="mx-auto flex h-16 w-full max-w-[96rem] items-center justify-between gap-4 px-4 md:px-6 lg:px-8">
+          <Link href="/" className="flex shrink-0 items-center gap-3" aria-label={`${BRAND_NAME} home`}>
+            <AriLogo height={42} className="md:hidden" />
+            <AriLogo height={52} className="hidden md:block" />
+            <span className="hidden flex-col leading-tight sm:flex">
+              <span className="text-[11px] font-medium text-taupe">{BRAND_TAGLINE}</span>
+              <span className="text-[12px] font-semibold text-rose-gold-deep">{BRAND_DOMAIN}</span>
             </span>
-            <span className="text-[10px] text-taupe">{BRAND_TAGLINE}</span>
           </Link>
-          <div className="hidden items-center gap-8 md:flex">
+          <div className="hidden items-center gap-7 lg:flex">
             <a
               href="#features"
-              className="text-label-md font-medium text-taupe transition-colors hover:text-rose-gold-deep"
+              className="text-label-md font-medium text-ink/70 transition-colors hover:text-rose-gold-deep"
             >
-              Solutions
+              Platform
             </a>
             <a
               href="#pricing"
-              className="text-label-md font-medium text-taupe transition-colors hover:text-rose-gold-deep"
+              className="text-label-md font-medium text-ink/70 transition-colors hover:text-rose-gold-deep"
             >
               Pricing
             </a>
             <a
               href="#compliance"
-              className="text-label-md font-medium text-taupe transition-colors hover:text-rose-gold-deep"
+              className="text-label-md font-medium text-ink/70 transition-colors hover:text-rose-gold-deep"
             >
               Compliance
+            </a>
+            <a
+              href="#company"
+              className="text-label-md font-medium text-ink/70 transition-colors hover:text-rose-gold-deep"
+            >
+              Company
             </a>
           </div>
           <div className="flex items-center gap-sm">
             <Link
               href="/sign-in"
-              className="hidden rounded-full px-4 py-2 text-label-md font-medium text-taupe transition-colors hover:bg-champagne sm:block"
+              className="hidden rounded-full px-4 py-2 text-label-md font-medium text-ink/80 transition-colors hover:bg-ivory sm:block"
             >
               Sign In
             </Link>
@@ -97,23 +106,23 @@ export function LandingPage() {
         </nav>
       </header>
 
-      <main className="pt-14">
-        {/* Hero — fits one viewport so the product image is visible without scrolling */}
-        <section className="luxury-gradient-hero relative flex min-h-[calc(100svh-3.5rem)] flex-col overflow-hidden pt-5 pb-0 md:pt-7">
-          <div className="relative z-10 mx-auto w-full max-w-[90rem] px-4 text-center md:px-8 lg:px-10">
-            <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full bg-sage-light px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-muted">
+      <main className="pt-16">
+        {/* Hero — copy stays readable; monitor image is full-bleed */}
+        <section className="luxury-gradient-hero relative flex min-h-[calc(100svh-4rem)] flex-col overflow-hidden pt-4 pb-0 md:pt-6">
+          <div className="relative z-10 mx-auto w-full max-w-5xl px-4 text-center md:px-8">
+            <div className="mx-auto mb-2.5 inline-flex items-center gap-2 rounded-full bg-sage-light px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-muted">
               <VerifiedBadgeIcon className="text-emerald-muted" />
               FCC &amp; TCPA compliant platform
             </div>
-            <h1 className="mx-auto mb-3 max-w-5xl font-serif text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-ink sm:text-[2.35rem] md:text-[2.75rem] lg:text-[3.15rem]">
+            <h1 className="mx-auto mb-2.5 font-serif text-[1.75rem] font-semibold leading-[1.12] tracking-tight text-ink sm:text-[2.2rem] md:text-[2.6rem] lg:text-[3rem]">
               Automate ringless voicemail campaigns with{" "}
               <span className="text-gradient-rose-gold">built-in CRM</span>
             </h1>
-            <p className="mx-auto mb-5 max-w-3xl text-[15px] leading-snug text-slate-text md:text-body-md">
+            <p className="mx-auto mb-4 max-w-2xl text-[15px] leading-snug text-slate-text md:text-body-md">
               Reach thousands of prospects without ringing their phones. One platform for
               consent tracking, campaign delivery, and high-conversion outbound workflows.
             </p>
-            <div className="mb-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mb-4 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/sign-up"
                 className="w-full rounded-full bg-rose-gold px-8 py-2.5 text-label-md font-semibold text-ivory shadow-card transition-all hover:opacity-95 active:scale-95 sm:w-auto"
@@ -128,14 +137,14 @@ export function LandingPage() {
               </a>
             </div>
           </div>
-          <div className="relative z-10 mt-auto w-full flex-1 px-2 sm:px-3 md:px-4 lg:px-6">
-            <div className="mx-auto h-full max-w-[96rem] overflow-hidden rounded-t-2xl border border-b-0 border-outline-variant/15 bg-ivory shadow-card md:rounded-t-3xl">
+          <div className="relative z-10 mt-auto w-full">
+            <div className="w-full overflow-hidden border-t border-outline-variant/15 bg-ivory shadow-card">
               <Image
                 src={HERO_IMAGE}
-                alt="ARI dashboard showing campaign analytics"
-                width={1600}
-                height={900}
-                className="h-[min(52svh,560px)] w-full object-cover object-[center_20%] md:h-[min(58svh,640px)]"
+                alt="ARI dashboard on a desktop monitor"
+                width={1920}
+                height={1080}
+                className="h-[min(54svh,620px)] w-full object-cover object-[center_18%] md:h-[min(60svh,680px)]"
                 priority
               />
             </div>
@@ -408,13 +417,11 @@ export function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-outline-variant/15 bg-ivory py-20">
+      <footer id="company" className="border-t border-outline-variant/15 bg-ivory py-20">
         <div className="mx-auto max-w-7xl px-margin-mobile md:px-margin-desktop">
           <div className="mb-16 grid grid-cols-1 gap-12 md:grid-cols-4">
             <div className="md:col-span-1">
-              <span className="mb-2 block font-serif text-headline-md font-semibold text-ink">
-                {BRAND_NAME}
-              </span>
+              <AriLogo height={40} className="mb-3" />
               <p className="mb-4 text-[13px] italic text-taupe">{BRAND_TAGLINE}</p>
               <a
                 href={BRAND_URL}

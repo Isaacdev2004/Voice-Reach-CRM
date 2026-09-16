@@ -25,7 +25,7 @@ export function InAppBrowserBanner({ context = "sign-in" }: InAppBrowserBannerPr
 
   const body =
     context === "google-calendar"
-      ? "Google blocks calendar connections inside in-app browsers. Open VoiceReach in your phone’s main browser first, then connect again."
+      ? "Google blocks calendar connections inside in-app browsers. Open ARI in your phone’s main browser first, then connect again."
       : "Google blocks sign-in inside Instagram, Facebook, and other in-app browsers. Use email & password here, or open this page in Safari/Chrome to use Google sign-in.";
 
   const copyLink = async () => {

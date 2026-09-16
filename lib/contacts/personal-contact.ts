@@ -21,7 +21,7 @@ export async function getOrCreatePersonalContact(ownerId: string): Promise<strin
       last_name: "Tasks",
       phone: "+10000000000",
       type: PERSONAL_TYPE,
-      source: "VoiceReach",
+      source: "ARI",
       notes: "Auto-created for personal tasks and reminders without a linked contact.",
     })
     .select("id")

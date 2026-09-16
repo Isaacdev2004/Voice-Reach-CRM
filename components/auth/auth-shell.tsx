@@ -1,8 +1,8 @@
 "use client";
 
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
-import { Icon } from "@/components/ui/icon";
-import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
+import { AriLogo } from "@/components/brand/ari-logo";
+import { BRAND_TAGLINE } from "@/lib/brand";
 import type { ReactNode } from "react";
 
 type AuthShellProps = {
@@ -20,10 +20,7 @@ export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
         <div className="flex flex-1 flex-col justify-center px-5 py-10 sm:px-10 lg:px-14 xl:px-20">
           {/* Mobile logo */}
           <div className="mb-8 flex flex-col items-center text-center lg:hidden">
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-rose-gold shadow-card">
-              <Icon name="voice_chat" className="text-[24px] text-ivory" />
-            </div>
-            <p className="font-serif text-[24px] font-semibold text-ink">{BRAND_NAME}</p>
+            <AriLogo height={48} className="mb-3" />
             <p className="mt-1 max-w-[240px] text-[12px] leading-snug text-taupe">{BRAND_TAGLINE}</p>
           </div>
 

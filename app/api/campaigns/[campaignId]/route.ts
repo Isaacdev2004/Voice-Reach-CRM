@@ -6,6 +6,7 @@ import {
   isLiveOutboundAllowed,
   liveOutboundBlockedMessage,
 } from "@/lib/billing/live-outbound";
+import { linkVoiceAssetToCampaign } from "@/lib/campaigns/link-voice";
 import { isUuid } from "@/lib/contacts/is-uuid";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
@@ -169,7 +170,6 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     }
 
     try {
-      const { linkVoiceAssetToCampaign } = await import("@/lib/campaigns/link-voice");
       linkResult = await linkVoiceAssetToCampaign({
         ownerId,
         campaignId,

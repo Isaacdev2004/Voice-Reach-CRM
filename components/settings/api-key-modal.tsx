@@ -31,7 +31,7 @@ export function ApiKeyModal({ open, onClose, onCreate, createdKey }: ApiKeyModal
       description={
         createdKey
           ? "Copy this key now — you won't be able to see it again."
-          : "Keys authenticate server-side requests to VoiceReach."
+          : "Keys authenticate server-side requests to ARI."
       }
       icon="key"
       size="md"

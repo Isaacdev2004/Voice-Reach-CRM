@@ -67,5 +67,5 @@ async function handle(request: Request): Promise<NextResponse> {
 
 export const POST = withApiHandler(handle);
 export const GET = withApiHandler(async () =>
-  apiSuccess({ message: "VoiceReach voice webhook receiver. POST events here." }),
+  apiSuccess({ message: "ARI voice webhook receiver. POST events here." }),
 );

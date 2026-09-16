@@ -116,7 +116,7 @@ export async function cloneVoiceFromSample(options: {
     new Blob([options.sampleBuffer], { type: "audio/mpeg" }),
     options.sampleFileName ?? "sample.mp3",
   );
-  form.append("description", "VoiceReach cloned voice");
+  form.append("description", "ARI cloned voice");
 
   const response = await fetch(`${ELEVENLABS_BASE}/voices/add`, {
     method: "POST",

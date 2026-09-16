@@ -248,7 +248,7 @@ export function buildAnalyticsSnapshot(params: {
 
   const providerTotal = [...providerMap.values()].reduce((a, b) => a + b, 0) || 1;
   const providerNames: Record<string, string> = {
-    mock: "VoiceReach (mock)",
+    mock: "ARI (mock)",
     twilio: "Twilio",
     vonage: "Vonage",
     aws: "AWS Connect",

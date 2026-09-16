@@ -20,7 +20,7 @@ export async function syncTaskReminderToCalendar(options: {
     ownerId: options.ownerId,
     contact: options.contact,
     stepTitle: options.taskTitle,
-    stepDescription: options.notes ?? "Task reminder from VoiceReach",
+    stepDescription: options.notes ?? "Task reminder from ARI",
     scheduledAt: options.dueAt,
     timeLabel: formatTimeLabel(options.dueAt),
     stepType: "task",

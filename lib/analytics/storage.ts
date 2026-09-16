@@ -11,7 +11,7 @@ export async function fetchAnalytics(
 
 export function exportAnalyticsCsv(snapshot: AnalyticsSnapshot) {
   const lines = [
-    `VoiceReach Analytics Report — ${snapshot.rangeLabel}`,
+    `ARI Analytics Report — ${snapshot.rangeLabel}`,
     `Generated,${snapshot.generatedAt}`,
     `Live data,${snapshot.fromLiveData}`,
     "",
@@ -34,7 +34,7 @@ export function exportAnalyticsCsv(snapshot: AnalyticsSnapshot) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `voicereach-analytics-${snapshot.range}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `ari-analytics-${snapshot.range}-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -44,7 +44,7 @@ export function exportAnalyticsPdf(snapshot: AnalyticsSnapshot) {
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>VoiceReach Analytics — ${snapshot.rangeLabel}</title>
+  <title>ARI Analytics — ${snapshot.rangeLabel}</title>
   <style>
     body { font-family: Georgia, serif; color: #1a1a1a; padding: 40px; max-width: 800px; margin: 0 auto; }
     h1 { font-size: 28px; margin-bottom: 4px; }

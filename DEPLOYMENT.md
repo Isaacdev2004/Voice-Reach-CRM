@@ -11,7 +11,7 @@ Add these in **Vercel → Project → Settings → Environment Variables**, then
 | `SUPABASE_STORAGE_BUCKET` | `voice-assets` |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk API keys |
 | `CLERK_SECRET_KEY` | Clerk API keys |
-| `APP_BASE_URL` | `https://voice-reach-crm.vercel.app` |
+| `APP_BASE_URL` | Production site URL, e.g. `https://myari.io` (or your current Vercel URL until the custom domain is connected) |
 
 ## Phase 4A — Live sending
 
@@ -25,7 +25,7 @@ Add these in **Vercel → Project → Settings → Environment Variables**, then
 | `TWILIO_AUTH_TOKEN` | SMS |
 | `TWILIO_FROM_NUMBER` | SMS-enabled number |
 | `RESEND_API_KEY` | Email |
-| `RESEND_FROM_EMAIL` | e.g. `noreply@knectcrm.com` or `Voice Reach <noreply@knectcrm.com>` (verified domain) |
+| `RESEND_FROM_EMAIL` | e.g. `ARI <noreply@myari.io>` (verified domain) |
 | `CAMPAIGN_RUNNER_SECRET` | Random string for cron |
 
 ## Voice AI (ElevenLabs)
@@ -47,7 +47,8 @@ Voice Studio → **Generate audio** creates a `voice_assets` row. Approve it, li
 
 **Google Cloud console:** create OAuth client (Web), add redirect URI:
 
-`https://voice-reach-crm.vercel.app/api/integrations/google/callback`
+`https://myari.io/api/integrations/google/callback`
+(or `https://<your-vercel-url>/api/integrations/google/callback` until the custom domain is live)
 
 Settings → **Google Calendar** → Connect. Callback/task campaign steps create calendar events when connected.
 
@@ -69,10 +70,10 @@ Create Storage bucket: **`voice-assets`** (private).
 
 | Provider | URL |
 |---|---|
-| Slybroadcast | `https://voice-reach-crm.vercel.app/api/webhooks/voice?provider=slybroadcast` |
-| Twilio (SMS status) | `https://voice-reach-crm.vercel.app/api/webhooks/voice?provider=twilio` |
-| Twilio (inbound STOP/HELP) | `https://voice-reach-crm.vercel.app/api/webhooks/twilio/sms` |
-| Resend (email events) | `https://voice-reach-crm.vercel.app/api/webhooks/voice?provider=resend` |
+| Slybroadcast | `https://myari.io/api/webhooks/voice?provider=slybroadcast` |
+| Twilio (SMS status) | `https://myari.io/api/webhooks/voice?provider=twilio` |
+| Twilio (inbound STOP/HELP) | `https://myari.io/api/webhooks/twilio/sms` |
+| Resend (email events) | `https://myari.io/api/webhooks/voice?provider=resend` |
 
 **Twilio inbound:** Phone Number → Messaging → “A message comes in” → webhook URL above (HTTP POST). Required for STOP → DNC.
 
@@ -86,7 +87,7 @@ Create Storage bucket: **`voice-assets`** (private).
 
 **Stripe Dashboard → Developers → Webhooks → Add endpoint:**
 
-`https://voice-reach-crm.vercel.app/api/webhooks/stripe`
+`https://myari.io/api/webhooks/stripe`
 
 Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
 

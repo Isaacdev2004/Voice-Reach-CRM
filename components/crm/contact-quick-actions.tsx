@@ -20,7 +20,7 @@ export function ContactQuickActions({
   const telUri = phoneToTelUri(phone);
   const smsUri = telUri ? `sms:${telUri}` : null;
   const mailto = email?.trim()
-    ? `mailto:${email.trim()}?subject=${encodeURIComponent(`Following up — ${contactName ?? "VoiceReach"}`)}`
+    ? `mailto:${email.trim()}?subject=${encodeURIComponent(`Following up — ${contactName ?? "ARI"}`)}`
     : null;
 
   return (

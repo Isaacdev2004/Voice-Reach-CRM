@@ -2,7 +2,7 @@ import type { ProviderAdapter, SendRequest, SendResult, WebhookEvent } from "./t
 
 export const mockProvider: ProviderAdapter = {
   id: "mock",
-  label: "VoiceReach Mock",
+  label: "ARI Mock",
   channels: ["voicemail", "sms", "email", "video"],
 
   async send(request: SendRequest): Promise<SendResult> {

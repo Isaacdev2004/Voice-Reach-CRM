@@ -103,8 +103,8 @@ export function AddCalendarEventModal({
       title="Add event"
       description={
         connected
-          ? "Creates in VoiceReach and syncs to your Google Calendar."
-          : "Saved in VoiceReach. Connect Google Calendar in Settings to sync."
+          ? "Creates in ARI and syncs to your Google Calendar."
+          : "Saved in ARI. Connect Google Calendar in Settings to sync."
       }
       icon="event"
       size="md"
