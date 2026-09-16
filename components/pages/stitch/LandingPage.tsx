@@ -53,14 +53,14 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-cream text-ink">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-outline-variant/15 bg-ivory/90 backdrop-blur-md">
-        <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-margin-mobile md:px-margin-desktop">
+        <nav className="mx-auto flex h-14 w-full max-w-[90rem] items-center justify-between px-4 md:px-8 lg:px-10">
           <Link href="/" className="flex flex-col leading-tight">
-            <span className="font-serif text-[22px] font-semibold tracking-tight text-ink">
+            <span className="font-serif text-[20px] font-semibold tracking-tight text-ink">
               {BRAND_NAME}
             </span>
-            <span className="text-[11px] text-taupe">{BRAND_TAGLINE}</span>
+            <span className="text-[10px] text-taupe">{BRAND_TAGLINE}</span>
           </Link>
-          <div className="hidden items-center gap-lg md:flex">
+          <div className="hidden items-center gap-8 md:flex">
             <a
               href="#features"
               className="text-label-md font-medium text-taupe transition-colors hover:text-rose-gold-deep"
@@ -89,7 +89,7 @@ export function LandingPage() {
             </Link>
             <Link
               href="/sign-up"
-              className="rounded-full bg-rose-gold px-6 py-2.5 text-label-md font-semibold text-ivory shadow-card transition-all hover:opacity-95 active:scale-95"
+              className="rounded-full bg-rose-gold px-5 py-2 text-label-md font-semibold text-ivory shadow-card transition-all hover:opacity-95 active:scale-95"
             >
               Get started
             </Link>
@@ -97,49 +97,47 @@ export function LandingPage() {
         </nav>
       </header>
 
-      <main className="pt-16">
-        {/* Hero */}
-        <section className="luxury-gradient-hero relative overflow-hidden py-20 md:py-28">
-          <div className="relative z-10 mx-auto max-w-7xl px-margin-mobile text-center md:px-margin-desktop">
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full bg-sage-light px-4 py-1.5 text-caption font-semibold uppercase tracking-wider text-emerald-muted">
+      <main className="pt-14">
+        {/* Hero — fits one viewport so the product image is visible without scrolling */}
+        <section className="luxury-gradient-hero relative flex min-h-[calc(100svh-3.5rem)] flex-col overflow-hidden pt-5 pb-0 md:pt-7">
+          <div className="relative z-10 mx-auto w-full max-w-[90rem] px-4 text-center md:px-8 lg:px-10">
+            <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full bg-sage-light px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-muted">
               <VerifiedBadgeIcon className="text-emerald-muted" />
               FCC &amp; TCPA compliant platform
             </div>
-            <h1 className="mx-auto mb-6 max-w-4xl font-serif text-headline-lg-mobile font-semibold tracking-tight text-ink md:text-display-lg md:leading-[1.1]">
+            <h1 className="mx-auto mb-3 max-w-5xl font-serif text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-ink sm:text-[2.35rem] md:text-[2.75rem] lg:text-[3.15rem]">
               Automate ringless voicemail campaigns with{" "}
               <span className="text-gradient-rose-gold">built-in CRM</span>
             </h1>
-            <p className="mx-auto mb-10 max-w-2xl text-body-lg text-slate-text">
+            <p className="mx-auto mb-5 max-w-3xl text-[15px] leading-snug text-slate-text md:text-body-md">
               Reach thousands of prospects without ringing their phones. One platform for
               consent tracking, campaign delivery, and high-conversion outbound workflows.
             </p>
-            <div className="mb-16 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <div className="mb-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/sign-up"
-                className="w-full rounded-full bg-rose-gold px-10 py-4 text-label-md font-semibold text-ivory shadow-card transition-all hover:opacity-95 active:scale-95 sm:w-auto"
+                className="w-full rounded-full bg-rose-gold px-8 py-2.5 text-label-md font-semibold text-ivory shadow-card transition-all hover:opacity-95 active:scale-95 sm:w-auto"
               >
                 Start free
               </Link>
               <a
                 href="#pricing"
-                className="w-full rounded-full border border-outline-variant/30 bg-ivory px-10 py-4 text-label-md font-semibold text-ink transition-colors hover:bg-champagne sm:w-auto"
+                className="w-full rounded-full border border-outline-variant/30 bg-ivory px-8 py-2.5 text-label-md font-semibold text-ink transition-colors hover:bg-champagne sm:w-auto"
               >
                 View Pricing
               </a>
             </div>
-            <div className="relative mx-auto max-w-5xl">
-              <div className="overflow-hidden rounded-2xl border border-outline-variant/15 bg-ivory p-2 shadow-card">
-                <Image
-                  src={HERO_IMAGE}
-                  alt="ARI dashboard showing campaign analytics"
-                  width={1200}
-                  height={675}
-                  className="h-auto w-full rounded-xl"
-                  priority
-                />
-              </div>
-              <div className="pointer-events-none absolute -right-6 -top-6 h-32 w-32 rounded-full bg-rose-gold/15 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-sage-light/40 blur-3xl" />
+          </div>
+          <div className="relative z-10 mt-auto w-full flex-1 px-2 sm:px-3 md:px-4 lg:px-6">
+            <div className="mx-auto h-full max-w-[96rem] overflow-hidden rounded-t-2xl border border-b-0 border-outline-variant/15 bg-ivory shadow-card md:rounded-t-3xl">
+              <Image
+                src={HERO_IMAGE}
+                alt="ARI dashboard showing campaign analytics"
+                width={1600}
+                height={900}
+                className="h-[min(52svh,560px)] w-full object-cover object-[center_20%] md:h-[min(58svh,640px)]"
+                priority
+              />
             </div>
           </div>
         </section>

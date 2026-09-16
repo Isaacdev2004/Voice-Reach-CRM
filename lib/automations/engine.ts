@@ -271,7 +271,7 @@ async function runAction(
       if (enrollment.recipientIds.length) {
         const { data: campaign } = await supabaseAdmin
           .from("campaigns")
-          .select("status, voice_asset_id, script_id, name")
+          .select("status, provider, voice_asset_id, script_id, name")
           .eq("id", campaignId)
           .eq("owner_id", ownerId)
           .maybeSingle();
@@ -283,6 +283,7 @@ async function runAction(
             .eq("owner_id", ownerId);
           campaign.status = "queued";
         }
+        // Live campaigns may enroll + schedule; runDueStepRuns will not deliver until Launch.
         if (campaign && ["queued", "sending", "partial", "sent"].includes(campaign.status)) {
           await scheduleStepRunsForRecipients(ownerId, campaignId, enrollment.recipientIds);
         }

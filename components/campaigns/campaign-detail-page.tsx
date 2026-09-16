@@ -17,6 +17,8 @@ type Campaign = {
   provider: string;
   script_id: string;
   voice_asset_id?: string | null;
+  /** Cron will not deliver LIVE campaigns until this is true */
+  live_launched?: boolean | null;
   created_at: string;
   updated_at: string;
   voice_assets?: {
@@ -144,6 +146,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
   const [sending, setSending] = useState(false);
   const [tickingRunner, setTickingRunner] = useState(false);
   const [modeSaving, setModeSaving] = useState(false);
+  const [launchSaving, setLaunchSaving] = useState(false);
   const [liveOutboundAllowed, setLiveOutboundAllowed] = useState(false);
   const [addPeopleOpen, setAddPeopleOpen] = useState(false);
   const [testRunOpen, setTestRunOpen] = useState(false);
@@ -190,7 +193,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
         return;
       }
       const ok = window.confirm(
-        "Switch this campaign to LIVE?\n\nScheduled steps and Send will use real Slybroadcast / Twilio / email. Confirm only when you intend to reach real phones.",
+        "Switch this campaign to LIVE?\n\nThis enables real Slybroadcast / Twilio / email. The scheduler still will not send until you click Launch campaign.",
       );
       if (!ok) return;
     } else {
@@ -213,7 +216,51 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
       showToast(
         next === "mock"
           ? "Campaign is in Simulation — nothing will hit real phones."
-          : "Campaign is LIVE — confirm carefully before sending.",
+          : "Campaign is LIVE — click Launch campaign when you are ready for the scheduler to send.",
+      );
+      void refresh();
+    } else {
+      showToast(envelope.error, "error");
+    }
+  };
+
+  const setLiveLaunched = async (liveLaunched: boolean) => {
+    if (liveLaunched) {
+      if (!liveOutboundAllowed) {
+        showToast(
+          "Live outbound is paused for demo safety. Set ALLOW_LIVE_OUTBOUND=true in Vercel when ready.",
+          "error",
+        );
+        return;
+      }
+      if (data?.campaign.provider === "mock") {
+        showToast("Switch to Live before launching.", "error");
+        return;
+      }
+      const count = data?.counts.eligible || data?.counts.total || 0;
+      const ok = window.confirm(
+        `Launch this LIVE campaign?\n\nThe auto-scheduler will start delivering due steps to real phones (up to ${count} recipient${count === 1 ? "" : "s"}). You can Pause anytime to stop new deliveries.`,
+      );
+      if (!ok) return;
+    } else {
+      const ok = window.confirm(
+        "Pause this campaign?\n\nDue LIVE steps will stay scheduled but will not send until you Launch again.",
+      );
+      if (!ok) return;
+    }
+
+    setLaunchSaving(true);
+    const envelope = await safeFetch<{ campaign: Campaign }>(`/api/campaigns/${campaignId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ liveLaunched }),
+    });
+    setLaunchSaving(false);
+    if (envelope.success) {
+      showToast(
+        liveLaunched
+          ? "Campaign launched — scheduler can deliver LIVE steps."
+          : "Campaign paused — LIVE steps will not send until you Launch again.",
       );
       void refresh();
     } else {
@@ -253,9 +300,15 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
 
   const tickRunner = async () => {
     const isLive = data?.campaign.provider !== "mock";
-    if (isLive) {
+    const launched = Boolean(data?.campaign.live_launched);
+    if (isLive && !launched) {
       const ok = window.confirm(
-        "Run the scheduler for this account?\n\nIf any LIVE campaign steps are due, real SMS / voicemails / emails may send. Prefer Simulation mode while testing.",
+        "This campaign is LIVE but not launched.\n\nThe scheduler will skip its real deliveries until you click Launch campaign. Run anyway?",
+      );
+      if (!ok) return;
+    } else if (isLive) {
+      const ok = window.confirm(
+        "Run the scheduler for this account?\n\nThis LIVE campaign is launched — due steps may send real SMS / voicemails / emails.",
       );
       if (!ok) return;
     }
@@ -393,9 +446,13 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
               <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
                 Simulation — not live phone/SMS
               </span>
-            ) : (
+            ) : campaign.live_launched ? (
               <span className="rounded-full bg-error/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-error">
-                LIVE — real phones
+                LIVE · launched
+              </span>
+            ) : (
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
+                LIVE · not launched (safe idle)
               </span>
             )}
           </div>
@@ -432,6 +489,28 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             <Icon name="campaign" className="text-[18px]" />
             {modeSaving ? "Saving…" : "Switch to Live"}
           </button>
+          {campaign.provider !== "mock" && !campaign.live_launched ? (
+            <button
+              type="button"
+              disabled={launchSaving || !liveOutboundAllowed}
+              onClick={() => void setLiveLaunched(true)}
+              className="inline-flex items-center gap-2 rounded-full bg-error px-5 py-2 text-[13px] font-medium text-ivory shadow-card transition-opacity hover:opacity-95 disabled:opacity-50"
+            >
+              <Icon name="rocket_launch" className="text-[18px]" />
+              {launchSaving ? "Launching…" : "Launch campaign"}
+            </button>
+          ) : null}
+          {campaign.provider !== "mock" && campaign.live_launched ? (
+            <button
+              type="button"
+              disabled={launchSaving}
+              onClick={() => void setLiveLaunched(false)}
+              className="inline-flex items-center gap-2 rounded-full border border-outline-variant/40 bg-ivory px-5 py-2 text-[13px] font-medium text-ink hover:bg-champagne disabled:opacity-50"
+            >
+              <Icon name="pause_circle" className="text-[18px]" />
+              {launchSaving ? "Pausing…" : "Pause sending"}
+            </button>
+          ) : null}
           <Link
             href={`/dashboard/campaigns?edit=${campaignId}#campaign-builder`}
             className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-ivory px-5 py-2 text-[13px] font-medium text-ink hover:bg-champagne"
@@ -519,6 +598,15 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             hint: liveReady
               ? `Sending via ${campaign.provider}`
               : "Simulation mode — set VOICE_PROVIDER to slybroadcast/twilio for live.",
+          },
+          {
+            ok: liveReady ? Boolean(campaign.live_launched) : true,
+            label: "Launched for auto-send",
+            hint: !liveReady
+              ? "Not required in Simulation"
+              : campaign.live_launched
+                ? "Scheduler may deliver due LIVE steps"
+                : "Switch to Live, then click Launch campaign when ready",
           },
           {
             ok: campaign.status !== "draft",

@@ -117,11 +117,14 @@ export async function scheduleStepRunsForCampaign(ownerId: string, campaignId: s
  */
 export async function runDueStepRuns(options: { ownerId?: string; limit?: number } = {}) {
   const limit = options.limit ?? 25;
+  const selectWithLaunch =
+    "*, campaign_steps(*), campaign_recipients(*, contacts(*, consent_records(*)), campaigns(id, provider, voice_asset_id, live_launched, status, voice_assets(*)))";
+  const selectWithoutLaunch =
+    "*, campaign_steps(*), campaign_recipients(*, contacts(*, consent_records(*)), campaigns(id, provider, voice_asset_id, status, voice_assets(*)))";
+
   let query = supabaseAdmin
     .from("campaign_step_runs")
-    .select(
-      "*, campaign_steps(*), campaign_recipients(*, contacts(*, consent_records(*)), campaigns(provider, voice_asset_id, voice_assets(*)))",
-    )
+    .select(selectWithLaunch)
     .eq("status", "scheduled")
     .lte("scheduled_at", new Date().toISOString())
     .order("scheduled_at", { ascending: true })
@@ -129,7 +132,21 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
 
   if (options.ownerId) query = query.eq("owner_id", options.ownerId);
 
-  const { data: runs, error } = await query;
+  let { data: runs, error } = await query;
+  // Older DBs without live_launched: fall back and treat every live campaign as not launched.
+  if (error?.message?.toLowerCase().includes("live_launched")) {
+    let fallback = supabaseAdmin
+      .from("campaign_step_runs")
+      .select(selectWithoutLaunch)
+      .eq("status", "scheduled")
+      .lte("scheduled_at", new Date().toISOString())
+      .order("scheduled_at", { ascending: true })
+      .limit(limit);
+    if (options.ownerId) fallback = fallback.eq("owner_id", options.ownerId);
+    const retry = await fallback;
+    runs = retry.data;
+    error = retry.error;
+  }
   if (error) throw new Error(error.message);
 
   const executed: { runId: string; status: string }[] = [];
@@ -154,6 +171,17 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     if (!step || !recipient || !contact) {
       await markRun(run.id, "skipped", { reason: "missing entity" });
       executed.push({ runId: run.id, status: "skipped" });
+      continue;
+    }
+
+    // Hard gate: live campaigns stay idle until the user clicks "Launch campaign".
+    // Cron + automations cannot fire real phones without that explicit launch.
+    const launched = Boolean(
+      (campaign as { live_launched?: boolean | null } | null)?.live_launched,
+    );
+    if (isLiveCampaignProvider(campaign?.provider) && !launched) {
+      // Keep the run scheduled — do not skip permanently — just defer until launched.
+      executed.push({ runId: run.id, status: "deferred_not_launched" });
       continue;
     }
 

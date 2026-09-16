@@ -135,6 +135,11 @@ const PatchSchema = z.object({
   name: z.string().min(1).optional(),
   /** mock = simulation; any other id (e.g. slybroadcast) = live when ALLOW_LIVE_OUTBOUND=true */
   provider: z.string().min(1).optional(),
+  /**
+   * Explicit launch gate. Cron will not auto-deliver LIVE campaigns until this is true.
+   * Pause by setting false — scheduled runs stay queued but will not fire.
+   */
+  liveLaunched: z.boolean().optional(),
 });
 
 export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
@@ -189,6 +194,37 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
       });
     }
     updates.provider = body.provider;
+    // Switching to Simulation always clears the launch gate
+    if (!isLiveCampaignProvider(body.provider)) {
+      updates.live_launched = false;
+    }
+  }
+  if (body.liveLaunched !== undefined) {
+    if (body.liveLaunched) {
+      if (!isLiveOutboundAllowed()) {
+        return apiError(liveOutboundBlockedMessage(), {
+          status: 403,
+          code: "live_outbound_paused",
+        });
+      }
+      const { data: current } = await supabaseAdmin
+        .from("campaigns")
+        .select("provider")
+        .eq("id", campaignId)
+        .eq("owner_id", ownerId)
+        .maybeSingle();
+      const provider = (body.provider ?? current?.provider ?? "mock") as string;
+      if (!isLiveCampaignProvider(provider)) {
+        return apiError(
+          "Switch this campaign to Live before launching. Simulation campaigns do not need Launch.",
+          { status: 400, code: "not_live_campaign" },
+        );
+      }
+      updates.live_launched = true;
+      updates.status = "sending";
+    } else {
+      updates.live_launched = false;
+    }
   }
 
   const { data, error } = await supabaseAdmin
@@ -199,15 +235,58 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     .select("*, voice_assets(id, title, approved, storage_path)")
     .single();
 
+  // Older DBs may not have live_launched yet
+  if (error?.message?.toLowerCase().includes("live_launched")) {
+    const fallbackUpdates = { ...updates };
+    delete fallbackUpdates.live_launched;
+    if (body.liveLaunched === true) {
+      return apiError(
+        "Run supabase/schema-campaign-launch.sql in Supabase first (adds live_launched column), then Launch again.",
+        { status: 400, code: "migration_required" },
+      );
+    }
+    const retry = await supabaseAdmin
+      .from("campaigns")
+      .update(fallbackUpdates)
+      .eq("id", campaignId)
+      .eq("owner_id", ownerId)
+      .select("*, voice_assets(id, title, approved, storage_path)")
+      .single();
+    if (retry.error) return apiError(retry.error.message, { status: 500 });
+    if (!retry.data) return apiError("Campaign not found", { status: 404 });
+    await writeAuditLog({
+      ownerId,
+      action: "CAMPAIGN_UPDATED",
+      entityType: "campaign",
+      entityId: campaignId,
+      metadata: { ...body, linkResult },
+    });
+    return apiOk({ campaign: retry.data, link: linkResult });
+  }
+
   if (error) return apiError(error.message, { status: 500 });
   if (!data) return apiError("Campaign not found", { status: 404 });
 
   await writeAuditLog({
     ownerId,
-    action: "CAMPAIGN_UPDATED",
+    action:
+      body.liveLaunched === true
+        ? "CAMPAIGN_LAUNCHED"
+        : body.liveLaunched === false
+          ? "CAMPAIGN_PAUSED"
+          : "CAMPAIGN_UPDATED",
     entityType: "campaign",
     entityId: campaignId,
-    metadata: { ...body, linkResult },
+    metadata: {
+      ...body,
+      linkResult,
+      actionKind:
+        body.liveLaunched === true
+          ? "launched"
+          : body.liveLaunched === false
+            ? "paused"
+            : "updated",
+    },
   });
 
   return apiOk({ campaign: data, link: linkResult });
