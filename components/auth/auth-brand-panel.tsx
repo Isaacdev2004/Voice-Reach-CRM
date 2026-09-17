@@ -17,9 +17,9 @@ export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
   const isSignUp = mode === "sign-up";
 
   return (
-    <aside className="relative hidden min-h-screen overflow-hidden bg-gradient-to-br from-[#5c7a6a] via-[#6d8878] to-[#8fa68e] lg:flex lg:flex-col">
-      <div className="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
-      <div className="pointer-events-none absolute -left-20 top-1/4 h-64 w-64 rounded-full bg-white/5 blur-2xl" />
+    <aside className="relative hidden min-h-screen overflow-hidden bg-gradient-to-br from-[#3d3429] via-rose-gold-deep to-rose-gold lg:flex lg:flex-col">
+      <div className="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-champagne/20 blur-3xl" />
+      <div className="pointer-events-none absolute -left-20 top-1/4 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
 
       <header className="relative z-10 px-12 pt-12">
         <Link href="/" className="inline-flex flex-col gap-2">
@@ -43,7 +43,7 @@ export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
               : "Sign in to your dashboard for contacts, campaigns, calendar, and AI voice tools."}
           </p>
 
-          <div className="mt-10 rounded-[20px] border border-white/15 bg-white/10 p-6 backdrop-blur-sm">
+          <div className="mt-10 rounded-[20px] border border-white/20 bg-white/10 p-6 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65">
               Everything in one place
             </p>
