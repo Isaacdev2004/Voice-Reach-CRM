@@ -23,7 +23,7 @@ export function FocusHeroBanner({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-[28px] bg-gradient-to-br from-sage via-emerald-muted to-sage text-ivory shadow-nav",
+        "relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#3d3429] via-rose-gold-deep to-rose-gold text-ivory shadow-nav",
         centered ? "px-6 py-12 text-center sm:px-12 sm:py-16" : "px-6 py-8 sm:px-10 sm:py-10",
       )}
     >
@@ -90,7 +90,7 @@ export function HeroActionLink({
 }: HeroActionLinkProps) {
   const className =
     variant === "primary"
-      ? "inline-flex items-center gap-2 rounded-full bg-ivory px-5 py-2.5 text-[14px] font-medium text-sage hover:bg-cream"
+      ? "inline-flex items-center gap-2 rounded-full bg-ivory px-5 py-2.5 text-[14px] font-medium text-rose-gold-deep hover:bg-cream"
       : "inline-flex items-center gap-2 rounded-full border border-ivory/40 px-5 py-2.5 text-[14px] font-medium text-ivory hover:bg-ivory/10";
 
   if (external) {

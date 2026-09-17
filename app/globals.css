@@ -12,12 +12,13 @@
   --color-champagne: #f3ebe0;
   --color-rose-gold: #c4a484;
   --color-rose-gold-deep: #a67c5b;
-  --color-sage: #8fa68e;
-  --color-sage-light: #e8efe6;
+  /* Warm accent aliases (legacy sage/emerald names → ARI rose-gold palette) */
+  --color-sage: #c4a484;
+  --color-sage-light: #f5efe4;
   --color-bronze: #9a7b4f;
   --color-bronze-light: #f5efe4;
   --color-taupe: #8b7d6b;
-  --color-emerald-muted: #5c7a6a;
+  --color-emerald-muted: #a67c5b;
 
   --color-inverse-primary: #bec6e0;
   --color-on-error: #ffffff;
@@ -123,15 +124,15 @@
 
   .hero-gradient {
     background:
-      radial-gradient(ellipse 80% 60% at 90% 10%, rgba(196, 164, 132, 0.12) 0%, transparent 50%),
-      radial-gradient(ellipse 60% 50% at 10% 90%, rgba(143, 166, 142, 0.1) 0%, transparent 45%),
+      radial-gradient(ellipse 80% 60% at 90% 10%, rgba(196, 164, 132, 0.14) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 50% at 10% 90%, rgba(166, 124, 91, 0.1) 0%, transparent 45%),
       linear-gradient(180deg, #fffef9 0%, #faf7f2 100%);
   }
 
   .auth-gradient {
     background:
-      radial-gradient(ellipse 80% 60% at 90% 10%, rgba(196, 164, 132, 0.12) 0%, transparent 50%),
-      radial-gradient(ellipse 60% 50% at 10% 90%, rgba(143, 166, 142, 0.1) 0%, transparent 45%),
+      radial-gradient(ellipse 80% 60% at 90% 10%, rgba(196, 164, 132, 0.14) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 50% at 10% 90%, rgba(166, 124, 91, 0.1) 0%, transparent 45%),
       linear-gradient(180deg, #fffef9 0%, #faf7f2 100%);
   }
 
@@ -145,7 +146,7 @@
   }
 
   .waveform-bar {
-    @apply w-1 rounded-full bg-tertiary-fixed-dim/80;
+    @apply w-1 rounded-full bg-rose-gold/80;
   }
 
   .node-connector {
