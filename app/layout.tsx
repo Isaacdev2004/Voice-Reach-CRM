@@ -28,6 +28,10 @@ const caveat = Caveat({
 export const metadata: Metadata = {
   title: `${BRAND_NAME} | ${BRAND_TAGLINE}`,
   description: `${BRAND_NAME} — ${BRAND_TAGLINE}. Consent-based CRM and ringless voicemail campaign automation.`,
+  icons: {
+    icon: "/brand/ari-logo.png",
+    apple: "/brand/ari-logo.png",
+  },
 };
 
 export default function RootLayout({

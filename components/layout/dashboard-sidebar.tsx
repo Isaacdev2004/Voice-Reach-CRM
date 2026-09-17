@@ -38,10 +38,12 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
         aria-hidden={!mobileOpen ? undefined : undefined}
       >
         <div className="mb-8 flex items-start justify-between px-6">
-          <div>
+          <Link href="/dashboard" className="group" onClick={onMobileClose}>
             <AriLogo height={36} />
-            <p className="mt-1.5 text-[13px] italic text-taupe">{BRAND_TAGLINE}</p>
-          </div>
+            <p className="mt-1.5 text-[13px] italic text-taupe group-hover:text-rose-gold-deep">
+              {BRAND_TAGLINE}
+            </p>
+          </Link>
           <button
             type="button"
             onClick={onMobileClose}
