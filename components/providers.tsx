@@ -1,5 +1,6 @@
 "use client";
 
+import { UtmCapture } from "@/components/marketing/utm-capture";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ui } from "@clerk/ui";
 import { clerkAppearance } from "@/lib/clerk-appearance";
@@ -12,7 +13,12 @@ type ProvidersProps = {
 
 export function Providers({ children, clerkEnabled }: ProvidersProps) {
   if (!clerkEnabled) {
-    return <>{children}</>;
+    return (
+      <>
+        <UtmCapture />
+        {children}
+      </>
+    );
   }
 
   return (
@@ -24,6 +30,7 @@ export function Providers({ children, clerkEnabled }: ProvidersProps) {
       signInFallbackRedirectUrl={AUTH_AFTER_URL}
       signUpFallbackRedirectUrl={AUTH_AFTER_URL}
     >
+      <UtmCapture />
       {children}
     </ClerkProvider>
   );

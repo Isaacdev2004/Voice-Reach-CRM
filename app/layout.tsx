@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Caveat, Cormorant_Garamond, Inter } from "next/font/google";
+import { MarketingScripts } from "@/components/marketing/marketing-scripts";
 import { Providers } from "@/components/providers";
 import { hasClerkEnv } from "@/lib/clerk-env";
+import { FOUNDING_100 } from "@/lib/marketing/founding";
 import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
@@ -27,7 +29,7 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   title: `${BRAND_NAME} | ${BRAND_TAGLINE}`,
-  description: `${BRAND_NAME} — ${BRAND_TAGLINE}. Consent-based CRM and ringless voicemail campaign automation.`,
+  description: `${FOUNDING_100.positioning} ${BRAND_NAME} — CRM, automated follow-up, and ringless voicemail for real estate agents.`,
   icons: {
     icon: "/brand/ari-logo.png",
     apple: "/brand/ari-logo.png",
@@ -50,6 +52,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${cormorant.variable} ${caveat.variable} font-sans antialiased`}
       >
+        <MarketingScripts />
         <Providers clerkEnabled={hasClerkEnv()}>{children}</Providers>
       </body>
     </html>

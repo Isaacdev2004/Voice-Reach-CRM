@@ -2,18 +2,20 @@
 
 import { SignUp, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { planById } from "@/lib/billing/plans";
-import { clearPendingPlan, rememberPendingPlan } from "@/lib/billing/pending-plan";
+import { clearPendingPlan } from "@/lib/billing/pending-plan";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import { AUTH_AFTER_URL } from "@/lib/clerk-env";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { trackMarketingEvent } from "@/lib/marketing/track";
+import { readUtmAttribution } from "@/lib/marketing/utm";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 export function ClerkSignUp() {
-  const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const attributionSent = useRef(false);
 
   // After new sign-up: attach paid session if present
   useEffect(() => {
@@ -41,6 +43,18 @@ export function ClerkSignUp() {
     })();
   }, [sessionId, isSignedIn]);
 
+  useEffect(() => {
+    if (!isSignedIn || attributionSent.current) return;
+    attributionSent.current = true;
+    trackMarketingEvent("signup_started", { flow: "clerk" });
+    const utm = readUtmAttribution();
+    void fetch("/api/marketing/attribution", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(utm),
+    }).catch(() => undefined);
+  }, [isSignedIn]);
+
   if (!isLoaded) {
     return (
       <div className="w-full rounded-[24px] border border-outline-variant/15 bg-ivory px-6 py-10 text-center shadow-card">
@@ -67,12 +81,12 @@ export function ClerkSignUp() {
     <div className="w-full rounded-[24px] border border-outline-variant/15 bg-ivory px-6 py-8 shadow-card sm:px-8">
       <div className="mb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
-          14-day free trial · White-glove setup
+          {FOUNDING_100.name} · {FOUNDING_100.trialDays}-day free trial
         </p>
         <h2 className="mt-2 font-serif text-[28px] font-semibold text-ink">Create your account</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
-          Email and password only — we&apos;ll import your leads and configure follow-up after you
-          sign in.
+          Email and password only. We&apos;ll reach out within 24 hours for white-glove setup — lead
+          import, first campaign, and pipeline configuration included.
         </p>
       </div>
 

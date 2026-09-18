@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { CheckCircleIcon } from "@/components/icons/landing-icons";
 import { PLAN_OPTIONS } from "@/lib/billing/plans";
+import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { trackMarketingEvent } from "@/lib/marketing/track";
 
 const SIGN_UP = "/sign-up";
 const SALES_EMAIL = "hello@myari.io";
@@ -22,7 +24,9 @@ export function LandingPricing() {
             Start free. Scale when you&apos;re ready.
           </h2>
           <p className="mx-auto mt-3 w-full max-w-[36rem] px-2 text-[15px] leading-relaxed text-slate-text">
-            Growth is our recommended plan. Annual billing saves about two months.
+            <strong className="font-semibold text-ink">Growth</strong> is our recommended plan for
+            active agents. {FOUNDING_100.name} members get {FOUNDING_100.trialDays} days free +
+            founding rate locked 3 months. Annual billing saves ~2 months.
           </p>
 
           <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-outline-variant/20 bg-ivory p-1">
@@ -90,6 +94,12 @@ export function LandingPricing() {
 
                 <Link
                   href={SIGN_UP}
+                  onClick={() =>
+                    trackMarketingEvent("start_trial_click", {
+                      location: "pricing",
+                      plan: plan.id,
+                    })
+                  }
                   className={`mt-6 block rounded-full py-3.5 text-center text-[14px] font-bold transition-opacity hover:opacity-95 ${
                     featured
                       ? "bg-rose-gold text-ivory"

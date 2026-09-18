@@ -9,7 +9,15 @@ const FAQ_ITEMS = [
   },
   {
     q: "Is there a free trial?",
-    a: "Yes — 14 days free on Starter and Growth. No credit card required to create your account. Cancel anytime during trial with no charge.",
+    a: "Yes — 14 days free for Founding 100 members. Create your account with email only; billing starts after your trial when you choose a plan. Cancel anytime.",
+  },
+  {
+    q: "Can I import my existing leads?",
+    a: "Yes. CSV import is built in, and Founding 100 onboarding includes white-glove import — we load your database and configure your first follow-up campaign for you.",
+  },
+  {
+    q: "What is the Founding 100 offer?",
+    a: "The first 100 agents get early access, white-glove setup, founding-member pricing locked for 3 months, and a direct feedback channel to the team.",
   },
   {
     q: "Can I cancel anytime?",

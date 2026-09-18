@@ -1,5 +1,6 @@
 import { stripePriceIdForPlan } from "@/lib/billing/settings-store";
 import { planById, type PlanId } from "@/lib/billing/plans";
+import { trialDaysFromEnv } from "@/lib/marketing/founding";
 import { getStripe } from "@/lib/stripe/config";
 import type Stripe from "stripe";
 
@@ -54,6 +55,8 @@ export async function createSubscriptionSession(params: {
     ? [{ price: priceId, quantity: 1 }]
     : [inlinePriceItem];
 
+  const trialDays = trialDaysFromEnv();
+
   const baseSession: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
     ...(params.customerId
@@ -62,8 +65,11 @@ export async function createSubscriptionSession(params: {
         ? { customer_email: params.customerEmail }
         : {}),
     ...(params.ownerId ? { client_reference_id: params.ownerId } : {}),
-    subscription_data: { metadata },
-    metadata,
+    subscription_data: {
+      metadata,
+      trial_period_days: trialDays,
+    },
+    metadata: { ...metadata, trial_days: String(trialDays) },
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
     allow_promotion_codes: true,

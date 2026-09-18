@@ -1,9 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AriLogo } from "@/components/brand/ari-logo";
+import { DemoVideo } from "@/components/landing/demo-video";
 import { LandingFaq } from "@/components/landing/landing-faq";
+import { LandingFoundingOffer } from "@/components/landing/landing-founding-offer";
 import { LandingPricing } from "@/components/landing/landing-pricing";
+import { LandingTestimonials } from "@/components/landing/landing-testimonials";
+import { StartFreeButton } from "@/components/landing/start-free-button";
 import { BRAND_DOMAIN, BRAND_NAME, BRAND_TAGLINE, BRAND_URL } from "@/lib/brand";
+import { FOUNDING_100 } from "@/lib/marketing/founding";
 
 const SIGN_UP = "/sign-up";
 const SALES_EMAIL = "hello@myari.io";
@@ -74,30 +79,6 @@ const HOW_IT_WORKS = [
   },
 ];
 
-function StartFreeButton({
-  className = "",
-  variant = "primary",
-}: {
-  className?: string;
-  variant?: "primary" | "light" | "outline";
-}) {
-  const styles =
-    variant === "light"
-      ? "bg-ivory text-ink hover:opacity-95"
-      : variant === "outline"
-        ? "border-2 border-rose-gold bg-transparent text-rose-gold-deep hover:bg-rose-gold/5"
-        : "bg-rose-gold text-ivory shadow-card hover:opacity-95";
-
-  return (
-    <Link
-      href={SIGN_UP}
-      className={`inline-flex items-center justify-center rounded-full px-8 py-3 text-[14px] font-bold uppercase tracking-wide transition-all active:scale-[0.98] ${styles} ${className}`}
-    >
-      Start Free
-    </Link>
-  );
-}
-
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-cream text-ink">
@@ -139,14 +120,14 @@ export function LandingPage() {
           <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-10 md:grid-cols-2 md:gap-12 md:px-8 md:py-14 lg:min-h-[calc(100svh-4rem)] lg:py-16">
             <div>
               <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
-                14-day free trial · White-glove setup
+                {FOUNDING_100.name} · {FOUNDING_100.trialDays}-day free trial · White-glove setup
               </p>
               <h1 className="font-serif text-[2rem] font-semibold leading-[1.1] tracking-tight text-ink sm:text-[2.35rem] lg:text-[2.75rem]">
                 Stop losing leads you already paid for.
               </h1>
               <p className="mt-4 text-[15px] font-medium text-ink/80">
-                {BRAND_NAME} keeps real estate leads organized, follows up consistently, and shows
-                agents who needs attention next.
+                {FOUNDING_100.positioning} {BRAND_NAME} organizes your leads, follows up
+                automatically, and shows you who to contact next.
               </p>
               <ul className="mt-5 space-y-2.5">
                 {HERO_BULLETS.map((item) => (
@@ -159,12 +140,12 @@ export function LandingPage() {
                 ))}
               </ul>
               <div className="mt-7 flex flex-wrap items-center gap-4">
-                <StartFreeButton />
+                <StartFreeButton location="hero" />
                 <a
                   href="#demo"
                   className="text-[14px] font-semibold text-rose-gold-deep underline-offset-4 hover:underline"
                 >
-                  Watch 60-sec demo
+                  See ARI in action
                 </a>
               </div>
             </div>
@@ -183,6 +164,8 @@ export function LandingPage() {
             </div>
           </div>
         </section>
+
+        <DemoVideo />
 
         {/* ── Proof strip ── */}
         <section className="border-y border-outline-variant/10 bg-ivory py-8">
@@ -249,36 +232,8 @@ export function LandingPage() {
               ))}
             </div>
 
-            {/* Demo walkthrough */}
-            <div id="demo" className="mt-16 scroll-mt-24">
-              <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
-                60-second product demo
-              </p>
-              <h3 className="mt-2 text-center font-serif text-[22px] font-semibold text-ink md:text-[26px]">
-                Lead → follow-up → response → next action
-              </h3>
-              <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {[
-                  "New lead captured from Zillow or your site",
-                  "Day 1 + 3 follow-up sends automatically",
-                  "Prospect replies — tracked on contact record",
-                  "Dashboard flags them Hot — you call and close",
-                ].map((step, i) => (
-                  <div
-                    key={step}
-                    className="flex items-start gap-3 rounded-xl border border-outline-variant/10 bg-ivory p-4"
-                  >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-gold text-[12px] font-bold text-ivory">
-                      {i + 1}
-                    </span>
-                    <p className="text-[13px] leading-snug text-slate-text">{step}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             <div className="mt-12 flex justify-center">
-              <StartFreeButton />
+              <StartFreeButton location="features" />
             </div>
           </div>
         </section>
@@ -311,6 +266,10 @@ export function LandingPage() {
           </div>
         </section>
 
+        <LandingFoundingOffer />
+
+        <LandingTestimonials />
+
         {/* ── Mid-page CTA banner ── */}
         <section className="bg-rose-gold-deep py-10 md:py-12">
           <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-5 px-4 md:flex-row md:px-8">
@@ -322,7 +281,7 @@ export function LandingPage() {
                 Import leads, configure follow-up, and go live — no DIY required.
               </p>
             </div>
-            <StartFreeButton variant="light" className="shrink-0" />
+            <StartFreeButton variant="light" className="shrink-0" location="mid-cta" />
           </div>
         </section>
 
@@ -340,7 +299,7 @@ export function LandingPage() {
               Start free today. We&apos;ll organize your pipeline and turn on follow-up — you focus
               on closing.
             </p>
-            <StartFreeButton variant="light" className="mt-8 !px-12 !py-4" />
+            <StartFreeButton variant="light" className="mt-8 !px-12 !py-4" location="final-cta" />
           </div>
         </section>
       </main>
@@ -392,9 +351,9 @@ export function LandingPage() {
               </h4>
               <ul className="space-y-2.5 text-[14px] text-slate-text">
                 <li>
-                  <a href={`mailto:${SALES_EMAIL}`} className="hover:text-rose-gold-deep">
+                  <Link href="/contact" className="hover:text-rose-gold-deep">
                     Contact
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <a href="#faq" className="hover:text-rose-gold-deep">
