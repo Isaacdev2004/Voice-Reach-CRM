@@ -82,6 +82,7 @@ export function stripePriceIdForPlan(planId: PlanId): string | undefined {
     starter: process.env.STRIPE_PRICE_STARTER?.trim(),
     growth: process.env.STRIPE_PRICE_GROWTH?.trim(),
     pro: process.env.STRIPE_PRICE_PRO?.trim(),
+    team: process.env.STRIPE_PRICE_TEAM?.trim(),
   };
   return map[planId];
 }

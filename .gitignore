@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+/proposals/**/node_modules
 /clerk-nextjs
 
 # next.js

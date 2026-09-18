@@ -36,7 +36,7 @@ export function UpgradePlanModal({
       icon="workspace_premium"
       size="xl"
     >
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {PLAN_OPTIONS.map((plan) => {
           const isCurrent = subscriptionActive && plan.id === currentPlanId;
           const featured = Boolean(plan.featured) && !isCurrent;
@@ -59,6 +59,9 @@ export function UpgradePlanModal({
               ) : null}
               <p className="font-serif text-[22px] font-semibold text-ink">{plan.name}</p>
               <p className="mt-1 font-serif text-[30px] text-ink">
+                {plan.priceFrom ? (
+                  <span className="text-[14px] font-normal text-taupe">From </span>
+                ) : null}
                 ${plan.price}
                 <span className="text-[14px] font-normal text-taupe">/mo</span>
               </p>
@@ -76,6 +79,13 @@ export function UpgradePlanModal({
                 <p className="mt-5 rounded-full border border-emerald-muted/30 bg-ivory py-2.5 text-center text-[12px] font-semibold uppercase tracking-wide text-emerald-muted">
                   Your current plan
                 </p>
+              ) : plan.contactSales ? (
+                <a
+                  href="mailto:hello@myari.io?subject=ARI Team Plan"
+                  className="mt-5 block rounded-full bg-ink py-3 text-center text-[13px] font-semibold text-ivory"
+                >
+                  Contact sales
+                </a>
               ) : (
                 <button
                   type="button"

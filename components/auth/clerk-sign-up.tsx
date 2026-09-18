@@ -67,11 +67,12 @@ export function ClerkSignUp() {
     <div className="w-full rounded-[24px] border border-outline-variant/15 bg-ivory px-6 py-8 shadow-card sm:px-8">
       <div className="mb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
-          Get started with ARI
+          14-day free trial · White-glove setup
         </p>
         <h2 className="mt-2 font-serif text-[28px] font-semibold text-ink">Create your account</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
-          Sign up to access your CRM dashboard and campaign tools.
+          Email and password only — we&apos;ll import your leads and configure follow-up after you
+          sign in.
         </p>
       </div>
 

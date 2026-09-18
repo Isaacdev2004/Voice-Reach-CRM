@@ -1,4 +1,9 @@
-import { planById, type PlanId, type PlanOption, PAYG_RATES } from "@/lib/billing/plans";
+import {
+  overageRatesForPlan,
+  planById,
+  type PlanId,
+  type PlanOption,
+} from "@/lib/billing/plans";
 import { loadSavedSettings } from "@/lib/billing/settings-store";
 import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -61,10 +66,19 @@ export async function getPlanUsage(ownerId: string): Promise<PlanUsage> {
     countChannelSends(ownerId, "voicemail"),
   ]);
 
+  const overage = overageRatesForPlan(plan.id);
   const paygSmsCents =
-    plan.smsIncluded <= 0 ? Math.round(smsUsed * PAYG_RATES.sms * 100) : 0;
+    plan.smsIncluded <= 0
+      ? Math.round(smsUsed * overage.sms * 100)
+      : smsUsed > plan.smsIncluded
+        ? Math.round((smsUsed - plan.smsIncluded) * overage.sms * 100)
+        : 0;
   const paygRvmCents =
-    plan.rvmIncluded <= 0 ? Math.round(rvmUsed * PAYG_RATES.rvm * 100) : 0;
+    plan.rvmIncluded <= 0
+      ? Math.round(rvmUsed * overage.rvm * 100)
+      : rvmUsed > plan.rvmIncluded
+        ? Math.round((rvmUsed - plan.rvmIncluded) * overage.rvm * 100)
+        : 0;
 
   return {
     plan,

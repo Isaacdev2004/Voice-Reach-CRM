@@ -1,6 +1,6 @@
 "use client";
 
-import { planById, PLAN_OPTIONS, type PlanId } from "@/lib/billing/plans";
+import { CHECKOUT_PLAN_OPTIONS, planById, type PlanId } from "@/lib/billing/plans";
 import { rememberPendingPlan } from "@/lib/billing/pending-plan";
 import { cn } from "@/lib/cn";
 import Link from "next/link";
@@ -67,7 +67,7 @@ function CheckoutInner() {
       ) : null}
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        {PLAN_OPTIONS.map((plan) => (
+        {CHECKOUT_PLAN_OPTIONS.map((plan) => (
           <button
             key={plan.id}
             type="button"
