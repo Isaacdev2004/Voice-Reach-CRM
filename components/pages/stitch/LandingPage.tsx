@@ -336,7 +336,7 @@ export function LandingPage() {
             <h2 className="font-serif text-[26px] font-semibold text-ivory md:text-[32px]">
               Your next lead is already out there.
             </h2>
-            <p className="mx-auto mt-4 max-w-md text-[15px] text-ivory/85">
+            <p className="mx-auto mt-4 w-full max-w-[32rem] px-2 text-[15px] leading-relaxed text-ivory/85">
               Start free today. We&apos;ll organize your pipeline and turn on follow-up — you focus
               on closing.
             </p>

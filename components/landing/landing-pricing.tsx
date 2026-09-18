@@ -21,8 +21,8 @@ export function LandingPricing() {
           <h2 className="font-serif text-[28px] font-semibold text-ink md:text-[36px]">
             Start free. Scale when you&apos;re ready.
           </h2>
-          <p className="mx-auto mt-3 max-w-lg text-[15px] text-slate-text">
-            One recommended plan at launch. Annual billing saves ~2 months.
+          <p className="mx-auto mt-3 w-full max-w-[36rem] px-2 text-[15px] leading-relaxed text-slate-text">
+            Growth is our recommended plan. Annual billing saves about two months.
           </p>
 
           <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-outline-variant/20 bg-ivory p-1">
