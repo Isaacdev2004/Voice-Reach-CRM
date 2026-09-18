@@ -38,7 +38,7 @@ export function LandingFaq() {
         <p className="text-center text-label-md font-semibold uppercase tracking-widest text-rose-gold-deep">
           FAQ
         </p>
-        <h2 className="mt-3 text-center font-serif text-headline-lg-mobile font-semibold text-ink md:text-headline-lg">
+        <h2 className="mt-3 text-center font-serif text-[26px] font-semibold text-ink md:text-[34px]">
           Common questions
         </h2>
         <ul className="mt-10 space-y-3">

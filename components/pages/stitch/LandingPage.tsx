@@ -1,131 +1,165 @@
+import Image from "next/image";
 import Link from "next/link";
 import { AriLogo } from "@/components/brand/ari-logo";
-import { DashboardPreview } from "@/components/landing/dashboard-preview";
 import { LandingFaq } from "@/components/landing/landing-faq";
-import { CheckCircleIcon } from "@/components/icons/landing-icons";
+import { LandingPricing } from "@/components/landing/landing-pricing";
 import { BRAND_DOMAIN, BRAND_NAME, BRAND_TAGLINE, BRAND_URL } from "@/lib/brand";
-import { PLAN_OPTIONS } from "@/lib/billing/plans";
 
-const PRIMARY_CTA = "Start Free";
 const SIGN_UP = "/sign-up";
+const SALES_EMAIL = "hello@myari.io";
+const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
 
-const BENEFITS = [
+const HERO_BULLETS = [
+  "Every lead organized in one CRM — no spreadsheets, no sticky notes",
+  "Automatic follow-up via SMS, email, and ringless voicemail",
+  "Your dashboard shows exactly who to contact next",
+];
+
+const PROBLEM_CARDS = [
   {
-    title: "Never lose a lead",
-    description:
-      "Every inquiry lands in one place — tagged, staged, and ready. No more leads buried in email or spreadsheets.",
-    icon: "person_search",
+    num: "1",
+    title: "Leads slip through the cracks",
+    body: "Inquiries sit in email, Zillow, and your phone. Without a system, hot buyers go cold before you call back.",
   },
   {
-    title: "Automatic follow-up",
-    description:
-      "SMS, email, and ringless voicemail sequences run on schedule so prospects hear from you before they forget you.",
-    icon: "bolt",
+    num: "2",
+    title: "Follow-up is inconsistent",
+    body: "You mean to reach out — but showings, closings, and life get in the way. Prospects choose the agent who responds first.",
   },
   {
-    title: "Know who to contact next",
-    description:
-      "Your dashboard surfaces hot leads, overdue tasks, and replies — so you spend time closing, not searching.",
-    icon: "priority_high",
+    num: "3",
+    title: "No clear priority list",
+    body: "You waste time guessing who to call. ARI ranks leads by stage, reply, and overdue tasks so you always know what's next.",
+  },
+];
+
+const FEATURE_CARDS = [
+  {
+    icon: "notifications_active",
+    title: "Instant lead alerts",
+    body: "New inquiry? ARI captures it, tags the source, and triggers your first touch within minutes.",
+  },
+  {
+    icon: "schedule_send",
+    title: "Follow-up on autopilot",
+    body: "Multi-step campaigns run while you're in showings — day 1, 3, and 7 sequences built for real estate.",
+  },
+  {
+    icon: "forum",
+    title: "Every reply in one place",
+    body: "SMS and email responses land on the contact record. No switching apps to see who wrote back.",
+  },
+  {
+    icon: "person_pin",
+    title: "Know who to call next",
+    body: "Hot leads, overdue tasks, and fresh replies surface on your dashboard the moment you log in.",
   },
 ];
 
 const HOW_IT_WORKS = [
   {
-    step: "1",
+    icon: "upload",
     title: "Connect your leads",
-    description: "Import contacts or connect your lead sources. ARI organizes every family and stage.",
+    body: "Import contacts, connect lead sources, or add manually. ARI stages every prospect.",
   },
   {
-    step: "2",
+    icon: "auto_awesome",
     title: "ARI follows up",
-    description: "Automated sequences nurture prospects with email, SMS, and voicemail — compliantly.",
+    body: "Automated sequences nurture leads compliantly — SMS, email, and ringless voicemail.",
   },
   {
-    step: "3",
+    icon: "handshake",
     title: "You close",
-    description: "When someone replies or goes hot, ARI tells you exactly who to call next.",
+    body: "When someone replies or goes hot, ARI puts them at the top of your list. You take the conversation from there.",
   },
 ];
 
-const DEMO_STEPS = [
-  { label: "New lead arrives", detail: "Imported from Zillow, website, or CSV" },
-  { label: "Auto follow-up sends", detail: "Email + SMS sequence day 1, 3, 7" },
-  { label: "Prospect responds", detail: "Reply tracked in contact timeline" },
-  { label: "Dashboard updates", detail: "Lead moves to Hot — task created for you" },
-];
+function StartFreeButton({
+  className = "",
+  variant = "primary",
+}: {
+  className?: string;
+  variant?: "primary" | "light" | "outline";
+}) {
+  const styles =
+    variant === "light"
+      ? "bg-ivory text-ink hover:opacity-95"
+      : variant === "outline"
+        ? "border-2 border-rose-gold bg-transparent text-rose-gold-deep hover:bg-rose-gold/5"
+        : "bg-rose-gold text-ivory shadow-card hover:opacity-95";
 
-/** Placeholder until verified testimonials are approved by the team */
-const TESTIMONIALS_PENDING = true;
-
-const SALES_EMAIL = "hello@myari.io";
-
-function PrimaryCta({ className = "" }: { className?: string }) {
   return (
     <Link
       href={SIGN_UP}
-      className={`inline-flex items-center justify-center rounded-full bg-rose-gold px-8 py-3 text-label-md font-bold uppercase tracking-wide text-ivory shadow-card transition-all hover:opacity-95 active:scale-[0.98] ${className}`}
+      className={`inline-flex items-center justify-center rounded-full px-8 py-3 text-[14px] font-bold uppercase tracking-wide transition-all active:scale-[0.98] ${styles} ${className}`}
     >
-      {PRIMARY_CTA}
+      Start Free
     </Link>
   );
 }
 
 export function LandingPage() {
-  const growthPlan = PLAN_OPTIONS.find((p) => p.featured)!;
-
   return (
     <div className="min-h-screen bg-cream text-ink">
-      {/* Sticky header — CTA always visible */}
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-outline-variant/20 bg-champagne/95 backdrop-blur-md">
-        <nav className="mx-auto flex h-14 w-full max-w-[96rem] items-center justify-between gap-3 px-4 md:h-16 md:px-8">
-          <Link href="/" className="flex shrink-0 items-center gap-2" aria-label={`${BRAND_NAME} home`}>
-            <AriLogo height={40} className="md:hidden" />
-            <AriLogo height={48} className="hidden md:block" />
+      {/* ── Header ── */}
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-outline-variant/15 bg-ivory/95 backdrop-blur-md">
+        <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:h-16 md:px-8">
+          <Link href="/" aria-label={`${BRAND_NAME} home`}>
+            <AriLogo height={44} />
           </Link>
-          <div className="hidden items-center gap-6 lg:flex">
-            <a href="#benefits" className="text-[13px] font-medium text-ink/70 hover:text-rose-gold-deep">
-              Benefits
+          <div className="hidden items-center gap-8 md:flex">
+            <a href="#features" className="text-[14px] text-ink/70 hover:text-rose-gold-deep">
+              Platform
             </a>
-            <a href="#demo" className="text-[13px] font-medium text-ink/70 hover:text-rose-gold-deep">
-              Demo
-            </a>
-            <a href="#pricing" className="text-[13px] font-medium text-ink/70 hover:text-rose-gold-deep">
+            <a href="#pricing" className="text-[14px] text-ink/70 hover:text-rose-gold-deep">
               Pricing
             </a>
-            <a href="#faq" className="text-[13px] font-medium text-ink/70 hover:text-rose-gold-deep">
+            <a href="#how-it-works" className="text-[14px] text-ink/70 hover:text-rose-gold-deep">
+              How it works
+            </a>
+            <a href="#faq" className="text-[14px] text-ink/70 hover:text-rose-gold-deep">
               FAQ
             </a>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-3">
             <Link
               href="/sign-in"
-              className="hidden rounded-full px-3 py-2 text-[13px] font-medium text-ink/75 hover:bg-ivory sm:block"
+              className="hidden text-[14px] font-medium text-ink/75 hover:text-ink sm:block"
             >
-              Sign in
+              Log in
             </Link>
-            <PrimaryCta className="!px-5 !py-2 !text-[13px] !normal-case !tracking-normal" />
+            <StartFreeButton className="!px-5 !py-2 !text-[12px]" />
           </div>
         </nav>
       </header>
 
       <main className="pt-14 md:pt-16">
-        {/* ── 1. ABOVE THE FOLD ── */}
-        <section className="luxury-gradient-hero relative overflow-hidden">
-          <div className="mx-auto grid max-w-6xl gap-6 px-4 pb-0 pt-6 md:grid-cols-2 md:items-center md:gap-10 md:px-8 md:pt-10 lg:min-h-[calc(100svh-4rem)] lg:pb-8">
-            <div className="text-center md:text-left">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-sage-light px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-muted">
-                14-day free trial · White-glove setup included
-              </div>
-              <h1 className="font-serif text-[1.65rem] font-semibold leading-[1.12] tracking-tight text-ink sm:text-[2rem] md:text-[2.35rem] lg:text-[2.65rem]">
+        {/* ── Hero ── */}
+        <section className="bg-cream">
+          <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-10 md:grid-cols-2 md:gap-12 md:px-8 md:py-14 lg:min-h-[calc(100svh-4rem)] lg:py-16">
+            <div>
+              <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
+                14-day free trial · White-glove setup
+              </p>
+              <h1 className="font-serif text-[2rem] font-semibold leading-[1.1] tracking-tight text-ink sm:text-[2.35rem] lg:text-[2.75rem]">
                 Stop losing leads you already paid for.
               </h1>
-              <p className="mx-auto mt-3 max-w-lg text-[15px] leading-snug text-slate-text md:mx-0 md:text-[16px]">
+              <p className="mt-4 text-[15px] font-medium text-ink/80">
                 {BRAND_NAME} keeps real estate leads organized, follows up consistently, and shows
                 agents who needs attention next.
               </p>
-              <div className="mt-5 flex flex-col items-center gap-3 sm:flex-row md:justify-start">
-                <PrimaryCta className="w-full sm:w-auto" />
+              <ul className="mt-5 space-y-2.5">
+                {HERO_BULLETS.map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-[14px] text-slate-text">
+                    <span className="material-symbols-outlined mt-0.5 shrink-0 text-[18px] text-rose-gold-deep">
+                      check_circle
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-7 flex flex-wrap items-center gap-4">
+                <StartFreeButton />
                 <a
                   href="#demo"
                   className="text-[14px] font-semibold text-rose-gold-deep underline-offset-4 hover:underline"
@@ -134,270 +168,232 @@ export function LandingPage() {
                 </a>
               </div>
             </div>
-            <div className="mx-auto w-full max-w-lg md:max-w-none">
-              <DashboardPreview />
+
+            <div className="relative mx-auto w-full max-w-xl md:max-w-none">
+              <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-[0_20px_60px_rgba(26,20,16,0.12)]">
+                <Image
+                  src={DASHBOARD_IMAGE}
+                  alt="ARI CRM dashboard showing contacts, tasks, and marketing pulse on desktop"
+                  width={1200}
+                  height={900}
+                  className="h-auto w-full object-cover object-top"
+                  priority
+                />
+              </div>
             </div>
           </div>
         </section>
 
         {/* ── Proof strip ── */}
-        <section className="border-y border-outline-variant/15 bg-ivory py-8">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-8 gap-y-4 px-4 text-center md:gap-x-12">
-            <div>
-              <p className="font-serif text-[22px] font-semibold text-ink">14 days</p>
-              <p className="text-[12px] text-taupe">Free trial</p>
+        <section className="border-y border-outline-variant/10 bg-ivory py-8">
+          <div className="mx-auto max-w-5xl px-4 text-center">
+            <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
+              Built for real estate professionals
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-[13px] font-semibold tracking-wide text-ink/30">
+              <span>TCPA compliant</span>
+              <span className="hidden sm:inline text-ink/15">·</span>
+              <span>Ringless voicemail</span>
+              <span className="hidden sm:inline text-ink/15">·</span>
+              <span>Multi-channel CRM</span>
+              <span className="hidden sm:inline text-ink/15">·</span>
+              <span>White-glove onboarding</span>
             </div>
-            <div className="hidden h-8 w-px bg-outline-variant/30 sm:block" />
-            <div>
-              <p className="font-serif text-[22px] font-semibold text-ink">We set it up</p>
-              <p className="text-[12px] text-taupe">White-glove onboarding</p>
-            </div>
-            <div className="hidden h-8 w-px bg-outline-variant/30 sm:block" />
-            <div>
-              <p className="font-serif text-[22px] font-semibold text-ink">TCPA ready</p>
-              <p className="text-[12px] text-taupe">Consent + DNC built in</p>
-            </div>
-            {TESTIMONIALS_PENDING ? (
-              <>
-                <div className="hidden h-8 w-px bg-outline-variant/30 lg:block" />
-                <p className="text-[12px] italic text-taupe">
-                  Verified agent testimonials coming soon
-                </p>
-              </>
-            ) : null}
           </div>
         </section>
 
-        {/* ── 2. Three benefits ── */}
-        <section id="benefits" className="py-20 md:py-24">
+        {/* ── Problem / why ARI ── */}
+        <section id="benefits" className="py-20 md:py-28">
           <div className="mx-auto max-w-6xl px-4 md:px-8">
-            <div className="mb-12 text-center">
-              <h2 className="font-serif text-headline-lg-mobile font-semibold text-ink md:text-headline-lg">
-                Built for agents who can&apos;t afford to drop the ball
-              </h2>
-            </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {BENEFITS.map((b) => (
-                <article
-                  key={b.title}
-                  className="rounded-[28px] border border-outline-variant/15 bg-ivory p-8 shadow-card"
-                >
-                  <span className="material-symbols-outlined mb-4 text-[32px] text-rose-gold-deep">
-                    {b.icon}
-                  </span>
-                  <h3 className="mb-3 font-serif text-[20px] font-semibold text-ink">{b.title}</h3>
-                  <p className="text-[14px] leading-relaxed text-slate-text">{b.description}</p>
+            <h2 className="text-center font-serif text-[26px] font-semibold text-ink md:text-[34px]">
+              Built for agents who can&apos;t afford to drop the ball
+            </h2>
+            <div className="mt-14 grid gap-8 md:grid-cols-3">
+              {PROBLEM_CARDS.map((card) => (
+                <article key={card.num} className="text-center md:text-left">
+                  <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-rose-gold/15 font-serif text-[20px] font-semibold text-rose-gold-deep md:mx-0">
+                    {card.num}
+                  </div>
+                  <h3 className="mb-3 font-serif text-[19px] font-semibold text-ink">{card.title}</h3>
+                  <p className="text-[14px] leading-relaxed text-slate-text">{card.body}</p>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── Product demo walkthrough ── */}
-        <section id="demo" className="bg-ivory py-20 md:py-24">
+        {/* ── Features + demo anchor ── */}
+        <section id="features" className="bg-ivory py-20 md:py-28">
           <div className="mx-auto max-w-6xl px-4 md:px-8">
-            <div className="mb-10 text-center">
-              <p className="text-label-md font-semibold uppercase tracking-widest text-rose-gold-deep">
-                60-second walkthrough
-              </p>
-              <h2 className="mt-3 font-serif text-headline-lg-mobile font-semibold text-ink md:text-headline-lg">
-                Lead → follow-up → response → your next action
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="font-serif text-[26px] font-semibold text-ink md:text-[34px]">
+                Lead follow-up on autopilot — so you close more deals
               </h2>
+              <p className="mt-4 text-[15px] text-slate-text">
+                Everything a producing agent needs: CRM, campaigns, compliance, and a dashboard that
+                tells you who to call next.
+              </p>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {DEMO_STEPS.map((step, i) => (
-                <div
-                  key={step.label}
-                  className="relative rounded-2xl border border-outline-variant/15 bg-cream p-5"
+            <div className="mt-14 grid gap-5 sm:grid-cols-2">
+              {FEATURE_CARDS.map((f) => (
+                <article
+                  key={f.title}
+                  className="rounded-2xl border border-outline-variant/10 bg-cream p-6 md:p-7"
                 >
-                  <span className="mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-rose-gold text-[13px] font-bold text-ivory">
-                    {i + 1}
+                  <span className="material-symbols-outlined mb-4 text-[28px] text-rose-gold-deep">
+                    {f.icon}
                   </span>
-                  <p className="font-semibold text-ink">{step.label}</p>
-                  <p className="mt-1 text-[13px] text-slate-text">{step.detail}</p>
-                </div>
+                  <h3 className="mb-2 font-serif text-[18px] font-semibold text-ink">{f.title}</h3>
+                  <p className="text-[14px] leading-relaxed text-slate-text">{f.body}</p>
+                </article>
               ))}
             </div>
-            <div className="mt-10 flex justify-center">
-              <PrimaryCta />
+
+            {/* Demo walkthrough */}
+            <div id="demo" className="mt-16 scroll-mt-24">
+              <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
+                60-second product demo
+              </p>
+              <h3 className="mt-2 text-center font-serif text-[22px] font-semibold text-ink md:text-[26px]">
+                Lead → follow-up → response → next action
+              </h3>
+              <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  "New lead captured from Zillow or your site",
+                  "Day 1 + 3 follow-up sends automatically",
+                  "Prospect replies — tracked on contact record",
+                  "Dashboard flags them Hot — you call and close",
+                ].map((step, i) => (
+                  <div
+                    key={step}
+                    className="flex items-start gap-3 rounded-xl border border-outline-variant/10 bg-ivory p-4"
+                  >
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-gold text-[12px] font-bold text-ivory">
+                      {i + 1}
+                    </span>
+                    <p className="text-[13px] leading-snug text-slate-text">{step}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-12 flex justify-center">
+              <StartFreeButton />
             </div>
           </div>
         </section>
 
-        {/* ── How ARI works ── */}
-        <section className="py-20 md:py-24">
-          <div className="mx-auto max-w-4xl px-4 text-center md:px-8">
-            <h2 className="font-serif text-headline-lg-mobile font-semibold text-ink md:text-headline-lg">
+        {/* ── How it works ── */}
+        <section id="how-it-works" className="py-20 md:py-28">
+          <div className="mx-auto max-w-5xl px-4 md:px-8">
+            <h2 className="text-center font-serif text-[26px] font-semibold text-ink md:text-[34px]">
               How {BRAND_NAME} works
             </h2>
-            <div className="mt-12 grid gap-8 md:grid-cols-3">
-              {HOW_IT_WORKS.map((item) => (
-                <div key={item.step}>
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border-2 border-rose-gold font-serif text-[20px] font-semibold text-rose-gold-deep">
-                    {item.step}
+            <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
+              {HOW_IT_WORKS.map((step, i) => (
+                <div key={step.title} className="relative text-center">
+                  {i < HOW_IT_WORKS.length - 1 ? (
+                    <span
+                      className="absolute left-[calc(50%+2rem)] top-6 hidden h-px w-[calc(100%-4rem)] bg-outline-variant/25 md:block"
+                      aria-hidden
+                    />
+                  ) : null}
+                  <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-gold/10">
+                    <span className="material-symbols-outlined text-[28px] text-rose-gold-deep">
+                      {step.icon}
+                    </span>
                   </div>
-                  <h3 className="mb-2 text-[17px] font-semibold text-ink">{item.title}</h3>
-                  <p className="text-[14px] leading-relaxed text-slate-text">{item.description}</p>
+                  <h3 className="mb-2 font-serif text-[18px] font-semibold text-ink">{step.title}</h3>
+                  <p className="text-[14px] leading-relaxed text-slate-text">{step.body}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── Trust: white-glove offer ── */}
-        <section className="border-y border-outline-variant/15 bg-rose-gold-deep py-12">
-          <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 px-4 text-center md:flex-row md:justify-between md:text-left">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-ivory/70">
-                Included on every plan
-              </p>
-              <p className="mt-1 font-serif text-[22px] font-semibold text-ivory md:text-[26px]">
+        {/* ── Mid-page CTA banner ── */}
+        <section className="bg-rose-gold-deep py-10 md:py-12">
+          <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-5 px-4 md:flex-row md:px-8">
+            <div className="text-center md:text-left">
+              <p className="font-serif text-[22px] font-semibold text-ivory md:text-[26px]">
                 14-day free trial + we set it up for you
               </p>
-              <p className="mt-2 text-[14px] text-ivory/85">
-                Import leads, configure follow-up, and train your team — no DIY required.
+              <p className="mt-1 text-[14px] text-ivory/80">
+                Import leads, configure follow-up, and go live — no DIY required.
               </p>
             </div>
-            <PrimaryCta className="shrink-0 !bg-ivory !text-ink hover:!opacity-90" />
+            <StartFreeButton variant="light" className="shrink-0" />
           </div>
         </section>
 
-        {/* ── Pricing — Growth featured, one clear winner ── */}
-        <section id="pricing" className="bg-ivory py-20 md:py-24">
-          <div className="mx-auto max-w-6xl px-4 md:px-8">
-            <div className="text-center">
-              <p className="text-label-md font-semibold uppercase tracking-widest text-rose-gold-deep">
-                Simple pricing
-              </p>
-              <h2 className="mt-3 font-serif text-headline-lg-mobile font-semibold text-ink md:text-headline-lg">
-                Start free. Scale when you&apos;re ready.
-              </h2>
-              <p className="mx-auto mt-3 max-w-xl text-[14px] text-slate-text">
-                Annual billing saves ~2 months. SMS &amp; RVM metered with transparent overages.
-              </p>
-            </div>
-
-            {/* Recommended plan — hero card */}
-            <article className="relative mx-auto mt-12 max-w-lg overflow-hidden rounded-[32px] border-4 border-rose-gold bg-rose-gold-deep p-8 text-ivory shadow-card md:p-10">
-              <span className="absolute -top-0 left-1/2 -translate-x-1/2 rounded-b-xl bg-rose-gold px-6 py-1.5 text-[11px] font-bold uppercase tracking-widest text-ivory">
-                Most popular
-              </span>
-              <div className="pt-4 text-center">
-                <h3 className="font-serif text-[28px] font-semibold">{growthPlan.name}</h3>
-                <p className="mt-1 text-ivory/80">{growthPlan.description}</p>
-                <div className="mt-6 flex items-baseline justify-center gap-1">
-                  <span className="font-serif text-[48px] font-semibold leading-none">
-                    ${growthPlan.price}
-                  </span>
-                  <span className="text-ivory/70">/mo</span>
-                </div>
-                <Link
-                  href={SIGN_UP}
-                  className="mt-8 block w-full rounded-full bg-rose-gold py-4 text-center text-[15px] font-bold text-ivory shadow-card hover:opacity-95"
-                >
-                  {PRIMARY_CTA}
-                </Link>
-                <ul className="mt-8 space-y-3 text-left text-[14px] text-ivory/90">
-                  {growthPlan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2">
-                      <CheckCircleIcon className="mt-0.5 shrink-0 text-sage-light" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </article>
-
-            {/* Other tiers — compact row */}
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              {PLAN_OPTIONS.filter((p) => !p.featured).map((plan) => (
-                <article
-                  key={plan.id}
-                  className="flex flex-col rounded-2xl border border-outline-variant/15 bg-cream p-6"
-                >
-                  <h3 className="font-serif text-[20px] font-semibold text-ink">{plan.name}</h3>
-                  <p className="mt-1 text-[13px] text-taupe">{plan.description}</p>
-                  <div className="mt-4 flex items-baseline gap-1 text-ink">
-                    {plan.priceFrom ? (
-                      <span className="text-[13px] text-taupe">From</span>
-                    ) : null}
-                    <span className="font-serif text-[32px] font-semibold">${plan.price}</span>
-                    <span className="text-taupe">/mo</span>
-                  </div>
-                  <ul className="mt-4 flex-1 space-y-2 text-[12px] text-slate-text">
-                    {plan.features.slice(0, 4).map((f) => (
-                      <li key={f} className="flex items-start gap-1.5">
-                        <span className="material-symbols-outlined mt-0.5 text-[14px] text-rose-gold-deep">
-                          check
-                        </span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  {plan.contactSales ? (
-                    <a
-                      href={`mailto:${SALES_EMAIL}?subject=ARI Team Plan`}
-                      className="mt-5 block rounded-full border border-rose-gold py-2.5 text-center text-[13px] font-semibold text-rose-gold-deep hover:bg-rose-gold/10"
-                    >
-                      {plan.cta}
-                    </a>
-                  ) : (
-                    <Link
-                      href={SIGN_UP}
-                      className="mt-5 block rounded-full border border-rose-gold py-2.5 text-center text-[13px] font-semibold text-rose-gold-deep hover:bg-rose-gold/10"
-                    >
-                      {PRIMARY_CTA}
-                    </Link>
-                  )}
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
+        <LandingPricing />
 
         <LandingFaq />
 
-        {/* ── Final CTA — single action only ── */}
-        <section className="px-4 py-20 md:px-8">
-          <div className="mx-auto max-w-3xl rounded-[40px] bg-rose-gold-deep px-8 py-14 text-center md:py-16">
-            <h2 className="font-serif text-[28px] font-semibold text-ivory md:text-[34px]">
+        {/* ── Final CTA ── */}
+        <section className="px-4 py-20 md:px-8 md:py-24">
+          <div className="mx-auto max-w-3xl rounded-[36px] bg-rose-gold-deep px-8 py-14 text-center md:py-16">
+            <h2 className="font-serif text-[26px] font-semibold text-ivory md:text-[32px]">
               Your next lead is already out there.
             </h2>
             <p className="mx-auto mt-4 max-w-md text-[15px] text-ivory/85">
-              Start your 14-day free trial. We&apos;ll set up your CRM and first follow-up sequence
-              — you focus on closing.
+              Start free today. We&apos;ll organize your pipeline and turn on follow-up — you focus
+              on closing.
             </p>
-            <PrimaryCta className="mt-8 !bg-ivory !px-12 !py-4 !text-[15px] !text-ink" />
+            <StartFreeButton variant="light" className="mt-8 !px-12 !py-4" />
           </div>
         </section>
       </main>
 
-      <footer id="company" className="border-t border-outline-variant/15 bg-ivory py-16">
+      {/* ── Footer ── */}
+      <footer className="border-t border-outline-variant/15 bg-ivory py-16">
         <div className="mx-auto max-w-6xl px-4 md:px-8">
-          <div className="mb-12 grid gap-10 md:grid-cols-4">
-            <div>
-              <AriLogo height={40} className="mb-3" />
-              <p className="text-[13px] italic text-taupe">{BRAND_TAGLINE}</p>
+          <div className="grid gap-10 md:grid-cols-4">
+            <div className="md:col-span-1">
+              <AriLogo height={36} />
+              <p className="mt-3 text-[13px] italic text-taupe">{BRAND_TAGLINE}</p>
               <a
                 href={BRAND_URL}
-                className="mt-2 block text-[13px] font-medium text-rose-gold-deep hover:underline"
+                className="mt-1 block text-[13px] font-medium text-rose-gold-deep hover:underline"
               >
                 {BRAND_DOMAIN}
               </a>
             </div>
             <div>
-              <h4 className="mb-4 text-[12px] font-bold uppercase tracking-widest text-ink">
+              <h4 className="mb-4 text-[11px] font-bold uppercase tracking-widest text-ink">
                 Product
               </h4>
-              <ul className="space-y-2 text-[14px] text-slate-text">
+              <ul className="space-y-2.5 text-[14px] text-slate-text">
                 <li>
-                  <a href="#benefits" className="hover:text-rose-gold-deep">
-                    Benefits
+                  <a href="#features" className="hover:text-rose-gold-deep">
+                    Platform
                   </a>
                 </li>
                 <li>
                   <a href="#pricing" className="hover:text-rose-gold-deep">
                     Pricing
+                  </a>
+                </li>
+                <li>
+                  <a href="#how-it-works" className="hover:text-rose-gold-deep">
+                    How it works
+                  </a>
+                </li>
+                <li>
+                  <Link href={SIGN_UP} className="hover:text-rose-gold-deep">
+                    Start Free
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="mb-4 text-[11px] font-bold uppercase tracking-widest text-ink">
+                {BRAND_NAME}
+              </h4>
+              <ul className="space-y-2.5 text-[14px] text-slate-text">
+                <li>
+                  <a href={`mailto:${SALES_EMAIL}`} className="hover:text-rose-gold-deep">
+                    Contact
                   </a>
                 </li>
                 <li>
@@ -408,10 +404,10 @@ export function LandingPage() {
               </ul>
             </div>
             <div>
-              <h4 className="mb-4 text-[12px] font-bold uppercase tracking-widest text-ink">
+              <h4 className="mb-4 text-[11px] font-bold uppercase tracking-widest text-ink">
                 Legal
               </h4>
-              <ul className="space-y-2 text-[14px] text-slate-text">
+              <ul className="space-y-2.5 text-[14px] text-slate-text">
                 <li>
                   <Link href="/privacy" className="hover:text-rose-gold-deep">
                     Privacy Policy
@@ -424,20 +420,9 @@ export function LandingPage() {
                 </li>
               </ul>
             </div>
-            <div>
-              <h4 className="mb-4 text-[12px] font-bold uppercase tracking-widest text-ink">
-                Contact
-              </h4>
-              <a
-                href={`mailto:${SALES_EMAIL}`}
-                className="text-[14px] text-slate-text hover:text-rose-gold-deep"
-              >
-                {SALES_EMAIL}
-              </a>
-            </div>
           </div>
-          <p className="border-t border-outline-variant/20 pt-8 text-center text-[12px] text-taupe">
-            © {new Date().getFullYear()} {BRAND_NAME}. All rights reserved. · TCPA · FCC · DNC ready
+          <p className="mt-12 border-t border-outline-variant/15 pt-8 text-center text-[12px] text-taupe">
+            © {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.
           </p>
         </div>
       </footer>
