@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AriLogo } from "@/components/brand/ari-logo";
 
 export const metadata: Metadata = {
   title: "SMS Consent & Opt-In | ARI",
@@ -10,10 +11,20 @@ export const metadata: Metadata = {
 
 export default function SmsConsentPage() {
   return (
-    <main className="min-h-screen bg-cream text-ink">
-      <div className="mx-auto max-w-3xl px-6 py-12 sm:py-16">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.2em] text-taupe">ARI</p>
-        <h1 className="mt-2 font-serif text-[36px] font-semibold leading-tight">
+    <div className="min-h-screen bg-cream text-ink">
+      <header className="border-b border-outline-variant/15 bg-ivory px-4 py-4 md:px-8">
+        <div className="mx-auto flex max-w-3xl items-center justify-between">
+          <Link href="/">
+            <AriLogo height={40} />
+          </Link>
+          <Link href="/sign-up" className="text-[14px] font-semibold text-rose-gold-deep hover:underline">
+            Start Free
+          </Link>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-3xl px-4 py-16 md:px-8">
+        <h1 className="font-serif text-[36px] font-semibold leading-tight">
           SMS consent &amp; opt-in
         </h1>
         <p className="mt-3 text-[15px] text-slate-text">
@@ -95,13 +106,15 @@ export default function SmsConsentPage() {
             <Link href="/privacy" className="text-rose-gold-deep underline">
               Privacy policy
             </Link>
-            {" · "}
-            <Link href="/" className="text-rose-gold-deep underline">
-              Home
-            </Link>
           </p>
         </section>
-      </div>
-    </main>
+
+        <p className="mt-8 text-center text-[14px] text-taupe">
+          <Link href="/" className="font-medium text-rose-gold-deep hover:underline">
+            ← Back to home
+          </Link>
+        </p>
+      </main>
+    </div>
   );
 }
