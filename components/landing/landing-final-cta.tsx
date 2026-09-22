@@ -1,4 +1,5 @@
 import { StartFreeButton } from "@/components/landing/start-free-button";
+import { FOUNDING_100 } from "@/lib/marketing/founding";
 
 export function LandingFinalCta() {
   return (
@@ -11,21 +12,24 @@ export function LandingFinalCta() {
         }}
         aria-hidden
       />
-      <div className="landing-shell relative flex flex-col items-center justify-between gap-8 md:flex-row md:gap-12">
-        <div className="max-w-xl text-center md:text-left">
+      <div className="landing-shell relative">
+        <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
           <h2 className="font-serif text-[32px] font-semibold leading-tight text-ink md:text-[38px] lg:text-[42px]">
-            Start your 14-day free trial.
+            Start your {FOUNDING_100.trialDays}-day free trial.
           </h2>
-          <p className="mt-4 text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
-            Join 1,000+ real estate agents who trust ARI to turn leads into closed deals.
+          <p className="mt-4 max-w-2xl text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
+            Join {FOUNDING_100.name} — white-glove setup, founding-member pricing, and a CRM that
+            turns leads into conversations and closed deals.
           </p>
-          <p className="mt-3 text-[13px] text-taupe">No credit card required.</p>
+          <StartFreeButton
+            location="final-cta"
+            showArrow
+            className="mt-8 !px-12 !py-4 !text-[15px]"
+          />
+          <p className="mt-4 text-[13px] text-taupe">
+            No credit card required · Cancel anytime
+          </p>
         </div>
-        <StartFreeButton
-          location="final-cta"
-          showArrow
-          className="shrink-0 !px-12 !py-4 !text-[15px]"
-        />
       </div>
     </section>
   );

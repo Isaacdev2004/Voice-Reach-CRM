@@ -31,10 +31,14 @@ export function StartFreeButton({
       onClick={() =>
         trackMarketingEvent("start_trial_click", { location, label: label.toLowerCase() })
       }
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-8 py-3 text-[14px] font-bold uppercase tracking-wide transition-all active:scale-[0.98] ${styles} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-8 py-3 text-[14px] font-bold uppercase tracking-wide transition-all active:scale-[0.98] ${styles} ${className}`}
     >
-      {label}
-      {showArrow ? <span aria-hidden>→</span> : null}
+      <span>{label}</span>
+      {showArrow ? (
+        <span aria-hidden className="text-[1.05em] leading-none">
+          →
+        </span>
+      ) : null}
     </Link>
   );
 }
