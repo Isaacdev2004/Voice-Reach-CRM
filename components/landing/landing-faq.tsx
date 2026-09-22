@@ -41,12 +41,12 @@ export function LandingFaq() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="bg-cream py-20 md:py-24">
-      <div className="mx-auto max-w-3xl px-4 md:px-8">
-        <p className="text-center text-label-md font-semibold uppercase tracking-widest text-rose-gold-deep">
+    <section id="faq" className="bg-cream py-16 md:py-20 lg:py-24">
+      <div className="landing-shell mx-auto max-w-[44rem]">
+        <p className="text-center text-label-md font-semibold uppercase tracking-widest text-rose-gold-deep md:text-[13px]">
           FAQ
         </p>
-        <h2 className="mt-3 text-center font-serif text-[26px] font-semibold text-ink md:text-[34px]">
+        <h2 className="mt-3 text-center font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
           Common questions
         </h2>
         <ul className="mt-10 space-y-3">

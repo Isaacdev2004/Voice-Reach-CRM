@@ -33,16 +33,16 @@ export function DemoVideo() {
   const onPlay = () => trackMarketingEvent("demo_video_play", { location: "landing" });
 
   return (
-    <section id="demo" className="scroll-mt-24 bg-ivory py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-4 md:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
+    <section id="demo" className="scroll-mt-24 bg-ivory py-16 md:py-20 lg:py-24">
+      <div className="landing-shell">
+        <div className="mx-auto max-w-[40rem] text-center lg:max-w-[44rem]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep md:text-[12px]">
             See ARI in action
           </p>
-          <h2 className="mt-3 font-serif text-[26px] font-semibold text-ink md:text-[34px]">
+          <h2 className="mt-3 font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
             60–90 second demo
           </h2>
-          <p className="mt-3 text-[15px] leading-relaxed text-slate-text">
+          <p className="mt-3 text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
             From new lead to automated follow-up to your next call — the workflow agents use every
             day.
           </p>

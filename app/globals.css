@@ -293,6 +293,37 @@
     color: transparent;
   }
 
+  /* Landing page — wider on desktop so hero doesn’t float in empty margins */
+  .landing-shell {
+    width: 100%;
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .landing-shell {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .landing-shell {
+      max-width: 86rem;
+      padding-left: 2.5rem;
+      padding-right: 2.5rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .landing-shell {
+      max-width: 90rem;
+    }
+  }
+
   /* Subtle, calmer focus ring matching the palette */
   *:focus-visible {
     outline: none;

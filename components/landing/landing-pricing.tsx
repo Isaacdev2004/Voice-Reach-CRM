@@ -17,13 +17,13 @@ export function LandingPricing() {
   const [annual, setAnnual] = useState(false);
 
   return (
-    <section id="pricing" className="bg-cream py-20 md:py-28">
-      <div className="mx-auto max-w-6xl px-4 md:px-8">
+    <section id="pricing" className="bg-cream py-16 md:py-20 lg:py-24">
+      <div className="landing-shell">
         <div className="text-center">
-          <h2 className="font-serif text-[28px] font-semibold text-ink md:text-[36px]">
+          <h2 className="font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
             Start free. Scale when you&apos;re ready.
           </h2>
-          <p className="mx-auto mt-3 w-full max-w-[36rem] px-2 text-[15px] leading-relaxed text-slate-text">
+          <p className="mx-auto mt-3 w-full max-w-[40rem] px-2 text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
             <strong className="font-semibold text-ink">Growth</strong> is our recommended plan for
             active agents. {FOUNDING_100.name} members get {FOUNDING_100.trialDays} days free +
             founding rate locked 3 months. Annual billing saves ~2 months.
