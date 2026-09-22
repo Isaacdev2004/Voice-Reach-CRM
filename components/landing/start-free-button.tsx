@@ -8,6 +8,7 @@ type StartFreeButtonProps = {
   variant?: "primary" | "light" | "outline";
   label?: string;
   location?: string;
+  showArrow?: boolean;
 };
 
 export function StartFreeButton({
@@ -15,6 +16,7 @@ export function StartFreeButton({
   variant = "primary",
   label = "Start Free",
   location = "landing",
+  showArrow = false,
 }: StartFreeButtonProps) {
   const styles =
     variant === "light"
@@ -29,9 +31,10 @@ export function StartFreeButton({
       onClick={() =>
         trackMarketingEvent("start_trial_click", { location, label: label.toLowerCase() })
       }
-      className={`inline-flex items-center justify-center rounded-full px-8 py-3 text-[14px] font-bold uppercase tracking-wide transition-all active:scale-[0.98] ${styles} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full px-8 py-3 text-[14px] font-bold uppercase tracking-wide transition-all active:scale-[0.98] ${styles} ${className}`}
     >
       {label}
+      {showArrow ? <span aria-hidden>→</span> : null}
     </Link>
   );
 }
