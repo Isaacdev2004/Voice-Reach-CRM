@@ -3,6 +3,7 @@
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Modal, ModalField, ModalFooterActions, modalInputClass } from "@/components/crm/modal";
 import { VoiceCloningStrip } from "@/components/crm/voice-cloning-strip";
+import { AppToast } from "@/components/ui/app-toast";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { isUuid } from "@/lib/contacts/is-uuid";
@@ -341,21 +342,7 @@ export function VoiceStudioWorkspace() {
 
   return (
     <>
-      {toast ? (
-        <div
-          className={cn(
-            "fixed bottom-6 right-6 z-[150] flex max-w-sm items-center gap-2 rounded-xl border px-4 py-3 shadow-card",
-            toast.tone === "success" ? "border-emerald-muted/30 bg-ivory" : "border-error/30 bg-ivory",
-          )}
-          role="status"
-        >
-          <Icon
-            name={toast.tone === "success" ? "check_circle" : "error"}
-            className={toast.tone === "success" ? "text-emerald-muted" : "text-error"}
-          />
-          <span className="text-[14px] text-ink">{toast.message}</span>
-        </div>
-      ) : null}
+      {toast ? <AppToast message={toast.message} tone={toast.tone} /> : null}
 
       <div className="grid grid-cols-12 gap-6 items-start">
         <div className="col-span-12 md:col-span-2 space-y-4">
@@ -413,30 +400,7 @@ export function VoiceStudioWorkspace() {
           </p>
         </LuxuryCard>
 
-        <div className="col-span-12 md:col-span-3 space-y-4">
-          <LuxuryCard padding="md">
-            <h3 className="font-medium text-ink mb-3">Current script</h3>
-            <p className="mb-2 text-[12px] text-taupe">
-              Neutral sample for any agent — replace merge fields or rewrite before you record.
-            </p>
-            <textarea
-              value={scriptText}
-              onChange={(e) => setScriptText(e.target.value)}
-              onBlur={handleScriptBlur}
-              rows={8}
-              className="w-full resize-y rounded-xl border border-outline-variant/20 bg-champagne/40 p-4 text-[14px] leading-relaxed text-ink outline-none focus:border-rose-gold/40"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                setScriptText(DEFAULT_VOICE_SCRIPT);
-                saveScriptText(DEFAULT_VOICE_SCRIPT);
-              }}
-              className="mt-2 text-[12px] font-medium text-rose-gold-deep hover:underline"
-            >
-              Reset to neutral sample
-            </button>
-          </LuxuryCard>
+        <div className="col-span-12 md:col-span-3">
           <LuxuryCard padding="md">
             <h3 className="font-medium text-ink mb-3">Assign to campaign</h3>
             <p className="mb-3 text-[12px] leading-relaxed text-taupe">
@@ -476,6 +440,54 @@ export function VoiceStudioWorkspace() {
           </LuxuryCard>
         </div>
       </div>
+
+      <LuxuryCard padding="lg" className="space-y-5">
+        <div>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="font-serif text-[22px] font-semibold text-ink">Script &amp; AI voice</h2>
+              <p className="mt-1 text-[14px] text-slate-text">
+                Write your script and generate audio in one place — then approve and link to a campaign.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setScriptText(DEFAULT_VOICE_SCRIPT);
+                saveScriptText(DEFAULT_VOICE_SCRIPT);
+              }}
+              className="text-[12px] font-medium text-rose-gold-deep hover:underline"
+            >
+              Reset to neutral sample
+            </button>
+          </div>
+          <textarea
+            value={scriptText}
+            onChange={(e) => setScriptText(e.target.value)}
+            onBlur={handleScriptBlur}
+            rows={7}
+            className="mt-4 w-full resize-y rounded-xl border border-outline-variant/20 bg-champagne/40 p-4 text-[14px] leading-relaxed text-ink outline-none focus:border-rose-gold/40"
+            placeholder="Hi {{first_name}}, this is {{agent_name}}…"
+          />
+          <div className="mt-3 flex gap-2 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-[13px] leading-relaxed text-amber-950">
+            <Icon name="info" className="mt-0.5 shrink-0 text-[18px] text-amber-700" />
+            <p>
+              <strong className="font-medium">Numbers &amp; addresses:</strong> AI voice reads digits in
+              groups (e.g. &quot;6910&quot; may sound like &quot;sixty-nine ten&quot;). Spell them out for
+              clarity — &quot;six nine one zero Main Street&quot; or &quot;five five five, one two three,
+              four five six seven.&quot;
+            </p>
+          </div>
+        </div>
+        <div className="border-t border-outline-variant/10 pt-5">
+          <VoiceCloningStrip
+            embedded
+            scriptText={scriptText}
+            assets={assets}
+            onGenerated={() => void refresh()}
+          />
+        </div>
+      </LuxuryCard>
 
       <section>
         <h2 className="font-serif text-[22px] font-semibold text-ink mb-4">Saved recordings</h2>
@@ -588,12 +600,6 @@ export function VoiceStudioWorkspace() {
           </button>
         </div>
       </section>
-
-      <VoiceCloningStrip
-        scriptText={scriptText}
-        assets={assets}
-        onGenerated={() => void refresh()}
-      />
 
       <Modal
         open={saveOpen}

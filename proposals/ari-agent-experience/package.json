@@ -1,0 +1,12 @@
+{
+  "name": "ari-agent-experience-one-pager",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node generate-one-pager.mjs"
+  },
+  "dependencies": {
+    "puppeteer": "^25.11.0"
+  }
+}

@@ -17,8 +17,8 @@ export function AriLogo({ className, height = 44 }: AriLogoProps) {
       <Image
         src="/brand/ari-logo.png"
         alt="ARI"
-        width={1024}
-        height={1024}
+        width={864}
+        height={597}
         priority
         className="h-full w-auto max-w-none object-contain object-left"
       />

@@ -9,6 +9,8 @@ type DbCampaignStep = {
   day_label?: string | null;
   time_label?: string | null;
   status?: string | null;
+  voice_asset_id?: string | null;
+  conditions?: { voiceAssetId?: string } | null;
 };
 
 type DbCampaign = {
@@ -25,17 +27,27 @@ function mapDbStepStatus(status: string | null | undefined): CampaignStepStatus 
   return "draft";
 }
 
-export function dbStepsToCampaignSteps(rows: DbCampaignStep[]): CampaignStep[] {
-  return rows.map((row) => ({
-    id: row.id,
-    order: row.step_order,
-    type: row.type as CampaignStep["type"],
-    title: row.title,
-    description: row.description ?? "",
-    dayLabel: row.day_label ?? `Day ${row.step_order}`,
-    timeLabel: row.time_label ?? "9:00 AM",
-    status: mapDbStepStatus(row.status),
-  }));
+export function dbStepsToCampaignSteps(
+  rows: DbCampaignStep[],
+  voiceLookup?: Map<string, { title: string; playbackUrl?: string | null }>,
+): CampaignStep[] {
+  return rows.map((row) => {
+    const voiceAssetId = row.voice_asset_id ?? row.conditions?.voiceAssetId ?? null;
+    const voiceMeta = voiceAssetId ? voiceLookup?.get(voiceAssetId) : undefined;
+    return {
+      id: row.id,
+      order: row.step_order,
+      type: row.type as CampaignStep["type"],
+      title: row.title,
+      description: row.description ?? "",
+      dayLabel: row.day_label ?? `Day ${row.step_order}`,
+      timeLabel: row.time_label ?? "9:00 AM",
+      status: mapDbStepStatus(row.status),
+      voiceAssetId,
+      voiceAssetTitle: voiceMeta?.title ?? null,
+      voicePlaybackUrl: voiceMeta?.playbackUrl ?? null,
+    };
+  });
 }
 
 export function campaignFromApi(

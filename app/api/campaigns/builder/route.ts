@@ -20,6 +20,7 @@ const StepSchema = z.object({
   dayLabel: z.string().optional(),
   timeLabel: z.string().optional(),
   status: z.enum(["sent", "active", "pending", "draft"]).optional(),
+  voiceAssetId: z.string().uuid().nullable().optional(),
 });
 
 const BlueprintSchema = z.object({
@@ -94,6 +95,7 @@ function mapStepsToBlueprint(steps: z.infer<typeof StepSchema>[]): CampaignBluep
     delayMinutes: step.delayMinutes ?? guessDelay(step),
     dayLabel: step.dayLabel,
     timeLabel: step.timeLabel,
+    conditions: step.voiceAssetId ? { voiceAssetId: step.voiceAssetId } : undefined,
   }));
 }
 

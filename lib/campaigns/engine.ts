@@ -45,22 +45,58 @@ export async function persistSteps(
   campaignId: string,
   steps: CampaignBlueprintStep[],
 ) {
+  const { data: existingSteps } = await supabaseAdmin
+    .from("campaign_steps")
+    .select("step_order, type, voice_asset_id, conditions")
+    .eq("campaign_id", campaignId)
+    .eq("owner_id", ownerId);
+
+  const voiceBySlot = new Map<string, { voiceAssetId: string; conditions: Record<string, unknown> }>();
+  for (const row of existingSteps ?? []) {
+    const voiceAssetId =
+      (row as { voice_asset_id?: string | null }).voice_asset_id ||
+      ((row as { conditions?: { voiceAssetId?: string } }).conditions?.voiceAssetId ?? null);
+    if (!voiceAssetId) continue;
+    const key = `${row.type}:${row.step_order}`;
+    voiceBySlot.set(key, {
+      voiceAssetId,
+      conditions: {
+        ...(((row as { conditions?: Record<string, unknown> }).conditions ?? {}) as Record<
+          string,
+          unknown
+        >),
+        voiceAssetId,
+      },
+    });
+  }
+
   await supabaseAdmin.from("campaign_steps").delete().eq("campaign_id", campaignId);
   if (!steps.length) return [];
 
-  const rows = steps.map((step) => ({
-    owner_id: ownerId,
-    campaign_id: campaignId,
-    step_order: step.order,
-    type: step.type,
-    title: step.title,
-    description: step.description ?? "",
-    delay_minutes: step.delayMinutes ?? 0,
-    day_label: step.dayLabel ?? null,
-    time_label: step.timeLabel ?? null,
-    conditions: step.conditions ?? {},
-    status: "active",
-  }));
+  const rows = steps.map((step) => {
+    const explicitVoice =
+      (step.conditions as { voiceAssetId?: string } | undefined)?.voiceAssetId ?? null;
+    const preserved = voiceBySlot.get(`${step.type}:${step.order}`);
+    const voiceAssetId = explicitVoice ?? preserved?.voiceAssetId ?? null;
+    const conditions = voiceAssetId
+      ? { ...(step.conditions ?? {}), voiceAssetId }
+      : (step.conditions ?? preserved?.conditions ?? {});
+
+    return {
+      owner_id: ownerId,
+      campaign_id: campaignId,
+      step_order: step.order,
+      type: step.type,
+      title: step.title,
+      description: step.description ?? "",
+      delay_minutes: step.delayMinutes ?? 0,
+      day_label: step.dayLabel ?? null,
+      time_label: step.timeLabel ?? null,
+      conditions,
+      voice_asset_id: voiceAssetId,
+      status: "active",
+    };
+  });
 
   const { data, error } = await supabaseAdmin
     .from("campaign_steps")

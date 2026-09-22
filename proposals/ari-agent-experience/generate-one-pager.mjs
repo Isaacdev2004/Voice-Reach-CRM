@@ -1,0 +1,207 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import puppeteer from "puppeteer";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const OUT_DIR = __dirname;
+
+const META = {
+  title: "ARI — Agent Experience",
+  subtitle: "What agents do vs. what the platform handles",
+  product: "ARI (myari.io)",
+  preparedBy: "Kikzeny Cartagena LLC",
+  date: "September 22, 2026",
+  version: "Founding 100 · Launch",
+};
+
+function buildHtml() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>${META.title}</title>
+<style>
+  @page { margin: 0.65in; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: #1A1410;
+    line-height: 1.5;
+    font-size: 10.5pt;
+    max-width: 8.5in;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  h1 { color: #A67C5B; font-size: 22pt; border-bottom: 2px solid #F5EFE4; padding-bottom: 6px; margin: 0 0 8px; }
+  h2 { color: #333; font-size: 12.5pt; margin: 18px 0 8px; page-break-after: avoid; }
+  .cover { text-align: center; padding: 28px 0 22px; border-bottom: 1px solid #E8DFD0; margin-bottom: 20px; }
+  .cover .sub { color: #666; font-size: 12pt; margin-top: 6px; }
+  .cover .tagline { margin-top: 14px; font-size: 11pt; color: #555; font-style: italic; }
+  .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; margin-bottom: 18px; font-size: 10pt; }
+  .meta p { margin: 2px 0; }
+  .summary {
+    background: #FAF7F2;
+    border: 1px solid #E8DFD0;
+    border-left: 4px solid #A67C5B;
+    padding: 12px 14px;
+    margin: 16px 0 20px;
+    font-size: 11pt;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 9.5pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #ddd; padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: #F5EFE4; font-weight: bold; }
+  ul { margin: 6px 0 12px; padding-left: 20px; }
+  li { margin-bottom: 3px; }
+  p { margin: 6px 0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .box { background: #FAF7F2; border: 1px solid #E8DFD0; border-radius: 6px; padding: 10px 12px; }
+  .box h3 { margin: 0 0 8px; font-size: 11pt; color: #A67C5B; }
+  .check { color: #2d6a4f; font-weight: bold; }
+  .x { color: #888; }
+  .footer { text-align: center; margin-top: 24px; font-size: 8.5pt; color: #888; border-top: 1px solid #E8DFD0; padding-top: 12px; }
+  strong { color: #1A1410; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>${META.title}</h1>
+  <div class="sub">${META.subtitle}</div>
+  <div class="tagline">Agents sign up, we set them up, they run follow-up from one dashboard — no phone carriers, no developer setup.</div>
+</div>
+
+<div class="meta">
+  <p><strong>Product:</strong> ${META.product}</p>
+  <p><strong>Date:</strong> ${META.date}</p>
+  <p><strong>Prepared by:</strong> ${META.preparedBy}</p>
+  <p><strong>Version:</strong> ${META.version}</p>
+</div>
+
+<div class="summary">
+  <strong>Short answer:</strong> Agents do <em>not</em> purchase their own phone numbers or configure Twilio, Vercel, Supabase, or webhooks.
+  Messaging runs on the ARI platform. Agents create an account, get white-glove onboarding, and use the CRM to manage leads and campaigns.
+</div>
+
+<h2>Do agents need their own phone numbers for SMS?</h2>
+<p><strong>No — not at launch.</strong> SMS is sent through ARI&apos;s platform Twilio account (configured once in production). Agents message from the shared ARI sending number. They do not open a Twilio account or buy a number separately.</p>
+<p><em>Future option (Team / brokerage tier):</em> dedicated local numbers per agent or office — optional add-on, not required at sign-up.</p>
+
+<table>
+<tr><th>Channel</th><th>How it works for agents</th><th>Agent setup required?</th></tr>
+<tr><td><strong>SMS</strong></td><td>Sent via platform Twilio number</td><td>No</td></tr>
+<tr><td><strong>Ringless voicemail</strong></td><td>Sent via platform Slybroadcast</td><td>No</td></tr>
+<tr><td><strong>Email</strong></td><td>Sent via platform Resend</td><td>No</td></tr>
+<tr><td><strong>AI voice scripts</strong></td><td>Generated via platform ElevenLabs</td><td>No — record or generate in Voice Scripts</td></tr>
+</table>
+
+<h2>What happens when someone signs up</h2>
+<table>
+<tr><th>Step</th><th>Agent does</th><th>ARI / platform handles</th></tr>
+<tr><td>1</td><td>Creates account (email + password)</td><td>Authentication, workspace provisioning</td></tr>
+<tr><td>2</td><td>Starts 14-day trial / selects plan</td><td>Stripe billing &amp; subscription</td></tr>
+<tr><td>3</td><td>Attends onboarding call (Founding 100)</td><td>Lead import, first campaign, dashboard walkthrough</td></tr>
+<tr><td>4</td><td>Uses dashboard daily</td><td>Hosting, database, compliance, messaging delivery</td></tr>
+</table>
+<p><strong>Sign-up:</strong> ~2 minutes &nbsp;|&nbsp; <strong>Go-live:</strong> typically 24–48 hours with white-glove setup</p>
+
+<div class="two-col">
+  <div class="box">
+    <h3><span class="check">✓</span> What agents do in the app</h3>
+    <ul>
+      <li>Import leads (CSV or manual)</li>
+      <li>Build follow-up campaigns (SMS, email, ringless VM)</li>
+      <li>Record or generate voicemail in Voice Scripts</li>
+      <li>Launch campaigns when ready</li>
+      <li>Work dashboard — who to call next, replies, tasks</li>
+      <li>Optional: Google Calendar, Dotloop</li>
+    </ul>
+  </div>
+  <div class="box">
+    <h3><span class="x">✗</span> What agents never do</h3>
+    <ul>
+      <li>Buy Twilio numbers or SMS accounts</li>
+      <li>Configure Vercel, Supabase, or servers</li>
+      <li>Set up webhooks or API keys</li>
+      <li>Manage Slybroadcast, Resend, or ElevenLabs</li>
+      <li>Handle TCPA/DNC infrastructure manually</li>
+    </ul>
+  </div>
+</div>
+
+<h2>Platform backend (already configured — not agent-facing)</h2>
+<ul>
+  <li>Production hosting &amp; domain (myari.io)</li>
+  <li>Database &amp; file storage (Supabase)</li>
+  <li>Twilio SMS + STOP/HELP compliance webhooks</li>
+  <li>Slybroadcast ringless voicemail delivery</li>
+  <li>Resend transactional email</li>
+  <li>ElevenLabs AI voice generation</li>
+  <li>Stripe subscriptions · Clerk authentication</li>
+  <li>Consent tracking, DNC scrubbing, quiet hours</li>
+</ul>
+
+<h2>Agent pricing (messaging included or billed through ARI)</h2>
+<table>
+<tr><th>Plan</th><th>From</th><th>Highlights</th></tr>
+<tr><td>Starter</td><td>$49/mo</td><td>CRM + pay-as-you-go SMS / RVM</td></tr>
+<tr><td>Growth</td><td>$99/mo</td><td>750 SMS + 250 RVM included / mo</td></tr>
+<tr><td>Pro</td><td>$199/mo</td><td>2,000 SMS + 1,000 RVM / mo</td></tr>
+<tr><td>Team</td><td>From $299/mo</td><td>Multi-user, pooled messaging, custom volume</td></tr>
+</table>
+<p>Agents pay ARI — not a separate Twilio or carrier bill.</p>
+
+<h2>Compliance note</h2>
+<p>ARI includes consent tracking, opt-out (STOP), DNC scrubbing, and quiet hours. Agents must only message contacts who have opted in. Platform handles delivery infrastructure; agents control who gets enrolled in campaigns.</p>
+
+<div class="footer">
+  ${META.product} · ${META.preparedBy} · Confidential — for partner &amp; onboarding discussion<br/>
+  Questions: hello@myari.io
+</div>
+
+</body>
+</html>`;
+}
+
+const CHROME_PATHS = [
+  process.env.CHROME_PATH,
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+  path.join(process.env.LOCALAPPDATA ?? "", "Google", "Chrome", "Application", "chrome.exe"),
+].filter(Boolean);
+
+function resolveChrome() {
+  for (const candidate of CHROME_PATHS) {
+    if (candidate && fs.existsSync(candidate)) return candidate;
+  }
+  return undefined;
+}
+
+async function generatePdf() {
+  const html = buildHtml();
+  const htmlPath = path.join(OUT_DIR, "ARI-Agent-Experience-One-Pager.html");
+  fs.writeFileSync(htmlPath, html, "utf8");
+
+  const executablePath = resolveChrome();
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: "networkidle0" });
+  const pdfPath = path.join(OUT_DIR, "ARI-Agent-Experience-One-Pager.pdf");
+  await page.pdf({
+    path: pdfPath,
+    format: "Letter",
+    printBackground: true,
+    margin: { top: "0.65in", right: "0.65in", bottom: "0.65in", left: "0.65in" },
+  });
+  await browser.close();
+  return { htmlPath, pdfPath };
+}
+
+console.log("Generating ARI Agent Experience one-pager...");
+const { htmlPath, pdfPath } = await generatePdf();
+console.log("HTML:", htmlPath);
+console.log("PDF:", pdfPath);
+console.log("Done.");

@@ -1,6 +1,9 @@
+"use client";
+
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import type { CampaignStep, CampaignStepStatus } from "@/lib/crm/types";
+import { useCallback, useRef, useState } from "react";
 import { LuxuryCard } from "./luxury-card";
 
 const stepIcons: Record<CampaignStep["type"], string> = {
@@ -27,10 +30,40 @@ type CampaignFlowStepProps = {
   editable?: boolean;
   onRemove?: (stepId: string) => void;
   onEdit?: (step: CampaignStep) => void;
+  onChangeVoice?: (step: CampaignStep) => void;
 };
 
-export function CampaignFlowStep({ step, editable, onRemove, onEdit }: CampaignFlowStepProps) {
+export function CampaignFlowStep({
+  step,
+  editable,
+  onRemove,
+  onEdit,
+  onChangeVoice,
+}: CampaignFlowStepProps) {
   const status = statusConfig[step.status];
+  const [playing, setPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playVoicePreview = useCallback(() => {
+    if (!step.voicePlaybackUrl) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setPlaying(false);
+      return;
+    }
+    const audio = new Audio(step.voicePlaybackUrl);
+    audioRef.current = audio;
+    audio.onended = () => {
+      setPlaying(false);
+      audioRef.current = null;
+    };
+    void audio.play();
+    setPlaying(true);
+  }, [step.voicePlaybackUrl]);
+
+  const isVoicemail = step.type === "voicemail";
+  const hasVoice = Boolean(step.voiceAssetId);
 
   return (
     <LuxuryCard
@@ -76,6 +109,56 @@ export function CampaignFlowStep({ step, editable, onRemove, onEdit }: CampaignF
       <p className="mt-3 text-[12px] font-medium text-taupe">
         {step.dayLabel} · {step.timeLabel}
       </p>
+
+      {isVoicemail ? (
+        <div className="mt-3 w-full rounded-xl border border-outline-variant/15 bg-cream/60 px-3 py-2.5 text-left">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-taupe">Voicemail</p>
+          {hasVoice ? (
+            <>
+              <p className="mt-1 truncate text-[13px] font-medium text-ink">
+                {step.voiceAssetTitle ?? "Recording linked"}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {step.voicePlaybackUrl ? (
+                  <button
+                    type="button"
+                    onClick={playVoicePreview}
+                    className="inline-flex items-center gap-1 rounded-full bg-rose-gold/15 px-2.5 py-1 text-[11px] font-medium text-rose-gold-deep hover:bg-rose-gold/25"
+                  >
+                    <Icon name={playing ? "pause" : "play_arrow"} className="text-[14px]" />
+                    {playing ? "Pause" : "Preview"}
+                  </button>
+                ) : null}
+                {editable && onChangeVoice ? (
+                  <button
+                    type="button"
+                    onClick={() => onChangeVoice(step)}
+                    className="inline-flex items-center gap-1 rounded-full border border-outline-variant/25 px-2.5 py-1 text-[11px] font-medium text-taupe hover:bg-champagne"
+                  >
+                    <Icon name="swap_horiz" className="text-[14px]" />
+                    Change
+                  </button>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="mt-1 text-[12px] text-taupe">No recording assigned yet</p>
+              {editable && onChangeVoice ? (
+                <button
+                  type="button"
+                  onClick={() => onChangeVoice(step)}
+                  className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-rose-gold-deep hover:underline"
+                >
+                  <Icon name="add_circle" className="text-[14px]" />
+                  Assign recording
+                </button>
+              ) : null}
+            </>
+          )}
+        </div>
+      ) : null}
+
       {editable && onEdit ? (
         <button
           type="button"
@@ -103,9 +186,16 @@ type CampaignFlowProps = {
   editable?: boolean;
   onRemoveStep?: (stepId: string) => void;
   onEditStep?: (step: CampaignStep) => void;
+  onChangeStepVoice?: (step: CampaignStep) => void;
 };
 
-export function CampaignFlow({ steps, editable, onRemoveStep, onEditStep }: CampaignFlowProps) {
+export function CampaignFlow({
+  steps,
+  editable,
+  onRemoveStep,
+  onEditStep,
+  onChangeStepVoice,
+}: CampaignFlowProps) {
   return (
     <div className="relative overflow-x-auto pb-4">
       <div className="flex min-w-max items-stretch gap-0 px-4">
@@ -116,6 +206,7 @@ export function CampaignFlow({ steps, editable, onRemoveStep, onEditStep }: Camp
               editable={editable}
               onRemove={onRemoveStep}
               onEdit={onEditStep}
+              onChangeVoice={onChangeStepVoice}
             />
             {i < steps.length - 1 ? (
               <div className="mx-2 h-0.5 w-12 shrink-0 campaign-flow-line" aria-hidden />

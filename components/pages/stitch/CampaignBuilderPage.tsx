@@ -1,15 +1,22 @@
 "use client";
 
 import { AddCampaignStepModal } from "@/components/crm/add-campaign-step-modal";
+import { ChangeStepVoiceModal } from "@/components/crm/change-step-voice-modal";
 import { EditCampaignStepModal } from "@/components/crm/edit-campaign-step-modal";
 import { ActivateCampaignModal } from "@/components/crm/activate-campaign-modal";
 import { CampaignEditorStrip } from "@/components/crm/campaign-editor-strip";
 import { CampaignFlow } from "@/components/crm/campaign-flow-step";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
+import { AppToast } from "@/components/ui/app-toast";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
-import { campaignFromApi, createBlankCampaign } from "@/lib/crm/campaign-blueprint";
+import {
+  campaignFromApi,
+  createBlankCampaign,
+  dbStepsToCampaignSteps,
+} from "@/lib/crm/campaign-blueprint";
+import { useVoiceAssets } from "@/lib/hooks/use-voice-assets";
 import { saveCampaignBuilder, saveTemplateLocally } from "@/lib/crm/campaign-storage";
 import { campaignDurationFromSteps, reorderSteps } from "@/lib/crm/campaign-steps";
 import { instantiateTemplate, PRODUCT_CAMPAIGN_TEMPLATES } from "@/lib/crm/campaign-templates";
@@ -38,6 +45,16 @@ export function CampaignBuilderPage() {
   const [activating, setActivating] = useState(false);
   const [loadingCampaign, setLoadingCampaign] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
+  const [voiceStep, setVoiceStep] = useState<CampaignStep | null>(null);
+  const { assets: voiceAssets, loading: voiceAssetsLoading } = useVoiceAssets();
+
+  const voiceLookup = useMemo(() => {
+    const map = new Map<string, { title: string; playbackUrl?: string | null }>();
+    for (const asset of voiceAssets) {
+      map.set(asset.id, { title: asset.title, playbackUrl: asset.playbackUrl });
+    }
+    return map;
+  }, [voiceAssets]);
 
   const durationDays = useMemo(
     () => campaignDurationFromSteps(campaign.steps),
@@ -87,6 +104,8 @@ export function CampaignBuilderPage() {
           day_label?: string;
           time_label?: string;
           status?: string;
+          voice_asset_id?: string | null;
+          conditions?: { voiceAssetId?: string } | null;
         }>;
       }>(`/api/campaigns/${editId}`);
 
@@ -99,6 +118,7 @@ export function CampaignBuilderPage() {
       }
 
       const loaded = campaignFromApi(envelope.data.campaign, envelope.data.steps);
+      loaded.steps = dbStepsToCampaignSteps(envelope.data.steps, voiceLookup);
       setCampaign(loaded);
       setDbCampaignId(envelope.data.campaign.id);
       setCampaignStatus(
@@ -109,7 +129,24 @@ export function CampaignBuilderPage() {
     return () => {
       cancelled = true;
     };
-  }, [editId, resetToNewCampaign, router, searchParams]);
+  }, [editId, resetToNewCampaign, router, searchParams, voiceLookup]);
+
+  useEffect(() => {
+    if (!voiceLookup.size) return;
+    setCampaign((prev) => ({
+      ...prev,
+      steps: prev.steps.map((step) => {
+        if (!step.voiceAssetId) return step;
+        const meta = voiceLookup.get(step.voiceAssetId);
+        if (!meta) return step;
+        return {
+          ...step,
+          voiceAssetTitle: meta.title,
+          voicePlaybackUrl: meta.playbackUrl ?? null,
+        };
+      }),
+    }));
+  }, [voiceLookup]);
 
   const handleAddStep = useCallback(
     (step: CampaignStep) => {
@@ -225,25 +262,30 @@ export function CampaignBuilderPage() {
 
   const liveCampaignHref = dbCampaignId ? `/dashboard/campaigns/${dbCampaignId}` : null;
 
+  const handleVoiceSaved = (
+    stepId: string,
+    asset: { id: string; title: string; playbackUrl?: string | null },
+    message: string,
+  ) => {
+    setCampaign((prev) => ({
+      ...prev,
+      steps: prev.steps.map((s) =>
+        s.id === stepId
+          ? {
+              ...s,
+              voiceAssetId: asset.id,
+              voiceAssetTitle: asset.title,
+              voicePlaybackUrl: asset.playbackUrl ?? null,
+            }
+          : s,
+      ),
+    }));
+    showToast(message);
+  };
+
   return (
     <div className="luxury-page p-8 max-w-[1400px] w-full mx-auto space-y-8">
-      {toast ? (
-        <div
-          className={cn(
-            "fixed bottom-6 right-6 z-[150] flex max-w-sm items-center gap-2 rounded-xl border px-4 py-3 shadow-card",
-            toast.tone === "success"
-              ? "border-emerald-muted/30 bg-ivory"
-              : "border-error/30 bg-ivory",
-          )}
-          role="status"
-        >
-          <Icon
-            name={toast.tone === "success" ? "check_circle" : "error"}
-            className={toast.tone === "success" ? "text-emerald-muted" : "text-error"}
-          />
-          <span className="text-[14px] font-medium text-ink">{toast.message}</span>
-        </div>
-      ) : null}
+      {toast ? <AppToast message={toast.message} tone={toast.tone} /> : null}
 
       <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
@@ -409,6 +451,7 @@ export function CampaignBuilderPage() {
             editable
             onRemoveStep={handleRemoveStep}
             onEditStep={(step) => setEditingStep(step)}
+            onChangeStepVoice={(step) => setVoiceStep(step)}
           />
         )}
       </section>
@@ -460,6 +503,16 @@ export function CampaignBuilderPage() {
         durationDays={durationDays}
         onConfirm={handleActivate}
         loading={activating}
+      />
+
+      <ChangeStepVoiceModal
+        open={Boolean(voiceStep)}
+        step={voiceStep}
+        campaignId={dbCampaignId}
+        assets={voiceAssets}
+        assetsLoading={voiceAssetsLoading}
+        onClose={() => setVoiceStep(null)}
+        onSaved={handleVoiceSaved}
       />
     </div>
   );

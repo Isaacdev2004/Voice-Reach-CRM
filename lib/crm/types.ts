@@ -59,6 +59,10 @@ export type CampaignStep = {
   dayLabel: string;
   timeLabel: string;
   status: CampaignStepStatus;
+  /** Linked ringless voicemail recording (when type is voicemail) */
+  voiceAssetId?: string | null;
+  voiceAssetTitle?: string | null;
+  voicePlaybackUrl?: string | null;
 };
 
 export type CampaignDefinition = {

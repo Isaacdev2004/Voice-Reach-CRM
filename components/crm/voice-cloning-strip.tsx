@@ -23,6 +23,8 @@ type VoiceCloningStripProps = {
   scriptText: string;
   assets: VoiceAsset[];
   onGenerated?: () => void;
+  /** When true, renders inline inside the script card (no duplicate section chrome). */
+  embedded?: boolean;
 };
 
 const ENV_VOICE_PREFIX = "env:";
@@ -30,7 +32,12 @@ const ENV_VOICE_PREFIX = "env:";
 const CLONE_BLOCKED_HINT =
   "API cloning is not on your ElevenLabs plan. Use Link my voice below — paste the voice ID from ElevenCreative.";
 
-export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceCloningStripProps) {
+export function VoiceCloningStrip({
+  scriptText,
+  assets,
+  onGenerated,
+  embedded = false,
+}: VoiceCloningStripProps) {
   const [profiles, setProfiles] = useState<VoiceProfile[]>([]);
   const [envVoice, setEnvVoice] = useState<EnvVoice | null>(null);
   const [selectedVoiceKey, setSelectedVoiceKey] = useState("");
@@ -180,24 +187,23 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
   const hasVoice = Boolean(envVoice?.voiceId || profiles.length > 0);
   const canGenerate = apiConfigured || hasVoice;
 
-  return (
-    <>
-      <section className="rounded-[20px] border border-outline-variant/10 bg-ivory px-5 py-4 shadow-card">
+  const stripBody = (
         <div className="flex w-full min-w-0 flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bronze-light text-bronze">
-              <Icon name="settings_voice" className="text-[22px]" />
+          {!embedded ? (
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bronze-light text-bronze">
+                <Icon name="settings_voice" className="text-[22px]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
+                  AI voice (ElevenLabs)
+                </p>
+                <p className="mt-0.5 text-[14px] leading-relaxed text-slate-text">
+                  Write your script, pick a voice, generate audio, then link it to a campaign.
+                </p>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
-                AI voice (ElevenLabs)
-              </p>
-              <p className="mt-0.5 text-[14px] leading-relaxed text-slate-text">
-                Write any script above, generate audio, approve it, then link it to a campaign for
-                ringless voicemail.
-              </p>
-            </div>
-          </div>
+          ) : null}
 
           {!apiConfigured ? (
             <div className="rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] leading-relaxed text-error">
@@ -224,7 +230,7 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
           ) : (
             <ol className="grid gap-2 text-[13px] text-slate-text sm:grid-cols-3">
               <li className="rounded-xl bg-cream/80 px-3 py-2">
-                <span className="font-medium text-ink">1.</span> Write your script above
+                <span className="font-medium text-ink">1.</span> Edit your script
               </li>
               <li className="rounded-xl bg-cream/80 px-3 py-2">
                 <span className="font-medium text-ink">2.</span> Select voice under Speak as
@@ -322,7 +328,17 @@ export function VoiceCloningStrip({ scriptText, assets, onGenerated }: VoiceClon
             </button>
           </p>
         </div>
-      </section>
+  );
+
+  return (
+    <>
+      {embedded ? (
+        stripBody
+      ) : (
+        <section className="rounded-[20px] border border-outline-variant/10 bg-ivory px-5 py-4 shadow-card">
+          {stripBody}
+        </section>
+      )}
 
       <Modal
         open={linkOpen}
