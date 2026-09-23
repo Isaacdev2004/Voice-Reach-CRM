@@ -9,10 +9,20 @@ import {
 import type { Recurrence } from "@/lib/calendar/google";
 import { useEffect, useState } from "react";
 
+export type CalendarEventEdit = {
+  crmEventId: string;
+  title: string;
+  starts_at: string;
+  ends_at?: string | null;
+  description?: string | null;
+  meetingLink?: string | null;
+};
+
 type AddCalendarEventModalProps = {
   open: boolean;
   onClose: () => void;
   defaultDate?: Date | null;
+  editingEvent?: CalendarEventEdit | null;
   onCreated: () => void;
   connected: boolean;
 };
@@ -39,29 +49,51 @@ export function AddCalendarEventModal({
   open,
   onClose,
   defaultDate,
+  editingEvent,
   onCreated,
   connected,
 }: AddCalendarEventModalProps) {
+  const isEdit = Boolean(editingEvent);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("09:00");
   const [duration, setDuration] = useState("60");
   const [notes, setNotes] = useState("");
+  const [meetingLink, setMeetingLink] = useState("");
   const [recurrence, setRecurrence] = useState<Recurrence>("none");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    const base = defaultDate ?? new Date();
-    setTitle("");
-    setDate(toLocalDateValue(base));
-    setTime(toLocalTimeValue(base));
-    setDuration("60");
-    setNotes("");
-    setRecurrence("none");
+
+    if (editingEvent) {
+      const start = new Date(editingEvent.starts_at);
+      const end = editingEvent.ends_at
+        ? new Date(editingEvent.ends_at)
+        : new Date(start.getTime() + 60 * 60_000);
+      const durationMinutes = Math.max(15, Math.round((end.getTime() - start.getTime()) / 60_000));
+
+      setTitle(editingEvent.title);
+      setDate(toLocalDateValue(start));
+      setTime(toLocalTimeValue(start));
+      setDuration(String(durationMinutes));
+      setNotes(editingEvent.description ?? "");
+      setMeetingLink(editingEvent.meetingLink ?? "");
+      setRecurrence("none");
+    } else {
+      const base = defaultDate ?? new Date();
+      setTitle("");
+      setDate(toLocalDateValue(base));
+      setTime(toLocalTimeValue(base));
+      setDuration("60");
+      setNotes("");
+      setMeetingLink("");
+      setRecurrence("none");
+    }
+
     setError(null);
-  }, [open, defaultDate]);
+  }, [open, defaultDate, editingEvent]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,25 +104,44 @@ export function AddCalendarEventModal({
     try {
       const startsAt = new Date(`${date}T${time}`);
       const endsAt = new Date(startsAt.getTime() + Number(duration) * 60_000);
+      const trimmedLink = meetingLink.trim();
+      const linkPayload = trimmedLink ? trimmedLink : undefined;
 
-      const res = await fetch("/api/calendar/events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          startsAt: startsAt.toISOString(),
-          endsAt: endsAt.toISOString(),
-          description: notes.trim() || undefined,
-          recurrence,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Could not create event");
+      if (isEdit && editingEvent) {
+        const res = await fetch(`/api/calendar/events/${editingEvent.crmEventId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: title.trim(),
+            startsAt: startsAt.toISOString(),
+            endsAt: endsAt.toISOString(),
+            description: notes.trim() || undefined,
+            meetingLink: trimmedLink || null,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Could not update event");
+      } else {
+        const res = await fetch("/api/calendar/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: title.trim(),
+            startsAt: startsAt.toISOString(),
+            endsAt: endsAt.toISOString(),
+            description: notes.trim() || undefined,
+            recurrence,
+            meetingLink: linkPayload,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Could not create event");
+      }
 
       onCreated();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create event");
+      setError(err instanceof Error ? err.message : "Could not save event");
     } finally {
       setSaving(false);
     }
@@ -100,7 +151,7 @@ export function AddCalendarEventModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Add event"
+      title={isEdit ? "Edit event" : "Add event"}
       description={
         connected
           ? "Creates in ARI and syncs to your Google Calendar."
@@ -111,7 +162,7 @@ export function AddCalendarEventModal({
       footer={
         <ModalFooterActions
           onCancel={onClose}
-          primaryLabel={saving ? "Saving…" : "Add event"}
+          primaryLabel={saving ? "Saving…" : isEdit ? "Save changes" : "Add event"}
           onPrimary={() => {
             const form = document.getElementById("add-calendar-event-form") as HTMLFormElement | null;
             form?.requestSubmit();
@@ -169,20 +220,32 @@ export function AddCalendarEventModal({
               <option value="120">2 hours</option>
             </select>
           </ModalField>
-          <ModalField label="Repeat">
-            <select
-              className={modalInputClass}
-              value={recurrence}
-              onChange={(e) => setRecurrence(e.target.value as Recurrence)}
-            >
-              {RECURRENCE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </ModalField>
+          {!isEdit ? (
+            <ModalField label="Repeat">
+              <select
+                className={modalInputClass}
+                value={recurrence}
+                onChange={(e) => setRecurrence(e.target.value as Recurrence)}
+              >
+                {RECURRENCE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </ModalField>
+          ) : null}
         </div>
+
+        <ModalField label="Meeting link">
+          <input
+            className={modalInputClass}
+            value={meetingLink}
+            onChange={(e) => setMeetingLink(e.target.value)}
+            placeholder="https://zoom.us/j/… or Google Meet link"
+            inputMode="url"
+          />
+        </ModalField>
 
         <ModalField label="Notes">
           <textarea

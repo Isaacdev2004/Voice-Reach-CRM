@@ -28,6 +28,8 @@ export type AgendaItem = {
   contacts?: { first_name: string; last_name?: string | null } | null;
   source: "google" | "crm" | "task";
   htmlLink?: string | null;
+  meetingLink?: string | null;
+  crmEventId?: string | null;
 };
 
 export const GET = withApiHandler(async (request: Request) => {
@@ -103,16 +105,26 @@ export const GET = withApiHandler(async (request: Request) => {
   const googleIds = new Set(googleEvents.map((e) => e.id));
   const crmEvents: AgendaItem[] = (eventsRes.data ?? [])
     .filter((e) => !e.external_event_id || !googleIds.has(e.external_event_id))
-    .map((e) => ({
-      id: e.id,
-      title: e.title,
-      starts_at: e.starts_at,
-      ends_at: e.ends_at,
-      contact_id: e.contact_id,
-      contacts: asContactJoin(e.contacts),
-      source: "crm" as const,
-      htmlLink: (e.metadata as { htmlLink?: string } | null)?.htmlLink ?? null,
-    }));
+    .map((e) => {
+      const metadata = (e.metadata ?? {}) as {
+        htmlLink?: string;
+        meetingLink?: string;
+        description?: string;
+      };
+      return {
+        id: e.id,
+        title: e.title,
+        starts_at: e.starts_at,
+        ends_at: e.ends_at,
+        contact_id: e.contact_id,
+        contacts: asContactJoin(e.contacts),
+        source: "crm" as const,
+        htmlLink: metadata.htmlLink ?? null,
+        meetingLink: metadata.meetingLink ?? null,
+        description: metadata.description ?? null,
+        crmEventId: e.id,
+      };
+    });
 
   const googleAgenda: AgendaItem[] = googleEvents.map((e) => ({
     id: `google-${e.id}`,
@@ -121,6 +133,8 @@ export const GET = withApiHandler(async (request: Request) => {
     ends_at: e.ends_at,
     source: "google" as const,
     htmlLink: e.htmlLink ?? null,
+    meetingLink: e.meetingLink ?? null,
+    crmEventId: null,
   }));
 
   const taskAgenda: AgendaItem[] = (tasksRes.data ?? []).map((t) => ({
@@ -158,6 +172,7 @@ const CreateEventSchema = z.object({
   description: z.string().max(2000).optional(),
   contactId: z.string().uuid().optional(),
   recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional().default("none"),
+  meetingLink: z.string().url().max(500).optional(),
 });
 
 export const POST = withApiHandler(async (request: Request) => {
@@ -172,6 +187,7 @@ export const POST = withApiHandler(async (request: Request) => {
     description: body.description,
     contactId: body.contactId,
     recurrence: body.recurrence,
+    meetingLink: body.meetingLink,
   });
 
   return apiOk(result, { status: 201 });

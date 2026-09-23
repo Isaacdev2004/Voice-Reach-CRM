@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { AddCalendarEventModal } from "@/components/crm/add-calendar-event-modal";
-import { CalendarDayPanel } from "@/components/crm/calendar-day-panel";
+import { useCalendarReminders } from "@/components/calendar/use-calendar-reminders";
+import {
+  AddCalendarEventModal,
+  type CalendarEventEdit,
+} from "@/components/crm/add-calendar-event-modal";
+import { CalendarDayPanel, type DayPanelEvent } from "@/components/crm/calendar-day-panel";
+import { AppToast } from "@/components/ui/app-toast";
 import { InAppBrowserBanner } from "@/components/auth/in-app-browser-banner";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { MonthCalendar } from "@/components/crm/month-calendar";
@@ -11,16 +16,7 @@ import { connectGoogleCalendar } from "@/lib/connect-google-calendar";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type AgendaItem = {
-  id: string;
-  title: string;
-  starts_at: string;
-  ends_at?: string | null;
-  contact_id?: string | null;
-  contacts?: { first_name: string; last_name?: string | null } | null;
-  source: "google" | "crm" | "task";
-  htmlLink?: string | null;
-};
+type AgendaItem = DayPanelEvent;
 
 function formatWhen(iso: string) {
   const d = new Date(iso);
@@ -75,8 +71,10 @@ export function CalendarPage() {
   const [viewDate, setViewDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(() => new Date());
   const [addEventOpen, setAddEventOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<CalendarEventEdit | null>(null);
   const [connectHint, setConnectHint] = useState<string | null>(null);
   const [mobileDayView, setMobileDayView] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const load = useCallback(
     async (isRefresh = false) => {
@@ -113,10 +111,53 @@ export function CalendarPage() {
     if (searchParams.get("new") === "event") setAddEventOpen(true);
   }, [searchParams]);
 
+  const upcomingAgenda = useMemo(() => {
+    const now = Date.now();
+    return agenda.filter((item) => new Date(item.starts_at).getTime() >= now);
+  }, [agenda]);
+
   const selectedDayEvents = useMemo(() => {
     if (!selectedDate) return [];
     return agenda.filter((item) => sameDay(new Date(item.starts_at), selectedDate));
   }, [agenda, selectedDate]);
+
+  const { activeReminder, dismissReminder } = useCalendarReminders(upcomingAgenda);
+
+  const openCreateEvent = useCallback(() => {
+    setEditingEvent(null);
+    setAddEventOpen(true);
+  }, []);
+
+  const openEditEvent = useCallback((event: DayPanelEvent) => {
+    if (!event.crmEventId) return;
+    setEditingEvent({
+      crmEventId: event.crmEventId,
+      title: event.title,
+      starts_at: event.starts_at,
+      ends_at: event.ends_at,
+      description: event.description ?? null,
+      meetingLink: event.meetingLink ?? null,
+    });
+    setAddEventOpen(true);
+  }, []);
+
+  const handleDeleteEvent = useCallback(
+    async (event: DayPanelEvent) => {
+      if (!event.crmEventId) return;
+      if (!window.confirm(`Delete "${event.title}"?`)) return;
+
+      setActionError(null);
+      try {
+        const res = await fetch(`/api/calendar/events/${event.crmEventId}`, { method: "DELETE" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Could not delete event");
+        await load(true);
+      } catch (e) {
+        setActionError(e instanceof Error ? e.message : "Could not delete event");
+      }
+    },
+    [load],
+  );
 
   const handleDayClick = useCallback((day: Date) => {
     setSelectedDate(day);
@@ -151,7 +192,7 @@ export function CalendarPage() {
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <button
             type="button"
-            onClick={() => setAddEventOpen(true)}
+            onClick={openCreateEvent}
             className="inline-flex items-center gap-1.5 rounded-full bg-rose-gold px-3 py-2 text-[13px] font-medium text-ivory hover:bg-rose-gold-deep sm:gap-2 sm:px-5 sm:py-2.5 sm:text-[14px]"
           >
             <svg
@@ -204,6 +245,28 @@ export function CalendarPage() {
         <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[14px] text-amber-900">
           {connectHint}
         </p>
+      ) : null}
+
+      {actionError ? (
+        <p className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
+          {actionError}
+        </p>
+      ) : null}
+
+      {activeReminder ? (
+        <div className="relative z-[200]">
+          <AppToast
+            message={`Starting in 15 minutes: ${activeReminder.title}`}
+            tone="success"
+          />
+          <button
+            type="button"
+            onClick={dismissReminder}
+            className="fixed left-1/2 top-[4.5rem] z-[201] -translate-x-1/2 text-[12px] font-medium text-taupe hover:text-ink"
+          >
+            Dismiss
+          </button>
+        </div>
       ) : null}
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
@@ -276,7 +339,9 @@ export function CalendarPage() {
             <CalendarDayPanel
               date={selectedDate}
               events={selectedDayEvents}
-              onAddEvent={() => setAddEventOpen(true)}
+              onAddEvent={openCreateEvent}
+              onEditEvent={openEditEvent}
+              onDeleteEvent={handleDeleteEvent}
               onBack={() => setMobileDayView(false)}
             />
           ) : (
@@ -301,7 +366,9 @@ export function CalendarPage() {
             <CalendarDayPanel
               date={selectedDate}
               events={selectedDayEvents}
-              onAddEvent={() => setAddEventOpen(true)}
+              onAddEvent={openCreateEvent}
+              onEditEvent={openEditEvent}
+              onDeleteEvent={handleDeleteEvent}
             />
           ) : (
             <p className="text-[14px] text-taupe">Select a day on the calendar to view its schedule.</p>
@@ -313,7 +380,7 @@ export function CalendarPage() {
         <LuxuryCard padding="lg" className="w-full">
           <p className="text-taupe">Loading agenda…</p>
         </LuxuryCard>
-      ) : agenda.length === 0 ? (
+      ) : upcomingAgenda.length === 0 ? (
         <LuxuryCard padding="lg" className="w-full">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
@@ -324,7 +391,7 @@ export function CalendarPage() {
             </div>
             <button
               type="button"
-              onClick={() => setAddEventOpen(true)}
+              onClick={openCreateEvent}
               className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory hover:bg-rose-gold-deep sm:self-center"
             >
               <svg
@@ -354,13 +421,23 @@ export function CalendarPage() {
             </Link>
           </div>
           <ul className="divide-y divide-outline-variant/15">
-            {agenda.slice(0, 8).map((item) => {
+            {upcomingAgenda.slice(0, 8).map((item) => {
               const name = contactName(item.contacts);
               return (
                 <li key={item.id} className="flex gap-4 px-6 py-4 hover:bg-cream/40">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-ink">{item.title}</p>
                     <p className="text-[14px] text-slate-text">{formatWhen(item.starts_at)}</p>
+                    {item.meetingLink ? (
+                      <a
+                        href={item.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-flex items-center gap-1 text-[13px] font-medium text-rose-gold-deep hover:underline"
+                      >
+                        Join meeting →
+                      </a>
+                    ) : null}
                     {name && item.contact_id ? (
                       <Link
                         href={`/dashboard/contacts/${item.contact_id}`}
@@ -381,8 +458,12 @@ export function CalendarPage() {
       )}
       <AddCalendarEventModal
         open={addEventOpen}
-        onClose={() => setAddEventOpen(false)}
+        onClose={() => {
+          setAddEventOpen(false);
+          setEditingEvent(null);
+        }}
         defaultDate={selectedDate}
+        editingEvent={editingEvent}
         connected={connected}
         onCreated={() => void load(true)}
       />

@@ -160,6 +160,14 @@ function recurrenceRule(recurrence: Recurrence): string | undefined {
   }
 }
 
+const DEFAULT_REMINDERS = {
+  useDefault: false,
+  overrides: [
+    { method: "email", minutes: 15 },
+    { method: "popup", minutes: 15 },
+  ],
+};
+
 export async function createGoogleCalendarEvent(options: {
   connection: CalendarConnection;
   title: string;
@@ -168,10 +176,12 @@ export async function createGoogleCalendarEvent(options: {
   end: Date;
   timeZone: string;
   recurrence?: Recurrence;
+  meetingLink?: string | null;
 }): Promise<{ eventId: string; htmlLink?: string }> {
   const accessToken = await getValidGoogleAccessToken(options.connection);
   const calendarId = encodeURIComponent(options.connection.calendar_id || "primary");
   const rrule = recurrenceRule(options.recurrence ?? "none");
+  const meetingLink = options.meetingLink?.trim() || undefined;
 
   const response = await fetch(`${GOOGLE_CALENDAR}/calendars/${calendarId}/events`, {
     method: "POST",
@@ -182,8 +192,10 @@ export async function createGoogleCalendarEvent(options: {
     body: JSON.stringify({
       summary: options.title,
       description: options.description,
+      location: meetingLink,
       start: { dateTime: options.start.toISOString(), timeZone: options.timeZone },
       end: { dateTime: options.end.toISOString(), timeZone: options.timeZone },
+      reminders: DEFAULT_REMINDERS,
       ...(rrule ? { recurrence: [rrule] } : {}),
     }),
   });
@@ -207,12 +219,69 @@ export async function fetchGoogleAccountEmail(accessToken: string): Promise<stri
   return json.email ?? null;
 }
 
+export async function updateGoogleCalendarEvent(options: {
+  connection: CalendarConnection;
+  eventId: string;
+  title: string;
+  description?: string;
+  start: Date;
+  end: Date;
+  timeZone: string;
+  meetingLink?: string | null;
+}): Promise<void> {
+  const accessToken = await getValidGoogleAccessToken(options.connection);
+  const calendarId = encodeURIComponent(options.connection.calendar_id || "primary");
+  const eventId = encodeURIComponent(options.eventId);
+  const meetingLink = options.meetingLink?.trim() || undefined;
+
+  const response = await fetch(`${GOOGLE_CALENDAR}/calendars/${calendarId}/events/${eventId}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      summary: options.title,
+      description: options.description,
+      location: meetingLink,
+      start: { dateTime: options.start.toISOString(), timeZone: options.timeZone },
+      end: { dateTime: options.end.toISOString(), timeZone: options.timeZone },
+      reminders: DEFAULT_REMINDERS,
+    }),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(`Google Calendar update failed (${response.status}): ${detail.slice(0, 200)}`);
+  }
+}
+
+export async function deleteGoogleCalendarEvent(options: {
+  connection: CalendarConnection;
+  eventId: string;
+}): Promise<void> {
+  const accessToken = await getValidGoogleAccessToken(options.connection);
+  const calendarId = encodeURIComponent(options.connection.calendar_id || "primary");
+  const eventId = encodeURIComponent(options.eventId);
+
+  const response = await fetch(`${GOOGLE_CALENDAR}/calendars/${calendarId}/events/${eventId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!response.ok && response.status !== 404 && response.status !== 410) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(`Google Calendar delete failed (${response.status}): ${detail.slice(0, 200)}`);
+  }
+}
+
 export type GoogleCalendarEventItem = {
   id: string;
   title: string;
   starts_at: string;
   ends_at: string;
   htmlLink?: string;
+  meetingLink?: string | null;
   source: "google";
 };
 
@@ -248,15 +317,24 @@ export async function listGoogleCalendarEvents(options: {
       start?: { dateTime?: string; date?: string };
       end?: { dateTime?: string; date?: string };
       htmlLink?: string;
+      location?: string;
+      hangoutLink?: string;
     }[];
   };
 
-  return (json.items ?? []).map((item) => ({
-    id: item.id,
-    title: item.summary ?? "Untitled event",
-    starts_at: item.start?.dateTime ?? `${item.start?.date}T12:00:00`,
-    ends_at: item.end?.dateTime ?? `${item.end?.date}T13:00:00`,
-    htmlLink: item.htmlLink,
-    source: "google" as const,
-  }));
+  return (json.items ?? []).map((item) => {
+    const location = item.location?.trim();
+    const meetingLink =
+      item.hangoutLink ??
+      (location && /^https?:\/\//i.test(location) ? location : null);
+    return {
+      id: item.id,
+      title: item.summary ?? "Untitled event",
+      starts_at: item.start?.dateTime ?? `${item.start?.date}T12:00:00`,
+      ends_at: item.end?.dateTime ?? `${item.end?.date}T13:00:00`,
+      htmlLink: item.htmlLink,
+      meetingLink,
+      source: "google" as const,
+    };
+  });
 }

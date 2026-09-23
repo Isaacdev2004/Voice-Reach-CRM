@@ -8,15 +8,22 @@ export type DayPanelEvent = {
   id: string;
   title: string;
   starts_at: string;
+  ends_at?: string | null;
   contact_id?: string | null;
   contacts?: { first_name: string; last_name?: string | null } | null;
   source: "google" | "crm" | "task";
+  htmlLink?: string | null;
+  meetingLink?: string | null;
+  crmEventId?: string | null;
+  description?: string | null;
 };
 
 type CalendarDayPanelProps = {
   date: Date;
   events: DayPanelEvent[];
   onAddEvent: () => void;
+  onEditEvent?: (event: DayPanelEvent) => void;
+  onDeleteEvent?: (event: DayPanelEvent) => Promise<void>;
   onBack?: () => void;
   className?: string;
 };
@@ -48,6 +55,8 @@ export function CalendarDayPanel({
   date,
   events,
   onAddEvent,
+  onEditEvent,
+  onDeleteEvent,
   onBack,
   className,
 }: CalendarDayPanelProps) {
@@ -107,6 +116,7 @@ export function CalendarDayPanel({
                 : item.source === "task"
                   ? "task_alt"
                   : "phone_callback";
+            const canManage = Boolean(item.crmEventId && onEditEvent && onDeleteEvent);
 
             return (
               <li key={item.id} className="flex gap-3 py-4">
@@ -118,6 +128,17 @@ export function CalendarDayPanel({
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-ink">{item.title}</p>
                   <p className="text-[14px] text-slate-text">{formatWhen(item.starts_at)}</p>
+                  {item.meetingLink ? (
+                    <a
+                      href={item.meetingLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-[13px] font-medium text-rose-gold-deep hover:underline"
+                    >
+                      <Icon name="videocam" className="text-[16px]" />
+                      Join meeting
+                    </a>
+                  ) : null}
                   {name && item.contact_id ? (
                     <Link
                       href={`/dashboard/contacts/${item.contact_id}`}
@@ -129,6 +150,26 @@ export function CalendarDayPanel({
                   <span className="mt-1 block text-[11px] uppercase tracking-wider text-taupe">
                     {sourceLabel(item.source)}
                   </span>
+                  {canManage ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onEditEvent?.(item)}
+                        className="inline-flex items-center gap-1 rounded-full border border-outline-variant/25 px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-champagne"
+                      >
+                        <Icon name="edit" className="text-[14px]" />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void onDeleteEvent?.(item)}
+                        className="inline-flex items-center gap-1 rounded-full border border-error/25 px-3 py-1.5 text-[12px] font-medium text-error hover:bg-error/5"
+                      >
+                        <Icon name="delete" className="text-[14px]" />
+                        Delete
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               </li>
             );
