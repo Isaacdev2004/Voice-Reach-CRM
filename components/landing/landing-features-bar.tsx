@@ -4,8 +4,8 @@ import { FOUNDING_100 } from "@/lib/marketing/founding";
 const FEATURES = [
   {
     icon: "real_estate_agent",
-    title: "Built for producing agents",
-    body: "Not part-time, hobby agents.",
+    title: "Spend less time chasing leads and more time closing",
+    body: "Whether you're growing your business or managing a full pipeline.",
   },
   {
     icon: "rocket_launch",
