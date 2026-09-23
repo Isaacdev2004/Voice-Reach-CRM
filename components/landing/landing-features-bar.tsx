@@ -1,4 +1,5 @@
 import { Icon } from "@/components/ui/icon";
+import { FOUNDING_100 } from "@/lib/marketing/founding";
 
 const FEATURES = [
   {
@@ -18,9 +19,8 @@ const FEATURES = [
   },
   {
     icon: "star",
-    title: "Trusted by 1,000+ agents",
-    body: "across the U.S.",
-    stars: true,
+    title: `${FOUNDING_100.name} now open`,
+    body: `Limited to the first ${FOUNDING_100.seatsTotal} agents.`,
   },
 ];
 
@@ -38,11 +38,6 @@ export function LandingFeaturesBar() {
                 {item.title}
               </h3>
               <p className="mt-1 text-[14px] leading-snug text-slate-text">{item.body}</p>
-              {item.stars ? (
-                <p className="mt-1.5 text-[13px] tracking-wider text-rose-gold-deep" aria-label="5 stars">
-                  ★★★★★
-                </p>
-              ) : null}
             </div>
           </article>
         ))}
