@@ -42,15 +42,15 @@ function clockwiseTangent(deg: number) {
 
 function FlywheelDiagram() {
   return (
-    <div className="relative mx-auto w-full max-w-[44rem] lg:max-w-[50rem] xl:max-w-[56rem]">
+    <div className="relative mx-auto w-full max-w-[44rem] px-8 lg:max-w-[50rem] lg:px-12 xl:max-w-[56rem] xl:px-16">
       <p
-        className="pointer-events-none absolute -left-2 top-[38%] z-10 hidden font-[family-name:var(--font-hand)] text-[1.75rem] text-rose-gold/40 lg:block xl:-left-6 xl:text-[2.5rem]"
+        className="pointer-events-none absolute left-0 top-[54%] z-10 hidden max-w-[9rem] -translate-y-1/2 font-[family-name:var(--font-hand)] text-[1.85rem] leading-none text-rose-gold/45 lg:block xl:left-2 xl:max-w-none xl:text-[2.75rem]"
         aria-hidden
       >
         More Conversations.
       </p>
       <p
-        className="pointer-events-none absolute -right-2 top-[38%] z-10 hidden font-[family-name:var(--font-hand)] text-[1.75rem] text-rose-gold/40 lg:block xl:-right-6 xl:text-[2.5rem]"
+        className="pointer-events-none absolute right-0 top-[44%] z-10 hidden max-w-[9rem] -translate-y-1/2 text-right font-[family-name:var(--font-hand)] text-[1.85rem] leading-none text-rose-gold/45 lg:block xl:right-2 xl:max-w-none xl:text-[2.75rem]"
         aria-hidden
       >
         More Closings.
