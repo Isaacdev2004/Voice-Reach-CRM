@@ -1,5 +1,6 @@
 "use client";
 
+import { FOUNDING_100 } from "@/lib/marketing/founding";
 import { useState } from "react";
 
 const FAQ_ITEMS = [
@@ -9,7 +10,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Is there a free trial?",
-    a: "Yes — 14 days free for Founding 100 members. Create your account with email only; billing starts after your trial when you choose a plan. Cancel anytime.",
+    a: `Yes — ${FOUNDING_100.trialDays} days free for Founding 100 members. Add a card to start; you won't be charged until the trial ends. Trial includes ${FOUNDING_100.trialUsageCaps.sms} SMS, ${FOUNDING_100.trialUsageCaps.rvm} voicemails, and ${FOUNDING_100.trialUsageCaps.email} emails so you can test safely.`,
   },
   {
     q: "Can I import my existing leads?",

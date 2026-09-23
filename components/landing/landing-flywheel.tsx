@@ -42,20 +42,7 @@ function clockwiseTangent(deg: number) {
 
 function FlywheelDiagram() {
   return (
-    <div className="relative mx-auto w-full max-w-[44rem] px-8 lg:max-w-[50rem] lg:px-12 xl:max-w-[56rem] xl:px-16">
-      <p
-        className="pointer-events-none absolute left-0 top-[54%] z-10 hidden max-w-[9rem] -translate-y-1/2 font-[family-name:var(--font-hand)] text-[1.85rem] leading-none text-rose-gold/45 lg:block xl:left-2 xl:max-w-none xl:text-[2.75rem]"
-        aria-hidden
-      >
-        More Conversations.
-      </p>
-      <p
-        className="pointer-events-none absolute right-0 top-[44%] z-10 hidden max-w-[9rem] -translate-y-1/2 text-right font-[family-name:var(--font-hand)] text-[1.85rem] leading-none text-rose-gold/45 lg:block xl:right-2 xl:max-w-none xl:text-[2.75rem]"
-        aria-hidden
-      >
-        More Closings.
-      </p>
-
+    <div className="relative mx-auto w-full max-w-[44rem] lg:max-w-[50rem] xl:max-w-[56rem]">
       <svg
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         className="h-auto w-full"
@@ -191,9 +178,21 @@ export function LandingFlywheel() {
           </p>
         </div>
 
-        <div className="mt-6 md:mt-8">
+        <div className="relative mt-6 md:mt-8">
           <FlywheelMobile />
-          <div className="hidden md:block">
+          <div className="relative hidden md:block">
+            <p
+              className="pointer-events-none absolute -left-2 top-[46%] z-10 hidden -translate-y-1/2 font-[family-name:var(--font-hand)] text-[2rem] leading-none text-rose-gold/50 lg:block xl:-left-8 xl:text-[3rem] 2xl:-left-14"
+              aria-hidden
+            >
+              More Conversations.
+            </p>
+            <p
+              className="pointer-events-none absolute -right-2 top-[46%] z-10 hidden -translate-y-1/2 text-right font-[family-name:var(--font-hand)] text-[2rem] leading-none text-rose-gold/50 lg:block xl:-right-8 xl:text-[3rem] 2xl:-right-14"
+              aria-hidden
+            >
+              More Closings.
+            </p>
             <FlywheelDiagram />
           </div>
         </div>

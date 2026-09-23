@@ -5,8 +5,14 @@ export const FOUNDING_100 = {
   trialDays: 14,
   headline: "Founding Realtor Program",
   promise: "Early access · White-glove setup · Founding pricing · Direct founder feedback",
+  /** Hard caps during free trial to control Twilio/Slybroadcast spend */
+  trialUsageCaps: {
+    sms: 25,
+    rvm: 5,
+    email: 50,
+  },
   perks: [
-    "14-day free trial — no charge until trial ends",
+    "14-day free trial — card on file, no charge until trial ends",
     "We import your leads and configure your first campaign",
     "Locked-in founding rate for your first 3 months",
     "Direct line to the team while we build with you",

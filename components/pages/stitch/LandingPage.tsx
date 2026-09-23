@@ -18,8 +18,8 @@ const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
 
 const HERO_TRUST = [
   `${FOUNDING_100.trialDays}-day free trial`,
+  "Card required · no charge until trial ends",
   "White-glove setup",
-  "No spreadsheets. No sticky notes.",
 ];
 
 const HOW_IT_WORKS = [

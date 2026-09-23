@@ -53,7 +53,7 @@ export type BillingSettings = {
   voiceMinutesLimit: number;
   voiceMinutesUsed: number;
   /** Set to "active" only after Stripe checkout / subscription webhook */
-  subscriptionStatus?: "none" | "active" | "canceled";
+  subscriptionStatus?: "none" | "trialing" | "active" | "canceled";
 };
 
 export type NotificationSettings = {

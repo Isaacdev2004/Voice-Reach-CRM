@@ -43,7 +43,11 @@ export async function saveStripeCustomerId(ownerId: string, customerId: string) 
   });
 }
 
-export function billingFromPlan(planId: PlanId, usedMinutes = 0): BillingSettings {
+export function billingFromPlan(
+  planId: PlanId,
+  usedMinutes = 0,
+  subscriptionStatus: BillingSettings["subscriptionStatus"] = "active",
+): BillingSettings {
   const plan = planById(planId);
   if (!plan) throw new Error(`Unknown plan: ${planId}`);
   return {
@@ -52,14 +56,22 @@ export function billingFromPlan(planId: PlanId, usedMinutes = 0): BillingSetting
     monthlyPrice: plan.price,
     voiceMinutesLimit: plan.rvmIncluded || plan.smsIncluded || 0,
     voiceMinutesUsed: usedMinutes,
-    subscriptionStatus: "active",
+    subscriptionStatus,
   };
 }
 
-export async function applyBillingPlan(ownerId: string, planId: PlanId) {
+export async function applyBillingPlan(
+  ownerId: string,
+  planId: PlanId,
+  options?: { subscriptionStatus?: BillingSettings["subscriptionStatus"] },
+) {
   const saved = await loadSavedSettings(ownerId);
   const base = saved ?? DEFAULT_SETTINGS;
-  const billing = billingFromPlan(planId, base.billing.voiceMinutesUsed);
+  const billing = billingFromPlan(
+    planId,
+    base.billing.voiceMinutesUsed,
+    options?.subscriptionStatus ?? "active",
+  );
 
   const settings: UserSettings = {
     ...base,

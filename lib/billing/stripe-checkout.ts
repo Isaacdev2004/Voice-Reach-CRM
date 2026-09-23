@@ -59,6 +59,7 @@ export async function createSubscriptionSession(params: {
 
   const baseSession: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
+    payment_method_collection: "always",
     ...(params.customerId
       ? { customer: params.customerId }
       : params.customerEmail

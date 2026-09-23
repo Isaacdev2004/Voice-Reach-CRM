@@ -65,7 +65,7 @@ const SettingsSchema = z.object({
     monthlyPrice: z.number(),
     voiceMinutesLimit: z.number(),
     voiceMinutesUsed: z.number(),
-    subscriptionStatus: z.enum(["none", "active", "canceled"]).optional(),
+    subscriptionStatus: z.enum(["none", "trialing", "active", "canceled"]).optional(),
   }),
   notifications: z.object({
     emailDigest: z.boolean(),

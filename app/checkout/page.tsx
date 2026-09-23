@@ -3,6 +3,7 @@
 import { CHECKOUT_PLAN_OPTIONS, planById, type PlanId } from "@/lib/billing/plans";
 import { rememberPendingPlan } from "@/lib/billing/pending-plan";
 import { cn } from "@/lib/cn";
+import { FOUNDING_100 } from "@/lib/marketing/founding";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -52,12 +53,12 @@ function CheckoutInner() {
   return (
     <div className="mx-auto min-h-screen max-w-3xl px-4 py-12">
       <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
-        Step 1 of 2 · Pay first
+        Step 1 of 2 · Start free trial
       </p>
       <h1 className="mt-2 font-serif text-[36px] font-semibold text-ink">Choose your plan</h1>
       <p className="mt-2 text-[15px] text-slate-text">
-        Pay securely with Stripe, then create your account. Nothing unlocks until payment
-        completes.
+        Add a card to start your {FOUNDING_100.trialDays}-day free trial — you won&apos;t be charged
+        until the trial ends. Then create your account.
       </p>
 
       {canceled ? (
@@ -111,19 +112,19 @@ function CheckoutInner() {
           onClick={() => void startPay()}
           className="mt-5 w-full rounded-full bg-rose-gold px-6 py-3.5 text-[15px] font-medium text-ivory disabled:opacity-50"
         >
-          {loading ? "Opening Stripe…" : `Pay $${selected.price}/mo with Stripe`}
+          {loading ? "Opening Stripe…" : `Start ${FOUNDING_100.trialDays}-day free trial`}
         </button>
         <p className="mt-3 text-center text-[12px] text-taupe">
-          After payment you’ll create your login (step 2).
+          Card required · No charge until trial ends · Then create your login (step 2).
+        </p>
+        <p className="mt-2 text-center text-[12px] text-taupe">
+          Trial includes {FOUNDING_100.trialUsageCaps.sms} SMS,{" "}
+          {FOUNDING_100.trialUsageCaps.rvm} voicemails, and{" "}
+          {FOUNDING_100.trialUsageCaps.email} emails to test safely.
         </p>
       </div>
 
         <p className="mt-8 text-center text-[13px] text-taupe">
-          Want to test for free first?{" "}
-          <Link href="/sign-up" className="font-semibold text-rose-gold-deep hover:underline">
-            Create free demo account
-          </Link>
-          {" · "}
           <Link href="/sign-in" className="font-medium text-rose-gold-deep hover:underline">
             Sign in
           </Link>

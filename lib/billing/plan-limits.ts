@@ -5,6 +5,7 @@ import {
   type PlanOption,
 } from "@/lib/billing/plans";
 import { loadSavedSettings } from "@/lib/billing/settings-store";
+import { FOUNDING_100 } from "@/lib/marketing/founding";
 import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -35,6 +36,13 @@ export async function resolveOwnerPlan(ownerId: string): Promise<PlanOption> {
   const saved = await loadSavedSettings(ownerId);
   const planId = (saved?.billing.planId ?? DEFAULT_SETTINGS.billing.planId) as PlanId;
   return planById(planId) ?? planById("starter")!;
+}
+
+/** Free trial or unpaid accounts — apply hard SMS/RVM/email caps. */
+export async function isTrialUsagePeriod(ownerId: string): Promise<boolean> {
+  const saved = await loadSavedSettings(ownerId);
+  const status = saved?.billing.subscriptionStatus ?? "none";
+  return status === "trialing" || status === "none";
 }
 
 async function countChannelSends(ownerId: string, channel: "sms" | "email" | "voicemail") {
@@ -124,6 +132,35 @@ export async function assertCanSendChannel(
 ) {
   const usage = await getPlanUsage(ownerId);
   const plan = usage.plan;
+  const onTrial = await isTrialUsagePeriod(ownerId);
+  const caps = FOUNDING_100.trialUsageCaps;
+
+  if (onTrial && channel === "sms" && usage.smsUsed >= caps.sms) {
+    return {
+      ok: false as const,
+      usage,
+      error: `Free trial includes ${caps.sms} SMS total. Upgrade or wait until your trial converts to send more.`,
+      code: "trial_sms_limit",
+    };
+  }
+
+  if (onTrial && channel === "voicemail" && usage.rvmUsed >= caps.rvm) {
+    return {
+      ok: false as const,
+      usage,
+      error: `Free trial includes ${caps.rvm} ringless voicemails total. Upgrade or wait until your trial converts to send more.`,
+      code: "trial_rvm_limit",
+    };
+  }
+
+  if (onTrial && channel === "email" && usage.emailUsed >= caps.email) {
+    return {
+      ok: false as const,
+      usage,
+      error: `Free trial includes ${caps.email} emails total. Upgrade or wait until your trial converts to send more.`,
+      code: "trial_email_limit",
+    };
+  }
 
   if (channel === "sms") {
     if (plan.smsIncluded <= 0) return { ok: true as const, usage, payAsYouGo: true };

@@ -23,7 +23,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     await saveStripeCustomerId(ownerId, session.customer);
   }
 
-  await applyBillingPlan(ownerId, planId);
+  let subscriptionStatus: "trialing" | "active" = "active";
+  if (typeof session.subscription === "string") {
+    const stripe = getStripe();
+    const sub = await stripe.subscriptions.retrieve(session.subscription);
+    subscriptionStatus = sub.status === "trialing" ? "trialing" : "active";
+  }
+
+  await applyBillingPlan(ownerId, planId, { subscriptionStatus });
 }
 
 async function handleSubscriptionChange(subscription: Stripe.Subscription) {
@@ -32,7 +39,11 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
 
   if (subscription.status === "active" || subscription.status === "trialing") {
     const planId = planFromMetadata(subscription.metadata);
-    if (planId) await applyBillingPlan(ownerId, planId);
+    if (planId) {
+      await applyBillingPlan(ownerId, planId, {
+        subscriptionStatus: subscription.status === "trialing" ? "trialing" : "active",
+      });
+    }
     return;
   }
 

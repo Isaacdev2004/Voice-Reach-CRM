@@ -27,7 +27,7 @@ export function StartFreeButton({
 
   return (
     <Link
-      href="/sign-up"
+      href="/checkout?plan=growth"
       onClick={() =>
         trackMarketingEvent("start_trial_click", { location, label: label.toLowerCase() })
       }

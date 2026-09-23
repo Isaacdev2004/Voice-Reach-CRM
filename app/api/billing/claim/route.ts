@@ -20,9 +20,11 @@ export const POST = withApiHandler(async (request) => {
   const { sessionId } = BodySchema.parse(await request.json());
   const stripe = getStripe();
 
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
-  if (session.payment_status !== "paid" && session.status !== "complete") {
-    return apiError("This checkout session is not paid yet.", {
+  const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    expand: ["subscription"],
+  });
+  if (session.status !== "complete") {
+    return apiError("This checkout session is not complete yet.", {
       status: 400,
       code: "unpaid_session",
     });
@@ -46,7 +48,13 @@ export const POST = withApiHandler(async (request) => {
     await linkStripeCustomerFromSession(ownerId, session.customer);
   }
 
-  await applyBillingPlan(ownerId, planId);
+  let subscriptionStatus: "trialing" | "active" = "active";
+  const subscription = session.subscription;
+  if (subscription && typeof subscription === "object" && "status" in subscription) {
+    subscriptionStatus = subscription.status === "trialing" ? "trialing" : "active";
+  }
+
+  await applyBillingPlan(ownerId, planId, { subscriptionStatus });
 
   return apiOk({
     planId,
@@ -70,10 +78,17 @@ export const GET = withApiHandler(async (request) => {
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   const planId = session.metadata?.planId ?? "";
   const plan = planById(planId);
-  const paid = session.payment_status === "paid" || session.status === "complete";
+  const subscription = session.subscription;
+  const trialing =
+    typeof subscription === "object" &&
+    subscription !== null &&
+    "status" in subscription &&
+    subscription.status === "trialing";
+  const paid = session.status === "complete";
 
   return apiOk({
     paid,
+    trialing,
     planId: plan?.id ?? null,
     planName: plan?.name ?? null,
     price: plan?.price ?? null,

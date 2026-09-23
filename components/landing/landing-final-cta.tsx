@@ -2,9 +2,7 @@ import Image from "next/image";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
 
-/** Warm lifestyle accent — plant on books, matches mockup footer greenery. */
-const GREENERY_IMAGE =
-  "https://images.unsplash.com/photo-1456324504439-367ceeef1552?auto=format&fit=crop&w=900&h=1100&q=80";
+const GREENERY_IMAGE = "/brand/final-cta-greenery.jpg";
 
 export function LandingFinalCta() {
   return (
@@ -29,7 +27,7 @@ export function LandingFinalCta() {
                 className="!px-12 !py-4 !text-[15px]"
               />
               <p className="text-[13px] text-taupe">
-                No credit card required · Cancel anytime
+                Card required · No charge until trial ends · Cancel anytime
               </p>
             </div>
           </div>
