@@ -134,26 +134,26 @@ export function LandingPage() {
         <DemoVideo />
 
         {/* How it works */}
-        <section id="how-it-works" className="bg-ivory py-16 md:py-20 lg:py-24">
+        <section id="how-it-works" className="bg-cream py-10 md:py-12 lg:py-14">
           <div className="landing-shell">
             <div className="text-center">
-              <h2 className="font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
+              <h2 className="font-serif text-[32px] font-semibold text-ink md:text-[40px] lg:text-[44px]">
                 How it works
               </h2>
-              <p className="mt-3 text-[16px] text-slate-text lg:text-[17px]">
+              <p className="mt-2 text-[17px] text-slate-text lg:text-[18px]">
                 Get started in minutes. Start closing more deals in days.
               </p>
             </div>
-            <div className="mt-12 grid gap-10 md:mt-14 md:grid-cols-3 md:gap-8 lg:gap-12">
+            <div className="mt-8 grid gap-8 md:mt-10 md:grid-cols-3 md:gap-6 lg:gap-8">
               {HOW_IT_WORKS.map((step) => (
                 <article key={step.num} className="text-center">
-                  <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-rose-gold/20 bg-cream font-serif text-[18px] font-semibold text-rose-gold-deep">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-rose-gold/20 bg-ivory font-serif text-[20px] font-semibold text-rose-gold-deep">
                     {step.num}
                   </div>
-                  <h3 className="mb-3 font-serif text-[20px] font-semibold text-ink lg:text-[22px]">
+                  <h3 className="mb-2 font-serif text-[22px] font-semibold text-ink lg:text-[24px]">
                     {step.title}
                   </h3>
-                  <p className="text-[15px] leading-relaxed text-slate-text lg:text-[16px]">
+                  <p className="text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
                     {step.body}
                   </p>
                 </article>
