@@ -30,9 +30,13 @@ export function MortgageCalculatorPage() {
   const [downPaymentText, setDownPaymentText] = useState("170,000");
   const [interestRateText, setInterestRateText] = useState("6.85");
   const [termYearsText, setTermYearsText] = useState("30");
-  const [rates, setRates] = useState<{ rate30: number; rate15: number; source: string } | null>(
-    null,
-  );
+  type MortgageRates = {
+    freddieMac: { rate30: number; rate15: number };
+    fannieMae: { rate30: number; rate15: number };
+    source: string;
+  };
+
+  const [rates, setRates] = useState<MortgageRates | null>(null);
   const [ratesError, setRatesError] = useState<string | null>(null);
   const [loadingRates, setLoadingRates] = useState(false);
 
@@ -48,9 +52,14 @@ export function MortgageCalculatorPage() {
       const res = await fetch("/api/mortgage/rates", { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not load rates");
-      setRates({ rate30: data.rate30, rate15: data.rate15, source: data.source });
-      if (typeof data.rate30 === "number") {
-        setInterestRateText(data.rate30.toFixed(2));
+      const freddieMac = data.freddieMac ?? {
+        rate30: data.rate30,
+        rate15: data.rate15,
+      };
+      const fannieMae = data.fannieMae ?? freddieMac;
+      setRates({ freddieMac, fannieMae, source: data.source });
+      if (typeof freddieMac.rate30 === "number") {
+        setInterestRateText(freddieMac.rate30.toFixed(2));
       }
     } catch (e) {
       setRatesError(e instanceof Error ? e.message : "Could not load rates");
@@ -191,32 +200,74 @@ export function MortgageCalculatorPage() {
         ) : ratesError && !rates ? (
           <p className="text-[14px] text-slate-text">{ratesError}</p>
         ) : rates ? (
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              type="button"
-              onClick={() => setInterestRateText(rates.rate30.toFixed(2))}
-              className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
-            >
-              <p className="text-[12px] text-taupe">30-year fixed</p>
-              <p className="font-serif text-[28px] text-ink">{rates.rate30.toFixed(2)}%</p>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setInterestRateText(rates.rate15.toFixed(2));
-                setTermYearsText("15");
-              }}
-              className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
-            >
-              <p className="text-[12px] text-taupe">15-year fixed</p>
-              <p className="font-serif text-[28px] text-ink">{rates.rate15.toFixed(2)}%</p>
-            </button>
+          <div className="space-y-6">
+            <div>
+              <p className="mb-3 text-[13px] font-semibold text-ink">Freddie Mac PMMS</p>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setInterestRateText(rates.freddieMac.rate30.toFixed(2))}
+                  className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
+                >
+                  <p className="text-[12px] text-taupe">30-year fixed</p>
+                  <p className="font-serif text-[28px] text-ink">
+                    {rates.freddieMac.rate30.toFixed(2)}%
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInterestRateText(rates.freddieMac.rate15.toFixed(2));
+                    setTermYearsText("15");
+                  }}
+                  className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
+                >
+                  <p className="text-[12px] text-taupe">15-year fixed</p>
+                  <p className="font-serif text-[28px] text-ink">
+                    {rates.freddieMac.rate15.toFixed(2)}%
+                  </p>
+                </button>
+              </div>
+              <p className="mt-2 text-[11px] text-taupe">Weekly survey average via FRED.</p>
+            </div>
+
+            <div>
+              <p className="mb-3 text-[13px] font-semibold text-ink">Fannie Mae conforming market</p>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setInterestRateText(rates.fannieMae.rate30.toFixed(2))}
+                  className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
+                >
+                  <p className="text-[12px] text-taupe">30-year fixed</p>
+                  <p className="font-serif text-[28px] text-ink">
+                    {rates.fannieMae.rate30.toFixed(2)}%
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInterestRateText(rates.fannieMae.rate15.toFixed(2));
+                    setTermYearsText("15");
+                  }}
+                  className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
+                >
+                  <p className="text-[12px] text-taupe">15-year fixed</p>
+                  <p className="font-serif text-[28px] text-ink">
+                    {rates.fannieMae.rate15.toFixed(2)}%
+                  </p>
+                </button>
+              </div>
+              <p className="mt-2 text-[11px] text-taupe">
+                Daily conforming market index (Optimal Blue via FRED).
+              </p>
+            </div>
           </div>
         ) : null}
-        <p className="mt-3 text-[12px] text-taupe">
+        <p className="mt-4 text-[12px] text-taupe">
           {rates?.source === "fred"
-            ? "Freddie Mac PMMS via FRED. Tap a rate to apply it."
-            : "Using a published average until live rates load. Tap Refresh."}
+            ? "Tap any rate to apply it to your loan estimate."
+            : "Using published averages until live rates load. Tap Refresh."}
         </p>
       </LuxuryCard>
     </div>

@@ -25,8 +25,8 @@ export function LandingPricing() {
           </h2>
           <p className="mx-auto mt-3 w-full max-w-[40rem] px-2 text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
             <strong className="font-semibold text-ink">Growth</strong> is our recommended plan for
-            active agents. {FOUNDING_100.name} members get {FOUNDING_100.trialDays} days free +
-            founding rate locked 3 months. Annual billing saves ~2 months.
+            active agents. {FOUNDING_100.name} members get {FOUNDING_100.trialDays} days free.
+            Annual billing saves ~2 months.
           </p>
 
           <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-outline-variant/20 bg-ivory p-1">

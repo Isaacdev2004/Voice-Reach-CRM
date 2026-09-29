@@ -14,7 +14,7 @@ export const FOUNDING_100 = {
   perks: [
     "14-day free trial — card on file, no charge until trial ends",
     "We import your leads and configure your first campaign",
-    "Locked-in founding rate for your first 3 months",
+    "Founding-member pricing while seats last",
     "Direct line to the team while we build with you",
   ],
   positioning: "The CRM that actually follows up.",

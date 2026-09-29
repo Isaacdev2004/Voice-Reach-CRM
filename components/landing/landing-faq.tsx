@@ -18,7 +18,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "What is the Founding 100 offer?",
-    a: "The first 100 agents get early access, white-glove setup, founding-member pricing locked for 3 months, and a direct feedback channel to the team.",
+    a: "The first 100 agents get early access, white-glove setup, founding-member pricing, and a direct feedback channel to the team.",
   },
   {
     q: "Can I cancel anytime?",
