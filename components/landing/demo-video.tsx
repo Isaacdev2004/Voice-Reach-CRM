@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { trackMarketingEvent } from "@/lib/marketing/track";
 
 const DEMO_VIDEO_URL = process.env.NEXT_PUBLIC_DEMO_VIDEO_URL?.trim();
@@ -31,6 +32,7 @@ function isExternalEmbed(url: string) {
 }
 
 export function DemoVideo() {
+  const [loadError, setLoadError] = useState(false);
   const onPlay = () => trackMarketingEvent("demo_video_play", { location: "landing" });
   const externalUrl = DEMO_VIDEO_URL && isExternalEmbed(DEMO_VIDEO_URL) ? DEMO_VIDEO_URL : null;
   const directUrl =
@@ -64,6 +66,14 @@ export function DemoVideo() {
                 onLoad={onPlay}
               />
             </div>
+          ) : loadError ? (
+            <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 bg-ink px-6 text-center">
+              <p className="font-serif text-[20px] font-semibold text-ivory">Video unavailable</p>
+              <p className="max-w-md text-[14px] leading-relaxed text-ivory/75">
+                The demo file could not be loaded. Ask your team for a YouTube link and we can set{" "}
+                <code className="text-rose-gold">NEXT_PUBLIC_DEMO_VIDEO_URL</code> in Vercel.
+              </p>
+            </div>
           ) : (
             <div className="relative aspect-video w-full bg-black">
               <video
@@ -73,6 +83,7 @@ export function DemoVideo() {
                 preload="metadata"
                 poster="/brand/ari-dashboard-hero.png"
                 onPlay={onPlay}
+                onError={() => setLoadError(true)}
               >
                 <source src={directUrl} type="video/mp4" />
                 Your browser does not support embedded video.
