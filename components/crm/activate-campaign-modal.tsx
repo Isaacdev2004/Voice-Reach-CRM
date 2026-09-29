@@ -49,13 +49,13 @@ export function ActivateCampaignModal({
   const [contacts, setContacts] = useState<ContactRow[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
-  const [enrollMode, setEnrollMode] = useState<"all" | "selected">("all");
+  const [enrollMode, setEnrollMode] = useState<"all" | "selected">("selected");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (!open) return;
-    setEnrollMode("all");
+    setEnrollMode("selected");
     setSelectedIds(new Set());
     setSearch("");
     (async () => {

@@ -135,7 +135,75 @@ async function enrollEligible(
   };
 }
 
-/** Schedule step runs only for the given recipient row IDs (avoids duplicating existing schedules). */
+async function insertStepRunsDeduped(
+  ownerId: string,
+  campaignId: string,
+  rows: Record<string, unknown>[],
+) {
+  if (!rows.length) return { scheduled: 0 };
+
+  const recipientIds = [...new Set(rows.map((row) => String(row.recipient_id)))];
+  const stepIds = [...new Set(rows.map((row) => String(row.step_id)))];
+
+  const { data: existing, error: existingError } = await supabaseAdmin
+    .from("campaign_step_runs")
+    .select("recipient_id, step_id")
+    .eq("campaign_id", campaignId)
+    .in("recipient_id", recipientIds)
+    .in("step_id", stepIds)
+    .in("status", ["scheduled", "running"]);
+
+  if (existingError) throw new Error(existingError.message);
+
+  const seen = new Set(
+    (existing ?? []).map((row) => `${row.recipient_id as string}:${row.step_id as string}`),
+  );
+  const freshRows = rows.filter((row) => {
+    const key = `${String(row.recipient_id)}:${String(row.step_id)}`;
+    return !seen.has(key);
+  });
+
+  if (!freshRows.length) return { scheduled: 0 };
+
+  const { error } = await supabaseAdmin.from("campaign_step_runs").insert(freshRows);
+  if (error) throw new Error(error.message);
+
+  return { scheduled: freshRows.length };
+}
+
+function buildStepRunRows(
+  ownerId: string,
+  campaignId: string,
+  steps: Array<{ id: string; delay_minutes?: number | null }>,
+  recipients: Array<{ id: string }>,
+  options?: { accelerated?: boolean },
+) {
+  const baseTime = Date.now();
+  const rows: Record<string, unknown>[] = [];
+
+  for (const recipient of recipients) {
+    let cursor = baseTime;
+    for (const [index, step] of steps.entries()) {
+      if (options?.accelerated) {
+        cursor = baseTime - (steps.length - index) * 1_000;
+      } else {
+        cursor += (step.delay_minutes ?? 0) * 60_000;
+      }
+      rows.push({
+        owner_id: ownerId,
+        campaign_id: campaignId,
+        step_id: step.id,
+        recipient_id: recipient.id,
+        scheduled_at: new Date(cursor).toISOString(),
+        status: "scheduled",
+      });
+    }
+  }
+
+  return rows;
+}
+
+/** Schedule step runs only for the given recipient row IDs (skips duplicates). */
 export async function scheduleStepRunsForRecipients(
   ownerId: string,
   campaignId: string,
@@ -160,32 +228,27 @@ export async function scheduleStepRunsForRecipients(
 
   if (!steps?.length || !recipients?.length) return { scheduled: 0 };
 
-  const baseTime = Date.now();
-  const rows: Record<string, unknown>[] = [];
-  for (const recipient of recipients) {
-    let cursor = baseTime;
-    for (const [index, step] of steps.entries()) {
-      if (options?.accelerated) {
-        // All due immediately so one scheduler tick can process the full sequence.
-        cursor = baseTime - (steps.length - index) * 1_000;
-      } else {
-        cursor += (step.delay_minutes ?? 0) * 60_000;
-      }
-      rows.push({
-        owner_id: ownerId,
-        campaign_id: campaignId,
-        step_id: step.id,
-        recipient_id: recipient.id,
-        scheduled_at: new Date(cursor).toISOString(),
-        status: "scheduled",
-      });
-    }
-  }
+  const rows = buildStepRunRows(ownerId, campaignId, steps, recipients, options);
+  return insertStepRunsDeduped(ownerId, campaignId, rows);
+}
 
-  if (!rows.length) return { scheduled: 0 };
+/** Schedule any missing step runs for enrolled recipients (used on explicit launch). */
+export async function ensureStepRunsForCampaign(ownerId: string, campaignId: string) {
+  const [{ data: steps }, { data: recipients }] = await Promise.all([
+    supabaseAdmin
+      .from("campaign_steps")
+      .select("*")
+      .eq("campaign_id", campaignId)
+      .order("step_order", { ascending: true }),
+    supabaseAdmin
+      .from("campaign_recipients")
+      .select("id, eligibility_status")
+      .eq("campaign_id", campaignId)
+      .eq("eligibility_status", "eligible"),
+  ]);
 
-  const { error } = await supabaseAdmin.from("campaign_step_runs").insert(rows);
-  if (error) throw new Error(error.message);
+  if (!steps?.length || !recipients?.length) return { scheduled: 0 };
 
-  return { scheduled: rows.length };
+  const rows = buildStepRunRows(ownerId, campaignId, steps, recipients);
+  return insertStepRunsDeduped(ownerId, campaignId, rows);
 }

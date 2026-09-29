@@ -35,6 +35,13 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     });
   }
 
+  if (isLiveCampaignProvider(campaign.provider) && !campaign.live_launched) {
+    return apiError(
+      "Launch this campaign before sending live voicemails. Use Launch campaign on the campaign page.",
+      { status: 400, code: "not_launched" },
+    );
+  }
+
   if (!campaign.voice_assets?.approved) {
     return apiError("Campaign voice asset must be approved before sending.", {
       status: 400,

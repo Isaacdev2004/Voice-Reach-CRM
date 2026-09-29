@@ -266,27 +266,17 @@ async function runAction(
     case "start_campaign": {
       const campaignId = String(action.config.campaignId ?? "");
       if (!campaignId || !contactId) return;
-      const { enrollContacts, scheduleStepRunsForRecipients } = await import("@/lib/campaigns/enroll");
+      const { enrollContacts } = await import("@/lib/campaigns/enroll");
       const enrollment = await enrollContacts(ownerId, campaignId, { contactIds: [contactId] });
       if (enrollment.recipientIds.length) {
         const { data: campaign } = await supabaseAdmin
           .from("campaigns")
-          .select("status, provider, voice_asset_id, script_id, name")
+          .select("status, script_id, name")
           .eq("id", campaignId)
           .eq("owner_id", ownerId)
           .maybeSingle();
-        if (campaign?.status === "draft" && campaign.voice_asset_id) {
-          await supabaseAdmin
-            .from("campaigns")
-            .update({ status: "queued", updated_at: new Date().toISOString() })
-            .eq("id", campaignId)
-            .eq("owner_id", ownerId);
-          campaign.status = "queued";
-        }
-        // Live campaigns may enroll + schedule; runDueStepRuns will not deliver until Launch.
-        if (campaign && ["queued", "sending", "partial", "sent"].includes(campaign.status)) {
-          await scheduleStepRunsForRecipients(ownerId, campaignId, enrollment.recipientIds);
-        }
+        // Automations may add someone to the recipient list only.
+        // Step runs are scheduled when you activate/add people or click Launch — never from cron.
         await supabaseAdmin
           .from("contacts")
           .update({

@@ -56,6 +56,8 @@ export async function saveCampaignBuilder(
         action === "activate" && activateOptions && !activateOptions.enrollAllEligible
           ? activateOptions.contactIds
           : undefined,
+      enrollAllEligible:
+        action === "activate" ? Boolean(activateOptions?.enrollAllEligible) : undefined,
     }),
   });
 

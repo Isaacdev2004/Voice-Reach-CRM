@@ -222,6 +222,8 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
       }
       updates.live_launched = true;
       updates.status = "sending";
+      const { ensureStepRunsForCampaign } = await import("@/lib/campaigns/enroll");
+      await ensureStepRunsForCampaign(ownerId, campaignId);
     } else {
       updates.live_launched = false;
     }

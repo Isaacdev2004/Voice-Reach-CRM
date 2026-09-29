@@ -8,7 +8,7 @@ import { z } from "zod";
 
 const BodySchema = z.object({
   templateKey: z.string().min(1).default("cold-lead-reengage"),
-  createAutomation: z.boolean().optional().default(true),
+  createAutomation: z.boolean().optional().default(false),
 });
 
 /** Supports "Day 1", "Day 30", "Day 180" etc. */
@@ -91,7 +91,7 @@ export const POST = withApiHandler(async (request) => {
         trigger_type: template.automation.triggerType,
         trigger_config: template.automation.triggerConfig ?? {},
         actions: [{ type: "start_campaign", config: { campaignId: record.id } }],
-        enabled: true,
+        enabled: false,
         updated_at: new Date().toISOString(),
       })
       .select("id")

@@ -107,44 +107,8 @@ export async function persistSteps(
 }
 
 export async function scheduleStepRunsForCampaign(ownerId: string, campaignId: string) {
-  const [{ data: steps }, { data: recipients }] = await Promise.all([
-    supabaseAdmin
-      .from("campaign_steps")
-      .select("*")
-      .eq("campaign_id", campaignId)
-      .order("step_order", { ascending: true }),
-    supabaseAdmin
-      .from("campaign_recipients")
-      .select("id, eligibility_status")
-      .eq("campaign_id", campaignId)
-      .eq("eligibility_status", "eligible"),
-  ]);
-
-  if (!steps?.length || !recipients?.length) return { scheduled: 0 };
-
-  const baseTime = Date.now();
-  const rows: Record<string, unknown>[] = [];
-  for (const recipient of recipients) {
-    let cursor = baseTime;
-    for (const step of steps) {
-      cursor += (step.delay_minutes ?? 0) * 60_000;
-      rows.push({
-        owner_id: ownerId,
-        campaign_id: campaignId,
-        step_id: step.id,
-        recipient_id: recipient.id,
-        scheduled_at: new Date(cursor).toISOString(),
-        status: "scheduled",
-      });
-    }
-  }
-
-  if (!rows.length) return { scheduled: 0 };
-
-  const { error } = await supabaseAdmin.from("campaign_step_runs").insert(rows);
-  if (error) throw new Error(error.message);
-
-  return { scheduled: rows.length };
+  const { ensureStepRunsForCampaign } = await import("@/lib/campaigns/enroll");
+  return ensureStepRunsForCampaign(ownerId, campaignId);
 }
 
 /**
@@ -204,7 +168,13 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     const contact = recipient?.contacts;
     const campaignRaw = recipient?.campaigns;
     const campaign = Array.isArray(campaignRaw) ? campaignRaw[0] : campaignRaw;
-    if (!step || !recipient || !contact) {
+    if (
+      !step ||
+      !recipient ||
+      !contact ||
+      recipient.eligibility_status === "blocked" ||
+      recipient.delivery_status === "removed"
+    ) {
       await markRun(run.id, "skipped", { reason: "missing entity" });
       executed.push({ runId: run.id, status: "skipped" });
       continue;

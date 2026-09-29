@@ -232,7 +232,7 @@ export function MortgageCalculatorPage() {
             </div>
 
             <div>
-              <p className="mb-3 text-[13px] font-semibold text-ink">Fannie Mae conforming market</p>
+              <p className="mb-3 text-[13px] font-semibold text-ink">Fannie Mae conforming (daily)</p>
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
