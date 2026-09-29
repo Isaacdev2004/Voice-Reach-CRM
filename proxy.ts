@@ -23,6 +23,11 @@ export default async function proxy(req: NextRequest, event: NextFetchEvent) {
     "/checkout(.*)",
     "/sms-consent",
     "/privacy",
+    "/terms",
+    "/tcpa-consent",
+    "/acceptable-use",
+    "/refunds",
+    "/dpa",
   ]);
   const isApiRoute = createRouteMatcher(["/api/(.*)"]);
 

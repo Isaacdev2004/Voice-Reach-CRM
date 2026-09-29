@@ -193,6 +193,9 @@ export function LandingPage() {
               <Link href="/privacy" className="hover:text-rose-gold-deep">
                 Privacy
               </Link>
+              <Link href="/terms" className="hover:text-rose-gold-deep">
+                Terms
+              </Link>
               <Link href="/contact" className="hover:text-rose-gold-deep">
                 Contact
               </Link>

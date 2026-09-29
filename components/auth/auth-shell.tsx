@@ -30,13 +30,13 @@ export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
         <footer className="flex justify-center gap-6 px-6 pb-8 text-center">
           <a
             className="text-[12px] text-taupe transition-colors hover:text-rose-gold-deep"
-            href="#"
+            href="/privacy"
           >
             Privacy Policy
           </a>
           <a
             className="text-[12px] text-taupe transition-colors hover:text-rose-gold-deep"
-            href="#"
+            href="/terms"
           >
             Terms of Service
           </a>
