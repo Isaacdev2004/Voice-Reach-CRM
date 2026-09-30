@@ -4,15 +4,17 @@ import { UtmCapture } from "@/components/marketing/utm-capture";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ui } from "@clerk/ui";
 import { clerkAppearance } from "@/lib/clerk-appearance";
-import { AUTH_AFTER_URL } from "@/lib/clerk-env";
+import { AUTH_AFTER_URL, getClerkPublishableKey } from "@/lib/clerk-env";
+import type { ReactNode } from "react";
 
 type ProvidersProps = {
-  children: React.ReactNode;
-  clerkEnabled: boolean;
+  children: ReactNode;
 };
 
-export function Providers({ children, clerkEnabled }: ProvidersProps) {
-  if (!clerkEnabled) {
+export function Providers({ children }: ProvidersProps) {
+  const publishableKey = getClerkPublishableKey();
+
+  if (!publishableKey) {
     return (
       <>
         <UtmCapture />
@@ -23,6 +25,7 @@ export function Providers({ children, clerkEnabled }: ProvidersProps) {
 
   return (
     <ClerkProvider
+      publishableKey={publishableKey}
       ui={ui}
       appearance={clerkAppearance}
       signInUrl="/sign-in"

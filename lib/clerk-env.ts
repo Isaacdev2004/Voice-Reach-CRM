@@ -9,11 +9,15 @@ function isPlaceholderKey(value: string | undefined): boolean {
   return false;
 }
 
-export function hasClerkPublishableKey(): boolean {
+export function getClerkPublishableKey(): string | undefined {
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim();
-  if (isPlaceholderKey(publishableKey)) return false;
-  // Real Clerk publishable keys are long encoded strings, not just "pk_test_"
-  return publishableKey!.startsWith("pk_") && publishableKey!.length >= 30;
+  if (isPlaceholderKey(publishableKey)) return undefined;
+  if (!publishableKey!.startsWith("pk_") || publishableKey!.length < 30) return undefined;
+  return publishableKey;
+}
+
+export function hasClerkPublishableKey(): boolean {
+  return Boolean(getClerkPublishableKey());
 }
 
 export function hasClerkEnv(): boolean {

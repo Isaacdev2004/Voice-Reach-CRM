@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Caveat, Cormorant_Garamond, Inter } from "next/font/google";
 import { MarketingScripts } from "@/components/marketing/marketing-scripts";
 import { Providers } from "@/components/providers";
-import { hasClerkEnv } from "@/lib/clerk-env";
 import { BRAND_NAME } from "@/lib/brand";
 import { DEFAULT_OG_IMAGE, SITE_URL, siteMetadata } from "@/lib/seo/site";
 import "./globals.css";
@@ -76,7 +75,7 @@ export default function RootLayout({
         className={`${inter.variable} ${cormorant.variable} ${caveat.variable} font-sans antialiased`}
       >
         <MarketingScripts />
-        <Providers clerkEnabled={hasClerkEnv()}>{children}</Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
