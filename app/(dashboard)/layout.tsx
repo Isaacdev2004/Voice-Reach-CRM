@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { Suspense } from "react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };

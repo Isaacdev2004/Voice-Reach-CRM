@@ -3,8 +3,11 @@ import { Caveat, Cormorant_Garamond, Inter } from "next/font/google";
 import { MarketingScripts } from "@/components/marketing/marketing-scripts";
 import { Providers } from "@/components/providers";
 import { BRAND_NAME } from "@/lib/brand";
+import { getClerkPublishableKey } from "@/lib/clerk-env";
 import { DEFAULT_OG_IMAGE, SITE_URL, siteMetadata } from "@/lib/seo/site";
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -63,6 +66,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const clerkPublishableKey = getClerkPublishableKey();
+
   return (
     <html lang="en" className="light">
       <head>
@@ -75,7 +80,7 @@ export default function RootLayout({
         className={`${inter.variable} ${cormorant.variable} ${caveat.variable} font-sans antialiased`}
       >
         <MarketingScripts />
-        <Providers>{children}</Providers>
+        <Providers publishableKey={clerkPublishableKey}>{children}</Providers>
       </body>
     </html>
   );
