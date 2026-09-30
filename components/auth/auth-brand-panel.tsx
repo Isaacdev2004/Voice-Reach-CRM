@@ -1,11 +1,14 @@
+import Image from "next/image";
 import Link from "next/link";
 import { AriLogo } from "@/components/brand/ari-logo";
-import { CheckCircleIcon } from "@/components/icons/landing-icons";
+import { Icon } from "@/components/ui/icon";
 import { BRAND_DOMAIN, BRAND_TAGLINE } from "@/lib/brand";
 
 type AuthBrandPanelProps = {
   mode: "sign-in" | "sign-up";
 };
+
+const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
 
 const FEATURES = [
   "Contacts, tasks, and calendar in one workspace",
@@ -17,45 +20,58 @@ export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
   const isSignUp = mode === "sign-up";
 
   return (
-    <aside className="relative hidden min-h-screen overflow-hidden bg-gradient-to-br from-[#3d3429] via-rose-gold-deep to-rose-gold lg:flex lg:flex-col">
-      <div className="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-champagne/20 blur-3xl" />
-      <div className="pointer-events-none absolute -left-20 top-1/4 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
+    <aside className="relative hidden min-h-screen overflow-hidden hero-gradient lg:flex lg:flex-col">
+      <div className="pointer-events-none absolute -right-20 top-0 h-80 w-80 rounded-full bg-rose-gold/15 blur-3xl" />
+      <div className="pointer-events-none absolute -left-16 bottom-16 h-64 w-64 rounded-full bg-champagne/40 blur-3xl" />
 
       <header className="relative z-10 px-12 pt-12">
         <Link href="/" className="inline-flex flex-col gap-2">
-          <span className="inline-flex rounded-2xl bg-white/95 px-3 py-2 shadow-card">
-            <AriLogo height={40} />
-          </span>
-          <p className="max-w-[240px] text-[12px] font-medium leading-snug text-white/80">
+          <AriLogo height={44} />
+          <p className="max-w-[260px] text-[12px] font-medium leading-snug text-taupe">
             {BRAND_TAGLINE} · {BRAND_DOMAIN}
           </p>
         </Link>
       </header>
 
-      <div className="relative z-10 flex flex-1 items-center px-12 py-10">
+      <div className="relative z-10 flex flex-1 flex-col justify-center gap-8 px-12 py-10">
         <div className="max-w-[440px]">
-          <h1 className="font-serif text-[44px] font-semibold leading-[1.08] tracking-tight text-white">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
+            The CRM for modern real estate agents
+          </p>
+          <h1 className="mt-3 font-serif text-[38px] font-semibold leading-[1.08] tracking-tight text-ink">
             {BRAND_TAGLINE}
           </h1>
-          <p className="mt-5 text-[17px] leading-[1.65] text-white/85">
+          <p className="mt-4 text-[16px] leading-[1.65] text-slate-text">
             {isSignUp
               ? "Create your account and manage outreach, contacts, and follow-ups from one place."
               : "Sign in to your dashboard for contacts, campaigns, calendar, and AI voice tools."}
           </p>
+        </div>
 
-          <div className="mt-10 rounded-[20px] border border-white/20 bg-white/10 p-6 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65">
-              Everything in one place
-            </p>
-            <ul className="mt-5 space-y-4">
-              {FEATURES.map((feature) => (
-                <li key={feature} className="flex items-start gap-3">
-                  <CheckCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-white/90" />
-                  <span className="text-[15px] leading-snug text-white/90">{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-[0_24px_70px_rgba(26,20,16,0.14)]">
+          <Image
+            src={DASHBOARD_IMAGE}
+            alt="ARI CRM dashboard showing contacts, tasks, and marketing pulse on desktop"
+            width={1360}
+            height={860}
+            priority
+            sizes="50vw"
+            className="h-auto w-full object-cover object-top"
+          />
+        </div>
+
+        <div className="rounded-[20px] border border-outline-variant/15 bg-ivory/85 p-5 backdrop-blur-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
+            Everything in one place
+          </p>
+          <ul className="mt-4 space-y-3">
+            {FEATURES.map((feature) => (
+              <li key={feature} className="flex items-start gap-3">
+                <Icon name="check_circle" className="mt-0.5 shrink-0 text-[18px] text-rose-gold-deep" />
+                <span className="text-[14px] leading-snug text-slate-text">{feature}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </aside>

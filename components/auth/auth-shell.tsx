@@ -18,10 +18,10 @@ export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
       {/* Right — form */}
       <div className="flex min-h-screen flex-col bg-cream">
         <div className="flex flex-1 flex-col justify-center px-5 py-10 sm:px-10 lg:px-14 xl:px-20">
-          {/* Mobile logo */}
-          <div className="mb-8 flex flex-col items-center text-center lg:hidden">
-            <AriLogo height={48} className="mb-3" />
-            <p className="mt-1 max-w-[240px] text-[12px] leading-snug text-taupe">{BRAND_TAGLINE}</p>
+          {/* Mobile brand strip */}
+          <div className="mb-8 flex flex-col items-center rounded-2xl border border-outline-variant/15 bg-ivory/80 px-6 py-5 text-center lg:hidden">
+            <AriLogo height={44} />
+            <p className="mt-2 max-w-[260px] text-[12px] leading-snug text-taupe">{BRAND_TAGLINE}</p>
           </div>
 
           <div className="auth-form-panel mx-auto w-full max-w-[420px]">{children}</div>
