@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AriLogo } from "@/components/brand/ari-logo";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
+
+export const metadata: Metadata = {
+  title: "Contact & Support",
+  description:
+    "Contact ARI CRM for onboarding help, billing questions, or brokerage demos. Email hello@myari.io.",
+  alternates: { canonical: "/contact" },
+  robots: { index: true, follow: true },
+};
 
 const SUPPORT_EMAIL = "hello@myari.io";
 

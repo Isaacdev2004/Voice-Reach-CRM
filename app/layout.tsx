@@ -3,8 +3,8 @@ import { Caveat, Cormorant_Garamond, Inter } from "next/font/google";
 import { MarketingScripts } from "@/components/marketing/marketing-scripts";
 import { Providers } from "@/components/providers";
 import { hasClerkEnv } from "@/lib/clerk-env";
-import { FOUNDING_100 } from "@/lib/marketing/founding";
-import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
+import { BRAND_NAME } from "@/lib/brand";
+import { DEFAULT_OG_IMAGE, SITE_URL, siteMetadata } from "@/lib/seo/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,11 +28,34 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: `${BRAND_NAME} | ${BRAND_TAGLINE}`,
-  description: `${FOUNDING_100.positioning} ${BRAND_NAME} — CRM, automated follow-up, and ringless voicemail for real estate agents.`,
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${BRAND_NAME} CRM | Automated Lead Follow-Up for Realtors`,
+    template: `%s | ${BRAND_NAME} CRM`,
+  },
+  description:
+    "ARI helps real estate agents capture, organize, and automatically follow up with leads so opportunities don't fall through the cracks. Start your 14-day free trial.",
+  robots: { index: true, follow: true },
   icons: {
     icon: "/brand/ari-logo.png",
     apple: "/brand/ari-logo.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: siteMetadata.siteName,
+    title: `${BRAND_NAME} | Never Let Another Lead Fall Through the Cracks`,
+    description:
+      "Automate your lead follow-up, organize your pipeline, and turn more opportunities into clients with ARI.",
+    images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: "ARI real estate CRM dashboard" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${BRAND_NAME} | Never Let Another Lead Fall Through the Cracks`,
+    description:
+      "Automate your lead follow-up, organize your pipeline, and turn more opportunities into clients with ARI.",
+    images: [DEFAULT_OG_IMAGE],
   },
 };
 
