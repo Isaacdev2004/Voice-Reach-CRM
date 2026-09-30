@@ -17,7 +17,7 @@ export function LandingPricing() {
   const [annual, setAnnual] = useState(false);
 
   return (
-    <section id="pricing" className="bg-cream py-16 md:py-20 lg:py-24">
+    <section id="pricing" className="scroll-mt-[4.25rem] bg-cream py-12 md:py-20 lg:py-24">
       <div className="landing-shell">
         <div className="text-center">
           <h2 className="font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">

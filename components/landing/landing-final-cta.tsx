@@ -12,9 +12,9 @@ const TRIAL_DETAILS = [
 
 export function LandingFinalCta() {
   return (
-    <section className="relative overflow-hidden bg-cream py-12 md:py-16 lg:py-20">
+    <section className="relative overflow-hidden bg-cream pt-6 pb-10 md:py-16 lg:py-20">
       <div className="landing-shell">
-        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(300px,440px)] lg:gap-16">
+        <div className="grid grid-cols-1 items-center gap-5 sm:gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(300px,440px)] lg:gap-16">
           <div className="w-full">
             <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-rose-gold-deep sm:tracking-[0.18em] lg:text-[13px]">
               Ready to close more deals?
@@ -26,13 +26,13 @@ export function LandingFinalCta() {
               Join {FOUNDING_100.name} — white-glove setup, founding-member pricing, and a CRM that
               turns leads into conversations and closed deals.
             </p>
-            <div className="mt-8 flex w-full flex-col gap-8">
+            <div className="mt-6 flex w-full flex-col gap-4 md:mt-8 md:gap-8">
               <StartFreeButton
                 location="final-cta"
                 showArrow
                 className="w-full !px-10 !py-4 !text-[15px] sm:w-auto sm:!px-12"
               />
-              <div className="flex w-full flex-col gap-5 sm:gap-6">
+              <div className="flex w-full flex-col gap-2.5 sm:gap-3 md:gap-5">
                 {TRIAL_DETAILS.map((line) => (
                   <p
                     key={line}

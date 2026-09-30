@@ -42,15 +42,18 @@ export function LandingFaq() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="bg-cream py-16 md:py-20 lg:py-24">
+    <section
+      id="faq"
+      className="scroll-mt-[4.25rem] bg-cream pt-8 pb-6 md:py-20 lg:py-24"
+    >
       <div className="landing-shell mx-auto max-w-[44rem]">
         <p className="text-center text-label-md font-semibold uppercase tracking-widest text-rose-gold-deep md:text-[13px]">
           FAQ
         </p>
-        <h2 className="mt-3 text-center font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
+        <h2 className="mt-2 text-center font-serif text-[28px] font-semibold text-ink md:mt-3 md:text-[36px] lg:text-[40px]">
           Common questions
         </h2>
-        <ul className="mt-10 space-y-3">
+        <ul className="mt-6 space-y-3 md:mt-10">
           {FAQ_ITEMS.map((item, i) => {
             const isOpen = open === i;
             return (
