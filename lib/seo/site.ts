@@ -13,6 +13,12 @@ export const siteMetadata = {
 /** Indexable marketing and legal paths (no trailing slashes). */
 export const INDEXABLE_PATHS = [
   "/",
+  "/real-estate-crm",
+  "/lead-follow-up",
+  "/realtor-lead-follow-up",
+  "/lead-reactivation",
+  "/pricing",
+  "/about",
   "/contact",
   "/privacy",
   "/terms",

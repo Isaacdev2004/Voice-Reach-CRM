@@ -46,11 +46,11 @@ export function DemoVideo() {
             See ARI in action
           </p>
           <h2 className="mt-2 font-serif text-[32px] font-semibold text-ink md:text-[40px] lg:text-[44px]">
-            Product walkthrough
+            Follow Up Automatically — Without Losing the Human Touch
           </h2>
           <p className="mt-2 text-[17px] leading-relaxed text-slate-text lg:text-[18px]">
             From new lead to automated follow-up to your next call — the workflow agents use every
-            day.
+            day. You control the message; ARI handles the timing.
           </p>
         </div>
 

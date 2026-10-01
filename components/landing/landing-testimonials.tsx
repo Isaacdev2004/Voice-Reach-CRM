@@ -40,7 +40,7 @@ export function LandingTestimonials() {
             What agents are saying
           </p>
           <h2 className="mt-3 font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
-            Real agents. Real results.
+            Built for Real Estate Agents Who Want to Grow
           </h2>
         </div>
 

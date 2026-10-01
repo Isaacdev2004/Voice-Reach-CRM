@@ -20,7 +20,7 @@ export function LandingFinalCta() {
               Ready to close more deals?
             </p>
             <h2 className="mt-3 font-serif text-[28px] font-semibold leading-[1.15] text-ink sm:text-[32px] md:text-[38px] lg:text-[42px]">
-              Start your {FOUNDING_100.trialDays}-day free trial.
+              Start Your {FOUNDING_100.trialDays}-Day Free Trial
             </h2>
             <p className="mt-4 max-w-[36rem] text-[16px] leading-relaxed text-slate-text lg:max-w-none lg:text-[17px]">
               Join {FOUNDING_100.name} — white-glove setup, founding-member pricing, and a CRM that

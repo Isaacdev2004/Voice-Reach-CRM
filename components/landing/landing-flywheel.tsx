@@ -171,10 +171,11 @@ export function LandingFlywheel() {
       <div className="landing-shell">
         <div className="mx-auto max-w-[44rem] text-center">
           <h2 className="font-serif text-[32px] font-semibold text-ink md:text-[40px] lg:text-[44px]">
-            Lead follow-up on autopilot — so you close more deals
+            Your Leads. Your Pipeline. One Simple CRM.
           </h2>
           <p className="mt-3 text-[17px] text-slate-text lg:text-[18px]">
-            A simple, automated cycle that turns more leads into clients.
+            A simple, automated cycle that turns more leads into clients — capture, follow up,
+            nurture, and re-engage from one real estate CRM.
           </p>
         </div>
 
