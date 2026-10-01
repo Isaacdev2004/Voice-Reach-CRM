@@ -45,8 +45,12 @@ export function LandingSeoTopics() {
           Also explore{" "}
           <Link href="/lead-follow-up" className="font-semibold text-rose-gold-deep hover:underline">
             automated lead follow-up
-          </Link>{" "}
-          and{" "}
+          </Link>
+          , our{" "}
+          <Link href="/resources" className="font-semibold text-rose-gold-deep hover:underline">
+            lead follow-up guides
+          </Link>
+          , and{" "}
           <Link href="/pricing" className="font-semibold text-rose-gold-deep hover:underline">
             ARI CRM pricing
           </Link>

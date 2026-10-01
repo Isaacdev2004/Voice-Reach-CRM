@@ -10,24 +10,7 @@ export const siteMetadata = {
   twitterHandle: "@myari_io",
 } as const;
 
-/** Indexable marketing and legal paths (no trailing slashes). */
-export const INDEXABLE_PATHS = [
-  "/",
-  "/real-estate-crm",
-  "/lead-follow-up",
-  "/realtor-lead-follow-up",
-  "/lead-reactivation",
-  "/pricing",
-  "/about",
-  "/contact",
-  "/privacy",
-  "/terms",
-  "/tcpa-consent",
-  "/acceptable-use",
-  "/refunds",
-  "/dpa",
-  "/sms-consent",
-] as const;
+export { INDEXABLE_PATHS, type IndexablePath } from "@/lib/seo/indexable-paths";
 
 /** Route patterns that must bypass Clerk auth (marketing + auth entry). */
 export const PUBLIC_ROUTE_PATTERNS = [

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/marketing/json-ld";
 import { LandingPage } from "@/components/pages/stitch/LandingPage";
+import { homepageSchema } from "@/lib/seo/schema";
 
 export const metadata: Metadata = {
   title: "ARI CRM | Automated Lead Follow-Up for Realtors",
@@ -10,5 +12,10 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <LandingPage />;
+  return (
+    <>
+      <JsonLd data={homepageSchema()} />
+      <LandingPage />
+    </>
+  );
 }

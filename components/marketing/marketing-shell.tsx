@@ -5,8 +5,10 @@ import { StartFreeButton } from "@/components/landing/start-free-button";
 import { BRAND_DOMAIN, BRAND_NAME, BRAND_URL } from "@/lib/brand";
 import {
   MARKETING_FOOTER_COMPANY,
+  MARKETING_FOOTER_FEATURES,
   MARKETING_FOOTER_LEGAL,
   MARKETING_FOOTER_PRODUCT,
+  MARKETING_FOOTER_RESOURCES,
   MARKETING_NAV_LINKS,
 } from "@/lib/seo/marketing-nav";
 
@@ -25,25 +27,22 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
             <AriLogo height={48} />
           </Link>
 
-          <div className="hidden items-center gap-6 lg:flex xl:gap-8">
+          <div className="hidden items-center gap-5 xl:flex xl:gap-7">
             {MARKETING_NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-[14px] text-ink/70 hover:text-rose-gold-deep xl:text-[15px]"
+                className="text-[14px] text-ink/70 hover:text-rose-gold-deep"
               >
                 {link.label}
               </Link>
             ))}
             {variant === "home" ? (
               <>
-                <a
-                  href="#how-it-works"
-                  className="text-[14px] text-ink/70 hover:text-rose-gold-deep xl:text-[15px]"
-                >
+                <a href="#how-it-works" className="text-[14px] text-ink/70 hover:text-rose-gold-deep">
                   How it works
                 </a>
-                <a href="#faq" className="text-[14px] text-ink/70 hover:text-rose-gold-deep xl:text-[15px]">
+                <a href="#faq" className="text-[14px] text-ink/70 hover:text-rose-gold-deep">
                   FAQ
                 </a>
               </>
@@ -53,7 +52,7 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
           <div className="flex shrink-0 items-center gap-3 md:gap-4">
             <Link
               href="/sign-in"
-              className="hidden text-[14px] font-medium text-ink/75 hover:text-ink sm:block xl:text-[15px]"
+              className="hidden text-[14px] font-medium text-ink/75 hover:text-ink sm:block"
             >
               Log in
             </Link>
@@ -66,8 +65,8 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
 
       <footer className="border-t border-outline-variant/15 bg-ivory py-10 md:py-12">
         <div className="landing-shell">
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            <div>
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <div className="sm:col-span-2 lg:col-span-1">
               <AriLogo height={32} />
               <p className="mt-3 max-w-[16rem] text-[14px] leading-relaxed text-slate-text">
                 {BRAND_NAME} CRM — automated lead follow-up for real estate agents.
@@ -78,11 +77,7 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
               <p className="text-[11px] font-bold uppercase tracking-widest text-taupe">Product</p>
               <nav className="mt-3 flex flex-col gap-2">
                 {MARKETING_FOOTER_PRODUCT.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-[14px] text-slate-text hover:text-rose-gold-deep"
-                  >
+                  <Link key={link.href} href={link.href} className="text-[14px] text-slate-text hover:text-rose-gold-deep">
                     {link.label}
                   </Link>
                 ))}
@@ -93,14 +88,10 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
             </div>
 
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-taupe">Company</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-taupe">Features</p>
               <nav className="mt-3 flex flex-col gap-2">
-                {MARKETING_FOOTER_COMPANY.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-[14px] text-slate-text hover:text-rose-gold-deep"
-                  >
+                {MARKETING_FOOTER_FEATURES.map((link) => (
+                  <Link key={link.href} href={link.href} className="text-[14px] text-slate-text hover:text-rose-gold-deep">
                     {link.label}
                   </Link>
                 ))}
@@ -108,14 +99,29 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
             </div>
 
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-taupe">Legal</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-taupe">Resources</p>
               <nav className="mt-3 flex flex-col gap-2">
-                {MARKETING_FOOTER_LEGAL.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-[14px] text-slate-text hover:text-rose-gold-deep"
-                  >
+                {MARKETING_FOOTER_RESOURCES.map((link) => (
+                  <Link key={link.href} href={link.href} className="text-[14px] text-slate-text hover:text-rose-gold-deep">
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-taupe">Company</p>
+              <nav className="mt-3 flex flex-col gap-2">
+                {MARKETING_FOOTER_COMPANY.map((link) => (
+                  <Link key={link.href} href={link.href} className="text-[14px] text-slate-text hover:text-rose-gold-deep">
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+              <p className="mt-5 text-[11px] font-bold uppercase tracking-widest text-taupe">Legal</p>
+              <nav className="mt-3 flex flex-col gap-2">
+                {MARKETING_FOOTER_LEGAL.slice(0, 3).map((link) => (
+                  <Link key={link.href} href={link.href} className="text-[14px] text-slate-text hover:text-rose-gold-deep">
                     {link.label}
                   </Link>
                 ))}
@@ -124,9 +130,14 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
           </div>
 
           <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-outline-variant/10 pt-6 text-[13px] text-taupe md:flex-row">
-            <span>
-              © {new Date().getFullYear()} {BRAND_NAME}
-            </span>
+            <span>© {new Date().getFullYear()} {BRAND_NAME}</span>
+            <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+              {MARKETING_FOOTER_LEGAL.slice(3).map((link) => (
+                <Link key={link.href} href={link.href} className="hover:text-rose-gold-deep">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
             <a href={BRAND_URL} className="hover:text-rose-gold-deep">
               {BRAND_DOMAIN}
             </a>
