@@ -6,6 +6,7 @@ export type MarketingEvent =
   | "page_view"
   | "cta_click"
   | "start_trial_click"
+  | "trial_started"
   | "signup_started"
   | "checkout_started"
   | "demo_video_play";
@@ -26,6 +27,7 @@ function metaEvent(name: string, props?: EventProps) {
     page_view: "PageView",
     cta_click: "Lead",
     start_trial_click: "Lead",
+    trial_started: "StartTrial",
     signup_started: "CompleteRegistration",
     checkout_started: "InitiateCheckout",
     demo_video_play: "ViewContent",

@@ -6,6 +6,7 @@ import { clearPendingPlan } from "@/lib/billing/pending-plan";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import { AUTH_AFTER_URL } from "@/lib/clerk-env";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { handleTrialClaimSuccess } from "@/lib/marketing/trial-tracking";
 import { trackMarketingEvent } from "@/lib/marketing/track";
 import { readUtmAttribution } from "@/lib/marketing/utm";
 import { useSearchParams } from "next/navigation";
@@ -34,8 +35,20 @@ export function ClerkSignUp() {
           body: JSON.stringify({ sessionId: id }),
         });
         if (res.ok) {
+          const data = (await res.json()) as {
+            planId?: string;
+            planPrice?: number;
+            trialing?: boolean;
+          };
           window.sessionStorage.removeItem("ari_checkout_session_id");
           clearPendingPlan();
+          if (data.planId && data.trialing) {
+            handleTrialClaimSuccess({
+              planId: data.planId,
+              planPrice: data.planPrice ?? 0,
+              trialing: true,
+            });
+          }
         }
       } catch {
         /* optional */

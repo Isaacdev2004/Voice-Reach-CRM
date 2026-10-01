@@ -56,10 +56,14 @@ export const POST = withApiHandler(async (request) => {
 
   await applyBillingPlan(ownerId, planId, { subscriptionStatus });
 
+  const plan = planById(planId)!;
+
   return apiOk({
     planId,
-    planName: planById(planId)!.name,
-    message: `You're on ${planById(planId)!.name}.`,
+    planName: plan.name,
+    planPrice: plan.price,
+    trialing: subscriptionStatus === "trialing",
+    message: `You're on ${plan.name}.`,
   });
 });
 

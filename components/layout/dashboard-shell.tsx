@@ -4,6 +4,7 @@ import { AiAssistantProvider } from "@/components/ai/ai-assistant-context";
 import { AiAssistantSidebar } from "@/components/ai/ai-assistant-sidebar";
 import { AiFloatingButton } from "@/components/ai/ai-launcher-button";
 import { UpgradePlanProvider } from "@/components/billing/upgrade-plan-provider";
+import { StartTrialTracker } from "@/components/marketing/start-trial-tracker";
 import { SetupBanner } from "@/components/layout/setup-banner";
 import { DashboardHeaderProvider } from "@/components/layout/dashboard-header-provider";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
@@ -111,6 +112,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
   return (
     <UpgradePlanProvider>
+      <StartTrialTracker />
       <AiAssistantProvider>
         <DashboardHeaderProvider
           searchPlaceholder={config.searchPlaceholder}

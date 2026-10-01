@@ -8,6 +8,7 @@ import {
   clearPendingPlan,
   rememberPendingPlan,
 } from "@/lib/billing/pending-plan";
+import { handleTrialClaimSuccess } from "@/lib/marketing/trial-tracking";
 import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
 import { fetchSettings, saveSettingsLocal } from "@/lib/settings/storage";
 import type { BillingSettings, UserSettings } from "@/lib/settings/types";
@@ -93,8 +94,20 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({ sessionId }),
         });
         if (res.ok) {
+          const data = (await res.json()) as {
+            planId?: string;
+            planPrice?: number;
+            trialing?: boolean;
+          };
           window.sessionStorage.removeItem("ari_checkout_session_id");
           clearPendingPlan();
+          if (data.planId && data.trialing) {
+            handleTrialClaimSuccess({
+              planId: data.planId,
+              planPrice: data.planPrice ?? 0,
+              trialing: true,
+            });
+          }
           const s = await loadSettings();
           setLastUpgradedAt(Date.now());
           setToast({
