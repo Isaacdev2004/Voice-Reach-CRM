@@ -44,7 +44,7 @@ export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
         <div className="landing-shell grid items-center gap-10 py-8 md:grid-cols-2 md:py-12 lg:gap-14">
           <div>
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
-              {page.eyebrow}
+              {page.category}
             </p>
             <h1 className="font-serif text-[2rem] font-semibold leading-tight text-ink md:text-[2.5rem] lg:text-[2.75rem]">
               {page.h1}

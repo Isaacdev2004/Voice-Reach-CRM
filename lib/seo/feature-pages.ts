@@ -1,3 +1,5 @@
+import { ADDITIONAL_FEATURE_PAGES } from "@/lib/seo/feature-pages-additions";
+
 export type FeaturePageSlug =
   | "automated-follow-up"
   | "lead-management"
@@ -5,11 +7,25 @@ export type FeaturePageSlug =
   | "email-automation"
   | "pipeline-management"
   | "lead-reactivation"
-  | "notifications";
+  | "notifications"
+  | "ringless-voicemail"
+  | "voice-studio"
+  | "campaign-builder"
+  | "notes-and-strategy"
+  | "mortgage-calculator"
+  | "property-finder"
+  | "calendar-and-tasks"
+  | "ai-assistant"
+  | "analytics"
+  | "automation-workflows"
+  | "dotloop-integration"
+  | "google-calendar"
+  | "client-email-updates";
 
 export type FeaturePageConfig = {
   slug: FeaturePageSlug;
   path: `/features/${FeaturePageSlug}`;
+  category: string;
   title: string;
   description: string;
   h1: string;
@@ -25,15 +41,16 @@ export type FeaturePageConfig = {
   relatedProductLabel: string;
 };
 
-export const FEATURE_PAGES: Record<FeaturePageSlug, FeaturePageConfig> = {
+const CORE_FEATURE_PAGES = {
   "automated-follow-up": {
     slug: "automated-follow-up",
     path: "/features/automated-follow-up",
+    category: "Follow-up",
     title: "Automated Follow-Up for Real Estate Agents",
     description:
       "ARI automated follow-up runs SMS, email, and ringless voicemail sequences so every real estate lead gets a timely response — even when you're in showings.",
     h1: "Automated Follow-Up That Keeps Leads Warm",
-    eyebrow: "Feature · Automated follow-up",
+    eyebrow: "Automated follow-up",
     intro:
       "Set your follow-up once and let ARI deliver it on schedule. New leads get instant outreach; nurture sequences keep prospects engaged until they're ready to move.",
     sections: [
@@ -74,11 +91,12 @@ export const FEATURE_PAGES: Record<FeaturePageSlug, FeaturePageConfig> = {
   "lead-management": {
     slug: "lead-management",
     path: "/features/lead-management",
+    category: "CRM",
     title: "Real Estate Lead Management Software",
     description:
       "Organize every real estate lead in one CRM — import from Zillow, CSV, and open houses with notes, tags, and full communication history.",
     h1: "Lead Management Built for Real Estate",
-    eyebrow: "Feature · Lead management",
+    eyebrow: "Lead management",
     intro:
       "Stop juggling spreadsheets and sticky notes. ARI centralizes contacts, lead sources, and activity history so you always know who to call next.",
     sections: [
@@ -119,11 +137,12 @@ export const FEATURE_PAGES: Record<FeaturePageSlug, FeaturePageConfig> = {
   "text-automation": {
     slug: "text-automation",
     path: "/features/text-automation",
+    category: "Follow-up",
     title: "Automated Text Follow-Up for Realtors",
     description:
       "Send automated SMS follow-up to real estate leads with ARI — instant responses, drip sequences, and compliance tools for TCPA-aware texting.",
     h1: "Text Automation That Reaches Leads Fast",
-    eyebrow: "Feature · SMS automation",
+    eyebrow: "SMS automation",
     intro:
       "Text is the fastest way to reach modern buyers and sellers. ARI automates SMS follow-up so you respond in minutes — not hours — while staying compliant.",
     sections: [
@@ -162,11 +181,12 @@ export const FEATURE_PAGES: Record<FeaturePageSlug, FeaturePageConfig> = {
   "email-automation": {
     slug: "email-automation",
     path: "/features/email-automation",
+    category: "Follow-up",
     title: "Automated Email Follow-Up for Real Estate",
     description:
       "Automate real estate email follow-up with ARI — nurture sequences, market updates, and re-engagement emails tied to your CRM pipeline.",
     h1: "Email Automation for Longer-Form Nurture",
-    eyebrow: "Feature · Email automation",
+    eyebrow: "Email automation",
     intro:
       "Some leads need more than a text. ARI email automation delivers thoughtful nurture sequences, market touches, and re-engagement emails on schedule.",
     sections: [
@@ -205,11 +225,12 @@ export const FEATURE_PAGES: Record<FeaturePageSlug, FeaturePageConfig> = {
   "pipeline-management": {
     slug: "pipeline-management",
     path: "/features/pipeline-management",
+    category: "CRM",
     title: "Real Estate Sales Pipeline Management",
     description:
       "Track every lead through your real estate sales pipeline with ARI — stages, tasks, and automated follow-up so nothing falls through the cracks.",
     h1: "Pipeline Management That Shows Who Needs You",
-    eyebrow: "Feature · Pipeline",
+    eyebrow: "Pipeline",
     intro:
       "See every lead's stage at a glance. Move contacts through your sales pipeline as they respond, schedule showings, or go under contract — with tasks and automation at every step.",
     sections: [
@@ -250,11 +271,12 @@ export const FEATURE_PAGES: Record<FeaturePageSlug, FeaturePageConfig> = {
   "lead-reactivation": {
     slug: "lead-reactivation",
     path: "/features/lead-reactivation",
+    category: "Follow-up",
     title: "Lead Reactivation Feature for Real Estate CRM",
     description:
       "Re-engage dormant real estate leads with ARI's lead reactivation feature — segmented SMS, email, and voicemail campaigns that restart conversations.",
     h1: "Lead Reactivation Built Into Your CRM",
-    eyebrow: "Feature · Lead reactivation",
+    eyebrow: "Lead reactivation",
     intro:
       "Your old leads aren't dead — they're waiting for the right message. ARI's reactivation tools segment dormant contacts and run structured re-engagement campaigns.",
     sections: [
@@ -293,11 +315,12 @@ export const FEATURE_PAGES: Record<FeaturePageSlug, FeaturePageConfig> = {
   notifications: {
     slug: "notifications",
     path: "/features/notifications",
+    category: "CRM",
     title: "Lead Reminders & Task Notifications for Agents",
     description:
       "ARI notifications and task reminders tell real estate agents exactly who to call, text, or follow up with — so hot leads never slip through.",
     h1: "Reminders That Keep You on Top of Every Lead",
-    eyebrow: "Feature · Notifications",
+    eyebrow: "Tasks & alerts",
     intro:
       "Automation handles the repetitive outreach. Notifications tell you when a lead replies, goes quiet, or needs a personal touch — so you focus on conversations that close.",
     sections: [
@@ -337,4 +360,33 @@ export const FEATURE_PAGES: Record<FeaturePageSlug, FeaturePageConfig> = {
   },
 };
 
-export const FEATURE_PAGE_SLUGS = Object.keys(FEATURE_PAGES) as FeaturePageSlug[];
+export const FEATURE_PAGES: Record<FeaturePageSlug, FeaturePageConfig> = {
+  ...CORE_FEATURE_PAGES,
+  ...(ADDITIONAL_FEATURE_PAGES as Record<FeaturePageSlug, FeaturePageConfig>),
+};
+
+/** Walkthrough order for the public features index (matches in-app workflow). */
+export const FEATURE_DISPLAY_ORDER: FeaturePageSlug[] = [
+  "lead-management",
+  "pipeline-management",
+  "automated-follow-up",
+  "campaign-builder",
+  "text-automation",
+  "email-automation",
+  "client-email-updates",
+  "ringless-voicemail",
+  "voice-studio",
+  "lead-reactivation",
+  "calendar-and-tasks",
+  "notes-and-strategy",
+  "property-finder",
+  "mortgage-calculator",
+  "ai-assistant",
+  "analytics",
+  "notifications",
+  "automation-workflows",
+  "google-calendar",
+  "dotloop-integration",
+];
+
+export const FEATURE_PAGE_SLUGS = FEATURE_DISPLAY_ORDER;

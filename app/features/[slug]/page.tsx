@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { FeatureLandingPage } from "@/components/marketing/feature-landing-page";
-import { FEATURE_PAGES, FEATURE_PAGE_SLUGS, type FeaturePageSlug } from "@/lib/seo/feature-pages";
+import { FEATURE_DISPLAY_ORDER, FEATURE_PAGES, type FeaturePageSlug } from "@/lib/seo/feature-pages";
 import { pageMetadata } from "@/lib/seo/metadata";
 
 type PageProps = {
@@ -9,7 +9,7 @@ type PageProps = {
 };
 
 export function generateStaticParams() {
-  return FEATURE_PAGE_SLUGS.map((slug) => ({ slug }));
+  return FEATURE_DISPLAY_ORDER.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
