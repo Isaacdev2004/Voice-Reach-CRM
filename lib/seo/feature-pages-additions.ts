@@ -356,7 +356,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       { title: "Activity logs", body: "Full send history for accountability." },
       { title: "Engagement tracking", body: "See who is responding." },
       { title: "Source insights", body: "Compare lead sources over time." },
-      { title: "Compliance audit", body: "TCPA-aware logging built in." },
+      { title: "Activity logs", body: "Outreach history for compliance review." },
     ],
     relatedProductHref: "/real-estate-crm",
     relatedProductLabel: "real estate CRM",

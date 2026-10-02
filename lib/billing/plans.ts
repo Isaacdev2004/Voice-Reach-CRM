@@ -65,6 +65,8 @@ export const PLAN_OPTIONS: PlanOption[] = [
     rvmOverage: PAYG_RATES.rvm,
     cta: "Start Free",
     features: [
+      "White-glove setup included",
+      "Compliance-aware outreach tools",
       "Up to 1,000 contacts",
       "CRM + lead tracking",
       "Calendar, tasks & appointments",
@@ -115,7 +117,7 @@ export const PLAN_OPTIONS: PlanOption[] = [
       "Up to 15,000 contacts",
       "Everything in Growth",
       "2,000 SMS + 1,000 RVM included / mo",
-      "Advanced automation & lead scoring",
+      "Advanced automation rules & engagement scoring",
       "Reporting & priority onboarding",
       "Up to 3 users",
       `Overages: $${PRO_OVERAGE_RATES.sms.toFixed(3)} SMS · $${PRO_OVERAGE_RATES.rvm.toFixed(2)} RVM`,

@@ -7,25 +7,28 @@ import { LandingFinalCta } from "@/components/landing/landing-final-cta";
 import { LandingFlywheel } from "@/components/landing/landing-flywheel";
 import { LandingPricing } from "@/components/landing/landing-pricing";
 import { LandingSeoTopics } from "@/components/landing/landing-seo-topics";
-import { LandingTestimonials } from "@/components/landing/landing-testimonials";
+import { LandingProductProof } from "@/components/landing/landing-product-proof";
+import { LandingReactivation } from "@/components/landing/landing-reactivation";
+import { LandingWhiteGlove } from "@/components/landing/landing-white-glove";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { Icon } from "@/components/ui/icon";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { SITE_OFFER, trialCtaLabel } from "@/lib/marketing/site-offer";
 
 const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
 
 const HERO_TRUST = [
   `${FOUNDING_100.trialDays}-day free trial`,
-  "Card required · no charge until trial ends",
-  "White-glove setup",
+  SITE_OFFER.cardRequiredNote,
+  SITE_OFFER.whiteGlove.shortLine,
 ];
 
 const HOW_IT_WORKS = [
   {
     num: "1",
     title: "Import your leads",
-    body: "Easily bring in your contacts from Zillow, Realtor.com, CSV, or your existing tools.",
+    body: "Import via CSV, Zillow/Realtor.com exports, manual entry, or onboarding-assisted migration.",
   },
   {
     num: "2",
@@ -59,7 +62,7 @@ export function LandingPage() {
             <div className="mt-8 flex flex-wrap items-center gap-4 md:mt-10">
               <StartFreeButton
                 location="hero"
-                label="Start Your 14-Day Free Trial"
+                label={trialCtaLabel()}
                 showArrow
                 className="!px-10 !py-3.5 !text-[14px] md:!px-12 md:!py-4 md:!text-[15px]"
               />
@@ -109,7 +112,7 @@ export function LandingPage() {
               Everything you need to keep leads moving
             </h2>
             <p className="mt-2 text-[17px] text-slate-text lg:text-[18px]">
-              Get started in minutes. Start closing more deals in days.
+              {SITE_OFFER.whiteGlove.setupWindow}
             </p>
           </div>
           <div className="mt-8 grid gap-8 md:mt-10 md:grid-cols-3 md:gap-6 lg:gap-8">
@@ -132,14 +135,16 @@ export function LandingPage() {
             </Link>{" "}
             and{" "}
             <Link href="/lead-follow-up" className="font-semibold text-rose-gold-deep hover:underline">
-              automated lead follow-up
+              lead follow-up system
             </Link>
             .
           </p>
         </div>
       </section>
 
-      <LandingTestimonials />
+      <LandingProductProof />
+      <LandingWhiteGlove />
+      <LandingReactivation />
       <LandingSeoTopics />
       <LandingPricing />
       <LandingFaq />

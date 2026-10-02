@@ -5,6 +5,7 @@ import { LandingPricing } from "@/components/landing/landing-pricing";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { SITE_OFFER, trialCtaLabel } from "@/lib/marketing/site-offer";
 import { pageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = pageMetadata({
@@ -26,13 +27,13 @@ export default function PricingPage() {
             Plans built for agents who follow up
           </h1>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px] lg:text-[18px]">
-            Start with a {FOUNDING_100.trialDays}-day free trial. {FOUNDING_100.name} members get
-            white-glove setup, founding-member pricing, and month-to-month billing — cancel anytime.
+            Start with a {SITE_OFFER.trialDays}-day free trial. {SITE_OFFER.cardRequiredNote}.{" "}
+            {SITE_OFFER.whiteGlove.shortLine} — {SITE_OFFER.founding.active ? `${FOUNDING_100.name} ${SITE_OFFER.founding.pricingNote.toLowerCase()}` : "month-to-month billing"}.
           </p>
           <div className="mt-8">
             <StartFreeButton
               location="pricing-hero"
-              label="Start Your 14-Day Free Trial"
+              label={trialCtaLabel()}
               showArrow
               className="!px-10 !py-4 !text-[15px]"
             />

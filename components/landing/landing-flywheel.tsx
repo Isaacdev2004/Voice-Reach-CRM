@@ -3,7 +3,7 @@ import { Icon } from "@/components/ui/icon";
 
 const STEPS = [
   { icon: "group_add", title: "Capture Leads", body: "All your leads in one place." },
-  { icon: "bolt", title: "Auto Follow-Up", body: "Instant, personalized outreach." },
+  { icon: "bolt", title: "Auto Follow-Up", body: "Timely, personalized outreach on your schedule." },
   { icon: "favorite", title: "Nurture", body: "Keep them engaged over time." },
   { icon: "notifications_active", title: "Reminders & Tasks", body: "Never let a lead slip." },
   { icon: "replay", title: "Re-Engage", body: "Automatically reach out again." },

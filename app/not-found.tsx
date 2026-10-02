@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { StartFreeButton } from "@/components/landing/start-free-button";
+import { trialCtaLabel } from "@/lib/marketing/site-offer";
 
 export default function NotFound() {
   return (
@@ -29,7 +30,7 @@ export default function NotFound() {
           </Link>
         </nav>
         <div className="mt-8">
-          <StartFreeButton location="404" label="Start Your 14-Day Free Trial" />
+          <StartFreeButton location="404" label={trialCtaLabel()} />
         </div>
       </section>
     </MarketingShell>

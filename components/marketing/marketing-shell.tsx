@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { AriLogo } from "@/components/brand/ari-logo";
 import { StartFreeButton } from "@/components/landing/start-free-button";
+import { PageViewTracker } from "@/components/marketing/page-view-tracker";
 import { BRAND_DOMAIN, BRAND_NAME, BRAND_URL } from "@/lib/brand";
 import {
   MARKETING_FOOTER_COMPANY,
@@ -21,6 +22,13 @@ type MarketingShellProps = {
 export function MarketingShell({ children, variant = "default" }: MarketingShellProps) {
   return (
     <div className="min-h-screen bg-cream text-ink">
+      <PageViewTracker />
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-ivory focus:px-4 focus:py-2 focus:text-[14px] focus:font-semibold focus:text-ink focus:shadow-card"
+      >
+        Skip to main content
+      </a>
       <header className="fixed inset-x-0 top-0 z-50 border-b border-outline-variant/15 bg-ivory/95 backdrop-blur-md">
         <nav className="landing-shell flex h-14 items-center justify-between gap-4 md:h-[4.25rem]">
           <Link href="/" className="shrink-0" aria-label={`${BRAND_NAME} home`}>
@@ -61,7 +69,9 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
         </nav>
       </header>
 
-      <main className="pt-14 md:pt-[4.25rem]">{children}</main>
+      <main id="main-content" className="pt-14 md:pt-[4.25rem]">
+        {children}
+      </main>
 
       <footer className="border-t border-outline-variant/15 bg-ivory py-10 md:py-12">
         <div className="landing-shell">
@@ -81,9 +91,6 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
                     {link.label}
                   </Link>
                 ))}
-                <Link href="/realtor-lead-follow-up" className="text-[14px] text-slate-text hover:text-rose-gold-deep">
-                  Realtor follow-up
-                </Link>
               </nav>
             </div>
 

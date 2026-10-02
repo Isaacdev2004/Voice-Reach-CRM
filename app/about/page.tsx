@@ -4,17 +4,16 @@ import { StartFreeButton } from "@/components/landing/start-free-button";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { BRAND_NAME } from "@/lib/brand";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { SITE_OFFER, trialCtaLabel } from "@/lib/marketing/site-offer";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { PRODUCT_NAV_LINKS } from "@/lib/seo/marketing-nav";
 
 export const metadata: Metadata = pageMetadata({
   title: "About ARI CRM — Lead Follow-Up for Real Estate Agents",
   description:
-    "ARI CRM helps real estate agents capture, organize, and automatically follow up with leads. Learn why we built a CRM focused on follow-up — not just contact storage.",
+    "ARI CRM helps real estate agents capture, organize, and automatically follow up with leads. Learn why we built a follow-up system — not just another contact database.",
   path: "/about",
 });
-
-const SUPPORT_EMAIL = "hello@myari.io";
 
 export default function AboutPage() {
   return (
@@ -29,8 +28,8 @@ export default function AboutPage() {
           </h1>
           <p className="mt-5 text-[16px] leading-relaxed text-ink/80 md:text-[17px] lg:text-[18px]">
             {BRAND_NAME} exists because real estate agents lose deals they already paid for — not
-            from lack of leads, but from inconsistent follow-up. We built a CRM that organizes your
-            pipeline and automates outreach so no opportunity falls through the cracks.
+            from lack of leads, but from inconsistent follow-up. We built a {SITE_OFFER.positioning.primary}{" "}
+            that organizes your pipeline and automates outreach so {SITE_OFFER.primaryPromise.toLowerCase()}
           </p>
         </div>
       </section>
@@ -39,18 +38,31 @@ export default function AboutPage() {
         <div className="landing-shell mx-auto max-w-[44rem] space-y-10">
           <div>
             <h2 className="font-serif text-[26px] font-semibold text-ink md:text-[32px]">
+              Who we are
+            </h2>
+            <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
+              ARI is built by Kikzeny Cartagena LLC d/b/a ARI — a team focused on one problem:
+              agents generate leads but cannot follow up consistently when they are in showings,
+              listings, and client calls. We ship product in the open with our {FOUNDING_100.name}{" "}
+              program — working agents who give direct feedback while we refine campaigns, onboarding,
+              and integrations.
+            </p>
+          </div>
+
+          <div>
+            <h2 className="font-serif text-[26px] font-semibold text-ink md:text-[32px]">
               Why we built {BRAND_NAME}
             </h2>
             <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
               Most CRMs are databases with a login screen. Agents still copy-paste texts, forget to
-              call back, and watch Zillow leads go cold. {BRAND_NAME} connects contact management to
-              automated SMS, email, and ringless voicemail — so follow-up happens whether you're in
-              a showing, at closing, or off the clock.
+              call back, and watch portal leads go cold. {BRAND_NAME} connects contact management to
+              automated SMS, email, and ringless voicemail — follow-up runs on the schedule you
+              configure whether you are in a showing or off the clock.
             </p>
             <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
-              We're launching with the {FOUNDING_100.name} — the first {FOUNDING_100.seatsTotal}{" "}
-              agents get white-glove onboarding, founding-member pricing, and a direct line to the
-              team while we build alongside working Realtors.
+              {SITE_OFFER.whiteGlove.shortLine}. {SITE_OFFER.founding.active
+                ? `${FOUNDING_100.name} adds ${SITE_OFFER.founding.pricingNote.toLowerCase()} and a direct line to the team — not exclusive onboarding.`
+                : null}
             </p>
           </div>
 
@@ -60,8 +72,7 @@ export default function AboutPage() {
             </h2>
             <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
               Solo agents and small teams who buy leads, farm neighborhoods, and nurture spheres —
-              and need a system that keeps every contact moving toward a conversation. If you've ever
-              lost a deal because you forgot to follow up, {BRAND_NAME} is built for you.
+              and need a system that keeps every contact moving toward a conversation.
             </p>
           </div>
 
@@ -72,8 +83,8 @@ export default function AboutPage() {
             <ul className="mt-4 space-y-3 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
               <li>Follow-up is the highest-leverage activity in real estate sales.</li>
               <li>Automation should feel personal — you control the message, we handle the timing.</li>
-              <li>Compliance and consent aren't optional; they're built into every campaign.</li>
-              <li>Agents shouldn't need a tech team to get value from their CRM.</li>
+              <li>{SITE_OFFER.compliance.shortNote}</li>
+              <li>Agents should not need a tech team to get value from their CRM.</li>
             </ul>
           </div>
         </div>
@@ -84,7 +95,7 @@ export default function AboutPage() {
           <h2 className="font-serif text-[22px] font-semibold text-ink md:text-[26px]">
             Explore the platform
           </h2>
-          <nav className="mt-4 flex flex-wrap gap-3">
+          <nav className="mt-4 flex flex-wrap gap-3" aria-label="Product pages">
             {PRODUCT_NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -94,12 +105,6 @@ export default function AboutPage() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/realtor-lead-follow-up"
-              className="rounded-full border border-outline-variant/20 bg-cream px-4 py-2 text-[14px] font-medium text-ink/80 hover:border-rose-gold/40 hover:text-rose-gold-deep"
-            >
-              Realtor follow-up
-            </Link>
             <Link
               href="/pricing"
               className="rounded-full border border-outline-variant/20 bg-cream px-4 py-2 text-[14px] font-medium text-ink/80 hover:border-rose-gold/40 hover:text-rose-gold-deep"
@@ -116,9 +121,9 @@ export default function AboutPage() {
             Get in touch
           </h2>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-text">
-            Questions about onboarding, brokerage demos, or billing? Email us at{" "}
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="font-semibold text-rose-gold-deep hover:underline">
-              {SUPPORT_EMAIL}
+            Questions about onboarding, brokerage demos, or billing? Email{" "}
+            <a href={`mailto:${SITE_OFFER.supportEmail}`} className="font-semibold text-rose-gold-deep hover:underline">
+              {SITE_OFFER.supportEmail}
             </a>{" "}
             or visit our{" "}
             <Link href="/contact" className="font-semibold text-rose-gold-deep hover:underline">
@@ -127,12 +132,7 @@ export default function AboutPage() {
             .
           </p>
           <div className="mt-8">
-            <StartFreeButton
-              location="about-cta"
-              label="Start Your 14-Day Free Trial"
-              showArrow
-              className="!px-10 !py-4 !text-[15px]"
-            />
+            <StartFreeButton location="about-cta" label={trialCtaLabel()} showArrow className="!px-10 !py-4 !text-[15px]" />
           </div>
         </div>
       </section>

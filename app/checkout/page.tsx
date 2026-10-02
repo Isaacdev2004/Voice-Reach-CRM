@@ -4,6 +4,8 @@ import { CHECKOUT_PLAN_OPTIONS, planById, type PlanId } from "@/lib/billing/plan
 import { rememberPendingPlan } from "@/lib/billing/pending-plan";
 import { cn } from "@/lib/cn";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { trackMarketingEvent } from "@/lib/marketing/track";
+import { SITE_OFFER } from "@/lib/marketing/site-offer";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -43,6 +45,7 @@ function CheckoutInner() {
       }
       const url = (data as { url?: string }).url;
       if (!url) throw new Error("Stripe checkout URL missing");
+      trackMarketingEvent("checkout_started", { planId, location: "checkout-page" });
       window.location.assign(url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Checkout failed");
@@ -57,8 +60,8 @@ function CheckoutInner() {
       </p>
       <h1 className="mt-2 font-serif text-[36px] font-semibold text-ink">Choose your plan</h1>
       <p className="mt-2 text-[15px] text-slate-text">
-        Add a card to start your {FOUNDING_100.trialDays}-day free trial — you won&apos;t be charged
-        until the trial ends. Then create your account.
+        {SITE_OFFER.cardRequiredNote}. Start your {SITE_OFFER.trialDays}-day free trial, then create
+        your account. {SITE_OFFER.whiteGlove.shortLine}.
       </p>
 
       {canceled ? (

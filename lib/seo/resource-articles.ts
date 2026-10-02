@@ -23,11 +23,26 @@ export type ResourceArticle = {
   title: string;
   description: string;
   publishedAt: string;
+  updatedAt?: string;
+  author?: string;
+  editorialNote?: string;
   readTimeMinutes: number;
   category: string;
   sections: ResourceArticleSection[];
   productLinks: Array<{ href: string; anchor: string }>;
+  citations?: Array<{ label: string; href?: string }>;
 };
+
+export type ResourceCitation = { label: string; href?: string };
+
+export const RESOURCE_EDITORIAL = {
+  author: "ARI Team",
+  editorialNote: "Reviewed for accuracy by the ARI product team. Last updated October 2026.",
+  defaultCitations: [
+    { label: "NAR — real estate lead follow-up best practices", href: "https://www.nar.realtor/" },
+    { label: "InsideSales — lead response time research", href: "https://www.insidesales.com/" },
+  ] as ResourceCitation[],
+} as const;
 
 const PRODUCT_LINKS = {
   crm: { href: "/real-estate-crm", anchor: "real estate CRM for agents" },
@@ -68,7 +83,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
         h2: "How many times should you follow up?",
         paragraphs: [
           "Most agents stop after one or two attempts. Research on sales follow-up consistently shows that the majority of conversions happen after the fifth touch or later — yet most reps quit far sooner.",
-          "A practical cadence for new real estate leads: Day 0 (instant text + call), Day 1 (email), Day 3 (text check-in), Day 7 (voicemail or video text), Day 14 (value-add email), Day 30 (re-engagement). Adjust based on lead temperature and source.",
+          "A practical cadence for new real estate leads: Day 0 (same-day text + call), Day 1 (email), Day 3 (text check-in), Day 7 (voicemail or video text), Day 14 (value-add email), Day 30 (re-engagement). Adjust based on lead temperature and source.",
         ],
         bullets: [
           "Hot portal leads: prioritize phone within 5 minutes",
@@ -143,7 +158,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Must-have feature #4: Compliance tools",
         paragraphs: [
-          "TCPA, DNC scrubbing, consent tracking, and quiet hours aren't optional for agents who text and call at scale. Your CRM should make compliance the default, not an afterthought.",
+          "TCPA, consent tracking, suppression/DNC tools, and quiet hours aren't optional for agents who text and call at scale. Your CRM should include compliance-aware workflows — not treat them as an afterthought.",
         ],
       },
       {
@@ -300,7 +315,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Automate the first touch, personalize the rest",
         paragraphs: [
-          "Load these templates into ARI's text automation for instant first responses, then personalize follow-ups when leads reply. See our automated text follow-up feature for details.",
+          "Load these templates into ARI's text automation for automated first responses on your schedule, then personalize follow-ups when leads reply. See our automated text follow-up feature for details.",
         ],
       },
     ],
@@ -332,7 +347,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
         h2: "Use a Facebook-specific cadence",
         paragraphs: ["These leads often need more education and trust-building:"],
         bullets: [
-          "Instant SMS acknowledging their form submission",
+          "Timely SMS acknowledging their form submission",
           "Day 1: email with buyer/seller guide",
           "Day 3: text with market insight for their area",
           "Day 7: invitation to short phone consult",
@@ -401,7 +416,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       },
       {
         h2: "Reason #1: Slow response",
-        paragraphs: ["Portal and ad leads expect instant acknowledgment. Delay beyond 30 minutes and they've often contacted another agent."],
+        paragraphs: ["Portal and ad leads expect timely acknowledgment. Delay beyond 30 minutes and they've often contacted another agent."],
       },
       {
         h2: "Reason #2: Not enough touches",
@@ -449,7 +464,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "How to hit 5 minutes every time",
         paragraphs: [
-          "You can't manually respond to every lead in showings. Automated SMS on lead import is the only scalable solution. Configure instant first text in ARI and follow up personally when you're available.",
+          "You can't manually respond to every lead in showings. Automated SMS after import is a scalable approach. Configure a first text in ARI on the schedule you set and follow up personally when you're available.",
         ],
       },
     ],
@@ -474,7 +489,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Week 1: Speed and connection",
         bullets: [
-          "Day 0: Instant SMS + call attempt within 5 minutes",
+          "Day 0: Same-day SMS + call attempt when you are available",
           "Day 1: Email with intro and next steps",
           "Day 2: Second call attempt + voicemail",
           "Day 3: Text check-in with one question",
@@ -502,7 +517,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Automate the plan in ARI",
         paragraphs: [
-          "Load this cadence as an automated sequence in ARI. You handle replies; the system handles timing. Start your 14-day free trial with white-glove setup to launch your first 30-day campaign.",
+          "Load this cadence as an automated sequence in ARI. You handle replies; the system handles timing. Start your free trial — white-glove setup is included on every plan — to launch your first 30-day campaign.",
         ],
       },
     ],

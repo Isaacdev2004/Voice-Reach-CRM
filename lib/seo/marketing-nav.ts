@@ -1,6 +1,7 @@
 export const PRODUCT_NAV_LINKS = [
   { href: "/real-estate-crm", label: "Real Estate CRM" },
   { href: "/lead-follow-up", label: "Lead Follow-Up" },
+  { href: "/realtor-lead-follow-up", label: "Realtor Workflows" },
   { href: "/lead-reactivation", label: "Lead Reactivation" },
 ] as const;
 

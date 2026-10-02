@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LegalBulletList, LegalSection } from "@/components/legal/legal-page-shell";
 import { LegalDisclaimer } from "@/components/legal/legal-disclaimer";
+import { integrationsLegalBullets } from "@/lib/marketing/site-offer";
 import { LEGAL_ENTITY } from "@/lib/legal/company";
 import { LEGAL_ROUTES } from "@/lib/legal/links";
 
@@ -79,14 +80,7 @@ export function DpaContent() {
 
       <LegalSection title="7. Subprocessors">
         <p>You authorize us to engage subprocessors to provide the Service, including:</p>
-        <LegalBulletList
-          items={[
-            "Hosting/infrastructure providers (e.g., Vercel and associated database/hosting services)",
-            "Payment processing providers",
-            "Messaging/voice carrier infrastructure (e.g., Twilio or similar, for SMS/call delivery)",
-            "CRM/marketing integrations you actively connect (e.g., Follow Up Boss, HubSpot, ActiveCampaign) — engaged at your direction, not by us",
-          ]}
-        />
+        <LegalBulletList items={integrationsLegalBullets()} />
         <p>
           We will maintain a current list of subprocessors available upon request and will notify you
           of material changes, giving you an opportunity to object on reasonable grounds.
@@ -164,12 +158,7 @@ export function DpaContent() {
         </p>
       </LegalSection>
 
-      <LegalDisclaimer>
-        This document is a template and does not constitute legal advice. GDPR/CCPA applicability
-        depends on your specific customer base and data flows — have this reviewed by a licensed
-        attorney, particularly the subprocessor list, international transfer mechanism, and breach
-        notification timelines, before offering it to customers.
-      </LegalDisclaimer>
+      <LegalDisclaimer />
     </>
   );
 }

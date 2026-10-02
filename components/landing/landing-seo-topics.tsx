@@ -15,7 +15,7 @@ const TOPICS = [
   },
   {
     h2: "Never let another lead fall through the cracks",
-    body: "Speed wins in real estate. ARI responds to new leads instantly and nurtures them over time — so you're the agent who stays in touch.",
+    body: "Speed wins in real estate. When leads enter ARI, your follow-up sequence can begin on the schedule you configure — so you're the agent who stays in touch.",
     href: "/realtor-lead-follow-up",
     cta: "Realtor lead follow-up",
   },
@@ -44,7 +44,11 @@ export function LandingSeoTopics() {
         <p className="mt-10 text-center text-[15px] text-slate-text">
           Also explore{" "}
           <Link href="/lead-follow-up" className="font-semibold text-rose-gold-deep hover:underline">
-            automated lead follow-up
+            lead follow-up system
+          </Link>
+          ,{" "}
+          <Link href="/features/automated-follow-up" className="font-semibold text-rose-gold-deep hover:underline">
+            product mechanics
           </Link>
           , our{" "}
           <Link href="/resources" className="font-semibold text-rose-gold-deep hover:underline">

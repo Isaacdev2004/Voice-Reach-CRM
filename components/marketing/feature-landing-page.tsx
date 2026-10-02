@@ -5,11 +5,24 @@ import { JsonLd } from "@/components/marketing/json-ld";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { Icon } from "@/components/ui/icon";
-import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { SITE_OFFER, trialCtaLabel, trialSupportLine } from "@/lib/marketing/site-offer";
+import { FEATURE_CTA_HEADLINES } from "@/lib/seo/feature-cta-headlines";
+import { featureHeroImageClass } from "@/lib/seo/feature-hero-focus";
 import type { FeaturePageConfig } from "@/lib/seo/feature-pages";
 import { breadcrumbSchema, softwareApplicationSchema } from "@/lib/seo/schema";
 
 const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
+
+const COMPLIANCE_FEATURE_SLUGS = new Set([
+  "text-automation",
+  "email-automation",
+  "ringless-voicemail",
+  "voice-studio",
+  "client-email-updates",
+  "campaign-builder",
+  "automated-follow-up",
+  "lead-reactivation",
+]);
 
 type FeatureLandingPageProps = {
   page: FeaturePageConfig;
@@ -51,7 +64,7 @@ export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
             </h1>
             <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">{page.intro}</p>
             <div className="mt-7 flex flex-wrap gap-4">
-              <StartFreeButton location={`feature-${page.slug}`} label="Start Your 14-Day Free Trial" showArrow />
+              <StartFreeButton location={`feature-${page.slug}`} label={trialCtaLabel()} showArrow />
               <Link
                 href={page.relatedProductHref}
                 className="inline-flex items-center rounded-full border border-outline-variant/25 px-5 py-3 text-[14px] font-semibold text-ink hover:border-rose-gold/40"
@@ -66,7 +79,7 @@ export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
               alt={`${page.h1} — ARI CRM feature for real estate agents`}
               width={1200}
               height={900}
-              className="h-auto w-full object-cover object-top"
+              className={`h-auto w-full object-cover ${featureHeroImageClass(page.slug)}`}
               sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
@@ -112,17 +125,31 @@ export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
       <section className="hero-gradient py-12 text-center md:py-14">
         <div className="landing-shell mx-auto max-w-[36rem]">
           <h2 className="font-serif text-[26px] font-semibold text-ink md:text-[32px]">
-            Try {page.h1.split(" ").slice(0, 3).join(" ")} in ARI
+            {FEATURE_CTA_HEADLINES[page.slug]}
           </h2>
           <p className="mt-3 text-[16px] text-slate-text">
             Learn how{" "}
             <Link href={page.relatedProductHref} className="font-semibold text-rose-gold-deep hover:underline">
               {page.relatedProductLabel}
             </Link>{" "}
-            works with a {FOUNDING_100.trialDays}-day free trial.
+            works with a {SITE_OFFER.trialDays}-day free trial. {SITE_OFFER.cardRequiredNote}.
           </p>
+          <p className="mt-2 text-[14px] text-taupe">{trialSupportLine()}</p>
+          {COMPLIANCE_FEATURE_SLUGS.has(page.slug) ? (
+            <p className="mt-4 text-[13px] leading-relaxed text-taupe">
+              {SITE_OFFER.compliance.shortNote}{" "}
+              {SITE_OFFER.compliance.policyLinks.map((link, i) => (
+                <span key={link.href}>
+                  {i > 0 ? " · " : null}
+                  <Link href={link.href} className="font-medium text-rose-gold-deep hover:underline">
+                    {link.label}
+                  </Link>
+                </span>
+              ))}
+            </p>
+          ) : null}
           <div className="mt-6">
-            <StartFreeButton location={`feature-${page.slug}-final`} label="Start Your 14-Day Free Trial" showArrow />
+            <StartFreeButton location={`feature-${page.slug}-final`} label={trialCtaLabel()} showArrow />
           </div>
         </div>
       </section>

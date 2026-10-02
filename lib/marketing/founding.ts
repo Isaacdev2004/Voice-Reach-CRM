@@ -4,7 +4,7 @@ export const FOUNDING_100 = {
   seatsTotal: 100,
   trialDays: 14,
   headline: "Founding Realtor Program",
-  promise: "Early access · White-glove setup · Founding pricing · Direct founder feedback",
+  promise: "Early access · Founding pricing · Direct founder feedback",
   /** Hard caps during free trial to control Twilio/Slybroadcast spend */
   trialUsageCaps: {
     sms: 25,
@@ -13,9 +13,9 @@ export const FOUNDING_100 = {
   },
   perks: [
     "14-day free trial — card on file, no charge until trial ends",
-    "We import your leads and configure your first campaign",
     "Founding-member pricing while seats last",
-    "Direct line to the team while we build with you",
+    "Priority feedback channel to the founding team",
+    "White-glove setup is included on every plan — not Founding-exclusive",
   ],
   positioning: "The CRM that actually follows up.",
   tagline:

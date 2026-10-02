@@ -1,3 +1,5 @@
+import { CRM_COMPARISON_TABLE, SITE_OFFER } from "@/lib/marketing/site-offer";
+
 export type SeoPageSlug =
   | "real-estate-crm"
   | "lead-follow-up"
@@ -5,8 +7,8 @@ export type SeoPageSlug =
   | "lead-reactivation";
 
 export type SeoLandingPageConfig = {
-  slug: SeoPageSlug;
-  path: `/${SeoPageSlug}`;
+  slug: string;
+  path: string;
   title: string;
   description: string;
   h1: string;
@@ -20,15 +22,19 @@ export type SeoLandingPageConfig = {
   highlights: Array<{ title: string; body: string }>;
   faq: Array<{ q: string; a: string }>;
   relatedPages: Array<{ href: string; label: string }>;
+  comparisonTable?: typeof CRM_COMPARISON_TABLE;
 };
 
 const SHARED_RELATED = [
   { href: "/real-estate-crm", label: "Real estate CRM" },
-  { href: "/lead-follow-up", label: "Automated lead follow-up" },
-  { href: "/realtor-lead-follow-up", label: "Realtor lead follow-up" },
+  { href: "/lead-follow-up", label: "Lead follow-up system" },
+  { href: "/realtor-lead-follow-up", label: "Realtor workflows" },
   { href: "/lead-reactivation", label: "Lead reactivation" },
+  { href: "/features/automated-follow-up", label: "Automated follow-up (product)" },
   { href: "/pricing", label: "Pricing & plans" },
 ] as const;
+
+const { trialDays, whiteGlove, compliance, leadIntake, integrations } = SITE_OFFER;
 
 export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
   "real-estate-crm": {
@@ -36,84 +42,117 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     path: "/real-estate-crm",
     title: "Real Estate CRM for Agents & Realtors",
     description:
-      "ARI is a real estate CRM built for agents who need organized pipelines, automated follow-up, and clear next steps — not another spreadsheet. Start your 14-day free trial.",
-    h1: "A Real Estate CRM Built to Keep Leads Moving",
+      "ARI is the real estate CRM that helps you follow up automatically by text, email, and voicemail — while keeping every lead, conversation, task, and next step in one place.",
+    h1: "Never Lose Another Lead to Inconsistent Follow-Up",
     eyebrow: "Real estate CRM for agents",
     intro:
-      "Most real estate CRMs store contacts. ARI helps you act on them — with a simple pipeline, automated outreach, and reminders so no lead goes cold after the first conversation.",
+      "ARI is the real estate CRM that helps you follow up automatically by text, email, and voicemail — while keeping every lead, conversation, task, and next step in one place. Spend less time remembering who to contact. Spend more time talking to people who are ready to move.",
     sections: [
       {
-        h2: "Your leads deserve more than a database",
+        h2: "Your CRM shouldn't just store leads. It should help you work them.",
         paragraphs: [
-          "Agents pay for Zillow leads, open-house sign-ins, sphere referrals, and past clients — then lose deals because follow-up is inconsistent. Spreadsheets and generic CRMs make it easy to log a name but hard to know who to call today.",
-          "ARI is a real estate CRM designed around the work agents actually do: capture leads, follow up fast, nurture over time, and re-engage when someone goes quiet. Everything lives in one place — contacts, pipeline stages, campaign history, and tasks — so you spend less time chasing data and more time in conversations that close.",
+          "You pay for Zillow leads. You collect names at open houses. You meet prospects through referrals, your sphere, and past clients. Then real life happens.",
+          "A showing runs long. A listing needs attention. A buyer calls. A lead you meant to text today becomes a lead you remember two weeks from now.",
+          `ARI is built around one simple idea: ${SITE_OFFER.primaryPromise} Your contacts, pipeline, communication history, tasks, and automated follow-up live together — so you can see what's happening and know exactly where to focus.`,
         ],
       },
       {
-        h2: "Pipeline visibility without the complexity",
+        h2: "Follow-up happens even when you're busy",
         paragraphs: [
-          "See every lead's stage at a glance. Move contacts through your sales pipeline as they respond, schedule showings, or go under contract. ARI surfaces who needs attention next so you're never guessing which lead to prioritize.",
+          "New leads rarely go cold because an agent intentionally ignores them. They go cold because follow-up becomes another thing to remember. ARI helps keep the conversation going on the schedule you configure.",
+          "You control the messaging, timing, and campaign rules. ARI handles the repetition. You step in when there's a real conversation to have.",
         ],
         bullets: [
-          "Centralized contact records with notes, tags, and full communication history",
-          "Pipeline stages tailored to real estate workflows",
-          "Tasks and reminders tied to each lead — not buried in a separate app",
-          "Import from CSV, Zillow exports, and onboarding-assisted migrations",
+          "SMS — Send timely texts without manually copying, pasting, and setting reminders.",
+          "Email — Nurture prospects over days, weeks, or months with automated email follow-up.",
+          "Ringless voicemail — Add another touchpoint without turning every follow-up into another phone call.",
         ],
       },
       {
-        h2: "Follow-up built into the CRM — not bolted on",
+        h2: "Open ARI and know who needs attention",
         paragraphs: [
-          "The best real estate CRM doesn't stop at storage. ARI connects your pipeline to automated SMS, email, and ringless voicemail campaigns so new leads get a response in minutes, not days. You control the message, timing, and consent rules — ARI handles the repetition.",
-          "Whether you're nurturing buyer inquiries, following up on listing appointments, or staying in touch with your sphere, automated lead follow-up runs in the background while you show homes and write offers.",
+          "No digging through spreadsheets. No scrolling through old text threads. No wondering which leads you forgot.",
+          "ARI gives you a simple real estate pipeline that shows where every opportunity stands and what should happen next.",
+        ],
+        bullets: [
+          "New leads and active conversations",
+          "Buyers and sellers you're nurturing",
+          "Appointments, showings, and prospects who have gone quiet",
+          "Each contact keeps notes, tags, history, tasks, and campaign activity together",
         ],
       },
       {
-        h2: "Built for agents who want to grow",
+        h2: "Built around the way real estate leads actually behave",
         paragraphs: [
-          "Solo agents and small teams use ARI to replace sticky notes, scattered inboxes, and manual texting. White-glove onboarding helps you import your database and launch your first campaign within 24–48 hours.",
-          "If you're comparing CRM for agents options, look for one that combines organization with action. ARI is purpose-built for real estate lead follow-up — not adapted from a generic sales tool.",
+          `New internet lead — ${leadIntake.qualified} You take over when the prospect engages.`,
+          "Open-house lead — Import sign-ins, tag them by property or event, and start a follow-up sequence while the conversation is still fresh.",
+          "Old database lead — Organize and reactivate dormant contacts with structured, segmented outreach instead of one-by-one manual texting.",
+          "Sphere and past clients — Create consistent touches that help you stay visible to the people most likely to refer you or work with you again.",
+        ],
+      },
+      {
+        h2: "Switching CRMs shouldn't become another project",
+        paragraphs: [
+          `${whiteGlove.detail} ${whiteGlove.setupWindow}`,
+          `Current integrations: ${integrations.connected.map((i) => i.label).join(" and ")}. Import via ${integrations.importSources.slice(0, 3).join(", ")}, and more.`,
+        ],
+        bullets: [
+          "Lead import — We help bring your existing contact database into ARI.",
+          "Pipeline setup — We configure a workflow that fits how you manage buyers, sellers, and prospects.",
+          "Your first follow-up campaign — We help get your initial automated sequence ready to run.",
+        ],
+      },
+      {
+        h2: "The leads you already have may be your biggest opportunity",
+        paragraphs: [
+          "Agents spend heavily generating leads, while many databases contain months or years of people who were never followed up with consistently. ARI helps you systematically reconnect with eligible prospects using consent-aware, segmented workflows.",
+          "See our dedicated lead reactivation page for a full workflow.",
         ],
       },
     ],
     highlights: [
       {
-        title: "One CRM for every lead source",
-        body: "Zillow, Realtor.com, referrals, open houses — import and organize them in a single pipeline.",
+        title: "One place for every lead",
+        body: "Contacts from CSV import, exports, referrals, and open houses in one pipeline.",
       },
       {
-        title: "Automated outreach",
-        body: "SMS, email, and ringless voicemail sequences keep leads warm without manual copy-paste.",
+        title: "Automated follow-up",
+        body: "Multi-step SMS, email, and ringless voicemail campaigns on your schedule.",
       },
       {
-        title: "Compliance-aware campaigns",
-        body: "DNC scrubbing, consent tracking, and quiet hours help you outreach responsibly.",
+        title: compliance.featureLabel,
+        body: compliance.shortNote,
       },
       {
         title: "White-glove setup",
-        body: "Founding members get lead import and first-campaign configuration included.",
+        body: whiteGlove.detail,
       },
     ],
+    comparisonTable: CRM_COMPARISON_TABLE,
     faq: [
       {
         q: "How is ARI different from other real estate CRMs?",
-        a: "Most CRMs focus on contact storage. ARI is built around automated lead follow-up — pipeline, campaigns, and reminders work together so leads keep moving toward a conversation.",
+        a: "ARI is built around lead follow-up. Pipeline, communication history, tasks, and automated outreach work together so leads keep moving toward a conversation.",
       },
       {
         q: "Can I import my existing contacts?",
-        a: "Yes. CSV import is built in, and Founding 100 onboarding includes white-glove import — we load your database and configure your first follow-up campaign.",
+        a: "Yes. CSV import is available, and onboarding assistance can help migrate an existing database.",
       },
       {
-        q: "Does ARI work for teams and brokerages?",
-        a: "ARI supports solo agents today with Team pricing for brokerages. Contact us for a live walkthrough and volume pricing.",
+        q: "Do I need to replace my current CRM?",
+        a: "Not necessarily. Some agents use ARI as the lead-management and follow-up layer while keeping another system for other workflows.",
+      },
+      {
+        q: "Will ARI automatically contact people without my control?",
+        a: "You decide which campaigns to use, who enters them, the messages they receive, and when outreach occurs. ARI automates the execution of the workflow you configure.",
       },
       {
         q: "How long does setup take?",
-        a: "Most agents are live within 24–48 hours. We handle lead import, pipeline setup, and your first automated sequence during onboarding.",
+        a: whiteGlove.setupWindow,
       },
       {
         q: "Is there a free trial?",
-        a: "Yes — 14 days free for Founding 100 members. Add a card to start; you won't be charged until the trial ends.",
+        a: `Yes — ${trialDays} days free. ${SITE_OFFER.cardRequiredNote}. You won't be charged until the trial ends.`,
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/real-estate-crm"),
@@ -121,85 +160,85 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
   "lead-follow-up": {
     slug: "lead-follow-up",
     path: "/lead-follow-up",
-    title: "Automated Lead Follow-Up Software",
+    title: "Real Estate Lead Follow-Up System & Software",
     description:
-      "Turn lead follow-up into an automatic system with ARI — SMS, email, and ringless voicemail sequences for real estate agents. Never let a lead go cold again.",
-    h1: "Turn Lead Follow-Up Into an Automatic System",
-    eyebrow: "Automated lead follow-up",
+      "Why real estate follow-up fails — and how ARI operationalizes a system where every lead gets a next step through SMS, email, and ringless voicemail.",
+    h1: "Why Follow-Up Fails — and What a Real System Looks Like",
+    eyebrow: "Lead follow-up system",
     intro:
-      "Speed wins in real estate. ARI sends personalized follow-up the moment a lead comes in — and keeps nurturing them until they're ready to talk, tour, or make an offer.",
+      "This is the strategic overview: the problem, the ideal workflow, and how ARI helps agents operationalize follow-up. For product mechanics and screenshots, see our automated follow-up feature page.",
     sections: [
       {
-        h2: "Why manual follow-up fails",
+        h2: "The follow-up problem is a systems problem",
         paragraphs: [
-          "You're in a showing when a hot Zillow lead comes in. By the time you text back three hours later, they've already booked with another agent. Manual follow-up doesn't scale — and even the best agents drop balls when pipelines get full.",
-          "Automated lead follow-up software solves the timing problem. ARI responds instantly with a message you control, then continues a thoughtful sequence over days and weeks. Leads feel personal attention; you get your time back.",
+          "Agents don't lose deals because they don't care. They lose deals because follow-up depends on memory, sticky notes, and scattered inboxes — especially when showings, listings, and client calls fill the day.",
+          "Speed matters, but so does persistence. Research on sales follow-up consistently shows that most conversions happen after multiple touches — yet most outreach stops after one or two attempts.",
         ],
       },
       {
-        h2: "Multi-channel follow-up that feels human",
-        paragraphs: [
-          "Different leads respond to different channels. ARI lets you combine SMS, email, and ringless voicemail in one campaign — so you're not relying on a single touchpoint that gets ignored.",
-        ],
+        h2: "What an ideal follow-up system does",
+        paragraphs: ["A follow-up system should answer four questions for every lead:"],
         bullets: [
-          "Instant SMS response when a new lead hits your pipeline",
-          "Email sequences for longer-form nurture and market updates",
-          "Ringless voicemail for agents who want voice without interrupting",
-          "Quiet hours and consent gates so outreach stays compliant",
+          "Did we acknowledge the inquiry quickly?",
+          "Is there a planned next touch — not just a hope to call later?",
+          "Can we see every prior message without searching apps?",
+          "Do we know when a human conversation should replace automation?",
         ],
       },
       {
-        h2: "Lead nurturing on autopilot",
+        h2: "How ARI operationalizes follow-up",
         paragraphs: [
-          "Not every lead is ready to buy or sell this month. Lead nurturing keeps you top-of-mind until timing aligns. ARI runs scheduled check-ins, market touches, and re-engagement prompts — automatically — while you focus on clients who are active now.",
-          "Every touch is logged on the contact record, so when a lead replies six weeks later, you have full context — no digging through texts or old emails.",
+          leadIntake.qualified,
+          "You build multi-step campaigns across SMS, email, and ringless voicemail. ARI runs the schedule; you handle replies and high-intent conversations.",
+          "For step-by-step product details, see the automated follow-up feature page at /features/automated-follow-up.",
         ],
       },
       {
-        h2: "Know who to call next",
+        h2: "Compliance-aware by design",
         paragraphs: [
-          "Automation doesn't mean losing control. ARI highlights leads who replied, clicked, or went quiet — so your manual outreach goes to the highest-intent opportunities. Follow-up software should make you more effective, not replace the relationship.",
+          compliance.shortNote,
+          "ARI includes consent tracking, suppression/DNC tools, and quiet-hour controls — but your legal basis for outreach remains your responsibility.",
         ],
       },
     ],
     highlights: [
       {
-        title: "Instant first response",
-        body: "Reach new leads in minutes with automated SMS — while you're in appointments.",
+        title: "System, not slogans",
+        body: "Follow-up as a repeatable workflow — not a daily scramble.",
       },
       {
-        title: "Drip sequences",
-        body: "Build multi-step campaigns that nurture over days, weeks, or months.",
+        title: "Multi-channel",
+        body: "SMS, email, and ringless voicemail in one sequence.",
       },
       {
-        title: "Full activity history",
-        body: "Every message, reply, and campaign step lives on the contact record.",
+        title: "Full history",
+        body: "Every touch logged on the contact record.",
       },
       {
-        title: "Editable scripts",
-        body: "Update voice scripts and message copy without rebuilding entire campaigns.",
+        title: whiteGlove.shortLine,
+        body: whiteGlove.detail,
       },
     ],
     faq: [
       {
+        q: "How is this different from the automated follow-up feature page?",
+        a: "This page explains why follow-up fails and what a system should do. The /features/automated-follow-up page covers product mechanics — sequence builder, channels, and controls.",
+      },
+      {
         q: "Will automated follow-up sound robotic?",
-        a: "You write the messages and control timing. ARI delivers them consistently — many agents personalize templates with merge fields for a natural tone.",
+        a: "You write the messages and control timing. Merge fields personalize templates for a natural tone.",
       },
       {
         q: "What channels does ARI support?",
-        a: "SMS via Twilio, email delivery, and ringless voicemail. Combine them in one automated sequence.",
+        a: `SMS via Twilio, email delivery, and ringless voicemail via Slybroadcast — combinable in one sequence.`,
       },
       {
-        q: "Is automated texting compliant?",
-        a: "ARI includes DNC scrubbing, consent tracking, quiet hours, and TCPA-aware campaign gates. You control who gets contacted.",
-      },
-      {
-        q: "Can I pause automation for a specific lead?",
-        a: "Yes. Pause campaigns, move leads to manual follow-up, or adjust sequences anytime from the contact record.",
+        q: "How does ARI support responsible SMS outreach?",
+        a: `${compliance.shortNote} See our TCPA and acceptable use policies for details.`,
       },
       {
         q: "How do I get started?",
-        a: "Sign up for a 14-day free trial. Founding members get white-glove setup — we import leads and configure your first follow-up campaign.",
+        a: `Start a ${trialDays}-day free trial. ${whiteGlove.shortLine.toLowerCase()} — ${whiteGlove.detail.toLowerCase()}`,
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/lead-follow-up"),
@@ -207,85 +246,88 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
   "realtor-lead-follow-up": {
     slug: "realtor-lead-follow-up",
     path: "/realtor-lead-follow-up",
-    title: "Real Estate Lead Follow-Up Software for Realtors",
+    title: "Realtor Lead Follow-Up Workflows & Scripts",
     description:
-      "Follow up with every real estate lead automatically — SMS, email, and voicemail sequences built for Realtors. ARI helps you nurture leads and close more deals.",
-    h1: "Follow Up With Every Real Estate Lead—Automatically",
-    eyebrow: "Realtor lead follow-up",
+      "Realtor-specific follow-up workflows for Zillow leads, open houses, buyer consults, and sphere nurture — with the scripts and cadences agents actually use.",
+    h1: "Realtor Follow-Up Workflows That Match How You Work",
+    eyebrow: "Realtor-specific workflows",
     intro:
-      "Realtors juggle dozens of active leads across buyer searches, listing inquiries, and sphere outreach. ARI makes sure every lead gets consistent follow-up — even when you're back-to-back with showings.",
+      "Unlike our general lead follow-up overview, this page focuses on Realtor workflows: portal leads, open-house sign-ins, listing appointments, and sphere touches — with practical cadences you can run in ARI.",
     sections: [
       {
-        h2: "The follow-up gap costs Realtors deals",
+        h2: "Portal lead workflow (Zillow, Realtor.com, website)",
         paragraphs: [
-          "Industry data consistently shows that most leads go to the agent who responds first. Yet most Realtors still rely on memory, sticky notes, and sporadic texting — especially for leads that aren't hot today but might be ready next quarter.",
-          "Realtor lead follow-up software closes that gap. ARI ensures every inquiry gets an immediate response and a structured nurture path, so you're the agent who stays in touch — not the one they forgot.",
-        ],
-      },
-      {
-        h2: "Designed for how Realtors actually work",
-        paragraphs: [
-          "ARI isn't a generic sales automation tool repackaged for real estate. Campaigns, pipeline stages, and messaging templates reflect Realtor workflows — buyer consults, listing appointments, open-house follow-up, and sphere touches.",
+          leadIntake.smsTiming,
+          "Recommended cadence: Day 0 — acknowledgment SMS + call attempt when you're free. Day 1 — email with value. Day 3 — short check-in text. Day 7 — voicemail or personal call prompt.",
         ],
         bullets: [
-          "Buyer and seller pipeline stages with clear next actions",
-          "Open-house and portal-lead follow-up sequences",
-          "Sphere and past-client nurture campaigns",
-          "Reminders when a lead goes quiet — so you re-engage at the right moment",
+          "Import portal exports or add leads manually after inquiry",
+          "Tag by source and property interest",
+          "Assign to a speed-to-lead campaign you control",
         ],
       },
       {
-        h2: "Lead nurturing that builds trust over time",
+        h2: "Open-house follow-up",
         paragraphs: [
-          "Real estate is a relationship business. Lead nurturing isn't about blasting promotions — it's about showing up consistently with value. ARI helps Realtors send market updates, check-ins, and personalized touches on a schedule that keeps you top-of-mind without feeling spammy.",
-          "When a lead is finally ready to move, you're the obvious choice — because you never disappeared.",
+          "Open-house leads go cold fast if follow-up waits until Monday. Import sign-ins the same day, reference the property they toured, and ask one clear question to start a conversation.",
+        ],
+        bullets: [
+          "Tag by property address or neighborhood",
+          "Same-day SMS while interest is fresh",
+          "Follow-up task for personal call within 48 hours",
         ],
       },
       {
-        h2: "From first touch to signed contract",
+        h2: "Buyer consult & listing appointment nurture",
         paragraphs: [
-          "Follow-up doesn't stop after the first conversation. ARI tracks the full journey — initial outreach, nurture touches, showing reminders, and re-engagement for leads who ghost. Your CRM and follow-up system work as one, so nothing falls through the cracks.",
+          "Not every lead is ready to transact this month. Sphere and past-client touches keep you visible without feeling promotional — market snapshots, check-ins, and seasonal reminders on a schedule.",
+        ],
+      },
+      {
+        h2: "When to take over from automation",
+        paragraphs: [
+          "Automation handles repetition; you handle relationships. When a lead replies, books a showing, or asks a specific question, ARI surfaces them for personal follow-up with full context on the contact record.",
         ],
       },
     ],
     highlights: [
       {
-        title: "Portal lead response",
-        body: "Instant follow-up when Zillow or Realtor.com leads hit your inbox.",
+        title: "Portal lead cadence",
+        body: "Structured touches for Zillow and Realtor.com inquiries after import.",
+      },
+      {
+        title: "Open-house same-day",
+        body: "Tag by property and follow up while memory is fresh.",
       },
       {
         title: "Sphere nurture",
-        body: "Stay in touch with past clients and referrals on autopilot.",
+        body: "Scheduled check-ins for referrals and past clients.",
       },
       {
-        title: "Task-driven workflow",
-        body: "Reminders tell you exactly who needs a personal call today.",
-      },
-      {
-        title: "Real estate CRM included",
-        body: "Pipeline, contacts, and campaigns in one platform — no juggling apps.",
+        title: "Realtor pipeline",
+        body: "Buyer, seller, and nurture stages in one CRM.",
       },
     ],
     faq: [
       {
-        q: "Is ARI only for buyer leads?",
-        a: "No. ARI supports buyer inquiries, seller leads, open-house follow-up, sphere nurture, and past-client re-engagement.",
+        q: "How is this different from /lead-follow-up?",
+        a: "/lead-follow-up explains why follow-up systems matter. This page gives Realtor-specific workflows and cadences you can implement.",
+      },
+      {
+        q: "Do portal leads sync automatically?",
+        a: "ARI supports CSV import and manual entry from portal exports today. Connect Google Calendar and Dotloop from Settings. Confirm your lead source workflow during onboarding.",
       },
       {
         q: "How fast can I respond to new leads?",
-        a: "Instantly. Automated SMS can fire within minutes of import — often while you're still in a showing.",
+        a: leadIntake.smsTiming,
       },
       {
         q: "Do I need technical skills to set up campaigns?",
-        a: "No. Founding members get white-glove setup — we configure your first campaigns during onboarding. The visual sequence builder makes edits easy afterward.",
-      },
-      {
-        q: "Can I use my own phone number?",
-        a: "Yes. ARI integrates with Twilio so you can send SMS from a dedicated business line.",
+        a: `${whiteGlove.shortLine}. We configure your first campaigns during onboarding; the visual builder makes edits easy afterward.`,
       },
       {
         q: "What does it cost?",
-        a: "Plans start with a 14-day free trial. See our pricing page for Starter, Growth, and Pro tiers — Growth is recommended for active agents.",
+        a: `Plans start with a ${trialDays}-day free trial. See pricing for Starter, Growth, and Pro tiers.`,
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/realtor-lead-follow-up"),
@@ -295,76 +337,75 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     path: "/lead-reactivation",
     title: "Lead Reactivation Software — Turn Old Leads Into Opportunities",
     description:
-      "Your old leads aren't dead. ARI's lead reactivation campaigns re-engage dormant contacts with SMS, email, and voicemail — turning past inquiries into new conversations.",
+      "Re-engage dormant real estate contacts with segmented SMS, email, and voicemail campaigns — using leads you already paid for instead of buying new ones.",
     h1: "Your Old Leads Aren't Dead. Start the Conversation Again.",
     eyebrow: "Lead reactivation",
     intro:
-      "Most agents sit on hundreds of contacts who inquired months ago but never converted. Lead reactivation turns that dormant database into your lowest-cost source of new business.",
+      "Most agents sit on hundreds of contacts who inquired months ago but never converted. Lead reactivation turns that dormant database into your lowest-cost source of new conversations — when done with segmentation and consent-aware outreach.",
     sections: [
       {
         h2: "The hidden gold in your CRM",
         paragraphs: [
           "You already paid for those Zillow leads, open-house sign-ins, and website inquiries. Many went quiet — not because they weren't interested, but because life got in the way or follow-up stopped too soon.",
-          "Lead reactivation is the practice of reaching back out to old leads with a fresh, relevant message. It's one of the highest-ROI activities in real estate — no new ad spend, just conversations restarted.",
+          "Lead reactivation is structured re-engagement with a fresh, relevant message — not a one-off mass blast.",
         ],
       },
       {
-        h2: "Systematic re-engagement, not one-off blasts",
-        paragraphs: [
-          "A single mass text isn't reactivation — it's spam. ARI runs structured re-engagement campaigns that feel personal: a check-in SMS, a market update email, a voicemail touch, then a prompt for you to call the responders.",
-        ],
+        h2: "A concrete reactivation workflow",
+        paragraphs: ["A practical reactivation sequence:"],
         bullets: [
-          "Segment dormant leads by source, stage, or last contact date",
-          "Multi-step reactivation sequences across SMS, email, and RVM",
-          "Automatic tagging when a lead replies or re-enters your pipeline",
-          "Compliance tools so reactivation stays within consent rules",
+          "Segment by last contact date, source, or neighborhood — not your entire database at once",
+          "Day 1 — short check-in SMS referencing their original inquiry",
+          "Day 4 — email with market update or value-add content",
+          "Day 8 — ringless voicemail touch (where appropriate consent exists)",
+          "Day 12 — task for personal call to responders",
         ],
       },
       {
         h2: "Turn cold leads into warm conversations",
         paragraphs: [
-          "When an old lead responds to a reactivation campaign, ARI moves them back into your active pipeline and creates a task for personal follow-up. You focus on the leads who raised their hand — not the ones who stayed silent.",
-          "Agents regularly report that reactivated leads convert at higher rates than cold portal inquiries, because trust was already started months ago.",
+          "When an old lead responds, ARI moves them back into your active pipeline and creates a task for personal follow-up. You focus on the leads who raised their hand.",
+          "Results vary by market, list quality, and time since last contact — reactivation typically works best when trust was already started.",
         ],
       },
       {
-        h2: "Old lead follow-up on autopilot",
+        h2: "Compliance qualification",
         paragraphs: [
-          "Set a reactivation campaign once and let it run against new segments as your database grows. ARI handles scheduling, delivery, and logging — you handle the conversations that come back.",
-          "Pair reactivation with your ongoing nurture campaigns so leads never go fully cold again.",
+          compliance.shortNote,
+          "Before reactivating a list, confirm you have appropriate consent for the channel you use. ARI provides suppression/DNC tools and consent records — but list eligibility is fact-specific.",
         ],
       },
     ],
     highlights: [
       {
-        title: "Database reactivation",
-        body: "Upload or tag dormant contacts and launch a re-engagement sequence in minutes.",
+        title: "Database segmentation",
+        body: "Filter dormant contacts before you reach out.",
       },
       {
-        title: "Smart segmentation",
-        body: "Target leads by last activity, source, or pipeline stage — not everyone gets the same message.",
+        title: "Multi-touch sequences",
+        body: "SMS, email, and voicemail in one reactivation campaign.",
       },
       {
-        title: "Reply detection",
-        body: "Responders automatically surface for personal follow-up.",
+        title: "Reply routing",
+        body: "Responders surface for personal calls.",
       },
       {
-        title: "Full history preserved",
-        body: "See every past touch before you pick up the phone.",
+        title: "Full history",
+        body: "See every past touch before you re-engage.",
       },
     ],
     faq: [
       {
         q: "How old can leads be for reactivation?",
-        a: "There's no hard limit. Many agents successfully re-engage leads from 6–18 months ago. Message tone should match how long it's been since last contact.",
+        a: "There's no hard limit. Many agents re-engage leads from 6–18 months ago. Message tone should match how long it's been since last contact.",
       },
       {
-        q: "Is reactivation compliant?",
-        a: "ARI scrubs against DNC lists and respects consent records. Always ensure you have appropriate consent for the channel you're using.",
+        q: "How does ARI support responsible reactivation outreach?",
+        a: `${compliance.shortNote} Always ensure appropriate consent for your channel and list.`,
       },
       {
         q: "What response rates should I expect?",
-        a: "Rates vary by market and list quality, but reactivation typically outperforms cold outreach because leads already know your name.",
+        a: "Rates vary by market and list quality. We recommend segmented batches and relevant messaging rather than broad blasts.",
       },
       {
         q: "Can I reactivate my entire database at once?",
@@ -372,7 +413,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
       {
         q: "Does ARI help set up reactivation campaigns?",
-        a: "Yes. Founding member onboarding includes configuring your first reactivation sequence alongside your new-lead follow-up.",
+        a: `${whiteGlove.shortLine}. Onboarding can include configuring your first reactivation sequence alongside new-lead follow-up.`,
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/lead-reactivation"),

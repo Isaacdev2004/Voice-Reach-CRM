@@ -101,7 +101,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
     featured: true,
     category: "buyer",
     id: "tpl-speed-to-lead",
-    name: "Speed-to-Lead Instant Response",
+    name: "Speed-to-Lead Quick Response",
     description:
       "Fires within 60 seconds of any form fill, Zillow/Realtor.com inquiry, or Facebook lead ad — SMS, email, CRM task, then Day 1/3/5 follow-ups if no reply.",
     audience: "Brand-new buyer leads (form, IDX, portal, lead ads)",
@@ -122,7 +122,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
       {
         order: 1,
         type: "sms",
-        title: "Instant SMS (<60s)",
+        title: "First SMS (<60s)",
         description:
           "Hi [FirstName]! This is [Agent] from [Brokerage] — I just saw your inquiry about [PropertyAddress]. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
         dayLabel: "Day 1",
@@ -131,7 +131,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
       {
         order: 2,
         type: "email",
-        title: "Instant email (<2 min)",
+        title: "First email (<2 min)",
         description:
           "Subject: I found homes matching your search — {{first_name}}\n\nHi {{first_name}},\n\nThanks for reaching out! I'm {{agent_name}}, your local real estate specialist covering {{area}}.\n\nI pulled up the listing you were looking at — {{property_address}} — and I want to make sure you don't miss out.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\n{{agent_name}}\n[Brokerage] · [AgentPhone]",
         dayLabel: "Day 1",

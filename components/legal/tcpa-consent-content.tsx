@@ -152,12 +152,7 @@ export function TcpaConsentContent() {
         <LegalContactBlock />
       </LegalSection>
 
-      <LegalDisclaimer>
-        This document is a template and does not constitute legal advice. TCPA compliance is
-        fact-specific and carries significant statutory damages exposure — have this Policy, and
-        your actual consent-capture workflows, reviewed by a licensed attorney experienced in
-        telemarketing/TCPA law before launch.
-      </LegalDisclaimer>
+      <LegalDisclaimer />
     </>
   );
 }

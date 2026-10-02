@@ -129,7 +129,7 @@ export function AdvancedAnalyticsPage() {
           </p>
           <h1 className="font-serif text-[36px] font-semibold text-ink">Performance analytics</h1>
           <p className="mt-1 text-[15px] text-slate-text">
-            Real-time insights across outreach, delivery, consent, and campaigns.
+            Insights across outreach, delivery, consent, and campaigns.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

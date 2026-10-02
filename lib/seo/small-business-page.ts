@@ -1,15 +1,16 @@
 import type { SeoLandingPageConfig } from "@/lib/seo/landing-pages";
+import { SITE_OFFER } from "@/lib/marketing/site-offer";
 
 export const SMALL_BUSINESS_PAGE: SeoLandingPageConfig = {
-  slug: "real-estate-crm",
-  path: "/real-estate-crm",
+  slug: "crm-for-small-business",
+  path: "/crm-for-small-business",
   title: "Simple CRM & Lead Follow-Up for Small Businesses",
   description:
     "ARI helps small business owners organize leads, automate follow-up, and stay connected with every opportunity — without enterprise CRM complexity.",
   h1: "A CRM That Keeps Your Leads Moving Even When You're Busy",
   eyebrow: "CRM for small business",
   intro:
-    "Running a small business means wearing every hat. ARI gives you a simple CRM with automated SMS and email follow-up — so leads get a response even when you're with customers.",
+    "Running a small business means wearing every hat. ARI gives you a simple CRM with automated SMS and email follow-up — so leads get a timely response even when you're with customers.",
   sections: [
     {
       h2: "Built for owners who do it all",
@@ -20,7 +21,7 @@ export const SMALL_BUSINESS_PAGE: SeoLandingPageConfig = {
     {
       h2: "Automated follow-up without a marketing team",
       paragraphs: [
-        "Set up SMS and email sequences once. New inquiries get instant acknowledgment; nurture campaigns keep prospects warm until they're ready to buy.",
+        `Set up SMS and email sequences once. ${SITE_OFFER.leadIntake.qualified} Nurture campaigns keep prospects warm until they're ready to buy.`,
       ],
       bullets: [
         "Contact management with notes and tags",
@@ -38,10 +39,10 @@ export const SMALL_BUSINESS_PAGE: SeoLandingPageConfig = {
     },
   ],
   highlights: [
-    { title: "Simple setup", body: "Live in 24–48 hours with guided onboarding." },
-    { title: "Affordable plans", body: "Month-to-month billing, no long-term contracts." },
+    { title: "Simple setup", body: SITE_OFFER.whiteGlove.setupWindow },
+    { title: SITE_OFFER.whiteGlove.shortLine, body: SITE_OFFER.whiteGlove.detail },
     { title: "Multi-channel", body: "SMS, email, and voicemail in one workflow." },
-    { title: "Compliance tools", body: "Consent tracking and quiet hours built in." },
+    { title: SITE_OFFER.compliance.featureLabel, body: SITE_OFFER.compliance.shortNote },
   ],
   faq: [
     {
@@ -54,16 +55,16 @@ export const SMALL_BUSINESS_PAGE: SeoLandingPageConfig = {
     },
     {
       q: "Can I import my existing contacts?",
-      a: "Yes. CSV import is built in, and onboarding includes migration help for Founding members.",
+      a: `Yes. CSV import is built in, and ${SITE_OFFER.whiteGlove.shortLine.toLowerCase()} includes migration help.`,
     },
   ],
   relatedPages: [
-    { href: "/lead-follow-up", label: "Automated lead follow-up" },
+    { href: "/lead-follow-up", label: "Lead follow-up system" },
     { href: "/pricing", label: "Pricing & plans" },
     { href: "/real-estate-crm", label: "Real estate CRM" },
     { href: "/contact", label: "Contact us" },
   ],
 };
 
-/** Metadata path for small business page (distinct from slug typing). */
+/** Metadata path for small business page. */
 export const SMALL_BUSINESS_PATH = "/crm-for-small-business" as const;

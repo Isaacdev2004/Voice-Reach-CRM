@@ -83,6 +83,7 @@ export function articleSchema(options: {
   path: string;
   publishedAt: string;
   modifiedAt?: string;
+  authorName?: string;
 }) {
   return {
     "@context": "https://schema.org",
@@ -93,9 +94,9 @@ export function articleSchema(options: {
     datePublished: options.publishedAt,
     dateModified: options.modifiedAt ?? options.publishedAt,
     author: {
-      "@type": "Organization",
-      name: `${BRAND_NAME} CRM`,
-      url: SITE_URL,
+      "@type": options.authorName ? "Person" : "Organization",
+      name: options.authorName ?? `${BRAND_NAME} Team`,
+      ...(options.authorName ? {} : { url: SITE_URL }),
     },
     publisher: {
       "@type": "Organization",
@@ -110,6 +111,21 @@ export function articleSchema(options: {
       "@type": "WebPage",
       "@id": absoluteUrl(options.path),
     },
+  };
+}
+
+export function faqPageSchema(items: Array<{ q: string; a: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
   };
 }
 

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CheckCircleIcon } from "@/components/icons/landing-icons";
 import { PLAN_OPTIONS } from "@/lib/billing/plans";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { SITE_OFFER } from "@/lib/marketing/site-offer";
 import { trackMarketingEvent } from "@/lib/marketing/track";
 
 const SIGN_UP = "/sign-up";
@@ -25,8 +26,8 @@ export function LandingPricing() {
           </h2>
           <p className="mx-auto mt-3 w-full max-w-[40rem] px-2 text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
             <strong className="font-semibold text-ink">Growth</strong> is our recommended plan for
-            active agents. {FOUNDING_100.name} members get {FOUNDING_100.trialDays} days free.
-            Annual billing saves ~2 months.
+            active agents. {SITE_OFFER.trialDays}-day free trial on every plan. {SITE_OFFER.whiteGlove.shortLine}.
+            {SITE_OFFER.founding.active ? ` ${FOUNDING_100.name} ${SITE_OFFER.founding.pricingNote.toLowerCase()}.` : ""} Annual billing saves ~2 months.
           </p>
 
           <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-outline-variant/20 bg-ivory p-1">

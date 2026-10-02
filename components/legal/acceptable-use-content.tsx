@@ -111,11 +111,7 @@ export function AcceptableUseContent() {
         </p>
       </LegalSection>
 
-      <LegalDisclaimer>
-        This document is a template and does not constitute legal advice. Have it reviewed by a
-        licensed attorney, particularly the messaging/calling compliance provisions, before
-        publishing.
-      </LegalDisclaimer>
+      <LegalDisclaimer />
     </>
   );
 }

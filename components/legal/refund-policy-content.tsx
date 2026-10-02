@@ -98,10 +98,7 @@ export function RefundPolicyContent() {
         <LegalContactBlock />
       </LegalSection>
 
-      <LegalDisclaimer>
-        This document is a template and does not constitute legal advice. Review billing terms with a
-        licensed attorney before publishing.
-      </LegalDisclaimer>
+      <LegalDisclaimer />
     </>
   );
 }

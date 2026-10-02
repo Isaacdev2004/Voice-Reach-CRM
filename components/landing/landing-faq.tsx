@@ -1,6 +1,7 @@
 "use client";
 
 import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { SITE_OFFER } from "@/lib/marketing/site-offer";
 import { useState } from "react";
 
 const FAQ_ITEMS = [
@@ -10,15 +11,15 @@ const FAQ_ITEMS = [
   },
   {
     q: "Is there a free trial?",
-    a: `Yes — ${FOUNDING_100.trialDays} days free for Founding 100 members. Add a card to start; you won't be charged until the trial ends. Trial includes ${FOUNDING_100.trialUsageCaps.sms} SMS, ${FOUNDING_100.trialUsageCaps.rvm} voicemails, and ${FOUNDING_100.trialUsageCaps.email} emails so you can test safely.`,
+    a: `Yes — ${SITE_OFFER.trialDays} days free on every plan. ${SITE_OFFER.cardRequiredNote}. Trial includes ${FOUNDING_100.trialUsageCaps.sms} SMS, ${FOUNDING_100.trialUsageCaps.rvm} voicemails, and ${FOUNDING_100.trialUsageCaps.email} emails so you can test safely.`,
   },
   {
     q: "Can I import my existing leads?",
-    a: "Yes. CSV import is built in, and Founding 100 onboarding includes white-glove import — we load your database and configure your first follow-up campaign for you.",
+    a: `Yes. CSV import is built in, and ${SITE_OFFER.whiteGlove.shortLine.toLowerCase()} — we load your database and configure your first follow-up campaign for you.`,
   },
   {
     q: "What is the Founding 100 offer?",
-    a: "The first 100 agents get early access, white-glove setup, founding-member pricing, and a direct feedback channel to the team.",
+    a: `The first ${FOUNDING_100.seatsTotal} agents get early access, founding-member pricing, and a direct feedback channel to the team. ${SITE_OFFER.whiteGlove.shortLine}.`,
   },
   {
     q: "Can I cancel anytime?",
@@ -26,11 +27,11 @@ const FAQ_ITEMS = [
   },
   {
     q: "What integrations do you support?",
-    a: "Google Calendar, Twilio SMS, email delivery, ringless voicemail, and Dotloop (transactions). More CRM imports and Claude AI controls are rolling out for beta users.",
+    a: `Google Calendar and Dotloop (transactions). Messaging via Twilio SMS, email delivery, and Slybroadcast ringless voicemail. Import via CSV and onboarding-assisted migration.`,
   },
   {
-    q: "Is ARI compliant for real estate outreach?",
-    a: "Yes. Built-in DNC scrubbing, consent tracking, quiet hours, and TCPA/FCC-aware campaign gates. You stay in control of who gets contacted and when.",
+    q: "Does ARI help with outreach compliance?",
+    a: `${SITE_OFFER.compliance.shortNote} You stay in control of who gets contacted and when.`,
   },
   {
     q: "What if I exceed my SMS or RVM limits?",

@@ -2,6 +2,7 @@ import { LEGAL_ENTITY, LEGAL_GOVERNING_STATE } from "@/lib/legal/company";
 import { LegalBulletList, LegalSection } from "@/components/legal/legal-page-shell";
 import { LegalContactBlock } from "@/components/legal/legal-contact";
 import { LegalDisclaimer } from "@/components/legal/legal-disclaimer";
+import { SITE_OFFER } from "@/lib/marketing/site-offer";
 
 export function TermsOfServiceContent() {
   return (
@@ -125,10 +126,11 @@ export function TermsOfServiceContent() {
 
       <LegalSection title="7. Third-Party Integrations">
         <p>
-          The Service may integrate with third-party platforms (e.g., Follow Up Boss, HubSpot,
-          ActiveCampaign, or similar tools). We are not responsible for the availability,
-          performance, or data practices of third-party services, and your use of such integrations
-          is subject to their own terms.
+          The Service may integrate with third-party platforms you connect (currently{" "}
+          {SITE_OFFER.integrations.connected.map((i) => i.label).join(" and ")}, plus messaging
+          providers such as {SITE_OFFER.integrations.messaging.join(", ")}). We are not responsible
+          for the availability, performance, or data practices of third-party services, and your use
+          of such integrations is subject to their own terms.
         </p>
       </LegalSection>
 
@@ -236,12 +238,7 @@ export function TermsOfServiceContent() {
         <LegalContactBlock />
       </LegalSection>
 
-      <LegalDisclaimer>
-        This document is a template and does not constitute legal advice. Please have it reviewed by
-        a licensed attorney before publishing or relying on it, particularly regarding
-        telemarketing/consent compliance (TCPA) given ARI&apos;s outbound calling and campaign
-        features.
-      </LegalDisclaimer>
+      <LegalDisclaimer />
     </>
   );
 }

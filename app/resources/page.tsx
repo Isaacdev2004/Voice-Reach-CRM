@@ -5,6 +5,7 @@ import {
   CORNERSTONE_ARTICLE_SLUGS,
   RESOURCE_ARTICLE_SLUGS,
   RESOURCE_ARTICLES,
+  RESOURCE_EDITORIAL,
 } from "@/lib/seo/resource-articles";
 import { pageMetadata } from "@/lib/seo/metadata";
 
@@ -57,7 +58,15 @@ export default function ResourcesHubPage() {
                   {article.title}
                 </h3>
                 <p className="mt-2 text-[14px] leading-relaxed text-slate-text">{article.description}</p>
-                <p className="mt-3 text-[13px] text-taupe">{article.readTimeMinutes} min read</p>
+                <p className="mt-3 text-[13px] text-taupe">
+                  {RESOURCE_EDITORIAL.author} ·{" "}
+                  {new Date(article.publishedAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}{" "}
+                  · {article.readTimeMinutes} min read
+                </p>
               </Link>
             ))}
           </div>
@@ -78,7 +87,13 @@ export default function ResourcesHubPage() {
                     </p>
                     <h3 className="font-serif text-[17px] font-semibold text-ink">{article.title}</h3>
                   </div>
-                  <span className="shrink-0 text-[13px] text-taupe">{article.readTimeMinutes} min</span>
+                  <span className="shrink-0 text-[13px] text-taupe">
+                    {new Date(article.publishedAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      year: "numeric",
+                    })}{" "}
+                    · {article.readTimeMinutes} min
+                  </span>
                 </Link>
               </li>
             ))}

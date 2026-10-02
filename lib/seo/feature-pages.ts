@@ -52,12 +52,12 @@ const CORE_FEATURE_PAGES = {
     h1: "Automated Follow-Up That Keeps Leads Warm",
     eyebrow: "Automated follow-up",
     intro:
-      "Set your follow-up once and let ARI deliver it on schedule. New leads get instant outreach; nurture sequences keep prospects engaged until they're ready to move.",
+      "This is the product mechanics page — how automated follow-up works inside ARI. For the strategic overview of why follow-up systems matter, see our lead follow-up solution page. Set your sequence once; ARI delivers SMS, email, and ringless voicemail on the schedule you configure.",
     sections: [
       {
         h2: "Why automation beats manual follow-up",
         paragraphs: [
-          "Agents lose deals when response time slips. Automated follow-up ensures every lead hears from you within minutes — with messages you wrote, not generic templates.",
+          "Agents lose deals when response time slips. Automated follow-up helps every lead hear from you on schedule — with messages you wrote, not generic templates.",
           "ARI sequences combine timing, channel, and personalization so follow-up feels human while running in the background.",
         ],
       },
@@ -65,7 +65,7 @@ const CORE_FEATURE_PAGES = {
         h2: "Multi-step campaigns you control",
         paragraphs: ["Build visual sequences that mix touchpoints over hours, days, or weeks."],
         bullets: [
-          "Instant first response when a lead enters your pipeline",
+          "First outreach when a lead enters your pipeline and campaign",
           "Drip nurture for leads not ready to buy or sell yet",
           "Pause or override automation for any contact",
           "Full history on every message sent and received",
@@ -140,11 +140,11 @@ const CORE_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Automated Text Follow-Up for Realtors",
     description:
-      "Send automated SMS follow-up to real estate leads with ARI — instant responses, drip sequences, and compliance tools for TCPA-aware texting.",
+      "Send automated SMS follow-up to real estate leads with ARI — timely responses, drip sequences, and compliance-aware tools for TCPA-aware texting.",
     h1: "Text Automation That Reaches Leads Fast",
     eyebrow: "SMS automation",
     intro:
-      "Text is the fastest way to reach modern buyers and sellers. ARI automates SMS follow-up so you respond in minutes — not hours — while staying compliant.",
+      "Text is the fastest way to reach modern buyers and sellers. ARI automates SMS follow-up so you respond in minutes — not hours — with compliance-aware controls for responsible outreach.",
     sections: [
       {
         h2: "Speed-to-lead by text",
@@ -158,19 +158,19 @@ const CORE_FEATURE_PAGES = {
         bullets: [
           "Twilio-powered business SMS line",
           "Merge fields for personalization",
-          "DNC scrubbing before send",
+          "Suppression/DNC tools before send",
           "Consent tracking and opt-out handling",
         ],
       },
       {
-        h2: "Compliance built in",
+        h2: "Compliance-aware tools",
         paragraphs: [
-          "Real estate texting has rules. ARI includes quiet hours, consent gates, and DNC checks so your automated text follow-up stays responsible.",
+          "Real estate texting has rules. ARI includes quiet hours, consent gates, and suppression/DNC tools to support responsible automated text follow-up.",
         ],
       },
     ],
     highlights: [
-      { title: "Instant SMS", body: "First text within minutes of lead capture." },
+      { title: "Timely SMS", body: "First text within minutes after a lead enters your campaign." },
       { title: "Drip sequences", body: "Multi-message nurture over days or weeks." },
       { title: "Two-way texting", body: "Replies logged on the contact record." },
       { title: "Usage controls", body: "Trial caps and plan allotments for safe testing." },
@@ -202,7 +202,7 @@ const CORE_FEATURE_PAGES = {
         bullets: [
           "Automated drip sequences on a schedule you set",
           "Personalized templates with contact merge fields",
-          "Open and reply tracking on contact records",
+          "Send and reply logging on contact records",
           "Combine with SMS and voicemail in one workflow",
         ],
       },
@@ -249,7 +249,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Automation at every stage",
         paragraphs: [
-          "Trigger follow-up campaigns when a lead enters a stage. New inquiry? Instant SMS. Gone quiet for 30 days? Reactivation sequence. Pipeline and automation work together.",
+          "Trigger follow-up campaigns when a lead enters a stage. New inquiry? Start your speed-to-lead sequence. Gone quiet for 30 days? Reactivation campaign. Pipeline and automation work together.",
         ],
       },
       {
@@ -327,7 +327,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Never miss a hot lead",
         paragraphs: [
-          "When a prospect replies to an automated text or opens a key email, ARI creates a task and notification so you follow up while intent is high.",
+          "When a prospect replies to an automated text or engages with outreach, ARI can create a task and notification so you follow up while intent is high. Alert types depend on your campaign configuration.",
         ],
         bullets: [
           "Task reminders tied to contacts and pipeline stages",

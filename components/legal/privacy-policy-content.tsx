@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LegalBulletList, LegalSection } from "@/components/legal/legal-page-shell";
 import { LegalContactBlock } from "@/components/legal/legal-contact";
 import { LegalDisclaimer } from "@/components/legal/legal-disclaimer";
+import { integrationsLegalBullets } from "@/lib/marketing/site-offer";
 import { LEGAL_ENTITY, LEGAL_HOSTING } from "@/lib/legal/company";
 import { LEGAL_ROUTES } from "@/lib/legal/links";
 
@@ -127,15 +128,7 @@ export function PrivacyPolicyContent() {
           ARI integrates with third-party platforms you may choose to connect, including but not
           limited to:
         </p>
-        <LegalBulletList
-          items={[
-            "Follow Up Boss",
-            "HubSpot",
-            "ActiveCampaign",
-            "KVCore",
-            "Messaging/calling infrastructure providers (e.g., Twilio or similar carriers, for SMS/voice delivery)",
-          ]}
-        />
+        <LegalBulletList items={[...integrationsLegalBullets()]} />
         <p>
           When you connect an integration, Customer Data flows between ARI and that platform
           according to your configuration. Each third-party service has its own privacy practices, and
@@ -231,11 +224,7 @@ export function PrivacyPolicyContent() {
         <LegalContactBlock />
       </LegalSection>
 
-      <LegalDisclaimer>
-        This document is a template and does not constitute legal advice. Have it reviewed by a
-        licensed attorney, particularly for GDPR/CCPA applicability and TCPA consent handling before
-        publishing.
-      </LegalDisclaimer>
+      <LegalDisclaimer />
     </>
   );
 }

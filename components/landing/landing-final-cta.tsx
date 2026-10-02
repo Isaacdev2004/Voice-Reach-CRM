@@ -1,11 +1,11 @@
 import Image from "next/image";
 import { StartFreeButton } from "@/components/landing/start-free-button";
-import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { SITE_OFFER, trialCtaLabel, trialSupportLine } from "@/lib/marketing/site-offer";
 
 const LIFESTYLE_IMAGE = "/brand/final-cta-lifestyle.png";
 
 const TRIAL_DETAILS = [
-  "Card required",
+  SITE_OFFER.cardRequiredNote,
   "No charge until trial ends",
   "Cancel anytime",
 ] as const;
@@ -20,15 +20,18 @@ export function LandingFinalCta() {
               Ready to close more deals?
             </p>
             <h2 className="mt-3 font-serif text-[28px] font-semibold leading-[1.15] text-ink sm:text-[32px] md:text-[38px] lg:text-[42px]">
-              Start Your {FOUNDING_100.trialDays}-Day Free Trial
+              {trialCtaLabel()}
             </h2>
             <p className="mt-4 max-w-[36rem] text-[16px] leading-relaxed text-slate-text lg:max-w-none lg:text-[17px]">
-              Join {FOUNDING_100.name} — white-glove setup, founding-member pricing, and a CRM that
-              turns leads into conversations and closed deals.
+              {trialSupportLine()}
+              {SITE_OFFER.founding.active
+                ? ` Join ${SITE_OFFER.founding.name} for ${SITE_OFFER.founding.pricingNote.toLowerCase()}.`
+                : null}
             </p>
             <div className="mt-6 flex w-full flex-col gap-4 md:mt-8 md:gap-8">
               <StartFreeButton
                 location="final-cta"
+                label={trialCtaLabel()}
                 showArrow
                 className="w-full !px-10 !py-4 !text-[15px] sm:w-auto sm:!px-12"
               />

@@ -3,7 +3,8 @@ import { Breadcrumbs } from "@/components/marketing/breadcrumbs";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { StartFreeButton } from "@/components/landing/start-free-button";
-import type { ResourceArticle } from "@/lib/seo/resource-articles";
+import { trialCtaLabel } from "@/lib/marketing/site-offer";
+import { RESOURCE_EDITORIAL, type ResourceArticle } from "@/lib/seo/resource-articles";
 import { articleSchema, breadcrumbSchema } from "@/lib/seo/schema";
 
 type ResourceArticlePageProps = {
@@ -17,6 +18,8 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
       description: article.description,
       path: article.path,
       publishedAt: article.publishedAt,
+      modifiedAt: article.updatedAt ?? article.publishedAt,
+      authorName: article.author ?? RESOURCE_EDITORIAL.author,
     }),
     breadcrumbSchema([
       { name: "Home", path: "/" },
@@ -48,12 +51,27 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
             {article.description}
           </p>
           <p className="mt-4 text-[14px] text-taupe">
+            By {article.author ?? RESOURCE_EDITORIAL.author} ·{" "}
             {new Date(article.publishedAt).toLocaleDateString("en-US", {
               month: "long",
               day: "numeric",
               year: "numeric",
-            })}{" "}
+            })}
+            {article.updatedAt ? (
+              <>
+                {" "}
+                · Updated{" "}
+                {new Date(article.updatedAt).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </>
+            ) : null}{" "}
             · {article.readTimeMinutes} min read
+          </p>
+          <p className="mt-2 text-[13px] italic text-taupe">
+            {article.editorialNote ?? RESOURCE_EDITORIAL.editorialNote}
           </p>
         </header>
 
@@ -88,6 +106,25 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
           ))}
         </div>
 
+        {(article.citations ?? RESOURCE_EDITORIAL.defaultCitations).length ? (
+          <aside className="landing-shell mx-auto mt-12 max-w-[44rem] rounded-2xl border border-outline-variant/15 bg-cream p-6 md:p-8">
+            <h2 className="font-serif text-[20px] font-semibold text-ink">Sources &amp; further reading</h2>
+            <ul className="mt-4 space-y-2 text-[15px] text-slate-text">
+              {(article.citations ?? RESOURCE_EDITORIAL.defaultCitations).map((c) => (
+                <li key={c.label}>
+                  {c.href ? (
+                    <a href={c.href} className="font-medium text-rose-gold-deep hover:underline" rel="noopener noreferrer">
+                      {c.label}
+                    </a>
+                  ) : (
+                    c.label
+                  )}
+                </li>
+              ))}
+            </ul>
+          </aside>
+        ) : null}
+
         <aside className="landing-shell mx-auto mt-12 max-w-[44rem] rounded-2xl border border-outline-variant/15 bg-ivory p-6 md:p-8">
           <h2 className="font-serif text-[20px] font-semibold text-ink">Related from ARI</h2>
           <ul className="mt-4 space-y-2">
@@ -102,7 +139,7 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
         </aside>
 
         <div className="landing-shell mx-auto mt-10 max-w-[44rem] text-center">
-          <StartFreeButton location={`article-${article.slug}`} label="Start Your 14-Day Free Trial" showArrow />
+          <StartFreeButton location={`article-${article.slug}`} label={trialCtaLabel()} showArrow />
         </div>
       </article>
     </MarketingShell>
