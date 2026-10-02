@@ -517,3 +517,11 @@ export const CORNERSTONE_ARTICLE_SLUGS: ResourceArticleSlug[] = [
   "best-crm-features-for-real-estate-agents",
   "how-to-reactivate-old-real-estate-leads",
 ];
+
+/** Pick a resource article that rotates daily (dashboard Marketing Pulse). */
+export function getRotatingResourceArticle(date = new Date()): ResourceArticle {
+  const start = new Date(date.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((date.getTime() - start.getTime()) / 86_400_000);
+  const slug = RESOURCE_ARTICLE_SLUGS[dayOfYear % RESOURCE_ARTICLE_SLUGS.length]!;
+  return RESOURCE_ARTICLES[slug];
+}

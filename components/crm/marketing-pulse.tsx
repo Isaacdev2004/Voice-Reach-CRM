@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
+import { getRotatingResourceArticle } from "@/lib/seo/resource-articles";
 import { useEffect, useState } from "react";
 
 type PulseCard = {
-  badge: "Trend" | "Performance" | "Tip";
+  badge: "Trend" | "Performance" | "Insight";
   headline: string;
   body: string;
+  href?: string;
+  meta?: string;
 };
 
 const MONTH_TRENDS: { headline: string; body: string }[] = [
@@ -30,22 +33,22 @@ const MONTH_TRENDS: { headline: string; body: string }[] = [
   },
 ];
 
-const TIPS = [
-  {
-    headline: "Refresh your listing photos",
-    body: "Twilight photography increases listing views by up to 30%. Consider a reshoot before your next launch.",
-  },
-  {
-    headline: "Speed-to-lead still wins",
-    body: "A same-day SMS plus ringless voicemail beats a next-morning email. Use the Speed to Lead template.",
-  },
-  {
-    headline: "Ask one question in SMS",
-    body: "Short, single-question texts get more replies than long updates. Save the details for email.",
-  },
-];
-
 type CampaignRow = { id: string; name: string; status: string; provider: string };
+
+function PulseCardContent({ card }: { card: PulseCard }) {
+  return (
+    <>
+      <span className="inline-flex rounded-full bg-[#f4e6dc] px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-rose-gold-deep">
+        {card.badge}
+      </span>
+      <p className="mt-3 text-[17px] font-semibold text-ink">{card.headline}</p>
+      {card.body ? (
+        <p className="mt-1 text-[14px] leading-relaxed text-slate-text">{card.body}</p>
+      ) : null}
+      {card.meta ? <p className="mt-2 text-[13px] font-medium text-rose-gold-deep">{card.meta}</p> : null}
+    </>
+  );
+}
 
 export function MarketingPulse() {
   const [cards, setCards] = useState<PulseCard[]>([]);
@@ -53,8 +56,8 @@ export function MarketingPulse() {
 
   useEffect(() => {
     const quarter = Math.floor(new Date().getMonth() / 3);
-    const tip = TIPS[new Date().getDate() % TIPS.length];
     const trend = MONTH_TRENDS[quarter];
+    const article = getRotatingResourceArticle();
 
     void (async () => {
       let performance: PulseCard = {
@@ -96,7 +99,13 @@ export function MarketingPulse() {
       setCards([
         { badge: "Trend", ...trend },
         performance,
-        { badge: "Tip", ...tip },
+        {
+          badge: "Insight",
+          headline: article.title,
+          body: article.description,
+          href: article.path,
+          meta: `Read guide · ${article.readTimeMinutes} min`,
+        },
       ]);
     })();
   }, []);
@@ -104,23 +113,34 @@ export function MarketingPulse() {
   return (
     <div className="space-y-8">
       <section>
-        <div className="mb-4 flex items-center gap-2">
-          <h2 className="font-serif text-[26px] font-semibold text-ink">Marketing Pulse</h2>
-          <Icon name="trending_up" className="text-rose-gold-deep" />
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <h2 className="font-serif text-[26px] font-semibold text-ink">Marketing Pulse</h2>
+            <Icon name="trending_up" className="text-rose-gold-deep" />
+          </div>
+          <Link
+            href="/resources"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[14px] font-medium text-rose-gold-deep hover:underline"
+          >
+            View all resources →
+          </Link>
         </div>
         <div className="space-y-3">
           {(cards.length ? cards : [{ badge: "Trend" as const, headline: "Loading pulse…", body: "" }]).map(
-            (card) => (
-              <LuxuryCard key={card.headline} padding="md">
-                <span className="inline-flex rounded-full bg-[#f4e6dc] px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-rose-gold-deep">
-                  {card.badge}
-                </span>
-                <p className="mt-3 text-[17px] font-semibold text-ink">{card.headline}</p>
-                {card.body ? (
-                  <p className="mt-1 text-[14px] leading-relaxed text-slate-text">{card.body}</p>
-                ) : null}
-              </LuxuryCard>
-            ),
+            (card) =>
+              card.href ? (
+                <Link key={card.headline} href={card.href} target="_blank" rel="noopener noreferrer">
+                  <LuxuryCard padding="md" className="transition-shadow hover:shadow-card">
+                    <PulseCardContent card={card} />
+                  </LuxuryCard>
+                </Link>
+              ) : (
+                <LuxuryCard key={card.headline} padding="md">
+                  <PulseCardContent card={card} />
+                </LuxuryCard>
+              ),
           )}
         </div>
       </section>
