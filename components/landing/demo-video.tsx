@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { trackMarketingEvent } from "@/lib/marketing/track";
 
 const DEMO_VIDEO_URL = process.env.NEXT_PUBLIC_DEMO_VIDEO_URL?.trim();
 const LOCAL_DEMO_VIDEO = "/videos/ari-demo.mp4";
+
+const DEMO_TRANSCRIPT = [
+  "ARI helps real estate agents follow up after a lead is in the CRM.",
+  "Import a contact from CSV or manual entry, enroll them in a campaign, and ARI sends SMS, email, or ringless voicemail on the schedule you configure.",
+  "When a lead replies, you take over with full context on the contact record.",
+  "White-glove setup is included on every plan to import your database and launch your first campaign.",
+].join(" ");
 
 function embedUrl(url: string) {
   if (url.includes("youtube.com/watch")) {
@@ -31,8 +38,23 @@ function isExternalEmbed(url: string) {
   );
 }
 
+function trackProgress(current: number, duration: number, fired: Set<number>) {
+  if (!duration || !Number.isFinite(duration)) return;
+  const pct = (current / duration) * 100;
+  for (const milestone of [25, 50, 75, 100]) {
+    if (pct >= milestone && !fired.has(milestone)) {
+      fired.add(milestone);
+      trackMarketingEvent(milestone === 100 ? "demo_video_complete" : "demo_video_progress", {
+        location: "landing",
+        percent: milestone,
+      });
+    }
+  }
+}
+
 export function DemoVideo() {
   const [loadError, setLoadError] = useState(false);
+  const progressFired = useRef(new Set<number>());
   const onPlay = () => trackMarketingEvent("demo_video_play", { location: "landing" });
   const externalUrl = DEMO_VIDEO_URL && isExternalEmbed(DEMO_VIDEO_URL) ? DEMO_VIDEO_URL : null;
   const directUrl =
@@ -49,8 +71,8 @@ export function DemoVideo() {
             Follow Up Automatically — Without Losing the Human Touch
           </h2>
           <p className="mt-2 text-[17px] leading-relaxed text-slate-text lg:text-[18px]">
-            From new lead to automated follow-up to your next call — the workflow agents use every
-            day. You control the message; ARI handles the timing.
+            After a contact enters ARI and joins a campaign, automated follow-up runs on your
+            schedule — you handle replies and high-intent conversations.
           </p>
         </div>
 
@@ -83,14 +105,29 @@ export function DemoVideo() {
                 preload="metadata"
                 poster="/brand/ari-dashboard-hero.png"
                 onPlay={onPlay}
+                onTimeUpdate={(e) =>
+                  trackProgress(
+                    e.currentTarget.currentTime,
+                    e.currentTarget.duration,
+                    progressFired.current,
+                  )
+                }
                 onError={() => setLoadError(true)}
               >
                 <source src={directUrl} type="video/mp4" />
+                <track kind="captions" srcLang="en" label="English" default />
                 Your browser does not support embedded video.
               </video>
             </div>
           )}
         </div>
+
+        <details className="mx-auto mt-6 max-w-4xl rounded-xl border border-outline-variant/15 bg-cream px-5 py-4 text-left">
+          <summary className="cursor-pointer text-[14px] font-semibold text-ink">
+            Video transcript
+          </summary>
+          <p className="mt-3 text-[14px] leading-relaxed text-slate-text">{DEMO_TRANSCRIPT}</p>
+        </details>
       </div>
     </section>
   );

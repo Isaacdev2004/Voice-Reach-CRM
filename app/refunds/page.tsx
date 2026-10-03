@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { LegalPageShell } from "@/components/legal/legal-page-shell";
 import { RefundPolicyContent } from "@/components/legal/refund-policy-content";
-import { LEGAL_EFFECTIVE_DATE, LEGAL_ENTITY_DBA } from "@/lib/legal/company";
+import { LEGAL_ENTITY_DBA } from "@/lib/legal/company";
+import { LEGAL_POLICY_META } from "@/lib/legal/policy-meta";
 import { LEGAL_RELATED } from "@/lib/legal/links";
 
 export const metadata: Metadata = {
@@ -14,8 +15,8 @@ export default function RefundsPage() {
   return (
     <LegalPageShell
       title="Refund & Cancellation Policy"
-      lastUpdated={LEGAL_EFFECTIVE_DATE}
-      subtitle={`Effective ${LEGAL_EFFECTIVE_DATE} · ${LEGAL_ENTITY_DBA}`}
+      lastUpdated={LEGAL_POLICY_META.lastUpdated}
+      subtitle={`Effective ${LEGAL_POLICY_META.effectiveDate} · ${LEGAL_ENTITY_DBA}`}
       related={[...LEGAL_RELATED.refunds]}
     >
       <RefundPolicyContent />

@@ -84,7 +84,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       {
         h2: "Built around the way real estate leads actually behave",
         paragraphs: [
-          `New internet lead — ${leadIntake.qualified} You take over when the prospect engages.`,
+          `New internet lead — ${leadIntake.portalIntake} You take over when the prospect engages.`,
           "Open-house lead — Import sign-ins, tag them by property or event, and start a follow-up sequence while the conversation is still fresh.",
           "Old database lead — Organize and reactivate dormant contacts with structured, segmented outreach instead of one-by-one manual texting.",
           "Sphere and past clients — Create consistent touches that help you stay visible to the people most likely to refer you or work with you again.",
@@ -261,6 +261,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
           "Recommended cadence: Day 0 — acknowledgment SMS + call attempt when you're free. Day 1 — email with value. Day 3 — short check-in text. Day 7 — voicemail or personal call prompt.",
         ],
         bullets: [
+          leadIntake.enrollmentFlow,
           "Import portal exports or add leads manually after inquiry",
           "Tag by source and property interest",
           "Assign to a speed-to-lead campaign you control",
@@ -310,12 +311,12 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     ],
     faq: [
       {
-        q: "How is this different from /lead-follow-up?",
-        a: "/lead-follow-up explains why follow-up systems matter. This page gives Realtor-specific workflows and cadences you can implement.",
+        q: "How is this different from the general lead follow-up page?",
+        a: "Our lead follow-up overview explains why follow-up systems matter. This page gives Realtor-specific workflows and cadences you can implement.",
       },
       {
         q: "Do portal leads sync automatically?",
-        a: "ARI supports CSV import and manual entry from portal exports today. Connect Google Calendar and Dotloop from Settings. Confirm your lead source workflow during onboarding.",
+        a: leadIntake.portalIntake,
       },
       {
         q: "How fast can I respond to new leads?",

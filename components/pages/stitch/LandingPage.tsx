@@ -16,6 +16,8 @@ import { Icon } from "@/components/ui/icon";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
 import { SITE_OFFER, trialCtaLabel } from "@/lib/marketing/site-offer";
 
+const { leadIntake } = SITE_OFFER;
+
 const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
 
 const HERO_TRUST = [
@@ -33,7 +35,7 @@ const HOW_IT_WORKS = [
   {
     num: "2",
     title: "Automate follow-up",
-    body: "Set up personalized campaigns via SMS, email, and ringless voicemail.",
+    body: "After a contact enters ARI and joins a campaign, SMS, email, and ringless voicemail send on the schedule you configure.",
   },
   {
     num: "3",

@@ -9,7 +9,13 @@ export type MarketingEvent =
   | "trial_started"
   | "signup_started"
   | "checkout_started"
-  | "demo_video_play";
+  | "demo_video_play"
+  | "demo_video_progress"
+  | "demo_video_complete"
+  | "pricing_billing_toggle"
+  | "pricing_plan_select"
+  | "contact_form_submit"
+  | "brokerage_demo_request";
 
 type EventProps = Record<string, string | number | boolean | undefined>;
 

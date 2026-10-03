@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LegalPageShell } from "@/components/legal/legal-page-shell";
 import { LEGAL_CONTACT_EMAIL, LEGAL_ENTITY_DBA } from "@/lib/legal/company";
+import { LEGAL_POLICY_META } from "@/lib/legal/policy-meta";
 import { LEGAL_RELATED } from "@/lib/legal/links";
 
 export const metadata: Metadata = {
@@ -14,7 +15,7 @@ export default function SmsConsentPage() {
   return (
     <LegalPageShell
       title="SMS consent & opt-in"
-      lastUpdated="August 5, 2026"
+      lastUpdated={LEGAL_POLICY_META.lastUpdated}
       subtitle={`Program operated by ${LEGAL_ENTITY_DBA}`}
       related={[...LEGAL_RELATED.smsConsent]}
     >

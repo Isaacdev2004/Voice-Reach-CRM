@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingPricing } from "@/components/landing/landing-pricing";
+import { PlanEntitlementsPanel } from "@/components/pricing/plan-entitlements-panel";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
@@ -42,6 +43,8 @@ export default function PricingPage() {
       </section>
 
       <LandingPricing />
+
+      <PlanEntitlementsPanel />
 
       <section className="bg-ivory py-10 md:py-12">
         <div className="landing-shell mx-auto max-w-[44rem]">

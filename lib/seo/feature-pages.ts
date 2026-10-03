@@ -149,7 +149,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Speed-to-lead by text",
         paragraphs: [
-          "Studies consistently show the first agent to respond wins the conversation. Automated text follow-up fires when a new lead hits your pipeline — even while you're in appointments.",
+          "Studies consistently show timely response improves connection rates. Automated text follow-up sends after a contact is enrolled in your campaign — even while you're in appointments.",
         ],
       },
       {

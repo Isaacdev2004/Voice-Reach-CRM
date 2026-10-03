@@ -73,6 +73,7 @@ export const PLAN_OPTIONS: PlanOption[] = [
       "Mortgage calculator",
       "1,000 emails included / mo",
       `SMS + RVM pay-as-you-go ($${PAYG_RATES.sms.toFixed(2)} SMS · $${PAYG_RATES.rvm.toFixed(2)} RVM)`,
+      "Individual sends — multi-step campaigns on Growth",
       "1 user",
     ],
   },

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LegalBulletList, LegalSection } from "@/components/legal/legal-page-shell";
 import { LegalContactBlock } from "@/components/legal/legal-contact";
 import { LegalDisclaimer } from "@/components/legal/legal-disclaimer";
-import { integrationsLegalBullets } from "@/lib/marketing/site-offer";
+import { integrationsLegalBullets, SITE_OFFER } from "@/lib/marketing/site-offer";
 import { LEGAL_ENTITY, LEGAL_HOSTING } from "@/lib/legal/company";
 import { LEGAL_ROUTES } from "@/lib/legal/links";
 
@@ -97,9 +97,9 @@ export function PrivacyPolicyContent() {
           ]}
         />
         <p>
-          We do not use Customer Data to train models, sell to third parties, or use it for our own
-          marketing purposes.
+          {SITE_OFFER.aiDataUse.noTraining}
         </p>
+        <p>{SITE_OFFER.aiDataUse.summary}</p>
       </LegalSection>
 
       <LegalSection title="4. Legal Basis for Outbound Calling & Texting">

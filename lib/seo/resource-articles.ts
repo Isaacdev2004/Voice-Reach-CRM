@@ -189,7 +189,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Your database is an asset you're probably ignoring",
         paragraphs: [
-          "Most agents focus entirely on new leads while hundreds of past inquiries sit untouched. Lead reactivation — reaching back out to dormant contacts — often delivers higher conversion rates than cold portal leads because trust was already started.",
+          "Most agents focus entirely on new leads while hundreds of past inquiries sit untouched. Lead reactivation — reaching back out to dormant contacts — can restart conversations with people who already know your name, though results vary by list quality and timing.",
         ],
       },
       {
@@ -217,7 +217,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
         ],
       },
       {
-        h2: "Step 4: Route responders immediately",
+        h2: "Step 4: Route responders promptly",
         paragraphs: [
           "When a dormant lead replies, they should jump to the top of your priority list. Tag them, move them to an active pipeline stage, and call within the hour.",
         ],
@@ -244,7 +244,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Most agents quit too early",
         paragraphs: [
-          "The average agent contacts a lead two or three times before moving on. Yet most conversions require far more persistence — often 6–12 touches across multiple channels over several weeks.",
+          "The average agent contacts a lead two or three times before moving on. Industry studies suggest many conversions require more persistence — often several touches across multiple channels over several weeks.",
         ],
       },
       {
@@ -326,7 +326,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     title: "How to Follow Up With Facebook Real Estate Leads",
     description:
       "Convert Facebook and Meta ad leads with fast follow-up, CRM import, and automated SMS sequences built for social lead gen.",
-    publishedAt: "2026-10-03",
+    publishedAt: "2026-10-02",
     readTimeMinutes: 7,
     category: "Lead sources",
     productLinks: [PRODUCT_LINKS.followUp, PRODUCT_LINKS.crm],
@@ -334,13 +334,13 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Facebook leads go cold faster than almost any source",
         paragraphs: [
-          "Meta leads often come from casual scrollers — not people actively searching on Zillow. Speed and persistence matter even more. Respond within minutes and plan a longer nurture sequence.",
+          "Meta leads often come from casual scrollers — not people actively searching on Zillow. Speed and persistence matter even more. After import, enroll them in a timely first touch and plan a longer nurture sequence.",
         ],
       },
       {
-        h2: "Import leads immediately",
+        h2: "Import leads the same day",
         paragraphs: [
-          "Export from Meta Lead Ads or Zapier into your CRM the same day. Every hour of delay costs conversions. ARI supports CSV import and onboarding-assisted setup.",
+          "Export from Meta Lead Ads or your lead tool into ARI via CSV the same day. Research suggests response speed affects connection rates. ARI supports CSV import and onboarding-assisted setup.",
         ],
       },
       {
@@ -368,7 +368,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     title: "Real Estate CRM vs. Spreadsheet: When Should You Switch?",
     description:
       "Signs you've outgrown spreadsheets for lead management — and what a real estate CRM like ARI adds that Excel and Google Sheets can't.",
-    publishedAt: "2026-10-03",
+    publishedAt: "2026-10-02",
     readTimeMinutes: 6,
     category: "CRM",
     productLinks: [PRODUCT_LINKS.crm, PRODUCT_LINKS.pipeline],
@@ -403,7 +403,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     title: "Why Real Estate Leads Go Cold — and How to Prevent It",
     description:
       "The top reasons real estate leads stop responding — slow follow-up, wrong channel, no nurture system — and how to fix each one.",
-    publishedAt: "2026-10-04",
+    publishedAt: "2026-10-02",
     readTimeMinutes: 7,
     category: "Lead follow-up",
     productLinks: [PRODUCT_LINKS.followUp, PRODUCT_LINKS.reactivation],
@@ -444,7 +444,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     title: "How Quickly Should Realtors Respond to Online Leads?",
     description:
       "Data-backed response time benchmarks for real estate leads — why minutes matter and how automation makes speed-to-lead achievable.",
-    publishedAt: "2026-10-04",
+    publishedAt: "2026-10-02",
     readTimeMinutes: 5,
     category: "Lead follow-up",
     productLinks: [PRODUCT_LINKS.texts, PRODUCT_LINKS.followUp],
@@ -452,7 +452,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Minutes, not hours",
         paragraphs: [
-          "Industry studies consistently show contact rates drop dramatically after the first five minutes. For paid portal and ad leads, treat under-five-minute response as the standard — not the exception.",
+          "Research on sales response time suggests contact rates often drop as minutes pass. For paid portal and ad leads, aim for the fastest acknowledgment you can sustain — often via a configured first SMS after import.",
         ],
       },
       {
@@ -475,7 +475,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     title: "A 30-Day Real Estate Lead Follow-Up Plan",
     description:
       "A day-by-day follow-up plan for new real estate leads — texts, emails, calls, and voicemails mapped across 30 days.",
-    publishedAt: "2026-10-05",
+    publishedAt: "2026-10-02",
     readTimeMinutes: 8,
     category: "Lead follow-up",
     productLinks: [PRODUCT_LINKS.followUp, PRODUCT_LINKS.crm, PRODUCT_LINKS.pricing],

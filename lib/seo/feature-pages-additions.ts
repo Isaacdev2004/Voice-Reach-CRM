@@ -171,7 +171,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     h1: "Mortgage Calculator Built Into Your CRM",
     eyebrow: "Mortgage calculator",
     intro:
-      "Answer \"What would my payment be?\" on the spot. ARI's mortgage calculator estimates principal, interest, taxes, and insurance — with rate context agents can reference in conversations and client emails.",
+      "Answer \"What would my payment be?\" on the spot. ARI's mortgage calculator provides estimates only — not lender quotes. Rates may come from configured market feeds when available; taxes and insurance are editable assumptions.",
     sections: [
       {
         h2: "Payment math during the conversation",
@@ -181,7 +181,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
         bullets: [
           "Purchase price, down payment, rate, and term inputs",
           "Monthly payment breakdown (PITI-style estimate)",
-          "Rate context from market data feeds when available",
+          "Rate context from configured market feeds when available (estimates only — not a loan offer)",
           "Copy results to share in email or text follow-up",
         ],
       },
@@ -222,7 +222,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "Search links you can send in seconds",
         paragraphs: [
-          "Generate a property search link from saved criteria, copy it, and drop it into an SMS, email, or campaign step — perfect for post-showing follow-up or weekly listing updates.",
+          "Generate a property search link from saved criteria (opens an external listing search site in the buyer's browser), copy it, and drop it into an SMS, email, or campaign step — perfect for post-showing follow-up or weekly listing updates.",
         ],
         bullets: [
           "Preferred area and budget per contact",
@@ -356,7 +356,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       { title: "Activity logs", body: "Full send history for accountability." },
       { title: "Engagement tracking", body: "See who is responding." },
       { title: "Source insights", body: "Compare lead sources over time." },
-      { title: "Activity logs", body: "Outreach history for compliance review." },
+      { title: "Compliance audit trail", body: "Outreach history for compliance review." },
     ],
     relatedProductHref: "/real-estate-crm",
     relatedProductLabel: "real estate CRM",

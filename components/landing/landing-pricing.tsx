@@ -33,7 +33,10 @@ export function LandingPricing() {
           <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-outline-variant/20 bg-ivory p-1">
             <button
               type="button"
-              onClick={() => setAnnual(false)}
+              onClick={() => {
+                setAnnual(false);
+                trackMarketingEvent("pricing_billing_toggle", { mode: "monthly", location: "landing-pricing" });
+              }}
               className={`rounded-full px-5 py-2 text-[13px] font-semibold transition-colors ${
                 !annual ? "bg-rose-gold text-ivory" : "text-taupe hover:text-ink"
               }`}
@@ -42,7 +45,10 @@ export function LandingPricing() {
             </button>
             <button
               type="button"
-              onClick={() => setAnnual(true)}
+              onClick={() => {
+                setAnnual(true);
+                trackMarketingEvent("pricing_billing_toggle", { mode: "annual", location: "landing-pricing" });
+              }}
               className={`rounded-full px-5 py-2 text-[13px] font-semibold transition-colors ${
                 annual ? "bg-rose-gold text-ivory" : "text-taupe hover:text-ink"
               }`}
@@ -95,12 +101,10 @@ export function LandingPricing() {
 
                 <Link
                   href={SIGN_UP}
-                  onClick={() =>
-                    trackMarketingEvent("start_trial_click", {
-                      location: "pricing",
-                      plan: plan.id,
-                    })
-                  }
+                  onClick={() => {
+                    trackMarketingEvent("pricing_plan_select", { location: "landing-pricing", plan: plan.id });
+                    trackMarketingEvent("start_trial_click", { location: "pricing", plan: plan.id });
+                  }}
                   className={`mt-6 block rounded-full py-3.5 text-center text-[14px] font-bold transition-opacity hover:opacity-95 ${
                     featured
                       ? "bg-rose-gold text-ivory"
