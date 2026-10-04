@@ -52,7 +52,7 @@ const CORE_FEATURE_PAGES = {
     h1: "Automated Follow-Up That Keeps Leads Warm",
     eyebrow: "Automated follow-up",
     intro:
-      "This is the product mechanics page — how automated follow-up works inside ARI. For the strategic overview of why follow-up systems matter, see our lead follow-up solution page. Set your sequence once; ARI delivers SMS, email, and ringless voicemail on the schedule you configure.",
+      "Build automated follow-up sequences across SMS, email, and voicemail — all inside ARI. Set your sequence once; ARI delivers each touch on the schedule you configure.",
     sections: [
       {
         h2: "Why automation beats manual follow-up",

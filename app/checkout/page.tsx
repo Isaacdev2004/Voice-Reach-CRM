@@ -95,7 +95,10 @@ function CheckoutInner() {
 
       <div className="mt-8 rounded-2xl border border-outline-variant/15 bg-champagne/40 p-6">
         <p className="font-medium text-ink">
-          Selected: {selected.name} · ${selected.price}/mo
+          {selected.name} — ${selected.price}/month beginning after your {SITE_OFFER.trialDays}-day trial
+        </p>
+        <p className="mt-2 text-[14px] text-slate-text">
+          After {SITE_OFFER.trialDays} days, your selected plan begins unless you cancel beforehand.
         </p>
         <ul className="mt-3 space-y-1 text-[13px] text-slate-text">
           {selected.features.map((f) => (

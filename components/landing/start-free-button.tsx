@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import type { PlanId } from "@/lib/billing/plans";
+import { primaryTrialCta } from "@/lib/marketing/site-offer";
 import { trackMarketingEvent } from "@/lib/marketing/track";
 
 type StartFreeButtonProps = {
@@ -8,14 +10,16 @@ type StartFreeButtonProps = {
   variant?: "primary" | "light" | "outline";
   label?: string;
   location?: string;
+  planId?: PlanId;
   showArrow?: boolean;
 };
 
 export function StartFreeButton({
   className = "",
   variant = "primary",
-  label = "Start Free",
+  label = primaryTrialCta(),
   location = "landing",
+  planId = "growth",
   showArrow = false,
 }: StartFreeButtonProps) {
   const styles =
@@ -27,9 +31,9 @@ export function StartFreeButton({
 
   return (
     <Link
-      href="/checkout?plan=growth"
+      href={`/checkout?plan=${planId}`}
       onClick={() =>
-        trackMarketingEvent("start_trial_click", { location, label: label.toLowerCase() })
+        trackMarketingEvent("start_trial_click", { location, label: label.toLowerCase(), plan: planId })
       }
       className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-8 py-3 text-[14px] font-bold uppercase tracking-wide transition-all active:scale-[0.98] ${styles} ${className}`}
     >

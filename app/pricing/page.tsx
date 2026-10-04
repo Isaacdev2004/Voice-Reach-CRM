@@ -6,7 +6,7 @@ import { PlanEntitlementsPanel } from "@/components/pricing/plan-entitlements-pa
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
-import { SITE_OFFER, trialCtaLabel } from "@/lib/marketing/site-offer";
+import { primaryTrialCta, SITE_OFFER } from "@/lib/marketing/site-offer";
 import { pageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = pageMetadata({
@@ -29,12 +29,13 @@ export default function PricingPage() {
           </h1>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px] lg:text-[18px]">
             Start with a {SITE_OFFER.trialDays}-day free trial. {SITE_OFFER.cardRequiredNote}.{" "}
-            {SITE_OFFER.whiteGlove.shortLine} — {SITE_OFFER.founding.active ? `${FOUNDING_100.name} ${SITE_OFFER.founding.pricingNote.toLowerCase()}` : "month-to-month billing"}.
+            {SITE_OFFER.whiteGlove.shortLine}.{" "}
+            {SITE_OFFER.founding.active ? SITE_OFFER.founding.memberBenefit : "Month-to-month billing."}
           </p>
           <div className="mt-8">
             <StartFreeButton
               location="pricing-hero"
-              label={trialCtaLabel()}
+              label={primaryTrialCta()}
               showArrow
               className="!px-10 !py-4 !text-[15px]"
             />
@@ -73,8 +74,7 @@ export default function PricingPage() {
             </li>
           </ul>
           <p className="mt-6 text-[15px] text-slate-text">
-            All plans include the ARI CRM, pipeline management, campaign builder, and compliance
-            tools. Cancel anytime from your account settings.
+            {SITE_OFFER.plans.allPlansInclude} Cancel anytime from your account settings.
           </p>
         </div>
       </section>

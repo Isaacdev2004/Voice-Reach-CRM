@@ -43,7 +43,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     title: "Real Estate CRM for Agents & Realtors",
     description:
       "ARI is the real estate CRM that helps you follow up automatically by text, email, and voicemail — while keeping every lead, conversation, task, and next step in one place.",
-    h1: "Never Lose Another Lead to Inconsistent Follow-Up",
+    h1: "A Real Estate CRM That Keeps Every Lead Moving",
     eyebrow: "Real estate CRM for agents",
     intro:
       "ARI is the real estate CRM that helps you follow up automatically by text, email, and voicemail — while keeping every lead, conversation, task, and next step in one place. Spend less time remembering who to contact. Spend more time talking to people who are ready to move.",
@@ -163,10 +163,10 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     title: "Real Estate Lead Follow-Up System & Software",
     description:
       "Why real estate follow-up fails — and how ARI operationalizes a system where every lead gets a next step through SMS, email, and ringless voicemail.",
-    h1: "Why Follow-Up Fails — and What a Real System Looks Like",
+    h1: "A Real Estate Follow-Up System That Works Even When You're Busy",
     eyebrow: "Lead follow-up system",
     intro:
-      "This is the strategic overview: the problem, the ideal workflow, and how ARI helps agents operationalize follow-up. For product mechanics and screenshots, see our automated follow-up feature page.",
+      "See how ARI turns follow-up into a repeatable system across text, email, and voicemail — so every lead gets a next step even when showings and listings fill your day.",
     sections: [
       {
         h2: "The follow-up problem is a systems problem",
@@ -190,7 +190,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
         paragraphs: [
           leadIntake.qualified,
           "You build multi-step campaigns across SMS, email, and ringless voicemail. ARI runs the schedule; you handle replies and high-intent conversations.",
-          "For step-by-step product details, see the automated follow-up feature page at /features/automated-follow-up.",
+          "See how automated follow-up works inside ARI — sequence builder, channels, and controls.",
         ],
       },
       {
@@ -221,8 +221,8 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     ],
     faq: [
       {
-        q: "How is this different from the automated follow-up feature page?",
-        a: "This page explains why follow-up fails and what a system should do. The /features/automated-follow-up page covers product mechanics — sequence builder, channels, and controls.",
+        q: "Can ARI automate follow-up across SMS, email, and voicemail?",
+        a: "Yes. Build multi-step sequences that mix channels on the schedule you configure. Replies surface on the contact record so you can take over with full context.",
       },
       {
         q: "Will automated follow-up sound robotic?",
@@ -252,7 +252,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     h1: "Realtor Follow-Up Workflows That Match How You Work",
     eyebrow: "Realtor-specific workflows",
     intro:
-      "Unlike our general lead follow-up overview, this page focuses on Realtor workflows: portal leads, open-house sign-ins, listing appointments, and sphere touches — with practical cadences you can run in ARI.",
+      "From portal leads and open houses to listing appointments and past clients, ARI helps automate the follow-up workflows Realtors use every day.",
     sections: [
       {
         h2: "Portal lead workflow (Zillow, Realtor.com, website)",
@@ -311,8 +311,8 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     ],
     faq: [
       {
-        q: "How is this different from the general lead follow-up page?",
-        a: "Our lead follow-up overview explains why follow-up systems matter. This page gives Realtor-specific workflows and cadences you can implement.",
+        q: "Can ARI handle different follow-up sequences for different lead sources?",
+        a: "Yes. Create different workflows for portal leads, open houses, buyers, sellers, sphere contacts, and other segments.",
       },
       {
         q: "Do portal leads sync automatically?",
@@ -345,7 +345,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       "Most agents sit on hundreds of contacts who inquired months ago but never converted. Lead reactivation turns that dormant database into your lowest-cost source of new conversations — when done with segmentation and consent-aware outreach.",
     sections: [
       {
-        h2: "The hidden gold in your CRM",
+        h2: "The opportunity already sitting in your database",
         paragraphs: [
           "You already paid for those Zillow leads, open-house sign-ins, and website inquiries. Many went quiet — not because they weren't interested, but because life got in the way or follow-up stopped too soon.",
           "Lead reactivation is structured re-engagement with a fresh, relevant message — not a one-off mass blast.",

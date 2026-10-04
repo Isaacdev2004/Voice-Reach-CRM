@@ -4,43 +4,34 @@ import { DemoVideo } from "@/components/landing/demo-video";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFeaturesBar } from "@/components/landing/landing-features-bar";
 import { LandingFinalCta } from "@/components/landing/landing-final-cta";
-import { LandingFlywheel } from "@/components/landing/landing-flywheel";
 import { LandingPricing } from "@/components/landing/landing-pricing";
-import { LandingSeoTopics } from "@/components/landing/landing-seo-topics";
 import { LandingProductProof } from "@/components/landing/landing-product-proof";
 import { LandingReactivation } from "@/components/landing/landing-reactivation";
 import { LandingWhiteGlove } from "@/components/landing/landing-white-glove";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { Icon } from "@/components/ui/icon";
-import { FOUNDING_100 } from "@/lib/marketing/founding";
-import { SITE_OFFER, trialCtaLabel } from "@/lib/marketing/site-offer";
+import { primaryTrialCta, SITE_OFFER, trialDisclosureLine } from "@/lib/marketing/site-offer";
 
 const { leadIntake } = SITE_OFFER;
 
 const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
 
-const HERO_TRUST = [
-  `${FOUNDING_100.trialDays}-day free trial`,
-  SITE_OFFER.cardRequiredNote,
-  SITE_OFFER.whiteGlove.shortLine,
-];
-
 const HOW_IT_WORKS = [
   {
     num: "1",
     title: "Import your leads",
-    body: "Import via CSV, Zillow/Realtor.com exports, manual entry, or onboarding-assisted migration.",
+    body: "Bring your existing database into ARI.",
   },
   {
     num: "2",
     title: "Automate follow-up",
-    body: "After a contact enters ARI and joins a campaign, SMS, email, and ringless voicemail send on the schedule you configure.",
+    body: "ARI runs SMS, email, and voicemail sequences on your schedule.",
   },
   {
     num: "3",
     title: "Close more deals",
-    body: "ARI tells you who to contact next so you focus on the hottest opportunities.",
+    body: "ARI shows you who needs attention so you can focus on real conversations.",
   },
 ];
 
@@ -52,19 +43,18 @@ export function LandingPage() {
         <div className="landing-shell grid items-center gap-10 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.12fr)] md:gap-10 md:py-16 lg:gap-14 lg:py-20 xl:gap-16">
           <div className="max-w-[36rem] md:max-w-none">
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep md:text-[12px]">
-              Real estate CRM · Automated lead follow-up
+              {SITE_OFFER.hero.eyebrow}
             </p>
             <h1 className="font-serif text-[2.125rem] font-semibold leading-[1.08] tracking-tight text-ink sm:text-[2.5rem] md:text-[3rem] lg:text-[3.375rem] xl:text-[3.625rem]">
-              Lead Follow-Up on Autopilot.
+              {SITE_OFFER.hero.headline}
             </h1>
             <p className="mt-5 text-[16px] font-medium leading-relaxed text-ink/80 md:text-[17px] lg:text-[18px] lg:leading-[1.55]">
-              Never let another lead fall through the cracks. ARI organizes your pipeline, follows
-              up automatically, and shows you who to contact next — so you close more deals.
+              {SITE_OFFER.hero.body}
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4 md:mt-10">
               <StartFreeButton
                 location="hero"
-                label={trialCtaLabel()}
+                label={primaryTrialCta()}
                 showArrow
                 className="!px-10 !py-3.5 !text-[14px] md:!px-12 md:!py-4 md:!text-[15px]"
               />
@@ -76,14 +66,10 @@ export function LandingPage() {
                 See How ARI Works
               </a>
             </div>
-            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
-              {HERO_TRUST.map((item) => (
-                <li key={item} className="flex items-center gap-2 text-[14px] text-slate-text md:text-[15px]">
-                  <Icon name="check_circle" className="text-[18px] text-rose-gold-deep" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+            <p className="mt-8 text-[14px] text-slate-text md:text-[15px]">{trialDisclosureLine()}</p>
+            <p className="mt-3 text-[14px] font-medium text-ink/75 md:text-[15px]">
+              {SITE_OFFER.primaryPromise}
+            </p>
           </div>
 
           <div className="relative w-full md:justify-self-end">
@@ -103,7 +89,7 @@ export function LandingPage() {
       </section>
 
       <LandingFeaturesBar />
-      <LandingFlywheel />
+      <LandingWhiteGlove />
       <DemoVideo />
 
       {/* How it works */}
@@ -145,9 +131,7 @@ export function LandingPage() {
       </section>
 
       <LandingProductProof />
-      <LandingWhiteGlove />
       <LandingReactivation />
-      <LandingSeoTopics />
       <LandingPricing />
       <LandingFaq />
       <LandingFinalCta />

@@ -5,14 +5,21 @@ import { useState } from "react";
 import { CheckCircleIcon } from "@/components/icons/landing-icons";
 import { PLAN_OPTIONS } from "@/lib/billing/plans";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
-import { SITE_OFFER } from "@/lib/marketing/site-offer";
+import { primaryTrialCta, SITE_OFFER } from "@/lib/marketing/site-offer";
 import { trackMarketingEvent } from "@/lib/marketing/track";
 
-const SIGN_UP = "/sign-up";
 const SALES_EMAIL = "hello@myari.io";
 
 /** Starter, Growth (featured), Pro — Team shown as contact row below */
 const DISPLAY_PLANS = PLAN_OPTIONS.filter((p) => p.id !== "team");
+
+function annualTotal(monthly: number) {
+  return monthly * 10;
+}
+
+function annualMonthlyEquivalent(monthly: number) {
+  return Math.round((annualTotal(monthly) / 12) * 100) / 100;
+}
 
 export function LandingPricing() {
   const [annual, setAnnual] = useState(false);
@@ -27,7 +34,7 @@ export function LandingPricing() {
           <p className="mx-auto mt-3 w-full max-w-[40rem] px-2 text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
             <strong className="font-semibold text-ink">Growth</strong> is our recommended plan for
             active agents. {SITE_OFFER.trialDays}-day free trial on every plan. {SITE_OFFER.whiteGlove.shortLine}.
-            {SITE_OFFER.founding.active ? ` ${FOUNDING_100.name} ${SITE_OFFER.founding.pricingNote.toLowerCase()}.` : ""} Annual billing saves ~2 months.
+            {SITE_OFFER.founding.active ? ` ${SITE_OFFER.founding.memberBenefit}` : ""}
           </p>
 
           <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-outline-variant/20 bg-ivory p-1">
@@ -62,8 +69,8 @@ export function LandingPricing() {
           {DISPLAY_PLANS.map((plan) => {
             const featured = Boolean(plan.featured);
             const monthly = plan.price;
-            const displayPrice = annual ? Math.round(monthly * 10) : monthly;
-            const suffix = annual ? "/yr" : "/mo";
+            const yearlyTotal = annualTotal(monthly);
+            const monthlyEquivalent = annualMonthlyEquivalent(monthly);
 
             return (
               <article
@@ -88,19 +95,41 @@ export function LandingPricing() {
                 <p className={`mt-1 text-[13px] ${featured ? "text-ivory/80" : "text-taupe"}`}>
                   {plan.description}
                 </p>
-
-                <div className={`mt-6 flex items-baseline gap-1 ${featured ? "text-ivory" : "text-ink"}`}>
-                  <span className="font-serif text-[40px] font-semibold leading-none">
-                    ${displayPrice}
-                  </span>
-                  <span className={featured ? "text-ivory/70" : "text-taupe"}>{suffix}</span>
-                </div>
-                {annual && !featured ? (
-                  <p className="mt-1 text-[11px] text-taupe">~2 months free vs monthly</p>
+                {plan.positioningLine ? (
+                  <p className={`mt-2 text-[13px] leading-snug ${featured ? "text-ivory/90" : "text-slate-text"}`}>
+                    {plan.positioningLine}
+                  </p>
                 ) : null}
 
+                <div className={`mt-6 flex items-baseline gap-1 ${featured ? "text-ivory" : "text-ink"}`}>
+                  {annual ? (
+                    <>
+                      <span className="font-serif text-[40px] font-semibold leading-none">
+                        ${yearlyTotal}
+                      </span>
+                      <span className={featured ? "text-ivory/70" : "text-taupe"}>/yr</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-serif text-[40px] font-semibold leading-none">
+                        ${monthly}
+                      </span>
+                      <span className={featured ? "text-ivory/70" : "text-taupe"}>/mo</span>
+                    </>
+                  )}
+                </div>
+                {annual ? (
+                  <p className={`mt-1 text-[12px] ${featured ? "text-ivory/75" : "text-taupe"}`}>
+                    ${monthly}/mo billed monthly · ${monthlyEquivalent}/mo billed yearly
+                  </p>
+                ) : (
+                  <p className={`mt-1 text-[12px] ${featured ? "text-ivory/75" : "text-taupe"}`}>
+                    ${monthly}/mo billed monthly
+                  </p>
+                )}
+
                 <Link
-                  href={SIGN_UP}
+                  href={`/checkout?plan=${plan.id}`}
                   onClick={() => {
                     trackMarketingEvent("pricing_plan_select", { location: "landing-pricing", plan: plan.id });
                     trackMarketingEvent("start_trial_click", { location: "pricing", plan: plan.id });
@@ -111,7 +140,7 @@ export function LandingPricing() {
                       : "border border-rose-gold text-rose-gold-deep hover:bg-rose-gold/5"
                   }`}
                 >
-                  Start Free
+                  {primaryTrialCta()}
                 </Link>
 
                 <ul className={`mt-6 flex-1 space-y-2.5 text-[13px] ${featured ? "text-ivory/90" : "text-slate-text"}`}>

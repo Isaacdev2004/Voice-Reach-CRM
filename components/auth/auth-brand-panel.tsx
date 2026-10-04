@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { AriLogo } from "@/components/brand/ari-logo";
 import { Icon } from "@/components/ui/icon";
-import { BRAND_DOMAIN, BRAND_TAGLINE } from "@/lib/brand";
+import { BRAND_DOMAIN } from "@/lib/brand";
+import { SITE_OFFER } from "@/lib/marketing/site-offer";
 
 type AuthBrandPanelProps = {
   mode: "sign-in" | "sign-up";
@@ -12,7 +13,7 @@ const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
 
 const FEATURES = [
   "Contacts, tasks, and calendar in one workspace",
-  "AI voice campaigns with compliance built in",
+  "SMS, email, and ringless voicemail follow-up with compliance-aware controls",
   "Appointments and follow-ups synced automatically",
 ];
 
@@ -28,7 +29,7 @@ export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
         <Link href="/" className="inline-flex flex-col gap-2">
           <AriLogo height={44} />
           <p className="max-w-[260px] text-[12px] font-medium leading-snug text-taupe">
-            {BRAND_TAGLINE} · {BRAND_DOMAIN}
+            {SITE_OFFER.hero.eyebrow} · {BRAND_DOMAIN}
           </p>
         </Link>
       </header>
@@ -36,15 +37,15 @@ export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
       <div className="relative z-10 flex flex-1 flex-col justify-center gap-8 px-12 py-10">
         <div className="max-w-[440px]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
-            The CRM for modern real estate agents
+            {SITE_OFFER.hero.eyebrow}
           </p>
           <h1 className="mt-3 font-serif text-[38px] font-semibold leading-[1.08] tracking-tight text-ink">
-            {BRAND_TAGLINE}
+            {SITE_OFFER.primaryPromise}
           </h1>
           <p className="mt-4 text-[16px] leading-[1.65] text-slate-text">
             {isSignUp
-              ? "Create your account and manage outreach, contacts, and follow-ups from one place."
-              : "Sign in to your dashboard for contacts, campaigns, calendar, and AI voice tools."}
+              ? "Organize your pipeline, automate follow-up, and know exactly who needs your attention next."
+              : "Sign in to your dashboard for contacts, campaigns, calendar, and follow-up tools."}
           </p>
         </div>
 

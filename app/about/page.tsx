@@ -60,9 +60,8 @@ export default function AboutPage() {
               configure whether you are in a showing or off the clock.
             </p>
             <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
-              {SITE_OFFER.whiteGlove.shortLine}. {SITE_OFFER.founding.active
-                ? `${FOUNDING_100.name} adds ${SITE_OFFER.founding.pricingNote.toLowerCase()} and a direct line to the team — not exclusive onboarding.`
-                : null}
+              {SITE_OFFER.whiteGlove.shortLine}.{" "}
+              {SITE_OFFER.founding.active ? SITE_OFFER.founding.memberBenefit : null}
             </p>
           </div>
 

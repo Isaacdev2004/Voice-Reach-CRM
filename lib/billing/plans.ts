@@ -15,6 +15,8 @@ export type PlanOption = {
   rvmIncluded: number;
   emailIncluded: number;
   featured?: boolean;
+  /** Optional line under price on pricing cards */
+  positioningLine?: string;
   cta: string;
   features: string[];
   smsOverage: number;
@@ -80,7 +82,9 @@ export const PLAN_OPTIONS: PlanOption[] = [
   {
     id: "growth",
     name: "Growth",
-    description: "Active producing agent",
+    description: "Best for active agents",
+    /** Shown under price on pricing cards */
+    positioningLine: "Everything most agents need to automate follow-up.",
     price: 99,
     contactLimit: 5000,
     usersIncluded: 1,

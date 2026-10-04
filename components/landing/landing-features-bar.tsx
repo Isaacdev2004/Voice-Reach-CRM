@@ -1,5 +1,6 @@
 import { Icon } from "@/components/ui/icon";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { SITE_OFFER } from "@/lib/marketing/site-offer";
 
 const FEATURES = [
   {
@@ -20,7 +21,7 @@ const FEATURES = [
   {
     icon: "star",
     title: `${FOUNDING_100.name} now open`,
-    body: `Limited to the first ${FOUNDING_100.seatsTotal} agents.`,
+    body: SITE_OFFER.founding.memberBenefit,
   },
 ];
 

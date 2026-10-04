@@ -10,12 +10,12 @@ export function LandingReactivation() {
           Lead reactivation
         </p>
         <h2 className="mt-3 font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
-          Work the leads you already paid for
+          Before you buy another lead, work the ones you already have.
         </h2>
         <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
-          Most agent databases hold months of dormant contacts — people who inquired but never got
-          consistent follow-up. ARI helps you segment and re-engage eligible prospects with
-          consent-aware SMS, email, and voicemail sequences.
+          ARI helps you segment and re-engage dormant leads with automated SMS, email, and
+          voicemail — turning your existing database into new conversations without buying more
+          leads. Consent-aware controls help you reach out responsibly.
         </p>
         <ul className="mt-8 grid gap-4 text-left sm:grid-cols-3">
           {[
@@ -33,7 +33,7 @@ export function LandingReactivation() {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <StartFreeButton location="homepage-reactivation" showArrow />
           <Link href="/lead-reactivation" className="text-[15px] font-semibold text-rose-gold-deep hover:underline">
-            See reactivation workflows →
+            See Lead Reactivation →
           </Link>
         </div>
       </div>

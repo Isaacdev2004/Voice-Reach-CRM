@@ -17,10 +17,11 @@ export function LandingWhiteGlove() {
             Onboarding
           </p>
           <h2 className="mt-3 font-serif text-[28px] font-semibold text-ink md:text-[36px]">
-            {SITE_OFFER.whiteGlove.shortLine}
+            You bring the leads. We set up the system.
           </h2>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
-            {SITE_OFFER.whiteGlove.detail} {SITE_OFFER.whiteGlove.setupWindow}
+            Every ARI plan includes help importing your contacts, configuring your pipeline, and
+            building your first follow-up campaign. {SITE_OFFER.whiteGlove.setupWindow}
           </p>
           <ul className="mt-6 space-y-3">
             {SETUP_STEPS.map((step) => (

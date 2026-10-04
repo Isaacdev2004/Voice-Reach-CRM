@@ -1,4 +1,3 @@
-import { LEGAL_POLICY_META } from "@/lib/legal/policy-meta";
 import { SITE_OFFER } from "@/lib/marketing/site-offer";
 
 export function LegalDisclaimer({ children }: { children?: React.ReactNode }) {
@@ -6,7 +5,7 @@ export function LegalDisclaimer({ children }: { children?: React.ReactNode }) {
     <p className="mt-10 border-t border-outline-variant/15 pt-6 text-[13px] leading-relaxed text-taupe">
       {children ?? (
         <>
-          Last updated {LEGAL_POLICY_META.lastUpdated}. Questions about this policy? Contact{" "}
+          Questions about this policy? Contact{" "}
           <a href={`mailto:${SITE_OFFER.supportEmail}`} className="font-medium text-rose-gold-deep hover:underline">
             {SITE_OFFER.supportEmail}
           </a>

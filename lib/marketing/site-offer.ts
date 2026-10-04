@@ -6,6 +6,12 @@ export const SITE_OFFER = {
   cardRequired: true,
   cardRequiredNote: "Card required · no charge until trial ends",
   primaryPromise: "Every lead gets a next step.",
+  hero: {
+    eyebrow: "Real Estate CRM + Automated Follow-Up",
+    headline: "Turn every lead into a real opportunity.",
+    body:
+      "ARI organizes your pipeline, follows up automatically, and shows you who to contact next — so you spend less time chasing leads and more time closing.",
+  },
   tagline: "Lead Follow-Up on Autopilot.",
   positioning: {
     primary: "real estate follow-up system",
@@ -27,6 +33,12 @@ export const SITE_OFFER = {
     /** When true, show Founding pricing/perks in banners; body copy should still say onboarding is on all plans. */
     active: true,
     pricingNote: "Founding-member pricing while seats last",
+    memberBenefit:
+      "Founding 100 members receive founding-member pricing while they remain eligible, plus a direct feedback channel to the ARI team.",
+  },
+  plans: {
+    allPlansInclude:
+      "All plans include ARI CRM, pipeline management, tasks, and compliance-aware tools. Multi-step campaign automation and lead reactivation begin on Growth.",
   },
   leadIntake: {
     /** Canonical public statement — Zillow/Realtor.com do not sync automatically today. */
@@ -73,8 +85,18 @@ export const SITE_OFFER = {
   supportEmail: "hello@myari.io",
 } as const;
 
-export function trialCtaLabel(prefix = "Start Your") {
-  return `${prefix} ${SITE_OFFER.trialDays}-Day Free Trial`;
+/** Primary sitewide trial CTA — Audit 3 standard. */
+export function primaryTrialCta() {
+  return `Start My ${SITE_OFFER.trialDays}-Day Trial`;
+}
+
+export function trialDisclosureLine() {
+  return `${SITE_OFFER.trialDays} days free · Card required · No charge until trial ends · ${SITE_OFFER.whiteGlove.shortLine}`;
+}
+
+/** @deprecated Prefer primaryTrialCta() for marketing CTAs. */
+export function trialCtaLabel(prefix = "Start My") {
+  return `${prefix} ${SITE_OFFER.trialDays}-Day Trial`;
 }
 
 export function trialSupportLine() {
