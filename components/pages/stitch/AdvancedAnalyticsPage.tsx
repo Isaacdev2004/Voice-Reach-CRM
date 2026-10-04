@@ -94,7 +94,7 @@ export function AdvancedAnalyticsPage() {
     setExporting("pdf");
     try {
       exportAnalyticsPdf(snapshot);
-      showToast("Print dialog opened — save as PDF");
+      showToast("Print dialog opened - save as PDF");
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Export failed", "error");
     } finally {
@@ -214,7 +214,7 @@ export function AdvancedAnalyticsPage() {
         <LuxuryCard padding="md" className="border-bronze/20 bg-champagne/50">
           <p className="flex items-center gap-2 text-[14px] text-slate-text">
             <Icon name="info" className="text-rose-gold-deep" />
-            Showing benchmark data — add contacts and run campaigns to see live metrics.
+            Showing benchmark data - add contacts and run campaigns to see live metrics.
             <Link href="/dashboard/contacts" className="font-medium text-rose-gold-deep hover:underline">
               Add contacts
             </Link>

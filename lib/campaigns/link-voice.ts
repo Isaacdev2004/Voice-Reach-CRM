@@ -80,7 +80,7 @@ export async function linkVoiceAssetToCampaign(params: {
       .eq("id", targetStep.id)
       .eq("owner_id", ownerId);
 
-    // Older DBs may not have voice_asset_id on steps yet — conditions still works
+    // Older DBs may not have voice_asset_id on steps yet - conditions still works
     if (stepError?.message?.toLowerCase().includes("voice_asset_id")) {
       const { error: fallbackError } = await supabaseAdmin
         .from("campaign_steps")
@@ -101,7 +101,7 @@ export async function linkVoiceAssetToCampaign(params: {
     };
   }
 
-  // All voicemail steps already have a voice — update campaign default
+  // All voicemail steps already have a voice - update campaign default
   const { error } = await supabaseAdmin
     .from("campaigns")
     .update({ voice_asset_id: voiceAssetId, updated_at: new Date().toISOString() })
@@ -115,7 +115,7 @@ export async function linkVoiceAssetToCampaign(params: {
     stepOrder: null,
     message:
       vmSteps.length > 1
-        ? "All voicemail steps already had recordings — updated the campaign default voice. Open the campaign to reassign per step."
+        ? "All voicemail steps already had recordings - updated the campaign default voice. Open the campaign to reassign per step."
         : "Voice recording linked to campaign.",
   };
 }

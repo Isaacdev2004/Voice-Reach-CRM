@@ -18,7 +18,6 @@ function sitemapPriority(path: string): number {
   if (HIGH_PRIORITY_PATHS.has(path)) return 0.9;
   if (MEDIUM_PRIORITY_PREFIXES.some((prefix) => path.startsWith(prefix))) return 0.8;
   if (path === "/contact" || path === "/crm-for-small-business") return 0.75;
-  if (path === "/about") return 0.7;
   return 0.5;
 }
 

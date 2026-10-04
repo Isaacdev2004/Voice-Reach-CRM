@@ -11,7 +11,7 @@ export async function fetchAnalytics(
 
 export function exportAnalyticsCsv(snapshot: AnalyticsSnapshot) {
   const lines = [
-    `ARI Analytics Report — ${snapshot.rangeLabel}`,
+    `ARI Analytics Report - ${snapshot.rangeLabel}`,
     `Generated,${snapshot.generatedAt}`,
     `Live data,${snapshot.fromLiveData}`,
     "",
@@ -44,7 +44,7 @@ export function exportAnalyticsPdf(snapshot: AnalyticsSnapshot) {
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>ARI Analytics — ${snapshot.rangeLabel}</title>
+  <title>ARI Analytics - ${snapshot.rangeLabel}</title>
   <style>
     body { font-family: Georgia, serif; color: #1a1a1a; padding: 40px; max-width: 800px; margin: 0 auto; }
     h1 { font-size: 28px; margin-bottom: 4px; }
@@ -94,7 +94,7 @@ export function exportAnalyticsPdf(snapshot: AnalyticsSnapshot) {
 
   const win = window.open("", "_blank", "width=900,height=700");
   if (!win) {
-    throw new Error("Pop-up blocked — allow pop-ups to export PDF");
+    throw new Error("Pop-up blocked - allow pop-ups to export PDF");
   }
   win.document.write(html);
   win.document.close();

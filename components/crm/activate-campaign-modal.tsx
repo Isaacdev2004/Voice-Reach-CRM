@@ -188,7 +188,7 @@ export function ActivateCampaignModal({
 
         {draftSteps > 0 ? (
           <p className="rounded-xl border border-rose-gold/20 bg-rose-gold/5 px-4 py-3 text-[13px] text-taupe">
-            {draftSteps} step{draftSteps === 1 ? "" : "s"} still in <strong>Draft</strong> — they are
+            {draftSteps} step{draftSteps === 1 ? "" : "s"} still in <strong>Draft</strong> - they are
             included in this sequence.
           </p>
         ) : null}

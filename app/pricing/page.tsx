@@ -12,7 +12,7 @@ import { pageMetadata } from "@/lib/seo/metadata";
 export const metadata: Metadata = pageMetadata({
   title: "ARI CRM Pricing | Plans for Real Estate Agents",
   description:
-    "Compare ARI CRM plans for real estate agents — Starter, Growth, and Pro. 14-day free trial, white-glove setup, and month-to-month billing. No long-term contracts.",
+    "Compare ARI CRM plans for real estate agents - Starter, Growth, and Pro. 14-day free trial, white-glove setup, and month-to-month billing. No long-term contracts.",
   path: "/pricing",
 });
 
@@ -54,19 +54,19 @@ export default function PricingPage() {
           </h2>
           <ul className="mt-5 space-y-4 text-[15px] leading-relaxed text-slate-text md:text-[16px]">
             <li>
-              <strong className="font-semibold text-ink">Starter</strong> — New agents building their
+              <strong className="font-semibold text-ink">Starter</strong> - New agents building their
               first pipeline with pay-as-you-go messaging.
             </li>
             <li>
-              <strong className="font-semibold text-ink">Growth</strong> — Active agents who want
+              <strong className="font-semibold text-ink">Growth</strong> - Active agents who want
               automated follow-up with included SMS and voicemail allotments. Our most popular plan.
             </li>
             <li>
-              <strong className="font-semibold text-ink">Pro</strong> — High-volume agents and small
+              <strong className="font-semibold text-ink">Pro</strong> - High-volume agents and small
               teams who need larger messaging limits and advanced automation.
             </li>
             <li>
-              <strong className="font-semibold text-ink">Team</strong> — Brokerages and teams.{" "}
+              <strong className="font-semibold text-ink">Team</strong> - Brokerages and teams.{" "}
               <Link href="/contact" className="font-semibold text-rose-gold-deep hover:underline">
                 Contact us
               </Link>{" "}

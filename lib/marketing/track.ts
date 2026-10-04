@@ -47,7 +47,7 @@ function gaEvent(name: string, props?: EventProps) {
   window.gtag("event", name, props ?? {});
 }
 
-/** Unified marketing event — Meta Pixel + GA4 when configured */
+/** Unified marketing event - Meta Pixel + GA4 when configured */
 export function trackMarketingEvent(name: MarketingEvent, props: EventProps = {}) {
   if (typeof window === "undefined") return;
   const utm = readUtmAttribution();

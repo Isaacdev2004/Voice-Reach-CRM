@@ -86,7 +86,7 @@ export async function synthesizeSpeech(options: {
       const looksLikeId = !apiKey.startsWith("sk_");
       throw new Error(
         looksLikeId
-          ? "ElevenLabs 401 — that value is not a valid API secret. In ElevenLabs → Developers → API Keys, create a key and copy the full secret (usually starts with sk_). Paste that into Vercel as ELEVENLABS_API_KEY (Production), then Redeploy. Do not paste the Key ID / name."
+          ? "ElevenLabs 401 - that value is not a valid API secret. In ElevenLabs → Developers → API Keys, create a key and copy the full secret (usually starts with sk_). Paste that into Vercel as ELEVENLABS_API_KEY (Production), then Redeploy. Do not paste the Key ID / name."
           : "ElevenLabs rejected the API key (401). Create a new key in ElevenLabs → Developers → API Keys (enable Text to Speech), paste the full secret into Vercel ELEVENLABS_API_KEY, then Redeploy.",
       );
     }

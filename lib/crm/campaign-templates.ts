@@ -24,7 +24,7 @@ function draftSteps(
   }));
 }
 
-/** Shared starter sequences — available to every workspace. */
+/** Shared starter sequences - available to every workspace. */
 export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
   {
     templateKey: "cold-lead-reengage",
@@ -54,7 +54,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Market update / saved-search digest",
         description:
-          "Subject: {{area}} market update for you, {{first_name}}\n\nHi {{first_name}},\n\nI've been watching the {{area}} market and wanted to share a quick snapshot — no check-in ask, just useful info.\n\nIf you're still keeping an eye on homes in {{area}}, reply UPDATE and I'll send this week's pricing pulse plus 2–3 standout listings.\n\nHappy to adjust what I'm watching for you anytime.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "Subject: {{area}} market update for you, {{first_name}}\n\nHi {{first_name}},\n\nI've been watching the {{area}} market and wanted to share a quick snapshot - no check-in ask, just useful info.\n\nIf you're still keeping an eye on homes in {{area}}, reply UPDATE and I'll send this week's pricing pulse plus 2–3 standout listings.\n\nHappy to adjust what I'm watching for you anytime.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 1",
         timeLabel: "9:00 AM",
       },
@@ -63,7 +63,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Casual search-status SMS",
         description:
-          "Hey [FirstName], [Agent] here — still looking in [City], or has your timeline shifted? Either answer is fine. Reply STOP to opt out.",
+          "Hey [FirstName], [Agent] here - still looking in [City], or has your timeline shifted? Either answer is fine. Reply STOP to opt out.",
         dayLabel: "Day 3",
         timeLabel: "11:00 AM",
       },
@@ -72,7 +72,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "voicemail",
         title: "Low-pressure availability VM",
         description:
-          "Hi [FirstName], this is [Agent] with [Brokerage]. Just leaving a quick note — I'm around if you want to talk through the [City] market or tweak your search. No pressure at all. You have my number whenever timing feels right. Take care.",
+          "Hi [FirstName], this is [Agent] with [Brokerage]. Just leaving a quick note - I'm around if you want to talk through the [City] market or tweak your search. No pressure at all. You have my number whenever timing feels right. Take care.",
         dayLabel: "Day 7",
         timeLabel: "10:00 AM",
       },
@@ -81,7 +81,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Opt-down / should I stop?",
         description:
-          "Subject: Should I keep sending these, [FirstName]?\n\nHi [FirstName],\n\nI've reached out a few times and don't want to fill your inbox if the timing isn't right.\n\nShould I keep sending market updates and listing ideas for [City], or would you rather I stop for now?\n\nJust reply:\n· YES — keep me on the list\n· PAUSE — hold off for a bit\n· STOP — remove me\n\nEither way is completely fine — I only want to be useful.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
+          "Subject: Should I keep sending these, [FirstName]?\n\nHi [FirstName],\n\nI've reached out a few times and don't want to fill your inbox if the timing isn't right.\n\nShould I keep sending market updates and listing ideas for [City], or would you rather I stop for now?\n\nJust reply:\n· YES - keep me on the list\n· PAUSE - hold off for a bit\n· STOP - remove me\n\nEither way is completely fine - I only want to be useful.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 14",
         timeLabel: "9:00 AM",
       },
@@ -103,7 +103,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
     id: "tpl-speed-to-lead",
     name: "Speed-to-Lead Quick Response",
     description:
-      "Fires within 60 seconds of any form fill, Zillow/Realtor.com inquiry, or Facebook lead ad — SMS, email, CRM task, then Day 1/3/5 follow-ups if no reply.",
+      "Fires within 60 seconds of any form fill, Zillow/Realtor.com inquiry, or Facebook lead ad - SMS, email, CRM task, then Day 1/3/5 follow-ups if no reply.",
     audience: "Brand-new buyer leads (form, IDX, portal, lead ads)",
     durationDays: 5,
     goals: [
@@ -124,7 +124,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "First SMS (<60s)",
         description:
-          "Hi [FirstName]! This is [Agent] from [Brokerage] — I just saw your inquiry about [PropertyAddress]. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
+          "Hi [FirstName]! This is [Agent] from [Brokerage] - I just saw your inquiry about [PropertyAddress]. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
         dayLabel: "Day 1",
         timeLabel: "Immediate",
       },
@@ -133,7 +133,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "First email (<2 min)",
         description:
-          "Subject: I found homes matching your search — {{first_name}}\n\nHi {{first_name}},\n\nThanks for reaching out! I'm {{agent_name}}, your local real estate specialist covering {{area}}.\n\nI pulled up the listing you were looking at — {{property_address}} — and I want to make sure you don't miss out.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\n{{agent_name}}\n[Brokerage] · [AgentPhone]",
+          "Subject: I found homes matching your search - {{first_name}}\n\nHi {{first_name}},\n\nThanks for reaching out! I'm {{agent_name}}, your local real estate specialist covering {{area}}.\n\nI pulled up the listing you were looking at - {{property_address}} - and I want to make sure you don't miss out.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\n{{agent_name}}\n[Brokerage] · [AgentPhone]",
         dayLabel: "Day 1",
         timeLabel: "Immediate +2m",
       },
@@ -142,7 +142,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "callback",
         title: "Agent call task",
         description:
-          "Call [FirstName] — new lead from [LeadSource] interested in [PropertyAddress]. Confirm timeline, budget, and whether they want a shortlist or showing. Due within 4 hours.",
+          "Call [FirstName] - new lead from [LeadSource] interested in [PropertyAddress]. Confirm timeline, budget, and whether they want a shortlist or showing. Due within 4 hours.",
         dayLabel: "Day 1",
         timeLabel: "Immediate +5m",
       },
@@ -151,7 +151,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Day 1 comps follow-up (no reply)",
         description:
-          "Subject: Still searching? A few homes near {{property_address}} worth seeing\n\nHi {{first_name}},\n\nI wanted to follow up in case my first message got buried.\n\nI pulled a short list of homes near {{property_address}} that match what you're looking for in {{area}} and wanted to share them before they're gone.\n\nReply LIST and I'll send the 3 strongest options with beds, baths, and price — no pressure at all.\n\nIf any catch your eye, I can get you in for a showing as early as tomorrow.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "Subject: Still searching? A few homes near {{property_address}} worth seeing\n\nHi {{first_name}},\n\nI wanted to follow up in case my first message got buried.\n\nI pulled a short list of homes near {{property_address}} that match what you're looking for in {{area}} and wanted to share them before they're gone.\n\nReply LIST and I'll send the 3 strongest options with beds, baths, and price - no pressure at all.\n\nIf any catch your eye, I can get you in for a showing as early as tomorrow.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 2",
         timeLabel: "10:00 AM",
       },
@@ -160,7 +160,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Day 3 new-listing nudge",
         description:
-          "Hey {{first_name}}, {{agent_name}} again. Still looking in {{area}}? A strong match just hit — want details or a showing this week? — {{agent_name}} Reply STOP to opt out.",
+          "Hey {{first_name}}, {{agent_name}} again. Still looking in {{area}}? A strong match just hit - want details or a showing this week? - {{agent_name}} Reply STOP to opt out.",
         dayLabel: "Day 3",
         timeLabel: "11:00 AM",
       },
@@ -169,7 +169,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Day 5 breakup text",
         description:
-          "Hi [FirstName], I don't want to keep bugging you — just wanted to make sure you have my number if you ever need a local expert in [MarketArea]. No pressure at all. Wishing you the best! — [Agent] [AgentPhone] Reply STOP to opt out.",
+          "Hi [FirstName], I don't want to keep bugging you - just wanted to make sure you have my number if you ever need a local expert in [MarketArea]. No pressure at all. Wishing you the best! - [Agent] [AgentPhone] Reply STOP to opt out.",
         dayLabel: "Day 5",
         timeLabel: "10:00 AM",
       },
@@ -197,7 +197,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Weekly matching homes digest",
         description:
-          "Subject: New matches for your search this week\n\nHi [FirstName],\n\nHere are the strongest new listings that fit what we've been watching together. I've highlighted what stands out on each.\n\nReply with any address you want a deeper look at — or \"tour\" and I'll set times.\n\n[Agent]",
+          "Subject: New matches for your search this week\n\nHi [FirstName],\n\nHere are the strongest new listings that fit what we've been watching together. I've highlighted what stands out on each.\n\nReply with any address you want a deeper look at - or \"tour\" and I'll set times.\n\n[Agent]",
         dayLabel: "Day 1",
         timeLabel: "9:00 AM",
       },
@@ -206,7 +206,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "High-match alert SMS",
         description:
-          "Hi [FirstName] — strong match just hit your criteria. Want details or a showing this week? — [Agent] Reply STOP to opt out.",
+          "Hi [FirstName] - strong match just hit your criteria. Want details or a showing this week? - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 3",
         timeLabel: "10:00 AM",
       },
@@ -215,7 +215,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Price-drop style nudge",
         description:
-          "[FirstName], a home on your watchlist had a meaningful update. Want me to send the new numbers? — [Agent] Reply STOP to opt out.",
+          "[FirstName], a home on your watchlist had a meaningful update. Want me to send the new numbers? - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 14",
         timeLabel: "11:00 AM",
       },
@@ -224,7 +224,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Monthly check-in",
         description:
-          "Subject: Quick pulse on your home search\n\nHi [FirstName],\n\nIt's been about a month — has anything shifted on budget, neighborhood, or timing? I can tighten alerts so you only see what still fits.\n\nOne reply is enough.\n\n[Agent]",
+          "Subject: Quick pulse on your home search\n\nHi [FirstName],\n\nIt's been about a month - has anything shifted on budget, neighborhood, or timing? I can tighten alerts so you only see what still fits.\n\nOne reply is enough.\n\n[Agent]",
         dayLabel: "Day 30",
         timeLabel: "10:00 AM",
       },
@@ -233,7 +233,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "60-day re-engage",
         description:
-          "Hi [FirstName] — still want listing alerts, or should I pause for now? Reply YES to keep them or PAUSE to stop. — [Agent]",
+          "Hi [FirstName] - still want listing alerts, or should I pause for now? Reply YES to keep them or PAUSE to stop. - [Agent]",
         dayLabel: "Day 60",
         timeLabel: "10:00 AM",
       },
@@ -270,7 +270,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Neighborhood spotlight",
         description:
-          "Subject: Neighborhood spotlight worth knowing\n\nHi [FirstName],\n\nHere's a short look at a neighborhood clients often ask about — lifestyle, schools, and what recent sales suggest.\n\nHappy to compare it to anywhere else on your list.\n\n[Agent]",
+          "Subject: Neighborhood spotlight worth knowing\n\nHi [FirstName],\n\nHere's a short look at a neighborhood clients often ask about - lifestyle, schools, and what recent sales suggest.\n\nHappy to compare it to anywhere else on your list.\n\n[Agent]",
         dayLabel: "Day 14",
         timeLabel: "10:00 AM",
       },
@@ -279,7 +279,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Quarterly soft SMS",
         description:
-          "Hi [FirstName] — still planning a move in the next year? I can keep quiet updates coming, or pause anytime. — [Agent] Reply STOP to opt out.",
+          "Hi [FirstName] - still planning a move in the next year? I can keep quiet updates coming, or pause anytime. - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 30",
         timeLabel: "11:00 AM",
       },
@@ -297,7 +297,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Inventory / opportunity note",
         description:
-          "Subject: A quiet opportunity in the market\n\nHi [FirstName],\n\nOccasionally a listing fits long-term buyers even if they're not \"actively touring\" yet. Here's what I'm seeing and why it might matter later.\n\nNo rush — just keeping you informed.\n\n[Agent]",
+          "Subject: A quiet opportunity in the market\n\nHi [FirstName],\n\nOccasionally a listing fits long-term buyers even if they're not \"actively touring\" yet. Here's what I'm seeing and why it might matter later.\n\nNo rush - just keeping you informed.\n\n[Agent]",
         dayLabel: "Day 90",
         timeLabel: "10:00 AM",
       },
@@ -306,7 +306,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "90-day re-engage gate",
         description:
-          "Hi [FirstName], checking if home-search timing has changed. Reply READY, LATER, or PAUSE. — [Agent]",
+          "Hi [FirstName], checking if home-search timing has changed. Reply READY, LATER, or PAUSE. - [Agent]",
         dayLabel: "Day 90",
         timeLabel: "2:00 PM",
       },
@@ -315,7 +315,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "6-month relationship note",
         description:
-          "Subject: Still here when you're ready\n\nHi [FirstName],\n\nJust a note that I'm still happy to be your local resource — market questions, neighborhood intel, or a quiet first tour when timing is right.\n\nWhenever you're ready,\n[Agent]",
+          "Subject: Still here when you're ready\n\nHi [FirstName],\n\nJust a note that I'm still happy to be your local resource - market questions, neighborhood intel, or a quiet first tour when timing is right.\n\nWhenever you're ready,\n[Agent]",
         dayLabel: "Day 180",
         timeLabel: "10:00 AM",
       },
@@ -326,7 +326,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
     featured: true,
     category: "buyer",
     id: "tpl-engaged-no-tour",
-    name: "Engaged — No Tour Yet",
+    name: "Engaged - No Tour Yet",
     description:
       "For buyers who open/click but haven't toured: reference what they engaged with, offer a low-friction next step, then a soft call ask.",
     audience: "Engaged buyers (score ≥5) with zero tours",
@@ -338,8 +338,8 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
     ],
     stats: { reach: 0, replies: 0, responseRate: 0 },
     automation: {
-      name: "Engaged buyer — no tour",
-      description: "When engagement score is high and no tour yet, start Engaged — No Tour Yet.",
+      name: "Engaged buyer - no tour",
+      description: "When engagement score is high and no tour yet, start Engaged - No Tour Yet.",
       triggerType: "engagement_score",
       triggerConfig: { minScore: 5, requireNoTours: true },
     },
@@ -349,7 +349,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Personal listing reference",
         description:
-          "Hi [FirstName] — saw you were looking at a listing that fits. Want details or a short showing window this week? — [Agent] Reply STOP to opt out.",
+          "Hi [FirstName] - saw you were looking at a listing that fits. Want details or a short showing window this week? - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 1",
         timeLabel: "Immediate",
       },
@@ -385,7 +385,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Route back to cold if silent",
         description:
-          "Hi [FirstName] — I'll ease up for now and keep you on quiet market updates. Ping me anytime. — [Agent] Reply STOP to opt out.",
+          "Hi [FirstName] - I'll ease up for now and keep you on quiet market updates. Ping me anytime. - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 14",
         timeLabel: "10:00 AM",
       },
@@ -398,7 +398,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
     id: "tpl-post-tour-follow-up",
     name: "Post-Tour Follow-up & Offer Push",
     description:
-      "72-hour high-intent sequence after a showing: thank-you, comps, offer strategy, urgency — then agent task.",
+      "72-hour high-intent sequence after a showing: thank-you, comps, offer strategy, urgency - then agent task.",
     audience: "Buyers who completed at least one tour",
     durationDays: 7,
     goals: [
@@ -413,16 +413,16 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Same-day thank-you + reaction",
         description:
-          "Hey [FirstName]! Hope the showing at [PropertyAddress] was helpful. Quick question — overall impression: loved it, liked it, or not the one? Your gut reaction helps me zero in on exactly what you're looking for. — [Agent] Reply STOP to opt out.",
+          "Hey [FirstName]! Hope the showing at [PropertyAddress] was helpful. Quick question - overall impression: loved it, liked it, or not the one? Your gut reaction helps me zero in on exactly what you're looking for. - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 1",
         timeLabel: "Same day",
       },
       {
         order: 2,
         type: "email",
-        title: "Comp analysis — priced right?",
+        title: "Comp analysis - priced right?",
         description:
-          "Subject: Quick thoughts after your tour of {{property_address}}\n\nHi {{first_name}},\n\nHope you enjoyed the tour yesterday at {{property_address}}! I pulled recent nearby sales so you can see how it stacks up in {{area}}.\n\nI'll text you the shortlist of comps next — or reply COMPS and I'll send them right away.\n\nThinking about an offer? I can have a draft ready in about an hour.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "Subject: Quick thoughts after your tour of {{property_address}}\n\nHi {{first_name}},\n\nHope you enjoyed the tour yesterday at {{property_address}}! I pulled recent nearby sales so you can see how it stacks up in {{area}}.\n\nI'll text you the shortlist of comps next - or reply COMPS and I'll send them right away.\n\nThinking about an offer? I can have a draft ready in about an hour.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 2",
         timeLabel: "10:00 AM",
       },
@@ -431,7 +431,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Offer strategy nudge",
         description:
-          "[FirstName], I ran the comps on [PropertyAddress] and sent you an analysis — did you get a chance to look? If you're thinking about it, I can have a draft offer ready in about an hour. Just say the word. — [Agent] Reply STOP to opt out.",
+          "[FirstName], I ran the comps on [PropertyAddress] and sent you an analysis - did you get a chance to look? If you're thinking about it, I can have a draft offer ready in about an hour. Just say the word. - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 3",
         timeLabel: "2:00 PM",
       },
@@ -440,7 +440,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Activity / competing-offer alert",
         description:
-          "Subject: Update on {{property_address}} — wanted you to know\n\nHi {{first_name}},\n\nI wanted to give you a heads up — {{property_address}} has been getting activity since we toured.\n\nI don't say this to pressure you — only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "Subject: Update on {{property_address}} - wanted you to know\n\nHi {{first_name}},\n\nI wanted to give you a heads up - {{property_address}} has been getting activity since we toured.\n\nI don't say this to pressure you - only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
         dayLabel: "Day 4",
         timeLabel: "4:00 PM",
       },
@@ -449,7 +449,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Objection isolator",
         description:
-          "Hi [FirstName], checking in on [PropertyAddress] — was it mainly price, location, or the house itself that didn't click? Knowing that helps me find a better match fast. — [Agent] Reply STOP to opt out.",
+          "Hi [FirstName], checking in on [PropertyAddress] - was it mainly price, location, or the house itself that didn't click? Knowing that helps me find a better match fast. - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 5",
         timeLabel: "11:00 AM",
       },
@@ -497,7 +497,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "CMA delivery",
         description:
-          "Subject: Your home value snapshot\n\nHi [FirstName],\n\nAttached/linked is a clear look at where your home sits in today's market — comps, timing, and what buyers are responding to.\n\nHappy to walk through it on a short call.\n\n[Agent]",
+          "Subject: Your home value snapshot\n\nHi [FirstName],\n\nAttached/linked is a clear look at where your home sits in today's market - comps, timing, and what buyers are responding to.\n\nHappy to walk through it on a short call.\n\n[Agent]",
         dayLabel: "Day 1",
         timeLabel: "10:00 AM",
       },
@@ -506,7 +506,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Day 1 SMS",
         description:
-          "Hi [FirstName] — sent your home value snapshot. Want a 10-min walkthrough this week? — [Agent] Reply STOP to opt out.",
+          "Hi [FirstName] - sent your home value snapshot. Want a 10-min walkthrough this week? - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 1",
         timeLabel: "2:00 PM",
       },
@@ -515,7 +515,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Market stats",
         description:
-          "Subject: What sellers in your area are seeing\n\nHi [FirstName],\n\nA few local stats that matter if you're weighing timing — days on market, list-to-sale ratio, and buyer demand.\n\n[Agent]",
+          "Subject: What sellers in your area are seeing\n\nHi [FirstName],\n\nA few local stats that matter if you're weighing timing - days on market, list-to-sale ratio, and buyer demand.\n\n[Agent]",
         dayLabel: "Day 3",
         timeLabel: "10:00 AM",
       },
@@ -524,7 +524,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Video / personal note",
         description:
-          "Subject: A quick personal note on your home\n\nHi [FirstName],\n\nI recorded a short note on positioning and next steps if you decide to list. No pressure — just clarity.\n\n[Agent]",
+          "Subject: A quick personal note on your home\n\nHi [FirstName],\n\nI recorded a short note on positioning and next steps if you decide to list. No pressure - just clarity.\n\n[Agent]",
         dayLabel: "Day 7",
         timeLabel: "10:00 AM",
       },
@@ -533,7 +533,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Breakup",
         description:
-          "Hi [FirstName] — I'll pause follow-ups for now. If listing timing opens up later, I'm here. — [Agent] Reply STOP to opt out.",
+          "Hi [FirstName] - I'll pause follow-ups for now. If listing timing opens up later, I'm here. - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 14",
         timeLabel: "10:00 AM",
       },
@@ -556,7 +556,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Same-day SMS",
         description:
-          "Hi [FirstName] — thanks for coming by the open house today. What did you think? I can send details or similar options. — [Agent] Reply STOP to opt out.",
+          "Hi [FirstName] - thanks for coming by the open house today. What did you think? I can send details or similar options. - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 1",
         timeLabel: "Same day",
       },
@@ -605,7 +605,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "7-day thank you",
         description:
-          "Subject: Still cheering for your new chapter\n\nHi [FirstName],\n\nJust a note to say congratulations again — and I'm here if anything comes up as you settle in.\n\n[Agent]",
+          "Subject: Still cheering for your new chapter\n\nHi [FirstName],\n\nJust a note to say congratulations again - and I'm here if anything comes up as you settle in.\n\n[Agent]",
         dayLabel: "Day 7",
         timeLabel: "10:00 AM",
       },
@@ -614,7 +614,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "90-day check-in",
         description:
-          "Hi [FirstName] — how is the new place treating you? Anything I can help with? — [Agent] Reply STOP to opt out.",
+          "Hi [FirstName] - how is the new place treating you? Anything I can help with? - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 90",
         timeLabel: "11:00 AM",
       },
@@ -632,7 +632,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Anniversary + soft referral",
         description:
-          "Subject: Happy home-iversary\n\nHi [FirstName],\n\nOne year in — congratulations. If a friend or family member ever needs a trusted local agent, I'm honored to help.\n\n[Agent]",
+          "Subject: Happy home-iversary\n\nHi [FirstName],\n\nOne year in - congratulations. If a friend or family member ever needs a trusted local agent, I'm honored to help.\n\n[Agent]",
         dayLabel: "Day 365",
         timeLabel: "10:00 AM",
       },
@@ -644,7 +644,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
     id: "tpl-pre-approval",
     name: "Pre-approval Push",
     description:
-      "Short sequence for interested buyers who aren't pre-approved yet — lender intro, why it matters, lost-offer story.",
+      "Short sequence for interested buyers who aren't pre-approved yet - lender intro, why it matters, lost-offer story.",
     audience: "Buyers with intent, not yet pre-approved",
     durationDays: 7,
     goals: ["Remove financing friction", "Introduce trusted lender", "Prepare for showings"],
@@ -655,7 +655,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Lender intro",
         description:
-          "Subject: A simple next step before touring\n\nHi [FirstName],\n\nWhen you're ready to tour seriously, a pre-approval makes everything smoother. I can intro a trusted local lender who treats clients well — no pressure.\n\nWant the intro?\n\n[Agent]",
+          "Subject: A simple next step before touring\n\nHi [FirstName],\n\nWhen you're ready to tour seriously, a pre-approval makes everything smoother. I can intro a trusted local lender who treats clients well - no pressure.\n\nWant the intro?\n\n[Agent]",
         dayLabel: "Day 1",
         timeLabel: "10:00 AM",
       },
@@ -664,7 +664,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "sms",
         title: "Why it matters",
         description:
-          "Hi [FirstName] — pre-approval often means stronger offers and clearer budgets. Want me to connect you? — [Agent] Reply STOP to opt out.",
+          "Hi [FirstName] - pre-approval often means stronger offers and clearer budgets. Want me to connect you? - [Agent] Reply STOP to opt out.",
         dayLabel: "Day 3",
         timeLabel: "11:00 AM",
       },
@@ -673,7 +673,7 @@ export const PRODUCT_CAMPAIGN_TEMPLATES: ProductCampaignTemplate[] = [
         type: "email",
         title: "Lost-offer story",
         description:
-          "Subject: Why strong buyers still lose homes\n\nHi [FirstName],\n\nSometimes the difference isn't the offer price — it's how ready the buyer looks on paper. Happy to help you get that piece in place before the right home shows up.\n\n[Agent]",
+          "Subject: Why strong buyers still lose homes\n\nHi [FirstName],\n\nSometimes the difference isn't the offer price - it's how ready the buyer looks on paper. Happy to help you get that piece in place before the right home shows up.\n\n[Agent]",
         dayLabel: "Day 5",
         timeLabel: "10:00 AM",
       },

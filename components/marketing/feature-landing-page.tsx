@@ -76,7 +76,7 @@ export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
           <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-card">
             <Image
               src={DASHBOARD_IMAGE}
-              alt={`${page.h1} — ARI CRM feature for real estate agents`}
+              alt={`${page.h1} - ARI CRM feature for real estate agents`}
               width={1200}
               height={900}
               className={`h-auto w-full object-cover ${featureHeroImageClass(page.slug)}`}

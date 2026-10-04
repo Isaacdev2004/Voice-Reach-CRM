@@ -96,7 +96,7 @@ export const DEMO_CONTACT: ContactProfile = {
   quote:
     "I value trust, discretion, and working with someone who truly understands my goals.",
   tags: ["Residential Agent", "Lender Partner", "Business Owner"],
-  leadStatus: "Warm — Engaged",
+  leadStatus: "Warm - Engaged",
   relationshipScore: 82,
   enrolledCampaigns: ["Luxury Seller – Automated Follow Up"],
   notes:
@@ -105,7 +105,7 @@ export const DEMO_CONTACT: ContactProfile = {
     { label: "Birthday", value: "March 14" },
     { label: "Spouse", value: "Marcus Reyes" },
     { label: "Children", value: "2" },
-    { label: "Source", value: "Referral — Lender Partner" },
+    { label: "Source", value: "Referral - Lender Partner" },
   ],
   timeline: [
     {
@@ -120,7 +120,7 @@ export const DEMO_CONTACT: ContactProfile = {
       id: "t2",
       type: "email",
       title: "Sent Market Update",
-      description: "Luxury listing digest — opened twice.",
+      description: "Luxury listing digest - opened twice.",
       date: "May 18, 2026",
       actor: "You",
     },
@@ -153,14 +153,14 @@ export const DEMO_CONTACT: ContactProfile = {
     {
       id: "sig1",
       label: "Listened",
-      description: "Voicemail — 94% completion",
+      description: "Voicemail - 94% completion",
       date: "May 14",
       icon: "headphones",
     },
     {
       id: "sig2",
       label: "Clicked",
-      description: "Listing email — Pasadena estates",
+      description: "Listing email - Pasadena estates",
       date: "May 16",
       icon: "mail",
     },
@@ -181,7 +181,7 @@ export const DEMO_CONTACT: ContactProfile = {
     },
     {
       id: "task2",
-      title: "Schedule property tour — quiet neighborhood",
+      title: "Schedule property tour - quiet neighborhood",
       dueDate: "May 28, 2026",
       completed: false,
     },
@@ -197,7 +197,7 @@ export const DEMO_CONTACT: ContactProfile = {
       id: "ai1",
       title: "Send personalized video",
       description:
-        "Elena listened to your voicemail — a warm avatar message could deepen trust.",
+        "Elena listened to your voicemail - a warm avatar message could deepen trust.",
       priority: "high",
       actionLabel: "Draft with AI",
     },
@@ -245,7 +245,7 @@ export const DASHBOARD_ACTIVITY: ActivityFeedItem[] = [
     id: "a4",
     type: "callback",
     contactName: "Elena Reyes",
-    description: "Returned your call — 4 min conversation",
+    description: "Returned your call - 4 min conversation",
     time: "2 hrs ago",
   },
 ];
@@ -262,7 +262,7 @@ export const DASHBOARD_AI_SUGGESTIONS: AiSuggestion[] = [
   {
     id: "dash-ai2",
     title: "2 leads getting cold",
-    description: "No opens or listens in the last 14 days — re-engage gently.",
+    description: "No opens or listens in the last 14 days - re-engage gently.",
     priority: "medium",
     actionLabel: "View contacts",
     actionHref: "/dashboard/contacts",
@@ -308,7 +308,7 @@ export function contactProfileFromApi(contact: {
     aiSuggestions: [],
     details: [
       { label: "Type", value: typeLabel },
-      { label: "Source", value: contact.source ?? "—" },
+      { label: "Source", value: contact.source ?? " - " },
       ...(contact.email ? [{ label: "Email", value: contact.email }] : []),
       ...(contact.phone ? [{ label: "Phone", value: contact.phone }] : []),
     ],

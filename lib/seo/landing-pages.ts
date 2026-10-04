@@ -42,18 +42,18 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     path: "/real-estate-crm",
     title: "Real Estate CRM for Agents & Realtors",
     description:
-      "ARI is the real estate CRM that helps you follow up automatically by text, email, and voicemail — while keeping every lead, conversation, task, and next step in one place.",
+      "ARI is the real estate CRM that helps you follow up automatically by text, email, and voicemail - while keeping every lead, conversation, task, and next step in one place.",
     h1: "A Real Estate CRM That Keeps Every Lead Moving",
     eyebrow: "Real estate CRM for agents",
     intro:
-      "ARI is the real estate CRM that helps you follow up automatically by text, email, and voicemail — while keeping every lead, conversation, task, and next step in one place. Spend less time remembering who to contact. Spend more time talking to people who are ready to move.",
+      "ARI is the real estate CRM that helps you follow up automatically by text, email, and voicemail - while keeping every lead, conversation, task, and next step in one place. Spend less time remembering who to contact. Spend more time talking to people who are ready to move.",
     sections: [
       {
         h2: "Your CRM shouldn't just store leads. It should help you work them.",
         paragraphs: [
           "You pay for Zillow leads. You collect names at open houses. You meet prospects through referrals, your sphere, and past clients. Then real life happens.",
           "A showing runs long. A listing needs attention. A buyer calls. A lead you meant to text today becomes a lead you remember two weeks from now.",
-          `ARI is built around one simple idea: ${SITE_OFFER.primaryPromise} Your contacts, pipeline, communication history, tasks, and automated follow-up live together — so you can see what's happening and know exactly where to focus.`,
+          `ARI is built around one simple idea: ${SITE_OFFER.primaryPromise} Your contacts, pipeline, communication history, tasks, and automated follow-up live together - so you can see what's happening and know exactly where to focus.`,
         ],
       },
       {
@@ -63,9 +63,9 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
           "You control the messaging, timing, and campaign rules. ARI handles the repetition. You step in when there's a real conversation to have.",
         ],
         bullets: [
-          "SMS — Send timely texts without manually copying, pasting, and setting reminders.",
-          "Email — Nurture prospects over days, weeks, or months with automated email follow-up.",
-          "Ringless voicemail — Add another touchpoint without turning every follow-up into another phone call.",
+          "SMS - Send timely texts without manually copying, pasting, and setting reminders.",
+          "Email - Nurture prospects over days, weeks, or months with automated email follow-up.",
+          "Ringless voicemail - Add another touchpoint without turning every follow-up into another phone call.",
         ],
       },
       {
@@ -84,10 +84,10 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       {
         h2: "Built around the way real estate leads actually behave",
         paragraphs: [
-          `New internet lead — ${leadIntake.portalIntake} You take over when the prospect engages.`,
-          "Open-house lead — Import sign-ins, tag them by property or event, and start a follow-up sequence while the conversation is still fresh.",
-          "Old database lead — Organize and reactivate dormant contacts with structured, segmented outreach instead of one-by-one manual texting.",
-          "Sphere and past clients — Create consistent touches that help you stay visible to the people most likely to refer you or work with you again.",
+          `New internet lead - ${leadIntake.portalIntake} You take over when the prospect engages.`,
+          "Open-house lead - Import sign-ins, tag them by property or event, and start a follow-up sequence while the conversation is still fresh.",
+          "Old database lead - Organize and reactivate dormant contacts with structured, segmented outreach instead of one-by-one manual texting.",
+          "Sphere and past clients - Create consistent touches that help you stay visible to the people most likely to refer you or work with you again.",
         ],
       },
       {
@@ -97,9 +97,9 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
           `Current integrations: ${integrations.connected.map((i) => i.label).join(" and ")}. Import via ${integrations.importSources.slice(0, 3).join(", ")}, and more.`,
         ],
         bullets: [
-          "Lead import — We help bring your existing contact database into ARI.",
-          "Pipeline setup — We configure a workflow that fits how you manage buyers, sellers, and prospects.",
-          "Your first follow-up campaign — We help get your initial automated sequence ready to run.",
+          "Lead import - We help bring your existing contact database into ARI.",
+          "Pipeline setup - We configure a workflow that fits how you manage buyers, sellers, and prospects.",
+          "Your first follow-up campaign - We help get your initial automated sequence ready to run.",
         ],
       },
       {
@@ -152,7 +152,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
       {
         q: "Is there a free trial?",
-        a: `Yes — ${trialDays} days free. ${SITE_OFFER.cardRequiredNote}. You won't be charged until the trial ends.`,
+        a: `Yes - ${trialDays} days free. ${SITE_OFFER.cardRequiredNote}. You won't be charged until the trial ends.`,
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/real-estate-crm"),
@@ -162,17 +162,17 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     path: "/lead-follow-up",
     title: "Real Estate Lead Follow-Up System & Software",
     description:
-      "Why real estate follow-up fails — and how ARI operationalizes a system where every lead gets a next step through SMS, email, and ringless voicemail.",
+      "Why real estate follow-up fails - and how ARI operationalizes a system where every lead gets a next step through SMS, email, and ringless voicemail.",
     h1: "A Real Estate Follow-Up System That Works Even When You're Busy",
     eyebrow: "Lead follow-up system",
     intro:
-      "See how ARI turns follow-up into a repeatable system across text, email, and voicemail — so every lead gets a next step even when showings and listings fill your day.",
+      "See how ARI turns follow-up into a repeatable system across text, email, and voicemail - so every lead gets a next step even when showings and listings fill your day.",
     sections: [
       {
         h2: "The follow-up problem is a systems problem",
         paragraphs: [
-          "Agents don't lose deals because they don't care. They lose deals because follow-up depends on memory, sticky notes, and scattered inboxes — especially when showings, listings, and client calls fill the day.",
-          "Speed matters, but so does persistence. Research on sales follow-up consistently shows that most conversions happen after multiple touches — yet most outreach stops after one or two attempts.",
+          "Agents don't lose deals because they don't care. They lose deals because follow-up depends on memory, sticky notes, and scattered inboxes - especially when showings, listings, and client calls fill the day.",
+          "Speed matters, but so does persistence. Research on sales follow-up consistently shows that most conversions happen after multiple touches - yet most outreach stops after one or two attempts.",
         ],
       },
       {
@@ -180,7 +180,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
         paragraphs: ["A follow-up system should answer four questions for every lead:"],
         bullets: [
           "Did we acknowledge the inquiry quickly?",
-          "Is there a planned next touch — not just a hope to call later?",
+          "Is there a planned next touch - not just a hope to call later?",
           "Can we see every prior message without searching apps?",
           "Do we know when a human conversation should replace automation?",
         ],
@@ -190,21 +190,21 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
         paragraphs: [
           leadIntake.qualified,
           "You build multi-step campaigns across SMS, email, and ringless voicemail. ARI runs the schedule; you handle replies and high-intent conversations.",
-          "See how automated follow-up works inside ARI — sequence builder, channels, and controls.",
+          "See how automated follow-up works inside ARI - sequence builder, channels, and controls.",
         ],
       },
       {
         h2: "Compliance-aware by design",
         paragraphs: [
           compliance.shortNote,
-          "ARI includes consent tracking, suppression/DNC tools, and quiet-hour controls — but your legal basis for outreach remains your responsibility.",
+          "ARI includes consent tracking, suppression/DNC tools, and quiet-hour controls - but your legal basis for outreach remains your responsibility.",
         ],
       },
     ],
     highlights: [
       {
         title: "System, not slogans",
-        body: "Follow-up as a repeatable workflow — not a daily scramble.",
+        body: "Follow-up as a repeatable workflow - not a daily scramble.",
       },
       {
         title: "Multi-channel",
@@ -230,7 +230,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
       {
         q: "What channels does ARI support?",
-        a: `SMS via Twilio, email delivery, and ringless voicemail via Slybroadcast — combinable in one sequence.`,
+        a: `SMS via Twilio, email delivery, and ringless voicemail via Slybroadcast - combinable in one sequence.`,
       },
       {
         q: "How does ARI support responsible SMS outreach?",
@@ -238,7 +238,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
       {
         q: "How do I get started?",
-        a: `Start a ${trialDays}-day free trial. ${whiteGlove.shortLine.toLowerCase()} — ${whiteGlove.detail.toLowerCase()}`,
+        a: `Start a ${trialDays}-day free trial. ${whiteGlove.shortLine.toLowerCase()} - ${whiteGlove.detail.toLowerCase()}`,
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/lead-follow-up"),
@@ -248,7 +248,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     path: "/realtor-lead-follow-up",
     title: "Realtor Lead Follow-Up Workflows & Scripts",
     description:
-      "Realtor-specific follow-up workflows for Zillow leads, open houses, buyer consults, and sphere nurture — with the scripts and cadences agents actually use.",
+      "Realtor-specific follow-up workflows for Zillow leads, open houses, buyer consults, and sphere nurture - with the scripts and cadences agents actually use.",
     h1: "Realtor Follow-Up Workflows That Match How You Work",
     eyebrow: "Realtor-specific workflows",
     intro:
@@ -258,7 +258,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
         h2: "Portal lead workflow (Zillow, Realtor.com, website)",
         paragraphs: [
           leadIntake.smsTiming,
-          "Recommended cadence: Day 0 — acknowledgment SMS + call attempt when you're free. Day 1 — email with value. Day 3 — short check-in text. Day 7 — voicemail or personal call prompt.",
+          "Recommended cadence: Day 0 - acknowledgment SMS + call attempt when you're free. Day 1 - email with value. Day 3 - short check-in text. Day 7 - voicemail or personal call prompt.",
         ],
         bullets: [
           leadIntake.enrollmentFlow,
@@ -281,7 +281,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       {
         h2: "Buyer consult & listing appointment nurture",
         paragraphs: [
-          "Not every lead is ready to transact this month. Sphere and past-client touches keep you visible without feeling promotional — market snapshots, check-ins, and seasonal reminders on a schedule.",
+          "Not every lead is ready to transact this month. Sphere and past-client touches keep you visible without feeling promotional - market snapshots, check-ins, and seasonal reminders on a schedule.",
         ],
       },
       {
@@ -336,44 +336,44 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
   "lead-reactivation": {
     slug: "lead-reactivation",
     path: "/lead-reactivation",
-    title: "Lead Reactivation Software — Turn Old Leads Into Opportunities",
+    title: "Lead Reactivation Software - Turn Old Leads Into Opportunities",
     description:
-      "Re-engage dormant real estate contacts with segmented SMS, email, and voicemail campaigns — using leads you already paid for instead of buying new ones.",
+      "Re-engage dormant real estate contacts with segmented SMS, email, and voicemail campaigns - using leads you already paid for instead of buying new ones.",
     h1: "Your Old Leads Aren't Dead. Start the Conversation Again.",
     eyebrow: "Lead reactivation",
     intro:
-      "Most agents sit on hundreds of contacts who inquired months ago but never converted. Lead reactivation turns that dormant database into your lowest-cost source of new conversations — when done with segmentation and consent-aware outreach.",
+      "Most agents sit on hundreds of contacts who inquired months ago but never converted. Lead reactivation turns that dormant database into your lowest-cost source of new conversations - when done with segmentation and consent-aware outreach.",
     sections: [
       {
         h2: "The opportunity already sitting in your database",
         paragraphs: [
-          "You already paid for those Zillow leads, open-house sign-ins, and website inquiries. Many went quiet — not because they weren't interested, but because life got in the way or follow-up stopped too soon.",
-          "Lead reactivation is structured re-engagement with a fresh, relevant message — not a one-off mass blast.",
+          "You already paid for those Zillow leads, open-house sign-ins, and website inquiries. Many went quiet - not because they weren't interested, but because life got in the way or follow-up stopped too soon.",
+          "Lead reactivation is structured re-engagement with a fresh, relevant message - not a one-off mass blast.",
         ],
       },
       {
         h2: "A concrete reactivation workflow",
         paragraphs: ["A practical reactivation sequence:"],
         bullets: [
-          "Segment by last contact date, source, or neighborhood — not your entire database at once",
-          "Day 1 — short check-in SMS referencing their original inquiry",
-          "Day 4 — email with market update or value-add content",
-          "Day 8 — ringless voicemail touch (where appropriate consent exists)",
-          "Day 12 — task for personal call to responders",
+          "Segment by last contact date, source, or neighborhood - not your entire database at once",
+          "Day 1 - short check-in SMS referencing their original inquiry",
+          "Day 4 - email with market update or value-add content",
+          "Day 8 - ringless voicemail touch (where appropriate consent exists)",
+          "Day 12 - task for personal call to responders",
         ],
       },
       {
         h2: "Turn cold leads into warm conversations",
         paragraphs: [
           "When an old lead responds, ARI moves them back into your active pipeline and creates a task for personal follow-up. You focus on the leads who raised their hand.",
-          "Results vary by market, list quality, and time since last contact — reactivation typically works best when trust was already started.",
+          "Results vary by market, list quality, and time since last contact - reactivation typically works best when trust was already started.",
         ],
       },
       {
         h2: "Compliance qualification",
         paragraphs: [
           compliance.shortNote,
-          "Before reactivating a list, confirm you have appropriate consent for the channel you use. ARI provides suppression/DNC tools and consent records — but list eligibility is fact-specific.",
+          "Before reactivating a list, confirm you have appropriate consent for the channel you use. ARI provides suppression/DNC tools and consent records - but list eligibility is fact-specific.",
         ],
       },
     ],
@@ -410,7 +410,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
       {
         q: "Can I reactivate my entire database at once?",
-        a: "We recommend segmented batches — by neighborhood, lead source, or date — for better deliverability and more relevant messaging.",
+        a: "We recommend segmented batches - by neighborhood, lead source, or date - for better deliverability and more relevant messaging.",
       },
       {
         q: "Does ARI help set up reactivation campaigns?",

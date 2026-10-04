@@ -197,11 +197,11 @@ export function SettingsWorkspacePage() {
     } else if (calendar === "error") {
       const message =
         reason === "database_table_missing"
-          ? "Calendar database not set up yet — we’re fixing this on our side."
+          ? "Calendar database not set up yet - we’re fixing this on our side."
           : reason === "access_denied"
             ? "Google access was denied. Try Connect again and click Allow."
             : reason === "missing_code_or_session"
-              ? "Session expired — click Connect again (stay signed in to ARI)."
+              ? "Session expired - click Connect again (stay signed in to ARI)."
               : `Google Calendar connection failed${reason ? `: ${reason}` : ""}.`;
       showToast(message, "error");
       router.replace("/dashboard/settings?tab=workspace", { scroll: false });
@@ -212,11 +212,11 @@ export function SettingsWorkspacePage() {
     } else if (dotloop === "error") {
       const message =
         reason === "database_table_missing"
-          ? "Dotloop database not set up yet — run supabase/schema-integrations.sql."
+          ? "Dotloop database not set up yet - run supabase/schema-integrations.sql."
           : reason === "access_denied"
             ? "Dotloop access was denied. Try Connect again and click Allow."
             : reason === "missing_code_or_session"
-              ? "Session expired — click Connect again (stay signed in)."
+              ? "Session expired - click Connect again (stay signed in)."
               : `Dotloop connection failed${reason ? `: ${reason}` : ""}.`;
       showToast(message, "error");
       router.replace("/dashboard/settings?tab=workspace", { scroll: false });
@@ -287,7 +287,7 @@ export function SettingsWorkspacePage() {
     } catch (e) {
       saveSettingsLocal(settings);
       showToast(
-        e instanceof Error ? `${e.message} — saved on this device` : "Saved locally",
+        e instanceof Error ? `${e.message} - saved on this device` : "Saved locally",
         "error",
       );
     } finally {
@@ -942,8 +942,8 @@ export function SettingsWorkspacePage() {
                           {member.lastActive
                             ? formatRelativeTime(member.lastActive)
                             : member.status === "pending"
-                              ? "—"
-                              : "—"}
+                              ? " - "
+                              : " - "}
                         </td>
                         <td className="py-4 text-right">
                           <button
@@ -1279,7 +1279,7 @@ export function SettingsWorkspacePage() {
           record.label = label;
           update({ apiKeys: [...settings.apiKeys, record] });
           setCreatedApiKey(fullKey);
-          showToast("API key created — copy it now");
+          showToast("API key created - copy it now");
         }}
       />
 

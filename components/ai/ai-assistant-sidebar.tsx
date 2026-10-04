@@ -91,7 +91,7 @@ export function AiAssistantSidebar() {
       open={state.open}
       onClose={closeAssistant}
       title="ARI AI"
-      description="Relationship copilot — pick a task and generate a draft."
+      description="Relationship copilot - pick a task and generate a draft."
       size="lg"
       footer={
         <ModalFooterActions
@@ -167,7 +167,7 @@ export function AiAssistantSidebar() {
             value={state.brief ?? ""}
             onChange={(e) => setBrief(e.target.value)}
             rows={3}
-            placeholder="E.g. The client just toured a new listing — follow up gently."
+            placeholder="E.g. The client just toured a new listing - follow up gently."
             className="mt-2 w-full rounded-xl border border-outline-variant/30 bg-ivory px-3 py-2 text-[14px] outline-none focus:border-rose-gold"
           />
         </div>
@@ -224,7 +224,7 @@ function renderableText(output: Record<string, unknown>): string {
   }
   if (typeof output.name === "string" && Array.isArray(output.steps)) {
     const steps = (output.steps as Array<Record<string, unknown>>)
-      .map((s, i) => `${i + 1}. [${s.type ?? "step"}] ${s.title ?? ""} — ${s.dayLabel ?? ""}`)
+      .map((s, i) => `${i + 1}. [${s.type ?? "step"}] ${s.title ?? ""} - ${s.dayLabel ?? ""}`)
       .join("\n");
     return `${output.name}\n${output.description ?? ""}\n\n${steps}`;
   }

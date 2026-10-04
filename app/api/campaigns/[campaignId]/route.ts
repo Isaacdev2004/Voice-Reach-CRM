@@ -138,7 +138,7 @@ const PatchSchema = z.object({
   provider: z.string().min(1).optional(),
   /**
    * Explicit launch gate. Cron will not auto-deliver LIVE campaigns until this is true.
-   * Pause by setting false — scheduled runs stay queued but will not fire.
+   * Pause by setting false - scheduled runs stay queued but will not fire.
    */
   liveLaunched: z.boolean().optional(),
 });

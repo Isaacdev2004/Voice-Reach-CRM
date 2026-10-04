@@ -51,7 +51,7 @@ export const POST = withApiHandler(async (request) => {
   } catch (err) {
     if (err instanceof ElevenLabsCloneNotAllowedError) {
       return apiError(
-        "Your ElevenLabs plan does not include API voice cloning. Use Link my voice instead — paste the voice ID from ElevenCreative.",
+        "Your ElevenLabs plan does not include API voice cloning. Use Link my voice instead - paste the voice ID from ElevenCreative.",
         { status: 403, code: "clone_not_allowed" },
       );
     }

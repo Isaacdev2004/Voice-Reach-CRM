@@ -1,4 +1,4 @@
-/** CSS-only ARI dashboard preview for the landing hero — no stock photography. */
+/** CSS-only ARI dashboard preview for the landing hero - no stock photography. */
 export function DashboardPreview() {
   const leads = [
     { name: "Sarah M.", stage: "Hot", action: "Call today", hot: true },

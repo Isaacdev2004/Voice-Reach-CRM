@@ -17,7 +17,7 @@ export const CONTACT_SEGMENT_TABS: { id: ContactSegment; label: string; descript
   {
     id: "past-client",
     label: "Past clients",
-    description: "Closed transactions — exclude from cold outreach",
+    description: "Closed transactions - exclude from cold outreach",
   },
 ];
 

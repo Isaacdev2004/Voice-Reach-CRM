@@ -79,7 +79,7 @@ export function AutomationWorkflowsPage() {
     } catch (e) {
       persistLocal(workflows.map((w) => (w.id === wf.id ? wf : w)));
       showToast(
-        e instanceof Error ? `${e.message} — saved on this device` : "Saved locally",
+        e instanceof Error ? `${e.message} - saved on this device` : "Saved locally",
         "error",
       );
     } finally {
@@ -165,7 +165,7 @@ export function AutomationWorkflowsPage() {
   const handleActivate = async () => {
     if (!active) return;
     const updated = { ...active, status: "active" as const };
-    await saveWorkflow(updated, "Workflow activated — runs when triggers fire");
+    await saveWorkflow(updated, "Workflow activated - runs when triggers fire");
   };
 
   const handlePause = async () => {

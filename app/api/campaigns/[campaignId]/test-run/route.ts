@@ -187,7 +187,7 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
 
   const modeLabel = live
     ? "LIVE delivery (check the contact’s phone/inbox)"
-    : "simulation only — nothing was sent to a real phone";
+    : "simulation only - nothing was sent to a real phone";
 
   return apiOk({
     enrollment,

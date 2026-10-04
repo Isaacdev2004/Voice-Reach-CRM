@@ -30,7 +30,7 @@ export function getSupabaseAdmin(): SupabaseClient {
   return client;
 }
 
-/** @deprecated Use getSupabaseAdmin() — lazy init for frontend-only builds */
+/** @deprecated Use getSupabaseAdmin() - lazy init for frontend-only builds */
 export const supabaseAdmin = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
     return Reflect.get(getSupabaseAdmin(), prop);

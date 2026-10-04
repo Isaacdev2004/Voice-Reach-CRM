@@ -79,7 +79,7 @@ function formatPercent(n: number, digits = 1): string {
 
 function formatDelta(current: number, previous: number, unit = "%"): string {
   const diff = current - previous;
-  if (Math.abs(diff) < 0.05) return "—";
+  if (Math.abs(diff) < 0.05) return " - ";
   const sign = diff > 0 ? "+" : "";
   return unit === "ms"
     ? `${sign}${Math.round(diff)}ms`

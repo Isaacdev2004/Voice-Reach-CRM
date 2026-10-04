@@ -19,7 +19,7 @@ export const SEED_ACTIVITY: ActivityLogEntry[] = [
     icon: "mail",
     tone: "success",
     title: "Sofia Alvarez clicked email",
-    body: "Clicked your market update email — Pasadena luxury digest.",
+    body: "Clicked your market update email - Pasadena luxury digest.",
     createdAt: new Date(Date.now() - 34 * 60 * 1000).toISOString(),
     source: "seed",
     href: "/dashboard/contacts",

@@ -3,9 +3,9 @@ import { Icon } from "@/components/ui/icon";
 import { SITE_OFFER } from "@/lib/marketing/site-offer";
 
 const SETUP_STEPS = [
-  "Lead import — we help bring your existing database into ARI",
-  "Pipeline setup — stages that match how you manage buyers and sellers",
-  "First follow-up campaign — your initial automated sequence ready to run",
+  "Lead import - we help bring your existing database into ARI",
+  "Pipeline setup - stages that match how you manage buyers and sellers",
+  "First follow-up campaign - your initial automated sequence ready to run",
 ];
 
 export function LandingWhiteGlove() {

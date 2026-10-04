@@ -294,7 +294,7 @@ export function EditContactModal({
               Consent (TCPA)
             </p>
             <p className="mt-1 text-[13px] text-slate-text">
-              When consent is <strong>Yes</strong>, fill date, source, and proof — they cannot stay
+              When consent is <strong>Yes</strong>, fill date, source, and proof - they cannot stay
               blank for campaign eligibility.
             </p>
           </div>
@@ -308,9 +308,9 @@ export function EditContactModal({
                   setForm((f) => ({ ...f, consent: e.target.value as typeof f.consent }))
                 }
               >
-                <option value="Yes">Yes — opted in</option>
-                <option value="No">No — do not contact</option>
-                <option value="Unknown">Unknown — needs review</option>
+                <option value="Yes">Yes - opted in</option>
+                <option value="No">No - do not contact</option>
+                <option value="Unknown">Unknown - needs review</option>
               </select>
             </ModalField>
             <ModalField label="Consent date" required={consentYes}>

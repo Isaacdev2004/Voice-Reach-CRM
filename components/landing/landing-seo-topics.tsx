@@ -3,7 +3,7 @@ import Link from "next/link";
 const TOPICS = [
   {
     h2: "Turn old leads into new opportunities",
-    body: "Most agents sit on dormant contacts who inquired months ago. Lead reactivation campaigns re-engage them with SMS, email, and voicemail — no new ad spend required.",
+    body: "Most agents sit on dormant contacts who inquired months ago. Lead reactivation campaigns re-engage them with SMS, email, and voicemail - no new ad spend required.",
     href: "/lead-reactivation",
     cta: "Lead reactivation software",
   },
@@ -15,7 +15,7 @@ const TOPICS = [
   },
   {
     h2: "Never let another lead fall through the cracks",
-    body: "Speed wins in real estate. When leads enter ARI, your follow-up sequence can begin on the schedule you configure — so you're the agent who stays in touch.",
+    body: "Speed wins in real estate. When leads enter ARI, your follow-up sequence can begin on the schedule you configure - so you're the agent who stays in touch.",
     href: "/realtor-lead-follow-up",
     cta: "Realtor lead follow-up",
   },

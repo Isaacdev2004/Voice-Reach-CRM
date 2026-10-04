@@ -433,8 +433,8 @@ export function ContactManagementPage() {
             label: "Consent validated",
             value: loading ? "…" : `${rows.length ? Math.round((validated / rows.length) * 100) : 0}%`,
           },
-          { label: "Past clients", value: loading ? "…" : String(counts?.pastClient ?? "—") },
-          { label: "Cold leads", value: loading ? "…" : String(counts?.coldLead ?? "—") },
+          { label: "Past clients", value: loading ? "…" : String(counts?.pastClient ?? " - ") },
+          { label: "Cold leads", value: loading ? "…" : String(counts?.coldLead ?? " - ") },
         ].map((stat) => (
           <LuxuryCard key={stat.label} padding="md">
             <p className="text-[13px] text-taupe">{stat.label}</p>
@@ -549,7 +549,7 @@ export function ContactManagementPage() {
                     </td>
                     <td className="px-6 py-4 align-middle">
                       <span className="inline-flex max-w-[140px] truncate rounded-lg bg-champagne/80 px-2.5 py-1 text-[12px] text-taupe">
-                        {contact.source ?? "—"}
+                        {contact.source ?? " - "}
                       </span>
                     </td>
                     <td className="px-6 py-4 align-middle whitespace-nowrap">

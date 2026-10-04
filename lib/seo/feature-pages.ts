@@ -48,16 +48,16 @@ const CORE_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Automated Follow-Up for Real Estate Agents",
     description:
-      "ARI automated follow-up runs SMS, email, and ringless voicemail sequences so every real estate lead gets a timely response — even when you're in showings.",
+      "ARI automated follow-up runs SMS, email, and ringless voicemail sequences so every real estate lead gets a timely response - even when you're in showings.",
     h1: "Automated Follow-Up That Keeps Leads Warm",
     eyebrow: "Automated follow-up",
     intro:
-      "Build automated follow-up sequences across SMS, email, and voicemail — all inside ARI. Set your sequence once; ARI delivers each touch on the schedule you configure.",
+      "Build automated follow-up sequences across SMS, email, and voicemail - all inside ARI. Set your sequence once; ARI delivers each touch on the schedule you configure.",
     sections: [
       {
         h2: "Why automation beats manual follow-up",
         paragraphs: [
-          "Agents lose deals when response time slips. Automated follow-up helps every lead hear from you on schedule — with messages you wrote, not generic templates.",
+          "Agents lose deals when response time slips. Automated follow-up helps every lead hear from you on schedule - with messages you wrote, not generic templates.",
           "ARI sequences combine timing, channel, and personalization so follow-up feels human while running in the background.",
         ],
       },
@@ -74,7 +74,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Works with your real estate CRM",
         paragraphs: [
-          "Automated follow-up is built into ARI's pipeline — not a separate tool. When someone replies, they surface for personal outreach with full context.",
+          "Automated follow-up is built into ARI's pipeline - not a separate tool. When someone replies, they surface for personal outreach with full context.",
           "Learn more about our dedicated lead follow-up software for Realtors.",
         ],
       },
@@ -94,7 +94,7 @@ const CORE_FEATURE_PAGES = {
     category: "CRM",
     title: "Real Estate Lead Management Software",
     description:
-      "Organize every real estate lead in one CRM — import from Zillow, CSV, and open houses with notes, tags, and full communication history.",
+      "Organize every real estate lead in one CRM - import from Zillow, CSV, and open houses with notes, tags, and full communication history.",
     h1: "Lead Management Built for Real Estate",
     eyebrow: "Lead management",
     intro:
@@ -103,7 +103,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Every lead in one place",
         paragraphs: [
-          "Zillow inquiries, sphere contacts, open-house sign-ins, and referral leads — import and organize them in a single real estate CRM built for agents.",
+          "Zillow inquiries, sphere contacts, open-house sign-ins, and referral leads - import and organize them in a single real estate CRM built for agents.",
         ],
         bullets: [
           "CSV import plus white-glove onboarding migration",
@@ -121,7 +121,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "From storage to action",
         paragraphs: [
-          "Lead management in ARI isn't passive — contacts connect directly to pipeline stages, tasks, and automated campaigns so data turns into conversations.",
+          "Lead management in ARI isn't passive - contacts connect directly to pipeline stages, tasks, and automated campaigns so data turns into conversations.",
         ],
       },
     ],
@@ -140,16 +140,16 @@ const CORE_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Automated Text Follow-Up for Realtors",
     description:
-      "Send automated SMS follow-up to real estate leads with ARI — timely responses, drip sequences, and compliance-aware tools for TCPA-aware texting.",
+      "Send automated SMS follow-up to real estate leads with ARI - timely responses, drip sequences, and compliance-aware tools for TCPA-aware texting.",
     h1: "Text Automation That Reaches Leads Fast",
     eyebrow: "SMS automation",
     intro:
-      "Text is the fastest way to reach modern buyers and sellers. ARI automates SMS follow-up so you respond in minutes — not hours — with compliance-aware controls for responsible outreach.",
+      "Text is the fastest way to reach modern buyers and sellers. ARI automates SMS follow-up so you respond in minutes - not hours - with compliance-aware controls for responsible outreach.",
     sections: [
       {
         h2: "Speed-to-lead by text",
         paragraphs: [
-          "Studies consistently show timely response improves connection rates. Automated text follow-up sends after a contact is enrolled in your campaign — even while you're in appointments.",
+          "Studies consistently show timely response improves connection rates. Automated text follow-up sends after a contact is enrolled in your campaign - even while you're in appointments.",
         ],
       },
       {
@@ -184,7 +184,7 @@ const CORE_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Automated Email Follow-Up for Real Estate",
     description:
-      "Automate real estate email follow-up with ARI — nurture sequences, market updates, and re-engagement emails tied to your CRM pipeline.",
+      "Automate real estate email follow-up with ARI - nurture sequences, market updates, and re-engagement emails tied to your CRM pipeline.",
     h1: "Email Automation for Longer-Form Nurture",
     eyebrow: "Email automation",
     intro:
@@ -193,7 +193,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Email where it works best",
         paragraphs: [
-          "Email excels for longer-form nurture — market reports, neighborhood updates, and check-ins that build trust over weeks. ARI automates these touches so they happen consistently.",
+          "Email excels for longer-form nurture - market reports, neighborhood updates, and check-ins that build trust over weeks. ARI automates these touches so they happen consistently.",
         ],
       },
       {
@@ -209,7 +209,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Re-engage dormant leads by email",
         paragraphs: [
-          "Email is ideal for lead reactivation — a thoughtful check-in that restarts conversations with old inquiries. Pair email automation with segmentation for best results.",
+          "Email is ideal for lead reactivation - a thoughtful check-in that restarts conversations with old inquiries. Pair email automation with segmentation for best results.",
         ],
       },
     ],
@@ -228,16 +228,16 @@ const CORE_FEATURE_PAGES = {
     category: "CRM",
     title: "Real Estate Sales Pipeline Management",
     description:
-      "Track every lead through your real estate sales pipeline with ARI — stages, tasks, and automated follow-up so nothing falls through the cracks.",
+      "Track every lead through your real estate sales pipeline with ARI - stages, tasks, and automated follow-up so nothing falls through the cracks.",
     h1: "Pipeline Management That Shows Who Needs You",
     eyebrow: "Pipeline",
     intro:
-      "See every lead's stage at a glance. Move contacts through your sales pipeline as they respond, schedule showings, or go under contract — with tasks and automation at every step.",
+      "See every lead's stage at a glance. Move contacts through your sales pipeline as they respond, schedule showings, or go under contract - with tasks and automation at every step.",
     sections: [
       {
         h2: "Visual pipeline for real estate",
         paragraphs: [
-          "Generic sales pipelines don't fit how agents work. ARI pipeline stages reflect buyer inquiries, listing appointments, active clients, and closed deals — so your board matches your business.",
+          "Generic sales pipelines don't fit how agents work. ARI pipeline stages reflect buyer inquiries, listing appointments, active clients, and closed deals - so your board matches your business.",
         ],
         bullets: [
           "Drag-and-drop stage management",
@@ -255,7 +255,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Know your numbers",
         paragraphs: [
-          "Track how many leads sit in each stage, where deals stall, and which sources convert — so you invest time and ad spend where they matter.",
+          "Track how many leads sit in each stage, where deals stall, and which sources convert - so you invest time and ad spend where they matter.",
         ],
       },
     ],
@@ -274,11 +274,11 @@ const CORE_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Lead Reactivation Feature for Real Estate CRM",
     description:
-      "Re-engage dormant real estate leads with ARI's lead reactivation feature — segmented SMS, email, and voicemail campaigns that restart conversations.",
+      "Re-engage dormant real estate leads with ARI's lead reactivation feature - segmented SMS, email, and voicemail campaigns that restart conversations.",
     h1: "Lead Reactivation Built Into Your CRM",
     eyebrow: "Lead reactivation",
     intro:
-      "Your old leads aren't dead — they're waiting for the right message. ARI's reactivation tools segment dormant contacts and run structured re-engagement campaigns.",
+      "Your old leads aren't dead - they're waiting for the right message. ARI's reactivation tools segment dormant contacts and run structured re-engagement campaigns.",
     sections: [
       {
         h2: "Turn your database into pipeline",
@@ -318,11 +318,11 @@ const CORE_FEATURE_PAGES = {
     category: "CRM",
     title: "Lead Reminders & Task Notifications for Agents",
     description:
-      "ARI notifications and task reminders tell real estate agents exactly who to call, text, or follow up with — so hot leads never slip through.",
+      "ARI notifications and task reminders tell real estate agents exactly who to call, text, or follow up with - so hot leads never slip through.",
     h1: "Reminders That Keep You on Top of Every Lead",
     eyebrow: "Tasks & alerts",
     intro:
-      "Automation handles the repetitive outreach. Notifications tell you when a lead replies, goes quiet, or needs a personal touch — so you focus on conversations that close.",
+      "Automation handles the repetitive outreach. Notifications tell you when a lead replies, goes quiet, or needs a personal touch - so you focus on conversations that close.",
     sections: [
       {
         h2: "Never miss a hot lead",
@@ -339,7 +339,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Human touch at the right moment",
         paragraphs: [
-          "The best agents combine automation with personal outreach. Notifications bridge the gap — telling you exactly when to pick up the phone.",
+          "The best agents combine automation with personal outreach. Notifications bridge the gap - telling you exactly when to pick up the phone.",
         ],
       },
       {

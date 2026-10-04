@@ -91,7 +91,7 @@ export function EngagementTimeline({
   campaignId,
   limit = 25,
   showScore = true,
-  emptyHint = "No engagement events yet — once campaigns send, listens, clicks, and callbacks will appear here.",
+  emptyHint = "No engagement events yet - once campaigns send, listens, clicks, and callbacks will appear here.",
 }: Props) {
   const [events, setEvents] = useState<EngagementEvent[]>([]);
   const [score, setScore] = useState<number | null>(null);
@@ -176,7 +176,7 @@ export function EngagementTimeline({
               {event.metadata?.provider === "mock" &&
               (event.event_type === "delivered" || event.event_type === "failed") ? (
                 <p className="mt-1 rounded-lg bg-amber-50 px-2 py-1.5 text-[12px] leading-snug text-amber-950">
-                  Simulated only — nothing was sent to a real phone or inbox. Use{" "}
+                  Simulated only - nothing was sent to a real phone or inbox. Use{" "}
                   <strong>Live send</strong> after Twilio / Slybroadcast / Resend are configured.
                 </p>
               ) : typeof event.metadata?.error === "string" && event.metadata.error ? (

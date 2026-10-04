@@ -21,7 +21,7 @@ export default function AutomationRulesPage() {
             Trigger rules
           </h1>
           <p className="mt-2 max-w-2xl text-[15px] text-slate-text">
-            Lightweight automations that fire the moment something happens — a voicemail is
+            Lightweight automations that fire the moment something happens - a voicemail is
             listened to, a contact replies, an email is opened. They run alongside your visual
             workflows.
           </p>

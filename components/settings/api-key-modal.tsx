@@ -30,7 +30,7 @@ export function ApiKeyModal({ open, onClose, onCreate, createdKey }: ApiKeyModal
       title={createdKey ? "API key created" : "Create API key"}
       description={
         createdKey
-          ? "Copy this key now — you won't be able to see it again."
+          ? "Copy this key now - you won't be able to see it again."
           : "Keys authenticate server-side requests to ARI."
       }
       icon="key"

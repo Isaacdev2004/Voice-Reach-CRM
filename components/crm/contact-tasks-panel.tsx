@@ -97,7 +97,7 @@ export function ContactTasksPanel({ contactId, demoTasks = [], isDemo }: Contact
 
         {isDemo ? (
           <p className="mb-3 text-[12px] text-taupe">
-            Demo profile — open a real imported contact to add tasks.
+            Demo profile - open a real imported contact to add tasks.
           </p>
         ) : null}
 

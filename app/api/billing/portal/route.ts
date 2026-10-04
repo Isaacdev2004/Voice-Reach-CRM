@@ -5,7 +5,7 @@ import { appBaseUrl, getStripe, isStripeConfigured } from "@/lib/stripe/config";
 import { stripeMessage } from "@/lib/billing/stripe-checkout";
 
 /**
- * Stripe Customer Portal — update payment method, view invoices, cancel subscription.
+ * Stripe Customer Portal - update payment method, view invoices, cancel subscription.
  * Configure portal in Stripe Dashboard → Settings → Billing → Customer portal.
  */
 export const POST = withApiHandler(async () => {

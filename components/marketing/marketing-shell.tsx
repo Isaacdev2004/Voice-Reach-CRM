@@ -79,7 +79,7 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
             <div className="sm:col-span-2 lg:col-span-1">
               <AriLogo height={32} />
               <p className="mt-3 max-w-[16rem] text-[14px] leading-relaxed text-slate-text">
-                {BRAND_NAME} CRM — automated lead follow-up for real estate agents.
+                {BRAND_NAME} CRM - automated lead follow-up for real estate agents.
               </p>
             </div>
 

@@ -69,7 +69,7 @@ export const POST = withApiHandler(async (request) => {
   const variants = normalizeVariants(from);
   const last10 = digits(from).slice(-10);
 
-  // Prefer digit suffix match — stored phones may include spaces/dashes/+1
+  // Prefer digit suffix match - stored phones may include spaces/dashes/+1
   const { data: pool } = await supabaseAdmin
     .from("contacts")
     .select("id, owner_id, phone, dnc, opt_out_requested")

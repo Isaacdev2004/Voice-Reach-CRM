@@ -39,8 +39,8 @@ export const RESOURCE_EDITORIAL = {
   author: "ARI Team",
   editorialNote: "Reviewed for accuracy by the ARI product team. Last updated October 2026.",
   defaultCitations: [
-    { label: "NAR — real estate lead follow-up best practices", href: "https://www.nar.realtor/" },
-    { label: "InsideSales — lead response time research", href: "https://www.insidesales.com/" },
+    { label: "NAR - real estate lead follow-up best practices", href: "https://www.nar.realtor/" },
+    { label: "InsideSales - lead response time research", href: "https://www.insidesales.com/" },
   ] as ResourceCitation[],
 } as const;
 
@@ -59,7 +59,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     path: "/resources/ultimate-real-estate-lead-follow-up-guide",
     title: "The Ultimate Real Estate Lead Follow-Up Guide",
     description:
-      "A complete guide to real estate lead follow-up — response time, touchpoint cadence, channels, scripts, and systems that convert more leads into clients.",
+      "A complete guide to real estate lead follow-up - response time, touchpoint cadence, channels, scripts, and systems that convert more leads into clients.",
     publishedAt: "2026-10-01",
     readTimeMinutes: 12,
     category: "Lead follow-up",
@@ -68,21 +68,21 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Why follow-up is the highest-leverage skill in real estate",
         paragraphs: [
-          "Agents spend thousands on lead generation — Zillow, Facebook ads, open houses, sphere marketing — yet most deals are lost after the first contact. The problem usually isn't lead volume; it's inconsistent follow-up.",
-          "Speed, persistence, and relevance win. This guide covers the systems top producers use to respond fast, nurture patiently, and re-engage leads who went quiet — without spending your entire day texting.",
+          "Agents spend thousands on lead generation - Zillow, Facebook ads, open houses, sphere marketing - yet most deals are lost after the first contact. The problem usually isn't lead volume; it's inconsistent follow-up.",
+          "Speed, persistence, and relevance win. This guide covers the systems top producers use to respond fast, nurture patiently, and re-engage leads who went quiet - without spending your entire day texting.",
         ],
       },
       {
         h2: "The 5-minute rule: speed-to-lead",
         paragraphs: [
-          "When a buyer or seller inquiry comes in, your odds of connecting drop sharply after the first few minutes. Aim to acknowledge every new lead within five minutes — even if the full conversation happens later.",
+          "When a buyer or seller inquiry comes in, your odds of connecting drop sharply after the first few minutes. Aim to acknowledge every new lead within five minutes - even if the full conversation happens later.",
           "Automated text follow-up makes this realistic. A personalized first SMS can fire while you're in a showing, buying you time for a proper call when you're free.",
         ],
       },
       {
         h2: "How many times should you follow up?",
         paragraphs: [
-          "Most agents stop after one or two attempts. Research on sales follow-up consistently shows that the majority of conversions happen after the fifth touch or later — yet most reps quit far sooner.",
+          "Most agents stop after one or two attempts. Research on sales follow-up consistently shows that the majority of conversions happen after the fifth touch or later - yet most reps quit far sooner.",
           "A practical cadence for new real estate leads: Day 0 (same-day text + call), Day 1 (email), Day 3 (text check-in), Day 7 (voicemail or video text), Day 14 (value-add email), Day 30 (re-engagement). Adjust based on lead temperature and source.",
         ],
         bullets: [
@@ -96,14 +96,14 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
         h2: "Choose the right channel",
         paragraphs: [
           "Text for speed. Email for depth. Voicemail for persistence without interruption. The best agents combine channels rather than relying on one.",
-          "A real estate CRM with automated follow-up lets you orchestrate SMS, email, and ringless voicemail in one sequence — so you're not copy-pasting between apps.",
+          "A real estate CRM with automated follow-up lets you orchestrate SMS, email, and ringless voicemail in one sequence - so you're not copy-pasting between apps.",
         ],
       },
       {
         h2: "Build a system, not a habit",
         paragraphs: [
           "Willpower fails when you're busy. Systems scale. Document your cadence, load it into your CRM, and let automation handle the repetitive touches while you focus on conversations.",
-          "Track every interaction on the contact record. When a lead replies three weeks later, you need context — not a blank screen.",
+          "Track every interaction on the contact record. When a lead replies three weeks later, you need context - not a blank screen.",
         ],
       },
       {
@@ -119,7 +119,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     path: "/resources/best-crm-features-for-real-estate-agents",
     title: "Best CRM Features for Real Estate Agents",
     description:
-      "The CRM features that matter most for Realtors — pipeline management, automated follow-up, lead import, compliance, and integrations that actually get used.",
+      "The CRM features that matter most for Realtors - pipeline management, automated follow-up, lead import, compliance, and integrations that actually get used.",
     publishedAt: "2026-10-01",
     readTimeMinutes: 9,
     category: "CRM",
@@ -134,13 +134,13 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Must-have feature #1: Automated follow-up",
         paragraphs: [
-          "The single most valuable CRM feature for agents is automated lead follow-up — SMS, email, and voicemail sequences that run without manual effort. If your CRM only stores contacts, you're still doing the hard work by hand.",
+          "The single most valuable CRM feature for agents is automated lead follow-up - SMS, email, and voicemail sequences that run without manual effort. If your CRM only stores contacts, you're still doing the hard work by hand.",
         ],
       },
       {
         h2: "Must-have feature #2: Visual pipeline",
         paragraphs: [
-          "You need to see every lead's stage at a glance — new inquiry, appointment set, active buyer, under contract. Pipeline management tied to tasks and automation beats a spreadsheet every time.",
+          "You need to see every lead's stage at a glance - new inquiry, appointment set, active buyer, under contract. Pipeline management tied to tasks and automation beats a spreadsheet every time.",
         ],
       },
       {
@@ -158,13 +158,13 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Must-have feature #4: Compliance tools",
         paragraphs: [
-          "TCPA, consent tracking, suppression/DNC tools, and quiet hours aren't optional for agents who text and call at scale. Your CRM should include compliance-aware workflows — not treat them as an afterthought.",
+          "TCPA, consent tracking, suppression/DNC tools, and quiet hours aren't optional for agents who text and call at scale. Your CRM should include compliance-aware workflows - not treat them as an afterthought.",
         ],
       },
       {
         h2: "Must-have feature #5: Lead reactivation",
         paragraphs: [
-          "Your old leads are your cheapest source of new business. CRM features for reactivation — segmented campaigns, reply detection, and pipeline re-entry — separate serious platforms from contact databases.",
+          "Your old leads are your cheapest source of new business. CRM features for reactivation - segmented campaigns, reply detection, and pipeline re-entry - separate serious platforms from contact databases.",
         ],
       },
       {
@@ -180,7 +180,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     path: "/resources/how-to-reactivate-old-real-estate-leads",
     title: "How to Reactivate Old Real Estate Leads",
     description:
-      "Step-by-step guide to reactivating dormant real estate leads — segmentation, messaging, channels, and timing that restart conversations without spamming.",
+      "Step-by-step guide to reactivating dormant real estate leads - segmentation, messaging, channels, and timing that restart conversations without spamming.",
     publishedAt: "2026-10-01",
     readTimeMinutes: 10,
     category: "Lead reactivation",
@@ -189,7 +189,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Your database is an asset you're probably ignoring",
         paragraphs: [
-          "Most agents focus entirely on new leads while hundreds of past inquiries sit untouched. Lead reactivation — reaching back out to dormant contacts — can restart conversations with people who already know your name, though results vary by list quality and timing.",
+          "Most agents focus entirely on new leads while hundreds of past inquiries sit untouched. Lead reactivation - reaching back out to dormant contacts - can restart conversations with people who already know your name, though results vary by list quality and timing.",
         ],
       },
       {
@@ -213,7 +213,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Step 3: Make it personal, not promotional",
         paragraphs: [
-          "Lead with relevance — a neighborhood sale, a rate update, a simple 'still thinking about moving?' — not a generic sales pitch. Personalization beats volume.",
+          "Lead with relevance - a neighborhood sale, a rate update, a simple 'still thinking about moving?' - not a generic sales pitch. Personalization beats volume.",
         ],
       },
       {
@@ -225,7 +225,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Step 5: Automate reactivation in your CRM",
         paragraphs: [
-          "Manual reactivation doesn't scale. ARI's lead reactivation feature lets you segment dormant contacts, launch multi-channel campaigns, and auto-surface responders — so you focus on conversations, not mail merges.",
+          "Manual reactivation doesn't scale. ARI's lead reactivation feature lets you segment dormant contacts, launch multi-channel campaigns, and auto-surface responders - so you focus on conversations, not mail merges.",
         ],
       },
     ],
@@ -235,7 +235,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     path: "/resources/how-many-times-follow-up-real-estate-lead",
     title: "How Many Times Should You Follow Up With a Real Estate Lead?",
     description:
-      "Research-backed guidance on follow-up frequency for real estate leads — how many touches, which channels, and when to stop.",
+      "Research-backed guidance on follow-up frequency for real estate leads - how many touches, which channels, and when to stop.",
     publishedAt: "2026-10-02",
     readTimeMinutes: 6,
     category: "Lead follow-up",
@@ -244,7 +244,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Most agents quit too early",
         paragraphs: [
-          "The average agent contacts a lead two or three times before moving on. Industry studies suggest many conversions require more persistence — often several touches across multiple channels over several weeks.",
+          "The average agent contacts a lead two or three times before moving on. Industry studies suggest many conversions require more persistence - often several touches across multiple channels over several weeks.",
         ],
       },
       {
@@ -266,7 +266,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "When to stop",
         paragraphs: [
-          "Stop when they opt out, explicitly say no, or after your defined sequence ends with no response. Move them to a long-term nurture or annual reactivation — don't delete them.",
+          "Stop when they opt out, explicitly say no, or after your defined sequence ends with no response. Move them to a long-term nurture or annual reactivation - don't delete them.",
         ],
       },
     ],
@@ -276,7 +276,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     path: "/resources/10-lead-follow-up-texts-that-start-conversations",
     title: "10 Real Estate Lead Follow-Up Texts That Start Conversations",
     description:
-      "Copy-ready SMS templates for real estate lead follow-up — first response, nurture, and re-engagement texts that feel personal and get replies.",
+      "Copy-ready SMS templates for real estate lead follow-up - first response, nurture, and re-engagement texts that feel personal and get replies.",
     publishedAt: "2026-10-02",
     readTimeMinutes: 7,
     category: "Scripts",
@@ -285,22 +285,22 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Texts that sound human get replies",
         paragraphs: [
-          "Avoid robotic templates. Use the lead's name, reference their inquiry, and ask one clear question. These ten scripts are starting points — customize for your market and voice.",
+          "Avoid robotic templates. Use the lead's name, reference their inquiry, and ask one clear question. These ten scripts are starting points - customize for your market and voice.",
         ],
       },
       {
         h2: "First response (speed-to-lead)",
         bullets: [
-          "Hi [Name], this is [Agent] — saw your inquiry on [source]. Are you still looking in [area]? Happy to send a few matches today.",
+          "Hi [Name], this is [Agent] - saw your inquiry on [source]. Are you still looking in [area]? Happy to send a few matches today.",
           "Hey [Name], got your message about [property/area]. When's a good time for a quick 5-min call?",
-          "[Name], thanks for reaching out! Quick question — are you pre-approved or still exploring?",
+          "[Name], thanks for reaching out! Quick question - are you pre-approved or still exploring?",
         ],
       },
       {
         h2: "Nurture check-ins",
         bullets: [
           "Hi [Name], a home just listed on [street] that matches what you described. Want the details?",
-          "Hey [Name], still thinking about [buying/selling] in [area]? No pressure — just checking in.",
+          "Hey [Name], still thinking about [buying/selling] in [area]? No pressure - just checking in.",
           "[Name], rates shifted this week. Want a quick update on what that means for your search?",
         ],
       },
@@ -308,7 +308,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
         h2: "Re-engagement",
         bullets: [
           "Hi [Name], we spoke a while back about [area]. Still on your radar or should I close the file?",
-          "Hey [Name], a neighbor on [street] just sold above asking. Made me think of you — still interested?",
+          "Hey [Name], a neighbor on [street] just sold above asking. Made me think of you - still interested?",
           "[Name], I've helped a few buyers in [area] this month. Want me to keep you on my update list?",
         ],
       },
@@ -334,7 +334,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Facebook leads go cold faster than almost any source",
         paragraphs: [
-          "Meta leads often come from casual scrollers — not people actively searching on Zillow. Speed and persistence matter even more. After import, enroll them in a timely first touch and plan a longer nurture sequence.",
+          "Meta leads often come from casual scrollers - not people actively searching on Zillow. Speed and persistence matter even more. After import, enroll them in a timely first touch and plan a longer nurture sequence.",
         ],
       },
       {
@@ -357,7 +357,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Track ROI by source",
         paragraphs: [
-          "Tag every Facebook lead in your CRM so you know cost-per-conversation and cost-per-close — not just cost-per-lead.",
+          "Tag every Facebook lead in your CRM so you know cost-per-conversation and cost-per-close - not just cost-per-lead.",
         ],
       },
     ],
@@ -367,7 +367,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     path: "/resources/real-estate-crm-vs-spreadsheet",
     title: "Real Estate CRM vs. Spreadsheet: When Should You Switch?",
     description:
-      "Signs you've outgrown spreadsheets for lead management — and what a real estate CRM like ARI adds that Excel and Google Sheets can't.",
+      "Signs you've outgrown spreadsheets for lead management - and what a real estate CRM like ARI adds that Excel and Google Sheets can't.",
     publishedAt: "2026-10-02",
     readTimeMinutes: 6,
     category: "CRM",
@@ -376,7 +376,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Spreadsheets work until they don't",
         paragraphs: [
-          "A spreadsheet is fine for your first dozen leads. Once you're buying portal leads, running ads, and juggling showings, manual tracking breaks down — leads get missed, follow-up is inconsistent, and history lives in scattered texts.",
+          "A spreadsheet is fine for your first dozen leads. Once you're buying portal leads, running ads, and juggling showings, manual tracking breaks down - leads get missed, follow-up is inconsistent, and history lives in scattered texts.",
         ],
       },
       {
@@ -400,9 +400,9 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
   "why-real-estate-leads-go-cold": {
     slug: "why-real-estate-leads-go-cold",
     path: "/resources/why-real-estate-leads-go-cold",
-    title: "Why Real Estate Leads Go Cold — and How to Prevent It",
+    title: "Why Real Estate Leads Go Cold - and How to Prevent It",
     description:
-      "The top reasons real estate leads stop responding — slow follow-up, wrong channel, no nurture system — and how to fix each one.",
+      "The top reasons real estate leads stop responding - slow follow-up, wrong channel, no nurture system - and how to fix each one.",
     publishedAt: "2026-10-02",
     readTimeMinutes: 7,
     category: "Lead follow-up",
@@ -411,7 +411,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Leads rarely go cold because they're not interested",
         paragraphs: [
-          "Most leads go cold because follow-up stopped too soon, response was too slow, or the agent disappeared after the first conversation. The interest was real — the system wasn't.",
+          "Most leads go cold because follow-up stopped too soon, response was too slow, or the agent disappeared after the first conversation. The interest was real - the system wasn't.",
         ],
       },
       {
@@ -443,7 +443,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     path: "/resources/how-quickly-should-realtors-respond-to-leads",
     title: "How Quickly Should Realtors Respond to Online Leads?",
     description:
-      "Data-backed response time benchmarks for real estate leads — why minutes matter and how automation makes speed-to-lead achievable.",
+      "Data-backed response time benchmarks for real estate leads - why minutes matter and how automation makes speed-to-lead achievable.",
     publishedAt: "2026-10-02",
     readTimeMinutes: 5,
     category: "Lead follow-up",
@@ -452,13 +452,13 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Minutes, not hours",
         paragraphs: [
-          "Research on sales response time suggests contact rates often drop as minutes pass. For paid portal and ad leads, aim for the fastest acknowledgment you can sustain — often via a configured first SMS after import.",
+          "Research on sales response time suggests contact rates often drop as minutes pass. For paid portal and ad leads, aim for the fastest acknowledgment you can sustain - often via a configured first SMS after import.",
         ],
       },
       {
         h2: "What 'response' means",
         paragraphs: [
-          "A response doesn't have to be a 30-minute consultation. An automated text — 'Hi [Name], got your inquiry, I'll call you in 20 minutes' — counts and buys critical time.",
+          "A response doesn't have to be a 30-minute consultation. An automated text - 'Hi [Name], got your inquiry, I'll call you in 20 minutes' - counts and buys critical time.",
         ],
       },
       {
@@ -474,7 +474,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     path: "/resources/30-day-real-estate-lead-follow-up-plan",
     title: "A 30-Day Real Estate Lead Follow-Up Plan",
     description:
-      "A day-by-day follow-up plan for new real estate leads — texts, emails, calls, and voicemails mapped across 30 days.",
+      "A day-by-day follow-up plan for new real estate leads - texts, emails, calls, and voicemails mapped across 30 days.",
     publishedAt: "2026-10-02",
     readTimeMinutes: 8,
     category: "Lead follow-up",
@@ -502,7 +502,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
         bullets: [
           "Day 10: Market update email",
           "Day 12: Ringless voicemail",
-          "Day 14: Text — offer brief phone consult",
+          "Day 14: Text - offer brief phone consult",
         ],
       },
       {
@@ -511,13 +511,13 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
           "Day 18: Email with social proof (review, closing story)",
           "Day 21: Text check-in",
           "Day 25: Voicemail",
-          "Day 30: Final touch — 'Should I close your file or keep sending updates?'",
+          "Day 30: Final touch - 'Should I close your file or keep sending updates?'",
         ],
       },
       {
         h2: "Automate the plan in ARI",
         paragraphs: [
-          "Load this cadence as an automated sequence in ARI. You handle replies; the system handles timing. Start your free trial — white-glove setup is included on every plan — to launch your first 30-day campaign.",
+          "Load this cadence as an automated sequence in ARI. You handle replies; the system handles timing. Start your free trial - white-glove setup is included on every plan - to launch your first 30-day campaign.",
         ],
       },
     ],

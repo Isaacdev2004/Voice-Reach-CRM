@@ -64,7 +64,7 @@ export function useVoiceAssets() {
   const assignToCampaign = async (assetId: string, campaignId: string, stepId?: string) => {
     if (!isUuid(campaignId)) {
       throw new Error(
-        "Pick a real campaign from Campaigns first — demo placeholders can’t be linked.",
+        "Pick a real campaign from Campaigns first - demo placeholders can’t be linked.",
       );
     }
     if (!isUuid(assetId)) {

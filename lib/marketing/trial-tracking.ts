@@ -58,7 +58,7 @@ export function consumePendingStartTrial() {
   fireStartTrialOnce();
 }
 
-/** After /api/billing/claim succeeds — page load on dashboard, inline if already there. */
+/** After /api/billing/claim succeeds - page load on dashboard, inline if already there. */
 export function handleTrialClaimSuccess(payload: TrialTrackingPayload) {
   if (!payload.trialing) return;
 

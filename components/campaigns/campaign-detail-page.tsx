@@ -215,8 +215,8 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     if (envelope.success) {
       showToast(
         next === "mock"
-          ? "Campaign is in Simulation — nothing will hit real phones."
-          : "Campaign is LIVE — click Launch campaign when you are ready for the scheduler to send.",
+          ? "Campaign is in Simulation - nothing will hit real phones."
+          : "Campaign is LIVE - click Launch campaign when you are ready for the scheduler to send.",
       );
       void refresh();
     } else {
@@ -259,8 +259,8 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     if (envelope.success) {
       showToast(
         liveLaunched
-          ? "Campaign launched — scheduler can deliver LIVE steps."
-          : "Campaign paused — LIVE steps will not send until you Launch again.",
+          ? "Campaign launched - scheduler can deliver LIVE steps."
+          : "Campaign paused - LIVE steps will not send until you Launch again.",
       );
       void refresh();
     } else {
@@ -308,7 +308,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
       if (!ok) return;
     } else if (isLive) {
       const ok = window.confirm(
-        "Run the scheduler for this account?\n\nThis LIVE campaign is launched — due steps may send real SMS / voicemails / emails.",
+        "Run the scheduler for this account?\n\nThis LIVE campaign is launched - due steps may send real SMS / voicemails / emails.",
       );
       if (!ok) return;
     }
@@ -444,7 +444,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             </span>
             {campaign.provider === "mock" ? (
               <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
-                Simulation — not live phone/SMS
+                Simulation - not live phone/SMS
               </span>
             ) : campaign.live_launched ? (
               <span className="rounded-full bg-error/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-error">
@@ -597,7 +597,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             label: "Live send provider",
             hint: liveReady
               ? `Sending via ${campaign.provider}`
-              : "Simulation mode — set VOICE_PROVIDER to slybroadcast/twilio for live.",
+              : "Simulation mode - set VOICE_PROVIDER to slybroadcast/twilio for live.",
           },
           {
             ok: liveReady ? Boolean(campaign.live_launched) : true,
@@ -692,7 +692,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             <h2 className="font-serif text-[22px] font-semibold text-ink">People on this campaign</h2>
             <p className="mt-1 text-[13px] text-taupe">
               {counts.total === 0
-                ? "No one enrolled yet — add contacts to start outreach."
+                ? "No one enrolled yet - add contacts to start outreach."
                 : `${counts.total} recipient${counts.total === 1 ? "" : "s"} enrolled`}
             </p>
           </div>
@@ -710,7 +710,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
           <div className="rounded-2xl border border-dashed border-outline-variant/30 bg-cream/50 px-6 py-10 text-center">
             <p className="font-serif text-[20px] font-semibold text-ink">No people yet</p>
             <p className="mx-auto mt-2 max-w-md text-[14px] text-slate-text">
-              This saved campaign has no recipients. Add contacts here — they must have valid
+              This saved campaign has no recipients. Add contacts here - they must have valid
               consent to be eligible.
             </p>
             <button
@@ -751,7 +751,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                         <span className="font-medium text-ink">{row.name}</span>
                       )}
                     </td>
-                    <td className="py-3 pr-3 text-taupe">{row.phone || row.email || "—"}</td>
+                    <td className="py-3 pr-3 text-taupe">{row.phone || row.email || " - "}</td>
                     <td className="py-3 pr-3 capitalize text-slate-text">{row.eligibility}</td>
                     <td className="py-3 capitalize text-slate-text">
                       {row.delivery.replace(/_/g, " ")}

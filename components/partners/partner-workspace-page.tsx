@@ -132,8 +132,7 @@ export function PartnerWorkspacePage() {
           </p>
           <h1 className="mt-1 font-serif text-[36px] font-semibold text-ink">Partner workspaces</h1>
           <p className="mt-2 max-w-2xl text-[15px] text-slate-text">
-            Co-brand campaigns with lenders, approve shared assets, and run collaborative outreach —
-            without juggling external tools.
+            Co-brand campaigns with lenders, approve shared assets, and run collaborative outreach - without juggling external tools.
           </p>
         </div>
         <button

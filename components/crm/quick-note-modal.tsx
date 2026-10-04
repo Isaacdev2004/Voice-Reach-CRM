@@ -77,7 +77,7 @@ export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) 
       open={open}
       onClose={onClose}
       title="Add note"
-      description="Saved under Notes & Strategy — link to a client if you want."
+      description="Saved under Notes & Strategy - link to a client if you want."
       icon="sticky_note_2"
       size="md"
       footer={
@@ -105,7 +105,7 @@ export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) 
             className={modalInputClass}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Optional — defaults to first line"
+            placeholder="Optional - defaults to first line"
           />
         </ModalField>
 

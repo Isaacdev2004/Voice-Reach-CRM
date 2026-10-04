@@ -180,7 +180,7 @@ export function CalendarPage() {
             {greeting}
           </h1>
           <p className="mt-1 hidden text-[15px] leading-relaxed text-slate-text sm:mt-2 sm:block sm:max-w-2xl">
-            Your full schedule in one place — add events here and they sync to Google Calendar when
+            Your full schedule in one place - add events here and they sync to Google Calendar when
             connected.
           </p>
           {connected && accountEmail ? (
@@ -311,7 +311,7 @@ export function CalendarPage() {
 
       {error ? (
         <div className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
-          <p>{error.includes("invalid_grant") || error.includes("expired") ? "Your Google Calendar connection expired. Reconnect to sync live events — your in-app events still work." : error}</p>
+          <p>{error.includes("invalid_grant") || error.includes("expired") ? "Your Google Calendar connection expired. Reconnect to sync live events - your in-app events still work." : error}</p>
           {error.includes("expired") || error.includes("invalid_grant") || error.includes("Reconnect") ? (
             <button
               type="button"

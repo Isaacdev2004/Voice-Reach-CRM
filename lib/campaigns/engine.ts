@@ -186,7 +186,7 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       (campaign as { live_launched?: boolean | null } | null)?.live_launched,
     );
     if (isLiveCampaignProvider(campaign?.provider) && !launched) {
-      // Keep the run scheduled — do not skip permanently — just defer until launched.
+      // Keep the run scheduled - do not skip permanently - just defer until launched.
       executed.push({ runId: run.id, status: "deferred_not_launched" });
       continue;
     }
@@ -379,7 +379,7 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       if (!voiceAssetReady(voiceAsset)) {
         await markRun(run.id, "failed", {
           error:
-            "This voicemail step needs an approved voice recording. Link one in Voice Scripts (Use for campaign) — each voicemail step can have its own recording.",
+            "This voicemail step needs an approved voice recording. Link one in Voice Scripts (Use for campaign) - each voicemail step can have its own recording.",
         });
         executed.push({ runId: run.id, status: "failed" });
         continue;
@@ -408,7 +408,7 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       agentName: workspace.defaultSenderName || profile.fullName,
       agentPhone: profile.phone,
       brokerage: workspace.name,
-      // Prefer contact area — never use industry label ("Real Estate") as a place name
+      // Prefer contact area - never use industry label ("Real Estate") as a place name
       marketArea: contact.preferred_area || undefined,
       city: contact.preferred_area || undefined,
     };

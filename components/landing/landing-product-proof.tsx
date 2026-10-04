@@ -7,7 +7,7 @@ const PROOF_POINTS = [
   {
     icon: "dashboard" as const,
     title: "One dashboard for your pipeline",
-    body: "Contacts, campaigns, tasks, and activity history — see who needs attention next.",
+    body: "Contacts, campaigns, tasks, and activity history - see who needs attention next.",
   },
   {
     icon: "campaign" as const,
@@ -28,7 +28,7 @@ const PROOF_POINTS = [
 
 const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
 
-/** Product proof block — replaces unverified placeholder testimonials until real quotes are approved. */
+/** Product proof block - replaces unverified placeholder testimonials until real quotes are approved. */
 export function LandingProductProof() {
   return (
     <section id="proof" className="bg-ivory py-16 md:py-20 lg:py-24">
@@ -41,7 +41,7 @@ export function LandingProductProof() {
             {SITE_OFFER.primaryPromise}
           </h2>
           <p className="mx-auto mt-4 max-w-[40rem] text-[16px] leading-relaxed text-slate-text md:text-[17px]">
-            ARI is a {SITE_OFFER.positioning.primary} — not just another contact database. Organize
+            ARI is a {SITE_OFFER.positioning.primary} - not just another contact database. Organize
             leads, automate repetitive outreach, and step in when a real conversation matters.
           </p>
         </div>

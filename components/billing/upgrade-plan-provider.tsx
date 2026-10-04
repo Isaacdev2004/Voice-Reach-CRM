@@ -175,7 +175,7 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
         setToast({
           message:
             s.billing.subscriptionStatus === "active"
-              ? `Payment received — you're on ${s.billing.planName}.`
+              ? `Payment received - you're on ${s.billing.planName}.`
               : "Payment received. Activating your plan…",
           tone: "success",
         });
@@ -190,7 +190,7 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
     if (checkout === "cancel") {
       clearPendingPlan();
       setToast({
-        message: "Checkout canceled — pick a plan to unlock full access.",
+        message: "Checkout canceled - pick a plan to unlock full access.",
         tone: "error",
       });
       setOpen(true);

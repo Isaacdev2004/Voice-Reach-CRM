@@ -4,7 +4,7 @@ import { trialDaysFromEnv } from "@/lib/marketing/founding";
 import { getStripe } from "@/lib/stripe/config";
 import type Stripe from "stripe";
 
-/** SaaS / electronically supplied services — satisfies Stripe Tax + Managed Payments rules */
+/** SaaS / electronically supplied services - satisfies Stripe Tax + Managed Payments rules */
 const SAAS_TAX_CODE = "txcd_10103001";
 
 export function stripeMessage(err: unknown): string {
@@ -93,7 +93,7 @@ export async function createSubscriptionSession(params: {
         line_items: [inlinePriceItem],
       });
     }
-    // Older Stripe SDK may not accept managed_payments — retry without it but keep tax_code
+    // Older Stripe SDK may not accept managed_payments - retry without it but keep tax_code
     if (/managed_payments|unknown parameter/i.test(msg)) {
       const { managed_payments: _mp, ...withoutManaged } = baseSession;
       return await stripe.checkout.sessions.create({

@@ -30,7 +30,7 @@ type VoiceCloningStripProps = {
 const ENV_VOICE_PREFIX = "env:";
 
 const CLONE_BLOCKED_HINT =
-  "API cloning is not on your ElevenLabs plan. Use Link my voice below — paste the voice ID from ElevenCreative.";
+  "API cloning is not on your ElevenLabs plan. Use Link my voice below - paste the voice ID from ElevenCreative.";
 
 export function VoiceCloningStrip({
   scriptText,
@@ -93,7 +93,7 @@ export function VoiceCloningStrip({
     }
     if (!apiConfigured && !hasVoice) {
       setError(
-        "ElevenLabs is not configured. Add ELEVENLABS_API_KEY (sk_…) in Vercel and Redeploy — or Link my voice after the key is set.",
+        "ElevenLabs is not configured. Add ELEVENLABS_API_KEY (sk_…) in Vercel and Redeploy - or Link my voice after the key is set.",
       );
       return;
     }
@@ -344,7 +344,7 @@ export function VoiceCloningStrip({
         open={linkOpen}
         onClose={() => setLinkOpen(false)}
         title="Link my voice"
-        description="Paste the Voice ID from ElevenCreative. This works on all plans — no API cloning required."
+        description="Paste the Voice ID from ElevenCreative. This works on all plans - no API cloning required."
         icon="link"
         size="md"
         footer={

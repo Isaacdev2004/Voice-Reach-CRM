@@ -54,7 +54,7 @@ export function InAppBrowserBanner({ context = "sign-in" }: InAppBrowserBannerPr
             className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-300 bg-ivory px-4 py-2 text-[13px] font-medium text-amber-950 hover:bg-amber-100"
           >
             <Icon name="content_copy" className="text-[16px]" />
-            {copied ? "Link copied — paste in Safari" : "Copy link for Safari"}
+            {copied ? "Link copied - paste in Safari" : "Copy link for Safari"}
           </button>
         </div>
       </div>

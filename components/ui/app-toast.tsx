@@ -11,7 +11,7 @@ export type AppToastProps = {
   className?: string;
 };
 
-/** Top-center toast — visible above dashboard content without overlapping the AI launcher. */
+/** Top-center toast - visible above dashboard content without overlapping the AI launcher. */
 export function AppToast({ message, tone = "success", className }: AppToastProps) {
   return (
     <div

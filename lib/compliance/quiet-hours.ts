@@ -78,7 +78,7 @@ export function nextQuietHoursEnd(params: {
     // same-day quiet window
     minutesUntilEnd = current < e ? e - current : 24 * 60 - current + e;
   } else {
-    // wraps midnight — end is tomorrow morning if we're past start, or later tonight/morning
+    // wraps midnight - end is tomorrow morning if we're past start, or later tonight/morning
     if (current >= s) {
       minutesUntilEnd = 24 * 60 - current + e;
     } else if (current < e) {

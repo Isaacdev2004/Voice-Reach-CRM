@@ -237,7 +237,7 @@ export function ActivityLogsPage() {
 
       {loadError ? (
         <p className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
-          {loadError} — showing cached or demo entries when available.
+          {loadError} - showing cached or demo entries when available.
         </p>
       ) : null}
 
@@ -452,7 +452,7 @@ export function ActivityLogsPage() {
       </LuxuryCard>
 
       <p className="text-center text-[13px] text-taupe">
-        Events sync from your account actions — contacts, campaigns, voice, and automations.
+        Events sync from your account actions - contacts, campaigns, voice, and automations.
       </p>
 
       <ActivityDetailModal

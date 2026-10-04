@@ -272,7 +272,7 @@ export function AddCampaignPeopleModal({
                                 <span className="min-w-0 flex-1">
                                   <span className="block font-medium text-ink">{name}</span>
                                   <span className="block truncate text-[12px] text-taupe">
-                                    {c.phone ?? c.email ?? "—"}
+                                    {c.phone ?? c.email ?? " - "}
                                     {!eligible ? " · Not eligible" : ""}
                                   </span>
                                 </span>

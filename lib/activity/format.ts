@@ -1,7 +1,7 @@
 export function formatRelativeTime(iso: string): string {
   const then = new Date(iso).getTime();
   const diff = Date.now() - then;
-  if (Number.isNaN(then)) return "—";
+  if (Number.isNaN(then)) return " - ";
 
   const sec = Math.floor(diff / 1000);
   if (sec < 60) return sec <= 1 ? "Just now" : `${sec}s ago`;
@@ -20,7 +20,7 @@ export function formatRelativeTime(iso: string): string {
 
 export function formatAbsoluteTime(iso: string): string {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return " - ";
   return d.toLocaleString(undefined, {
     weekday: "short",
     month: "short",

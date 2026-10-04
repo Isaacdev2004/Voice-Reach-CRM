@@ -9,7 +9,7 @@ import { PRODUCT_NAV_LINKS } from "@/lib/seo/marketing-nav";
 export const metadata: Metadata = pageMetadata({
   title: "Contact & Support",
   description:
-    "Contact ARI CRM for onboarding help, billing questions, or brokerage walkthroughs. Email hello@myari.io or send a message — white-glove setup included on every plan.",
+    "Contact ARI CRM for onboarding help, billing questions, or brokerage walkthroughs. Email hello@myari.io or send a message - white-glove setup included on every plan.",
   path: "/contact",
 });
 
@@ -40,7 +40,7 @@ export default function ContactPage() {
           <div>
             <p className="text-[11px] font-bold uppercase tracking-widest text-taupe">Onboarding</p>
             <p className="mt-2 text-[15px] text-slate-text md:text-[16px]">
-              After you sign up, we schedule a setup call — lead import, first campaign, and pipeline
+              After you sign up, we schedule a setup call - lead import, first campaign, and pipeline
               configuration included.
             </p>
           </div>
@@ -69,9 +69,6 @@ export default function ContactPage() {
             ))}
             <Link href="/pricing" className="text-[14px] font-medium text-rose-gold-deep hover:underline">
               Pricing
-            </Link>
-            <Link href="/about" className="text-[14px] font-medium text-rose-gold-deep hover:underline">
-              About
             </Link>
           </nav>
         </div>

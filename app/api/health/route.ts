@@ -31,6 +31,6 @@ export const GET = withApiHandler(async () => {
     message:
       supabase && clerk
         ? "All core services configured."
-        : "Some production credentials are missing — dashboard data will not load until they are set on Vercel.",
+        : "Some production credentials are missing - dashboard data will not load until they are set on Vercel.",
   });
 });

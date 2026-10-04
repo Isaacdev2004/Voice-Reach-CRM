@@ -78,7 +78,7 @@ export function CompliancePanel({ databaseUnavailable = false }: CompliancePanel
       setAuditSummary(
         attention === 0
           ? `All ${data.total} contacts passed eligibility checks.`
-          : `${attention} issue(s) across ${data.total} contacts — ${data.eligible} eligible for outreach.`,
+          : `${attention} issue(s) across ${data.total} contacts - ${data.eligible} eligible for outreach.`,
       );
     } catch {
       setAuditSummary("Audit finished with errors. Try again.");

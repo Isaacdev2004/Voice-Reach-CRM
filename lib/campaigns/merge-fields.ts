@@ -34,7 +34,7 @@ export const MERGE_FIELD_GUIDE: { token: string; meaning: string; auto: boolean 
   { token: "[Brokerage]", meaning: "Workspace name", auto: true },
   {
     token: "[Comp1Address]",
-    meaning: "Manual — paste real comps into the step before sending",
+    meaning: "Manual - paste real comps into the step before sending",
     auto: false,
   },
 ];
@@ -146,7 +146,7 @@ export function applyMergeFields(template: string, ctx: MergeFieldContext): stri
     });
 }
 
-/** Tokens still present after merge — usually comps / listing stats the agent must fill. */
+/** Tokens still present after merge - usually comps / listing stats the agent must fill. */
 export function findUnresolvedMergeFields(text: string): string[] {
   if (!text) return [];
   const found = new Set<string>();

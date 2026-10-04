@@ -25,7 +25,7 @@ const TONE_DESCRIPTIONS: Record<NonNullable<AiContext["tone"]>, string> = {
   warm: "warm, friendly, personal",
   professional: "professional and respectful",
   concise: "concise and direct",
-  luxury: "elegant, calm, and discreet — fitting luxury real estate",
+  luxury: "elegant, calm, and discreet - fitting luxury real estate",
 };
 
 export function systemPromptFor(task: AiTaskType): string {

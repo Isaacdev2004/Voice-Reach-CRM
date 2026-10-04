@@ -16,7 +16,6 @@ export { INDEXABLE_PATHS, type IndexablePath } from "@/lib/seo/indexable-paths";
 export const PUBLIC_ROUTE_PATTERNS = [
   "/",
   "/contact",
-  "/about",
   "/pricing",
   "/real-estate-crm",
   "/lead-follow-up",

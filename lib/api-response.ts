@@ -41,8 +41,7 @@ export function apiError(
 }
 
 /**
- * Wrap a route handler. Always returns a structured JSON envelope —
- * never an empty body / undefined. Fixes "Unexpected end of JSON input".
+ * Wrap a route handler. Always returns a structured JSON envelope - * never an empty body / undefined. Fixes "Unexpected end of JSON input".
  */
 export function withApiHandler<TContext = unknown>(
   handler: (request: Request, context: TContext) => Promise<NextResponse | Response>,
@@ -67,7 +66,7 @@ export function withApiHandler<TContext = unknown>(
       }
       if (err instanceof Error && err.message.startsWith("Missing ")) {
         return apiError(
-          "Database not connected yet. Production credentials are being configured — please check back shortly.",
+          "Database not connected yet. Production credentials are being configured - please check back shortly.",
           { status: 503, code: "service_unconfigured" },
         );
       }

@@ -9,7 +9,7 @@ import { pageMetadata } from "@/lib/seo/metadata";
 export const metadata: Metadata = pageMetadata({
   title: "ARI CRM Features for Real Estate Agents",
   description:
-    "Explore every ARI CRM feature — ringless voicemail, campaign builder, lead management, Notes & Strategy, mortgage calculator, Property Finder, email updates, Dotloop, and more.",
+    "Explore every ARI CRM feature - ringless voicemail, campaign builder, lead management, Notes & Strategy, mortgage calculator, Property Finder, email updates, Dotloop, and more.",
   path: "/features",
 });
 
@@ -26,11 +26,11 @@ export default function FeaturesIndexPage() {
       <section className="hero-gradient py-12 md:py-16">
         <div className="landing-shell mx-auto max-w-[44rem] text-center">
           <h1 className="font-serif text-[2.25rem] font-semibold text-ink md:text-[2.75rem]">
-            Everything inside ARI — from first lead to closed deal
+            Everything inside ARI - from first lead to closed deal
           </h1>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
             Organized by job-to-be-done: capture and manage leads, automate follow-up, run agent
-            tools, and connect integrations — the same workflow agents use after sign-in, from first
+            tools, and connect integrations - the same workflow agents use after sign-in, from first
             inquiry to closed deal.
           </p>
         </div>

@@ -1,6 +1,6 @@
 import type { PlanId } from "./plans";
 
-/** Public plan capability definitions — keep aligned with pricing page and in-app limits. */
+/** Public plan capability definitions - keep aligned with pricing page and in-app limits. */
 export const PLAN_ENTITLEMENTS: Record<
   PlanId,
   {
@@ -14,7 +14,7 @@ export const PLAN_ENTITLEMENTS: Record<
 > = {
   starter: {
     campaigns:
-      "CRM, pipeline, and tasks. Individual SMS/RVM sends on pay-as-you-go — not included multi-step campaign allotments.",
+      "CRM, pipeline, and tasks. Individual SMS/RVM sends on pay-as-you-go - not included multi-step campaign allotments.",
     sms: "Pay-as-you-go SMS ($0.03 each). Manual sends and one-off texts from the contact record.",
     rvm: "Pay-as-you-go ringless voicemail ($0.10 each). Manual or single-step drops.",
     email: "Up to 1,000 emails per month included. Suitable for individual and bulk sends from the CRM.",
@@ -50,4 +50,4 @@ export const PLAN_ENTITLEMENTS: Record<
 };
 
 export const ENGAGEMENT_SCORING_DEFINITION =
-  "Engagement scoring highlights contacts with recent replies, message activity, or pipeline movement — helping you prioritize personal follow-up. Available on Pro and Team.";
+  "Engagement scoring highlights contacts with recent replies, message activity, or pipeline movement - helping you prioritize personal follow-up. Available on Pro and Team.";

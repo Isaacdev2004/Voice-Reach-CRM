@@ -195,8 +195,8 @@ async function runAction(
       const rawBody =
         String(action.config.body ?? action.config.message ?? "") ||
         (channel === "email"
-          ? "Following up — reply anytime if you have questions."
-          : "Hi — just following up. Reply STOP to opt out.");
+          ? "Following up - reply anytime if you have questions."
+          : "Hi - just following up. Reply STOP to opt out.");
       const merged = applyMergeFields(rawBody, {
         contact,
         agentName: workspace.defaultSenderName || profile.fullName,
@@ -276,7 +276,7 @@ async function runAction(
           .eq("owner_id", ownerId)
           .maybeSingle();
         // Automations may add someone to the recipient list only.
-        // Step runs are scheduled when you activate/add people or click Launch — never from cron.
+        // Step runs are scheduled when you activate/add people or click Launch - never from cron.
         await supabaseAdmin
           .from("contacts")
           .update({

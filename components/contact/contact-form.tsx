@@ -73,7 +73,7 @@ export function ContactForm({ defaultSubject = "ARI inquiry" }: ContactFormProps
       >
         <p className="font-serif text-[22px] font-semibold text-ink">Message sent</p>
         <p className="mt-2 text-[15px] text-slate-text">
-          Thanks — we typically reply within one business day to {SITE_OFFER.supportEmail}.
+          Thanks - we typically reply within one business day to {SITE_OFFER.supportEmail}.
         </p>
         <button
           type="button"
@@ -94,7 +94,7 @@ export function ContactForm({ defaultSubject = "ARI inquiry" }: ContactFormProps
       <div>
         <p className="text-[11px] font-bold uppercase tracking-widest text-taupe">Send a message</p>
         <p className="mt-2 text-[15px] text-slate-text">
-          For onboarding, billing, or brokerage walkthroughs — we typically reply within one business day.
+          For onboarding, billing, or brokerage walkthroughs - we typically reply within one business day.
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">

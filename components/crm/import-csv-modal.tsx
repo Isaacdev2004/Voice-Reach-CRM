@@ -95,7 +95,7 @@ export function ImportCsvModal({ open, onClose, onSuccess }: ImportCsvModalProps
 
       if (imported === 0 && rowErrors.length > 0) {
         setError(
-          `No contacts imported. ${rowErrors.length} row${rowErrors.length === 1 ? "" : "s"} skipped — see details below.`,
+          `No contacts imported. ${rowErrors.length} row${rowErrors.length === 1 ? "" : "s"} skipped - see details below.`,
         );
       } else if (imported === 0) {
         setError("No contacts were imported. Check that your CSV has firstName and phone columns.");

@@ -142,7 +142,7 @@ export const POST = withApiHandler(async (request) => {
     .select("*")
     .single();
 
-  // Older DBs may not have category yet — retry without it
+  // Older DBs may not have category yet - retry without it
   if (contactError?.message?.toLowerCase().includes("category")) {
     const retry = await supabaseAdmin.from("contacts").insert(baseRow).select("*").single();
     contact = retry.data;

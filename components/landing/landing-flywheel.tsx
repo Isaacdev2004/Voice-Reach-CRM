@@ -174,7 +174,7 @@ export function LandingFlywheel() {
             Your Leads. Your Pipeline. One Simple CRM.
           </h2>
           <p className="mt-3 text-[17px] text-slate-text lg:text-[18px]">
-            A simple, automated cycle that turns more leads into clients — capture, follow up,
+            A simple, automated cycle that turns more leads into clients - capture, follow up,
             nurture, and re-engage from one real estate CRM.
           </p>
         </div>

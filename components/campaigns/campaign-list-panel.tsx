@@ -117,7 +117,7 @@ export function CampaignListPanel() {
             </h2>
             <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-taupe">
               Cold re-engage, long-term nurture, listing alerts, speed-to-lead, engaged-no-tour,
-              and post-tour — ready to install with one click.
+              and post-tour - ready to install with one click.
             </p>
           </div>
           <button

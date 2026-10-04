@@ -77,7 +77,7 @@ export function NotesPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Notes</p>
           <h1 className="font-serif text-[36px] font-semibold text-ink">Client notes</h1>
           <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-slate-text">
-            Capture showing takeaways, preferences, and follow-ups — linked to a contact or kept
+            Capture showing takeaways, preferences, and follow-ups - linked to a contact or kept
             general.
           </p>
         </div>
@@ -207,7 +207,7 @@ function QuickNoteEditor({
       open={open}
       onClose={onClose}
       title="Add note"
-      description="Save a client note — linked to a contact or kept general."
+      description="Save a client note - linked to a contact or kept general."
       icon="sticky_note_2"
       size="md"
       footer={

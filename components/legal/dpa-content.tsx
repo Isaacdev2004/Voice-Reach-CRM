@@ -47,8 +47,7 @@ export function DpaContent() {
 
       <LegalSection title="4. Categories of Data Subjects">
         <p>
-          Individuals whose contact information you upload or generate through the Service —
-          typically your leads, clients, prospects, or other business contacts.
+          Individuals whose contact information you upload or generate through the Service - typically your leads, clients, prospects, or other business contacts.
         </p>
       </LegalSection>
 

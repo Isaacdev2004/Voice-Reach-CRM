@@ -34,7 +34,7 @@ export default function ResourcesHubPage() {
           </h1>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
             Practical strategies for agents who want better follow-up, stronger pipelines, and more
-            closed deals — from the team behind ARI CRM.
+            closed deals - from the team behind ARI CRM.
           </p>
         </div>
       </section>

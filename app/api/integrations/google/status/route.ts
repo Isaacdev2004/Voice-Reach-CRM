@@ -22,7 +22,7 @@ export const GET = withApiHandler(async () => {
       calendarId: null,
       lastUpdated: null,
       setupError: missingTable
-        ? "Database table missing — run supabase/schema-calendar.sql in Supabase."
+        ? "Database table missing - run supabase/schema-calendar.sql in Supabase."
         : error.message,
     });
   }

@@ -98,7 +98,7 @@ export function ClerkSignUp() {
         </p>
         <h2 className="mt-2 font-serif text-[28px] font-semibold text-ink">Create your account</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
-          Email and password only. We&apos;ll reach out within 24 hours for white-glove setup — lead
+          Email and password only. We&apos;ll reach out within 24 hours for white-glove setup - lead
           import, first campaign, and pipeline configuration included.
         </p>
       </div>

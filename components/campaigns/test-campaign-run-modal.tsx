@@ -159,7 +159,7 @@ export function TestCampaignRunModal({
           >
             <p className="font-medium text-ink">Simulation</p>
             <p className="mt-1 text-taupe">
-              Marks steps complete in ARI — does <strong>not</strong> text or call the phone.
+              Marks steps complete in ARI - does <strong>not</strong> text or call the phone.
             </p>
           </button>
           <button
@@ -259,7 +259,7 @@ export function TestCampaignRunModal({
                       <span className="min-w-0 flex-1">
                         <span className="block font-medium text-ink">{name}</span>
                         <span className="block truncate text-[12px] text-taupe">
-                          {c.phone ?? c.email ?? "—"}
+                          {c.phone ?? c.email ?? " - "}
                         </span>
                       </span>
                     </button>

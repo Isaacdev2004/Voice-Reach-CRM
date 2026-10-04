@@ -1,4 +1,4 @@
-/** Additional feature pages — merged into FEATURE_PAGES in feature-pages.ts */
+/** Additional feature pages - merged into FEATURE_PAGES in feature-pages.ts */
 export const ADDITIONAL_FEATURE_PAGES = {
   "ringless-voicemail": {
     slug: "ringless-voicemail",
@@ -6,16 +6,16 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Ringless Voicemail for Real Estate Agents",
     description:
-      "Send ringless voicemail drops to real estate leads with ARI — personalized voice messages in automated campaigns without interrupting prospects.",
+      "Send ringless voicemail drops to real estate leads with ARI - personalized voice messages in automated campaigns without interrupting prospects.",
     h1: "Ringless Voicemail That Gets Heard",
     eyebrow: "Ringless voicemail",
     intro:
-      "Voicemail cuts through when texts get ignored. ARI delivers ringless voicemail (RVM) as part of your follow-up sequences — with scripts and AI voice you control.",
+      "Voicemail cuts through when texts get ignored. ARI delivers ringless voicemail (RVM) as part of your follow-up sequences - with scripts and AI voice you control.",
     sections: [
       {
         h2: "Voice follow-up without the cold call",
         paragraphs: [
-          "Many leads won't answer unknown numbers but will listen to a voicemail on their own time. Ringless voicemail drops your message directly to voicemail — no phone ringing, no awkward interruption.",
+          "Many leads won't answer unknown numbers but will listen to a voicemail on their own time. Ringless voicemail drops your message directly to voicemail - no phone ringing, no awkward interruption.",
           "Pair RVM with SMS and email in the same campaign so every lead gets the channel that works for them.",
         ],
       },
@@ -47,11 +47,11 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Voice Script Studio for Real Estate Campaigns",
     description:
-      "Write, generate, and approve voice scripts for ringless voicemail in ARI Voice Studio — edit scripts per campaign step and preview before send.",
+      "Write, generate, and approve voice scripts for ringless voicemail in ARI Voice Studio - edit scripts per campaign step and preview before send.",
     h1: "Voice Scripts & AI Audio for Every Campaign Step",
     eyebrow: "Voice Studio",
     intro:
-      "Your voicemail should sound like you — not a robot reading a bad template. Voice Studio lets you write scripts, generate audio, approve takes, and attach them to specific automation steps.",
+      "Your voicemail should sound like you - not a robot reading a bad template. Voice Studio lets you write scripts, generate audio, approve takes, and attach them to specific automation steps.",
     sections: [
       {
         h2: "Scripts that match your market",
@@ -62,7 +62,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "Approve before anything goes live",
         paragraphs: [
-          "Every recording goes through an approval step before it can be linked to a live campaign — so nothing reaches leads until you've signed off.",
+          "Every recording goes through an approval step before it can be linked to a live campaign - so nothing reaches leads until you've signed off.",
         ],
         bullets: [
           "Script editor with campaign-step linking",
@@ -87,7 +87,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Real Estate Campaign Builder & Automation Sequences",
     description:
-      "Build multi-step real estate campaigns in ARI — SMS, email, and ringless voicemail sequences with day-by-day previews and assign leads in one click.",
+      "Build multi-step real estate campaigns in ARI - SMS, email, and ringless voicemail sequences with day-by-day previews and assign leads in one click.",
     h1: "Campaign Sequences That Run While You Work",
     eyebrow: "Campaign builder",
     intro:
@@ -108,7 +108,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "From template to live outreach",
         paragraphs: [
-          "Start from proven follow-up templates, adjust scripts, connect Voice Studio recordings, and activate — your leads enter the sequence automatically.",
+          "Start from proven follow-up templates, adjust scripts, connect Voice Studio recordings, and activate - your leads enter the sequence automatically.",
         ],
       },
     ],
@@ -127,16 +127,16 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Agent tools",
     title: "Client Notes & Strategy for Real Estate Agents",
     description:
-      "Capture showing notes, buyer preferences, and follow-up strategy in ARI — linked to contacts so context is ready before every call.",
+      "Capture showing notes, buyer preferences, and follow-up strategy in ARI - linked to contacts so context is ready before every call.",
     h1: "Notes & Strategy Linked to Every Contact",
     eyebrow: "Notes & strategy",
     intro:
-      "Stop digging through texts and random apps for what a buyer said at a showing. Notes & Strategy stores takeaways, preferences, and plan-of-action notes on the contact record — or as general strategy notes for your business.",
+      "Stop digging through texts and random apps for what a buyer said at a showing. Notes & Strategy stores takeaways, preferences, and plan-of-action notes on the contact record - or as general strategy notes for your business.",
     sections: [
       {
         h2: "Context before every conversation",
         paragraphs: [
-          "Log showing feedback, spouse preferences, timeline, and objections right after the appointment. When you call back weeks later, the note is waiting on their profile — not lost in your phone.",
+          "Log showing feedback, spouse preferences, timeline, and objections right after the appointment. When you call back weeks later, the note is waiting on their profile - not lost in your phone.",
         ],
         bullets: [
           "Notes linked to contacts or kept general",
@@ -148,7 +148,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "Turn notes into action",
         paragraphs: [
-          "Pair notes with tasks and campaigns — a note about a Q2 move-in date becomes a scheduled nurture sequence and a reminder to check in next month.",
+          "Pair notes with tasks and campaigns - a note about a Q2 move-in date becomes a scheduled nurture sequence and a reminder to check in next month.",
         ],
       },
     ],
@@ -167,11 +167,11 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Agent tools",
     title: "Mortgage Calculator for Real Estate Agents",
     description:
-      "Run buyer payment estimates in ARI with live rate context — share monthly payment breakdowns with clients during showings and follow-up.",
+      "Run buyer payment estimates in ARI with live rate context - share monthly payment breakdowns with clients during showings and follow-up.",
     h1: "Mortgage Calculator Built Into Your CRM",
     eyebrow: "Mortgage calculator",
     intro:
-      "Answer \"What would my payment be?\" on the spot. ARI's mortgage calculator provides estimates only — not lender quotes. Rates may come from configured market feeds when available; taxes and insurance are editable assumptions.",
+      "Answer \"What would my payment be?\" on the spot. ARI's mortgage calculator provides estimates only - not lender quotes. Rates may come from configured market feeds when available; taxes and insurance are editable assumptions.",
     sections: [
       {
         h2: "Payment math during the conversation",
@@ -181,14 +181,14 @@ export const ADDITIONAL_FEATURE_PAGES = {
         bullets: [
           "Purchase price, down payment, rate, and term inputs",
           "Monthly payment breakdown (PITI-style estimate)",
-          "Rate context from configured market feeds when available (estimates only — not a loan offer)",
+          "Rate context from configured market feeds when available (estimates only - not a loan offer)",
           "Copy results to share in email or text follow-up",
         ],
       },
       {
         h2: "Pair with Property Finder",
         paragraphs: [
-          "Combine payment estimates with saved buyer criteria and property search links — so follow-up includes both numbers and listings that fit.",
+          "Combine payment estimates with saved buyer criteria and property search links - so follow-up includes both numbers and listings that fit.",
         ],
       },
     ],
@@ -222,7 +222,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "Search links you can send in seconds",
         paragraphs: [
-          "Generate a property search link from saved criteria (opens an external listing search site in the buyer's browser), copy it, and drop it into an SMS, email, or campaign step — perfect for post-showing follow-up or weekly listing updates.",
+          "Generate a property search link from saved criteria (opens an external listing search site in the buyer's browser), copy it, and drop it into an SMS, email, or campaign step - perfect for post-showing follow-up or weekly listing updates.",
         ],
         bullets: [
           "Preferred area and budget per contact",
@@ -247,11 +247,11 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "CRM",
     title: "Calendar, Tasks & Showing Reminders for Agents",
     description:
-      "Manage showings, follow-up tasks, and Google Calendar sync in ARI — see what is due today and tie every task to a contact.",
+      "Manage showings, follow-up tasks, and Google Calendar sync in ARI - see what is due today and tie every task to a contact.",
     h1: "Calendar & Tasks So Nothing Gets Missed",
     eyebrow: "Calendar & tasks",
     intro:
-      "Appointments, call-backs, and showing prep live in one place. ARI Calendar and Tasks connect to your contacts — with Google Calendar sync when you connect Google in Settings.",
+      "Appointments, call-backs, and showing prep live in one place. ARI Calendar and Tasks connect to your contacts - with Google Calendar sync when you connect Google in Settings.",
     sections: [
       {
         h2: "Your day in one view",
@@ -287,16 +287,16 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Agent tools",
     title: "AI Assistant for Real Estate Follow-Up Copy",
     description:
-      "Draft SMS, email, and voice scripts with ARI's AI Assistant — powered by Claude to help agents write follow-up faster.",
+      "Draft SMS, email, and voice scripts with ARI's AI Assistant - powered by Claude to help agents write follow-up faster.",
     h1: "AI Assist for Scripts, Emails & Texts",
     eyebrow: "AI Assistant",
     intro:
-      "Writer's block kills follow-up speed. ARI's built-in AI Assistant helps draft SMS, email, and voice scripts you can edit and drop into campaigns — so you launch outreach faster without sounding generic.",
+      "Writer's block kills follow-up speed. ARI's built-in AI Assistant helps draft SMS, email, and voice scripts you can edit and drop into campaigns - so you launch outreach faster without sounding generic.",
     sections: [
       {
         h2: "Draft copy in seconds",
         paragraphs: [
-          "Describe the lead situation — new Zillow inquiry, open-house follow-up, dormant sphere contact — and get a starting script you personalize before it sends.",
+          "Describe the lead situation - new Zillow inquiry, open-house follow-up, dormant sphere contact - and get a starting script you personalize before it sends.",
         ],
         bullets: [
           "Email, SMS, and script generation",
@@ -327,22 +327,22 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "CRM",
     title: "Real Estate CRM Analytics & Activity Tracking",
     description:
-      "Track campaign performance, contact engagement, and outreach activity in ARI Analytics — see what's working in your follow-up.",
+      "Track campaign performance, contact engagement, and outreach activity in ARI Analytics - see what's working in your follow-up.",
     h1: "Analytics That Show What's Working",
     eyebrow: "Analytics",
     intro:
-      "Follow-up without feedback is guessing. ARI Analytics and Activity Logs show sends, engagement, and pipeline movement — so you know which campaigns and sources deserve more attention.",
+      "Follow-up without feedback is guessing. ARI Analytics and Activity Logs show sends, engagement, and pipeline movement - so you know which campaigns and sources deserve more attention.",
     sections: [
       {
         h2: "Campaign and channel visibility",
         paragraphs: [
-          "Review outreach activity across SMS, email, and voicemail. Activity Logs capture what was sent, when, and to whom — tied to each contact record.",
+          "Review outreach activity across SMS, email, and voicemail. Activity Logs capture what was sent, when, and to whom - tied to each contact record.",
         ],
       },
       {
         h2: "Improve over time",
         paragraphs: [
-          "See which sequences produce replies and which lead sources fill your pipeline — then double down on what converts.",
+          "See which sequences produce replies and which lead sources fill your pipeline - then double down on what converts.",
         ],
         bullets: [
           "Dashboard analytics overview",
@@ -371,18 +371,18 @@ export const ADDITIONAL_FEATURE_PAGES = {
     h1: "Automation Rules Beyond Basic Sequences",
     eyebrow: "Automation workflows",
     intro:
-      "Campaigns handle scheduled outreach. Automation workflows add rules — when a lead moves stages, goes quiet, or hits a milestone, ARI can trigger the next action automatically.",
+      "Campaigns handle scheduled outreach. Automation workflows add rules - when a lead moves stages, goes quiet, or hits a milestone, ARI can trigger the next action automatically.",
     sections: [
       {
         h2: "Rules that match your process",
         paragraphs: [
-          "Define workflows that reflect how you actually sell — nurture paths for cold leads, accelerated sequences for hot portal inquiries, and re-engagement when someone stalls.",
+          "Define workflows that reflect how you actually sell - nurture paths for cold leads, accelerated sequences for hot portal inquiries, and re-engagement when someone stalls.",
         ],
       },
       {
         h2: "Less manual babysitting",
         paragraphs: [
-          "Set the logic once and let ARI enforce consistency across your pipeline — so every lead gets the same high standard of follow-up even when you're slammed.",
+          "Set the logic once and let ARI enforce consistency across your pipeline - so every lead gets the same high standard of follow-up even when you're slammed.",
         ],
       },
     ],
@@ -401,7 +401,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Integrations",
     title: "Dotloop Integration for Real Estate Transactions",
     description:
-      "Connect Dotloop to ARI to align transaction workflows with your CRM pipeline — OAuth secure connection from Settings.",
+      "Connect Dotloop to ARI to align transaction workflows with your CRM pipeline - OAuth secure connection from Settings.",
     h1: "Dotloop Connected to Your CRM",
     eyebrow: "Dotloop integration",
     intro:
@@ -410,7 +410,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "Secure OAuth connection",
         paragraphs: [
-          "Agents connect their own Dotloop account from Workspace Settings — no shared passwords, revocable access, and tokens stored securely per user.",
+          "Agents connect their own Dotloop account from Workspace Settings - no shared passwords, revocable access, and tokens stored securely per user.",
         ],
       },
       {
@@ -435,7 +435,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Integrations",
     title: "Google Calendar Sync for Real Estate Agents",
     description:
-      "Sync Google Calendar with ARI — connect in Settings and keep showings, tasks, and follow-up appointments aligned.",
+      "Sync Google Calendar with ARI - connect in Settings and keep showings, tasks, and follow-up appointments aligned.",
     h1: "Google Calendar Sync Built In",
     eyebrow: "Google Calendar",
     intro:
@@ -444,13 +444,13 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "Connect in one minute",
         paragraphs: [
-          "OAuth sign-in from Workspace Settings — authorize once and ARI can create and reflect calendar events tied to your workflow.",
+          "OAuth sign-in from Workspace Settings - authorize once and ARI can create and reflect calendar events tied to your workflow.",
         ],
       },
       {
         h2: "Showings and follow-ups in sync",
         paragraphs: [
-          "Campaign calendar steps and task reminders work better when your Google Calendar is connected — fewer double-bookings and missed appointments.",
+          "Campaign calendar steps and task reminders work better when your Google Calendar is connected - fewer double-bookings and missed appointments.",
         ],
       },
     ],
@@ -469,16 +469,16 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Client Email Updates & Newsletter Campaigns",
     description:
-      "Send market updates, newsletters, and nurture emails to real estate clients through ARI email campaigns — draft with AI, add to sequences, or send to segments.",
+      "Send market updates, newsletters, and nurture emails to real estate clients through ARI email campaigns - draft with AI, add to sequences, or send to segments.",
     h1: "Email Updates & Newsletters for Your Database",
     eyebrow: "Email campaigns",
     intro:
-      "Stay in touch with past clients and active leads through email — market updates, newsletters, listing announcements, and nurture content. Build emails in campaigns, use AI Assist for drafts, and send to the contacts who need to hear from you.",
+      "Stay in touch with past clients and active leads through email - market updates, newsletters, listing announcements, and nurture content. Build emails in campaigns, use AI Assist for drafts, and send to the contacts who need to hear from you.",
     sections: [
       {
         h2: "Newsletter-style email in your CRM",
         paragraphs: [
-          "There is no separate newsletter app to learn. Email steps live inside the same campaign builder as SMS and voicemail — so a monthly market update or listing blast is just another step in your workflow.",
+          "There is no separate newsletter app to learn. Email steps live inside the same campaign builder as SMS and voicemail - so a monthly market update or listing blast is just another step in your workflow.",
         ],
         bullets: [
           "Email steps in multi-day campaigns",
@@ -490,7 +490,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "Share tools output with clients",
         paragraphs: [
-          "Copy mortgage calculator results, property search links, and note summaries into email follow-up — send useful content quickly after showings or consults, then track sends on the contact record.",
+          "Copy mortgage calculator results, property search links, and note summaries into email follow-up - send useful content quickly after showings or consults, then track sends on the contact record.",
         ],
       },
     ],

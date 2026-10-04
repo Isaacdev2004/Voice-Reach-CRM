@@ -27,7 +27,7 @@ export function DashboardConcierge() {
                 AI concierge · today&apos;s focus
               </p>
               <p className="mt-1.5 text-[15px] leading-relaxed text-slate-text">
-                Stay consistent — personalization keeps you top of mind.
+                Stay consistent - personalization keeps you top of mind.
               </p>
             </div>
           </div>
@@ -64,7 +64,7 @@ export function DashboardConcierge() {
         open={workspaceOpen}
         onClose={() => setWorkspaceOpen(false)}
         title="AI workspace"
-        description="Draft notes, scripts, and follow-ups — generation connects in a future release."
+        description="Draft notes, scripts, and follow-ups - generation connects in a future release."
         icon="auto_awesome"
         size="md"
         footer={

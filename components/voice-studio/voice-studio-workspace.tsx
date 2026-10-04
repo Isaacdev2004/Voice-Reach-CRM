@@ -173,7 +173,7 @@ export function VoiceStudioWorkspace() {
       setLocalRecordings(loadLocalRecordings());
       showToast(
         err instanceof Error
-          ? `${err.message} — saved locally on this device`
+          ? `${err.message} - saved locally on this device`
           : "Saved locally on this device",
         "error",
       );
@@ -210,7 +210,7 @@ export function VoiceStudioWorkspace() {
       addLocalRecording(local);
       setLocalRecordings(loadLocalRecordings());
       showToast(
-        err instanceof Error ? `${err.message} — kept local copy` : "Saved locally",
+        err instanceof Error ? `${err.message} - kept local copy` : "Saved locally",
         "error",
       );
     } finally {
@@ -404,7 +404,7 @@ export function VoiceStudioWorkspace() {
           <LuxuryCard padding="md">
             <h3 className="font-medium text-ink mb-3">Assign to campaign</h3>
             <p className="mb-3 text-[12px] leading-relaxed text-taupe">
-              Campaigns with multiple voicemail steps: tap <span className="font-medium text-ink">Use for campaign</span> once per recording — each click fills the next empty voicemail step.
+              Campaigns with multiple voicemail steps: tap <span className="font-medium text-ink">Use for campaign</span> once per recording - each click fills the next empty voicemail step.
             </p>
             {campaignsLoading ? (
               <p className="text-[13px] text-taupe">Loading campaigns…</p>
@@ -447,7 +447,7 @@ export function VoiceStudioWorkspace() {
             <div>
               <h2 className="font-serif text-[22px] font-semibold text-ink">Script &amp; AI voice</h2>
               <p className="mt-1 text-[14px] text-slate-text">
-                Write your script and generate audio in one place — then approve and link to a campaign.
+                Write your script and generate audio in one place - then approve and link to a campaign.
               </p>
             </div>
             <button
@@ -474,7 +474,7 @@ export function VoiceStudioWorkspace() {
             <p>
               <strong className="font-medium">Numbers &amp; addresses:</strong> AI voice reads digits in
               groups (e.g. &quot;6910&quot; may sound like &quot;sixty-nine ten&quot;). Spell them out for
-              clarity — &quot;six nine one zero Main Street&quot; or &quot;five five five, one two three,
+              clarity - &quot;six nine one zero Main Street&quot; or &quot;five five five, one two three,
               four five six seven.&quot;
             </p>
           </div>
@@ -493,7 +493,7 @@ export function VoiceStudioWorkspace() {
         <h2 className="font-serif text-[22px] font-semibold text-ink mb-4">Saved recordings</h2>
         {error ? (
           <p className="mb-4 rounded-xl bg-champagne px-4 py-3 text-[14px] text-taupe">
-            Cloud sync unavailable — local recordings still work. ({error})
+            Cloud sync unavailable - local recordings still work. ({error})
           </p>
         ) : null}
         {loading ? <p className="text-taupe">Loading recordings…</p> : null}

@@ -68,11 +68,11 @@ export function DemoVideo() {
             See ARI in action
           </p>
           <h2 className="mt-2 font-serif text-[32px] font-semibold text-ink md:text-[40px] lg:text-[44px]">
-            Follow Up Automatically — Without Losing the Human Touch
+            Follow Up Automatically - Without Losing the Human Touch
           </h2>
           <p className="mt-2 text-[17px] leading-relaxed text-slate-text lg:text-[18px]">
             After a contact enters ARI and joins a campaign, automated follow-up runs on your
-            schedule — you handle replies and high-intent conversations.
+            schedule - you handle replies and high-intent conversations.
           </p>
         </div>
 

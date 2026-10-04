@@ -134,7 +134,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
               src={DASHBOARD_IMAGE}
 
-              alt={`${page.h1} — ARI CRM dashboard with contacts, pipeline, and automated follow-up`}
+              alt={`${page.h1} - ARI CRM dashboard with contacts, pipeline, and automated follow-up`}
 
               width={1200}
 

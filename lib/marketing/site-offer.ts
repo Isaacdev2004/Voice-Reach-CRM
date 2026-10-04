@@ -10,7 +10,7 @@ export const SITE_OFFER = {
     eyebrow: "Real Estate CRM + Automated Follow-Up",
     headline: "Turn every lead into a real opportunity.",
     body:
-      "ARI organizes your pipeline, follows up automatically, and shows you who to contact next — so you spend less time chasing leads and more time closing.",
+      "ARI organizes your pipeline, follows up automatically, and shows you who to contact next - so you spend less time chasing leads and more time closing.",
   },
   tagline: "Lead Follow-Up on Autopilot.",
   positioning: {
@@ -18,7 +18,7 @@ export const SITE_OFFER = {
     categoryLabel: "real estate CRM",
   },
   whiteGlove: {
-    /** Matches pricing FAQ — included on every plan, not Founding-only. */
+    /** Matches pricing FAQ - included on every plan, not Founding-only. */
     includedOnAllPlans: true,
     shortLine: "White-glove setup included on every plan",
     detail:
@@ -41,14 +41,14 @@ export const SITE_OFFER = {
       "All plans include ARI CRM, pipeline management, tasks, and compliance-aware tools. Multi-step campaign automation and lead reactivation begin on Growth.",
   },
   leadIntake: {
-    /** Canonical public statement — Zillow/Realtor.com do not sync automatically today. */
+    /** Canonical public statement - Zillow/Realtor.com do not sync automatically today. */
     portalIntake:
-      "Zillow, Realtor.com, and other portal leads enter ARI through CSV export import or manual entry — not automatic portal sync. After a contact exists in ARI and is enrolled in a campaign, automated follow-up runs on the schedule you configure.",
+      "Zillow, Realtor.com, and other portal leads enter ARI through CSV export import or manual entry - not automatic portal sync. After a contact exists in ARI and is enrolled in a campaign, automated follow-up runs on the schedule you configure.",
     /** Use instead of "instant" or "real-time" unless a specific integration supports it. */
     qualified:
       "When a lead enters ARI through CSV import, manual entry, or a supported workflow, your follow-up sequence can begin on the schedule you configure.",
     smsTiming:
-      "Automated SMS can send within minutes after a contact is added to a campaign — while you are in showings or with clients.",
+      "Automated SMS can send within minutes after a contact is added to a campaign - while you are in showings or with clients.",
     enrollmentFlow:
       "Lead source → import or create contact in ARI → enroll in campaign → automated follow-up on your schedule → you handle replies.",
   },
@@ -59,7 +59,7 @@ export const SITE_OFFER = {
       "We do not use Customer Data to train models, sell to third parties, or use it for our own marketing purposes.",
   },
   integrations: {
-    /** Public product integrations — keep Privacy/Terms aligned after counsel review. */
+    /** Public product integrations - keep Privacy/Terms aligned after counsel review. */
     connected: [
       { label: "Google Calendar", href: "/features/google-calendar" },
       { label: "Dotloop", href: "/features/dotloop-integration" },
@@ -85,7 +85,7 @@ export const SITE_OFFER = {
   supportEmail: "hello@myari.io",
 } as const;
 
-/** Primary sitewide trial CTA — Audit 3 standard. */
+/** Primary sitewide trial CTA - Audit 3 standard. */
 export function primaryTrialCta() {
   return `Start My ${SITE_OFFER.trialDays}-Day Trial`;
 }
@@ -103,7 +103,7 @@ export function trialSupportLine() {
   return `${SITE_OFFER.whiteGlove.shortLine}. ${SITE_OFFER.whiteGlove.detail}`;
 }
 
-/** Subprocessors and vendors — Privacy Policy, Terms, DPA. Keep aligned with production stack. */
+/** Subprocessors and vendors - Privacy Policy, Terms, DPA. Keep aligned with production stack. */
 export const SUBPROCESSORS = [
   "Clerk (authentication)",
   "Supabase (database and storage)",
@@ -118,7 +118,7 @@ export const SUBPROCESSORS = [
   "ElevenLabs (AI voice synthesis, when configured)",
 ] as const;
 
-/** Bullet list for Privacy Policy, Terms, DPA — keep in sync with product. */
+/** Bullet list for Privacy Policy, Terms, DPA - keep in sync with product. */
 export function integrationsLegalBullets(): string[] {
   return [...SUBPROCESSORS];
 }

@@ -18,7 +18,7 @@ export function TcpaConsentContent() {
         <Link href={LEGAL_ROUTES.acceptableUse} className="text-rose-gold-deep underline">
           Acceptable Use Policy
         </Link>
-        . This Policy places compliance obligations directly on the Customer — ARI provides tools to
+        . This Policy places compliance obligations directly on the Customer - ARI provides tools to
         help you comply, but we do not verify the lawful basis of any contact list you upload, and
         you are responsible for your own compliance with the Telephone Consumer Protection Act
         (TCPA), state telemarketing laws, and carrier requirements.
@@ -28,8 +28,7 @@ export function TcpaConsentContent() {
         <p>
           The TCPA imposes statutory damages of $500 to $1,500 per violation for unauthorized
           autodialed calls or texts to a wireless number without proper consent. As the party
-          sending the message or making the call, you (the Customer) bear direct legal exposure —
-          and misuse across the platform can also result in carrier-level penalties or shutdowns
+          sending the message or making the call, you (the Customer) bear direct legal exposure - and misuse across the platform can also result in carrier-level penalties or shutdowns
           that affect all ARI customers. This is why compliance is a condition of using ARI&apos;s
           calling/texting features, not just a suggestion.
         </p>
@@ -41,7 +40,7 @@ export function TcpaConsentContent() {
           items={[
             <>
               <strong>Prior Express Written Consent</strong> for marketing/promotional calls or texts
-              using an autodialer or prerecorded voice — meaning the individual agreed in writing
+              using an autodialer or prerecorded voice - meaning the individual agreed in writing
               (which can be electronic, e.g., a checked box or submitted form) to receive such
               communications from you, at the specific number, and understood consent was not a
               condition of purchase.
@@ -78,7 +77,7 @@ export function TcpaConsentContent() {
           items={[
             "You must not contact numbers on the National Do-Not-Call Registry for marketing purposes unless an exemption applies (e.g., existing business relationship, prior express written consent).",
             "You must maintain and honor your own internal Do-Not-Call list for anyone who has asked not to be contacted, regardless of registry status.",
-            "ARI provides opt-out and suppression list tools — you are responsible for using them and keeping suppression lists current across all your campaigns.",
+            "ARI provides opt-out and suppression list tools - you are responsible for using them and keeping suppression lists current across all your campaigns.",
           ]}
         />
       </LegalSection>
@@ -87,7 +86,7 @@ export function TcpaConsentContent() {
         <LegalBulletList
           items={[
             "Every text campaign must include a clear opt-out mechanism (e.g., “Reply STOP to opt out”).",
-            "Opt-out requests must be honored within 10 business days (sooner is best practice — ARI processes STOP replies automatically where supported).",
+            "Opt-out requests must be honored within 10 business days (sooner is best practice - ARI processes STOP replies automatically where supported).",
             "For calls, honor verbal opt-out or “do not call” requests immediately and add the number to your suppression list.",
             "Re-contacting an opted-out number, even in a different campaign, is a violation.",
           ]}
@@ -132,7 +131,7 @@ export function TcpaConsentContent() {
           infrastructure), your business must complete A2P 10DLC registration before sending anything
           beyond low-volume test traffic. Unregistered senders face message filtering, throttling, or
           outright blocking by carriers. This is a business registration step, separate from ARI
-          itself — see our onboarding guide for details on completing it.
+          itself - see our onboarding guide for details on completing it.
         </p>
       </LegalSection>
 

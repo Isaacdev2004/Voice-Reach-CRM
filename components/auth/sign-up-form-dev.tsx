@@ -43,7 +43,7 @@ export function SignUpFormDev() {
       footer={
         <>
           <p className="mt-sm rounded-xl bg-surface-container-low px-sm py-xs text-center font-caption text-caption text-on-surface-variant">
-            Clerk is not configured — sign-up will take you to the dashboard for local preview only.
+            Clerk is not configured - sign-up will take you to the dashboard for local preview only.
           </p>
           <p className="mt-lg text-center font-body-md text-body-md text-on-surface-variant">
             Already have an account?{" "}

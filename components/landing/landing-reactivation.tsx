@@ -14,12 +14,12 @@ export function LandingReactivation() {
         </h2>
         <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
           ARI helps you segment and re-engage dormant leads with automated SMS, email, and
-          voicemail — turning your existing database into new conversations without buying more
+          voicemail - turning your existing database into new conversations without buying more
           leads. Consent-aware controls help you reach out responsibly.
         </p>
         <ul className="mt-8 grid gap-4 text-left sm:grid-cols-3">
           {[
-            { icon: "filter_list", title: "Segment first", body: "By source, date, or neighborhood — not a mass blast." },
+            { icon: "filter_list", title: "Segment first", body: "By source, date, or neighborhood - not a mass blast." },
             { icon: "campaign", title: "Multi-touch", body: "Structured reactivation campaigns across channels." },
             { icon: "phone_callback", title: "You call responders", body: "Replies surface for personal follow-up." },
           ].map((item) => (

@@ -1,7 +1,7 @@
 import type { ProviderAdapter, SendRequest, SendResult, WebhookEvent } from "./types";
 
 /**
- * Twilio adapter — SMS now, voice/voicemail with TwiML when configured.
+ * Twilio adapter - SMS now, voice/voicemail with TwiML when configured.
  * Required env: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER.
  */
 export const twilioProvider: ProviderAdapter = {
@@ -64,7 +64,7 @@ export const twilioProvider: ProviderAdapter = {
     }
 
     if (request.channel === "voicemail") {
-      // Twilio doesn't natively do ringless voicemail — a real prod setup uses
+      // Twilio doesn't natively do ringless voicemail - a real prod setup uses
       // <Play> via a TwiML bin. Here we fall back to mock and surface a hint.
       return {
         ok: false,

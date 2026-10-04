@@ -15,7 +15,7 @@ export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
     <div className="grid min-h-screen w-full lg:grid-cols-[1fr_1fr]">
       <AuthBrandPanel mode={mode} />
 
-      {/* Right — form */}
+      {/* Right - form */}
       <div className="flex min-h-screen flex-col bg-cream">
         <div className="flex flex-1 flex-col justify-center px-5 py-10 sm:px-10 lg:px-14 xl:px-20">
           {/* Mobile brand strip */}

@@ -18,7 +18,7 @@ export function VoiceScriptsStudioPage() {
         </p>
         <h1 className="font-serif text-[36px] font-semibold text-ink">Creator workspace</h1>
         <p className="mt-2 text-body-lg text-slate-text">
-          Record, preview, and assign scripts — voice and AI avatar drafts live side by side.
+          Record, preview, and assign scripts - voice and AI avatar drafts live side by side.
         </p>
       </header>
 

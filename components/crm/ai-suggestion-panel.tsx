@@ -33,7 +33,7 @@ export function AiSuggestionPanel({
         </div>
         <div>
           <h3 className="font-serif text-[20px] font-semibold text-ink">{title}</h3>
-          <p className="text-[12px] text-taupe">Suggestions — not automated yet</p>
+          <p className="text-[12px] text-taupe">Suggestions - not automated yet</p>
         </div>
       </div>
       <ul className="space-y-3">

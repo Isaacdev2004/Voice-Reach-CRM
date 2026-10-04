@@ -1,6 +1,6 @@
 import type { FeaturePageSlug } from "./feature-pages";
 
-/** Curated bottom-of-page CTA headings — never auto-generate from H1. */
+/** Curated bottom-of-page CTA headings - never auto-generate from H1. */
 export const FEATURE_CTA_HEADLINES: Record<FeaturePageSlug, string> = {
   "lead-management": "Try Lead Management in ARI",
   "pipeline-management": "Try Pipeline Management in ARI",

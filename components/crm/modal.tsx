@@ -20,7 +20,7 @@ type ModalProps = {
   className?: string;
 };
 
-/** Explicit pixel max-widths — avoids flex min-content collapse with w-full + max-w-* */
+/** Explicit pixel max-widths - avoids flex min-content collapse with w-full + max-w-* */
 const sizeWidth: Record<ModalSize, string> = {
   sm: "max-w-[28rem]",
   md: "max-w-[32rem]",

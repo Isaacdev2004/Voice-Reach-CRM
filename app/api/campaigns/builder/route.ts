@@ -175,6 +175,6 @@ export const POST = withApiHandler(async (request: Request) => {
     status: "queued",
     enrollment,
     schedule,
-    message: `Campaign queued — ${schedule.scheduled} step runs scheduled for ${enrollment.enrolled} contact${enrollment.enrolled === 1 ? "" : "s"}.`,
+    message: `Campaign queued - ${schedule.scheduled} step runs scheduled for ${enrollment.enrolled} contact${enrollment.enrolled === 1 ? "" : "s"}.`,
   });
 });

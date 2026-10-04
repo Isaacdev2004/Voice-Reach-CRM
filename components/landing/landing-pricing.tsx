@@ -10,7 +10,7 @@ import { trackMarketingEvent } from "@/lib/marketing/track";
 
 const SALES_EMAIL = "hello@myari.io";
 
-/** Starter, Growth (featured), Pro — Team shown as contact row below */
+/** Starter, Growth (featured), Pro - Team shown as contact row below */
 const DISPLAY_PLANS = PLAN_OPTIONS.filter((p) => p.id !== "team");
 
 function annualTotal(monthly: number) {
@@ -158,7 +158,7 @@ export function LandingPricing() {
           })}
         </div>
 
-        {/* Team tier — full width below */}
+        {/* Team tier - full width below */}
         {PLAN_OPTIONS.filter((p) => p.id === "team").map((plan) => (
           <div
             key={plan.id}
@@ -166,7 +166,7 @@ export function LandingPricing() {
           >
             <div>
               <p className="font-serif text-[18px] font-semibold text-ink">
-                {plan.name} — from ${plan.price}/mo
+                {plan.name} - from ${plan.price}/mo
               </p>
               <p className="text-[13px] text-slate-text">
                 Teams &amp; brokerages · 5 users included · pooled messaging · custom volume

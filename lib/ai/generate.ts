@@ -83,7 +83,7 @@ export async function generate(task: AiTaskType, ctx: AiContext, brief?: string)
           subject: pick(
             [
               `A quick note for you, ${name}`,
-              `Thinking of you — quick update`,
+              `Thinking of you - quick update`,
               `${name}, a curated update on your market`,
             ],
             seed,
@@ -104,13 +104,13 @@ export async function generate(task: AiTaskType, ctx: AiContext, brief?: string)
         };
       case "sms_writer":
         return {
-          body: `Hi ${name} — wanted to check in${ctx.campaignName ? ` after our ${ctx.campaignName} touchpoint` : ""}. Are you open to a quick call this week? — [Your name]`,
+          body: `Hi ${name} - wanted to check in${ctx.campaignName ? ` after our ${ctx.campaignName} touchpoint` : ""}. Are you open to a quick call this week? - [Your name]`,
         };
       case "voicemail_script":
         return {
           script: [
             `Hi ${name}, it's [Your name] from [Brokerage].`,
-            "I was thinking about you today and wanted to drop a quick note — no rush.",
+            "I was thinking about you today and wanted to drop a quick note - no rush.",
             `If ${goal.toLowerCase()} is on your mind this season, I'd love to share two thoughtful options.`,
             "Give me a call back when it's convenient. Have a great day.",
           ].join(" "),
@@ -139,12 +139,12 @@ export async function generate(task: AiTaskType, ctx: AiContext, brief?: string)
           ),
           reason: ctx.contactNotes
             ? "Based on your notes and recent engagement, a warm voice touch is most likely to convert."
-            : "Limited recent engagement — a warm, personalized touch tends to outperform email here.",
+            : "Limited recent engagement - a warm, personalized touch tends to outperform email here.",
           suggestedChannel: pick(["voicemail", "sms", "email"], seed),
         };
       case "campaign_idea":
         return {
-          name: `Luxury ${ctx.tone === "luxury" ? "discreet" : "warm"} nurture — 10 days`,
+          name: `Luxury ${ctx.tone === "luxury" ? "discreet" : "warm"} nurture - 10 days`,
           description: "Multi-touch sequence designed to keep you top of mind without overwhelm.",
           steps: [
             { type: "voicemail", title: "Warm intro voicemail", dayLabel: "Day 1", description: "25-sec personal voicemail" },

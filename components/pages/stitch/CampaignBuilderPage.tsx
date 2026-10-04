@@ -78,7 +78,7 @@ export function CampaignBuilderPage() {
     setCampaign(next);
     setDbCampaignId(null);
     setCampaignStatus("editing");
-    showToast(`“${next.name}” template loaded — edit steps, then save or activate.`);
+    showToast(`“${next.name}” template loaded - edit steps, then save or activate.`);
   }, []);
 
   useEffect(() => {
@@ -190,7 +190,7 @@ export function CampaignBuilderPage() {
         };
       });
       if (campaignStatus === "queued") setCampaignStatus("editing");
-      showToast("Step updated — click Save as template to keep it");
+      showToast("Step updated - click Save as template to keep it");
     },
     [campaignStatus],
   );
@@ -218,7 +218,7 @@ export function CampaignBuilderPage() {
       saveTemplateLocally(campaign, dbCampaignId ?? undefined);
       showToast(
         err instanceof Error
-          ? `${err.message} — saved locally on this device.`
+          ? `${err.message} - saved locally on this device.`
           : "Saved locally on this device.",
         "error",
       );
@@ -423,8 +423,7 @@ export function CampaignBuilderPage() {
               ,{" "}
               <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
                 {"{{agent_name}}"}
-              </code>{" "}
-              — they autofill from the contact and your Settings. Don&apos;t leave raw comps like
+              </code>{" "} - they autofill from the contact and your Settings. Don&apos;t leave raw comps like
               [Comp1Price] in the copy unless you paste real numbers first.
             </p>
           </div>
@@ -442,7 +441,7 @@ export function CampaignBuilderPage() {
             <Icon name="linear_scale" className="mx-auto text-[36px] text-rose-gold-deep" />
             <p className="mt-3 font-medium text-ink">No steps yet</p>
             <p className="mt-1 text-[14px] text-slate-text">
-              Add ringless voicemail, email, or SMS — skip AI video until you need it.
+              Add ringless voicemail, email, or SMS - skip AI video until you need it.
             </p>
           </div>
         ) : (
@@ -472,7 +471,7 @@ export function CampaignBuilderPage() {
               ))}
             </ul>
           ) : (
-            <p className="text-[14px] text-taupe">Optional — add goals in a future update.</p>
+            <p className="text-[14px] text-taupe">Optional - add goals in a future update.</p>
           )}
         </LuxuryCard>
 

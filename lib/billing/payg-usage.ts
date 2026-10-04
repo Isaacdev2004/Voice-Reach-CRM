@@ -9,7 +9,7 @@ type PaygChannel = "sms" | "voicemail";
 /**
  * Charge Starter (and any plan with 0 included allotment) usage onto the
  * customer's next Stripe subscription invoice via pending invoice items.
- * Growth/Pro included sends are not billed here — they use the monthly allotment.
+ * Growth/Pro included sends are not billed here - they use the monthly allotment.
  */
 export async function billPaygUsage(params: {
   ownerId: string;

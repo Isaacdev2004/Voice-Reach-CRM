@@ -32,7 +32,7 @@ export const CAMPAIGN_STEP_TYPES: StepTypeOption[] = [
     icon: "mail",
     defaultTitle: "Email",
     defaultDescription:
-      "Subject: Checking in, {{first_name}}\n\nHi {{first_name}},\n\nJust wanted to follow up and see how I can help with your search in {{area}}.\n\nHappy to send listings, answer questions, or set up a tour — no pressure.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+      "Subject: Checking in, {{first_name}}\n\nHi {{first_name}},\n\nJust wanted to follow up and see how I can help with your search in {{area}}.\n\nHappy to send listings, answer questions, or set up a tour - no pressure.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
     defaultTime: "1:00 PM",
   },
   {
@@ -41,7 +41,7 @@ export const CAMPAIGN_STEP_TYPES: StepTypeOption[] = [
     icon: "sms",
     defaultTitle: "Text Message",
     defaultDescription:
-      "Hi {{first_name}}, this is {{agent_name}} — just checking in on {{property_address}}. Want me to send options in {{area}}? Reply STOP to opt out.",
+      "Hi {{first_name}}, this is {{agent_name}} - just checking in on {{property_address}}. Want me to send options in {{area}}? Reply STOP to opt out.",
     defaultTime: "10:00 AM",
   },
   {

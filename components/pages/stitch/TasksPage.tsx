@@ -68,7 +68,7 @@ export function TasksPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Tasks</p>
           <h1 className="font-serif text-[36px] font-semibold text-ink">Follow-ups & to-dos</h1>
           <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-slate-text">
-            Create daily, weekly, or monthly reminders with notes — synced to your calendar when
+            Create daily, weekly, or monthly reminders with notes - synced to your calendar when
             Google is connected.
           </p>
         </div>

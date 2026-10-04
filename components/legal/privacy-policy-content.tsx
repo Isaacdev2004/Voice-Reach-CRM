@@ -23,11 +23,11 @@ export function PrivacyPolicyContent() {
         <LegalBulletList
           items={[
             <>
-              <strong>Account Data</strong> — information about you as a Customer (billing info, login
+              <strong>Account Data</strong> - information about you as a Customer (billing info, login
               credentials, usage data).
             </>,
             <>
-              <strong>Customer Data</strong> — the contacts, leads, call logs, message content, and
+              <strong>Customer Data</strong> - the contacts, leads, call logs, message content, and
               related records you upload to or generate through ARI (e.g., names, phone numbers,
               emails, notes, campaign activity).
             </>,

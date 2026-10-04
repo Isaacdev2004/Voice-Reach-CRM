@@ -65,7 +65,7 @@ export const POST = withApiHandler(async (request) => {
     if (slotsLeft <= 0) {
       errors.push({
         row: index + rowOffset,
-        error: "Contact limit reached for your plan — remaining rows skipped",
+        error: "Contact limit reached for your plan - remaining rows skipped",
       });
       continue;
     }

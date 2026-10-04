@@ -22,9 +22,9 @@ export type LocalRecording = {
   approved: boolean;
 };
 
-/** Neutral sample for any subscriber — edit before recording or sending. */
+/** Neutral sample for any subscriber - edit before recording or sending. */
 export const DEFAULT_VOICE_SCRIPT =
-  "Hi [FirstName], this is [Agent] with [Brokerage]. I wanted to leave a quick note and see if I can help with anything in [City] this week. No pressure — just a friendly check-in. Feel free to call or text me back when you have a moment. Talk soon.";
+  "Hi [FirstName], this is [Agent] with [Brokerage]. I wanted to leave a quick note and see if I can help with anything in [City] this week. No pressure - just a friendly check-in. Feel free to call or text me back when you have a moment. Talk soon.";
 
 export function loadScriptText(): string {
   if (typeof window === "undefined") return DEFAULT_VOICE_SCRIPT;

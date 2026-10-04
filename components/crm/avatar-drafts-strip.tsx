@@ -31,7 +31,7 @@ export function AvatarDraftsStrip({ onCreateClick }: AvatarDraftsStripProps) {
               </span>
             </div>
             <p className="mt-0.5 text-[14px] text-slate-text">
-              Video messages for campaigns — record or generate, then approve before send.
+              Video messages for campaigns - record or generate, then approve before send.
             </p>
           </div>
         </div>

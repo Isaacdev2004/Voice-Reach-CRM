@@ -38,7 +38,7 @@ export async function resolveOwnerPlan(ownerId: string): Promise<PlanOption> {
   return planById(planId) ?? planById("starter")!;
 }
 
-/** Free trial or unpaid accounts — apply hard SMS/RVM/email caps. */
+/** Free trial or unpaid accounts - apply hard SMS/RVM/email caps. */
 export async function isTrialUsagePeriod(ownerId: string): Promise<boolean> {
   const saved = await loadSavedSettings(ownerId);
   const status = saved?.billing.subscriptionStatus ?? "none";
@@ -56,7 +56,7 @@ async function countChannelSends(ownerId: string, channel: "sms" | "email" | "vo
     .gte("occurred_at", since);
 
   if (error) {
-    // Table may differ in older DBs — fall back to 0 so we don't hard-crash trials
+    // Table may differ in older DBs - fall back to 0 so we don't hard-crash trials
     return 0;
   }
   return count ?? 0;

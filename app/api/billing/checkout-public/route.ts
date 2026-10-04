@@ -5,7 +5,7 @@ import { appBaseUrl, isStripeConfigured } from "@/lib/stripe/config";
 import { z } from "zod";
 
 /**
- * Public (pre-signup) checkout — pick a plan and pay before creating an account.
+ * Public (pre-signup) checkout - pick a plan and pay before creating an account.
  * After payment, Stripe redirects to /sign-up?session_id=...&plan=...
  */
 const BodySchema = z.object({

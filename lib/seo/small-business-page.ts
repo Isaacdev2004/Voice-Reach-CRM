@@ -6,16 +6,16 @@ export const SMALL_BUSINESS_PAGE: SeoLandingPageConfig = {
   path: "/crm-for-small-business",
   title: "Simple CRM & Lead Follow-Up for Small Businesses",
   description:
-    "ARI helps small business owners organize leads, automate follow-up, and stay connected with every opportunity — without enterprise CRM complexity.",
+    "ARI helps small business owners organize leads, automate follow-up, and stay connected with every opportunity - without enterprise CRM complexity.",
   h1: "A CRM That Keeps Your Leads Moving Even When You're Busy",
   eyebrow: "CRM for small business",
   intro:
-    "Running a small business means wearing every hat. ARI gives you a simple CRM with automated SMS and email follow-up — so leads get a timely response even when you're with customers.",
+    "Running a small business means wearing every hat. ARI gives you a simple CRM with automated SMS and email follow-up - so leads get a timely response even when you're with customers.",
   sections: [
     {
       h2: "Built for owners who do it all",
       paragraphs: [
-        "Enterprise CRMs are overkill for a team of one to five. Spreadsheets break when leads pile up. ARI sits in the middle — organized contacts, automated follow-up, and a clear list of who to call today.",
+        "Enterprise CRMs are overkill for a team of one to five. Spreadsheets break when leads pile up. ARI sits in the middle - organized contacts, automated follow-up, and a clear list of who to call today.",
       ],
     },
     {
@@ -33,7 +33,7 @@ export const SMALL_BUSINESS_PAGE: SeoLandingPageConfig = {
     {
       h2: "Same engine, different positioning",
       paragraphs: [
-        "ARI's core platform powers real estate agents today. Small business owners get the same follow-up automation — lead capture, nurture, and re-engagement — without Realtor-specific language on this page.",
+        "ARI's core platform powers real estate agents today. Small business owners get the same follow-up automation - lead capture, nurture, and re-engagement - without Realtor-specific language on this page.",
         "For real estate-specific features, see our dedicated real estate CRM page.",
       ],
     },
@@ -51,7 +51,7 @@ export const SMALL_BUSINESS_PAGE: SeoLandingPageConfig = {
     },
     {
       q: "How is this different from HubSpot or Salesforce?",
-      a: "ARI focuses on follow-up automation first — not enterprise marketing suites. It's simpler, faster to set up, and priced for solo owners and small teams.",
+      a: "ARI focuses on follow-up automation first - not enterprise marketing suites. It's simpler, faster to set up, and priced for solo owners and small teams.",
     },
     {
       q: "Can I import my existing contacts?",

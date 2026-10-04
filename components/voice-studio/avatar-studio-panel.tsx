@@ -24,14 +24,14 @@ import { useEffect, useState } from "react";
 const SEED_DRAFTS: AvatarDraft[] = [
   {
     id: "seed-1",
-    title: "Elena — market update",
+    title: "Elena - market update",
     description: "Personalized video for luxury seller nurture, Day 3 touch.",
     status: "pending_approval",
     createdAt: new Date().toISOString(),
   },
   {
     id: "seed-2",
-    title: "Seller nurture — Day 2",
+    title: "Seller nurture - Day 2",
     description: "AI avatar intro with property highlights.",
     status: "pending_approval",
     createdAt: new Date().toISOString(),
@@ -69,7 +69,7 @@ export function AvatarStudioPanel() {
     if (!title.trim()) return;
     const draft = addAvatarDraft({
       title: title.trim(),
-      description: description.trim() || "Avatar message draft — pending approval before send.",
+      description: description.trim() || "Avatar message draft - pending approval before send.",
       campaignId: campaignId || undefined,
     });
     setDrafts(loadAvatarDrafts());
@@ -166,7 +166,7 @@ export function AvatarStudioPanel() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         title="Create avatar draft"
-        description="Placeholder for AI avatar video — assign to a campaign when ready."
+        description="Placeholder for AI avatar video - assign to a campaign when ready."
         icon="smart_display"
         size="lg"
         footer={
@@ -184,7 +184,7 @@ export function AvatarStudioPanel() {
               className={modalInputClass}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Elena — market update"
+              placeholder="Elena - market update"
               autoFocus
             />
           </ModalField>

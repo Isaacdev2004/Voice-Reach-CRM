@@ -63,7 +63,7 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
         icon: "verified_user",
         tone: "accent",
         title: "Compliance audit completed",
-        body: `Scanned ${total ?? 0} contacts — ${eligible ?? 0} eligible for outreach.`,
+        body: `Scanned ${total ?? 0} contacts - ${eligible ?? 0} eligible for outreach.`,
         href: "/dashboard/contacts",
         metadata: meta,
       });
@@ -90,7 +90,7 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
         tone: errors ? "warning" : "success",
         title: "CSV import completed",
         body: fileName
-          ? `"${fileName}" — ${imported ?? 0} imported${errors ? `, ${errors} skipped` : ""}.`
+          ? `"${fileName}" - ${imported ?? 0} imported${errors ? `, ${errors} skipped` : ""}.`
           : `${imported ?? 0} contacts imported.`,
         href: "/dashboard/contacts",
         metadata: meta,
@@ -129,7 +129,7 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
         tone: "success",
         title: "Campaign activated",
         body: blueprint?.name
-          ? `"${blueprint.name}" is live — ${enrollment?.enrolled ?? 0} contacts enrolled.`
+          ? `"${blueprint.name}" is live - ${enrollment?.enrolled ?? 0} contacts enrolled.`
           : `Campaign activated with ${enrollment?.enrolled ?? 0} enrolled contacts.`,
         href: "/dashboard/campaigns",
         metadata: meta,
@@ -157,7 +157,7 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
         icon: "mic",
         tone: "accent",
         title: "Voice recording uploaded",
-        body: "New voice asset uploaded — pending approval.",
+        body: "New voice asset uploaded - pending approval.",
         href: "/dashboard/voice-scripts",
         metadata: meta,
       });
@@ -245,7 +245,7 @@ export function mapDeliveryRow(row: DeliveryRow): ActivityLogEntry | null {
     category: failed ? "compliance" : "engagement",
     icon: failed ? "block" : "voicemail",
     tone: failed ? "error" : "success",
-    title: failed ? `Delivery blocked — ${name}` : `Voicemail delivered — ${name}`,
+    title: failed ? `Delivery blocked - ${name}` : `Voicemail delivered - ${name}`,
     body: failed
       ? `${name} could not receive message in "${campaign}".`
       : `${name} received your message in "${campaign}".`,

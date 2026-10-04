@@ -325,7 +325,7 @@ export function NotesStrategyPage() {
             Notes & Strategy
           </h1>
           <p className="mt-1 text-[14px] text-slate-text">
-            Freeform like Apple Notes — first line is the title. Auto-saves as you type.
+            Freeform like Apple Notes - first line is the title. Auto-saves as you type.
           </p>
         </div>
         <button

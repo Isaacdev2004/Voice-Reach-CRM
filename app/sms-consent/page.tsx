@@ -36,7 +36,7 @@ export default function SmsConsentPage() {
           </li>
           <li>
             <strong>Verbal consent:</strong> an agent may collect verbal opt-in on a recorded or
-            documented call. The agent stores consent date, source (e.g. &ldquo;verbal — listing
+            documented call. The agent stores consent date, source (e.g. &ldquo;verbal - listing
             consult&rdquo;), and proof reference in ARI before any SMS is sent.
           </li>
           <li>

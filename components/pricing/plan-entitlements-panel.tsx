@@ -12,7 +12,7 @@ export function PlanEntitlementsPanel() {
           What each plan includes
         </h2>
         <p className="mt-3 text-[15px] leading-relaxed text-slate-text md:text-[16px]">
-          Clear entitlements — no guessing. Multi-step automated campaigns and reactivation workflows
+          Clear entitlements - no guessing. Multi-step automated campaigns and reactivation workflows
           start on Growth. Engagement scoring is on Pro and Team.
         </p>
         <div className="mt-8 space-y-6">

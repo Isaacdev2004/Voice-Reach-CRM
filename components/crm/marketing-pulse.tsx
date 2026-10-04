@@ -17,15 +17,15 @@ type PulseCard = {
 const MONTH_TRENDS: { headline: string; body: string }[] = [
   {
     headline: "Winter buyers are still touring",
-    body: "Serious shoppers don’t pause in Q1 — a strong moment to re-engage cold leads with a market snapshot.",
+    body: "Serious shoppers don’t pause in Q1 - a strong moment to re-engage cold leads with a market snapshot.",
   },
   {
     headline: "Spring luxury market heating up",
-    body: "Buyer demand for higher-end listings typically rises this quarter — re-engage past clients now.",
+    body: "Buyer demand for higher-end listings typically rises this quarter - re-engage past clients now.",
   },
   {
     headline: "Summer listing photos matter more",
-    body: "Longer days and more showings — refresh listing visuals before your next launch.",
+    body: "Longer days and more showings - refresh listing visuals before your next launch.",
   },
   {
     headline: "Fall is for past-client check-ins",

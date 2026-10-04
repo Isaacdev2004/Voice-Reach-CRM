@@ -17,7 +17,6 @@ export const MARKETING_NAV_LINKS = [
   { href: "/features", label: "Features" },
   { href: "/resources", label: "Resources" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
@@ -36,7 +35,6 @@ export const MARKETING_FOOTER_RESOURCES = [
 ] as const;
 
 export const MARKETING_FOOTER_COMPANY = [
-  { href: "/about", label: "About" },
   { href: "/pricing", label: "Pricing" },
   { href: "/contact", label: "Contact" },
 ] as const;

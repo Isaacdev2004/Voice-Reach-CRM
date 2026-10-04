@@ -7,15 +7,15 @@ import { useState } from "react";
 const FAQ_ITEMS = [
   {
     q: "How long does setup take?",
-    a: "Most agents are live within 24–48 hours. We include white-glove setup on every plan — we import your leads, configure follow-up, and walk you through the dashboard.",
+    a: "Most agents are live within 24–48 hours. We include white-glove setup on every plan - we import your leads, configure follow-up, and walk you through the dashboard.",
   },
   {
     q: "Is there a free trial?",
-    a: `Yes — ${SITE_OFFER.trialDays} days free on every plan. ${SITE_OFFER.cardRequiredNote}. Trial includes ${FOUNDING_100.trialUsageCaps.sms} SMS, ${FOUNDING_100.trialUsageCaps.rvm} voicemails, and ${FOUNDING_100.trialUsageCaps.email} emails so you can test safely.`,
+    a: `Yes - ${SITE_OFFER.trialDays} days free on every plan. ${SITE_OFFER.cardRequiredNote}. Trial includes ${FOUNDING_100.trialUsageCaps.sms} SMS, ${FOUNDING_100.trialUsageCaps.rvm} voicemails, and ${FOUNDING_100.trialUsageCaps.email} emails so you can test safely.`,
   },
   {
     q: "Can I import my existing leads?",
-    a: `Yes. CSV import is built in, and ${SITE_OFFER.whiteGlove.shortLine.toLowerCase()} — we load your database and configure your first follow-up campaign for you.`,
+    a: `Yes. CSV import is built in, and ${SITE_OFFER.whiteGlove.shortLine.toLowerCase()} - we load your database and configure your first follow-up campaign for you.`,
   },
   {
     q: "What is the Founding 100 offer?",
@@ -23,7 +23,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Can I cancel anytime?",
-    a: "Absolutely. ARI is month-to-month with no long-term contract. Cancel from your account settings — your data exports anytime.",
+    a: "Absolutely. ARI is month-to-month with no long-term contract. Cancel from your account settings - your data exports anytime.",
   },
   {
     q: "What integrations do you support?",
@@ -35,7 +35,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "What if I exceed my SMS or RVM limits?",
-    a: "Starter uses pay-as-you-go messaging. Growth and Pro include monthly allotments with transparent overage rates. Team plans get volume pricing — contact us for a quote.",
+    a: "Starter uses pay-as-you-go messaging. Growth and Pro include monthly allotments with transparent overage rates. Team plans get volume pricing - contact us for a quote.",
   },
 ];
 

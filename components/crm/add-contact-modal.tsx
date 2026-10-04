@@ -290,7 +290,7 @@ export function AddContactModal({
           {consentYes ? (
             <div className="mt-2 rounded-2xl border border-outline-variant/15 bg-cream/40 p-4">
               <p className="mb-3 text-[13px] text-slate-text">
-                Consent is <strong>Yes</strong> — date, source, and proof are required for live sends.
+                Consent is <strong>Yes</strong> - date, source, and proof are required for live sends.
               </p>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <ModalField label="Consent date" required>

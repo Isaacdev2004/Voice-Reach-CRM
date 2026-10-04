@@ -156,7 +156,7 @@ export function EditCampaignStepModal({
           <code className="rounded bg-ivory px-1 text-[12px]">{"{{first_name}}"}</code>,{" "}
           <code className="rounded bg-ivory px-1 text-[12px]">{"{{property_address}}"}</code>,{" "}
           <code className="rounded bg-ivory px-1 text-[12px]">{"{{area}}"}</code>,{" "}
-          <code className="rounded bg-ivory px-1 text-[12px]">{"{{agent_name}}"}</code> — they autofill
+          <code className="rounded bg-ivory px-1 text-[12px]">{"{{agent_name}}"}</code> - they autofill
           when the campaign runs.
         </p>
       </form>

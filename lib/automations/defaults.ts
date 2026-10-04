@@ -35,7 +35,7 @@ export const DEFAULT_WORKFLOW: AutomationWorkflow = {
       title: "If they reply or listen?",
       description: "Check engagement after first touches",
       decision: {
-        yes: { title: "Notify agent", description: "Create callback task — personal follow-up" },
+        yes: { title: "Notify agent", description: "Create callback task - personal follow-up" },
         no: { title: "Continue sequence", description: "Let email + Day 6 SMS run" },
       },
     },
