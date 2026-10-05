@@ -10,6 +10,7 @@ import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { connectDotloop } from "@/lib/connect-dotloop";
+import { DOTLOOP_APP_URL } from "@/lib/integrations/dotloop";
 import { connectGoogleCalendar } from "@/lib/connect-google-calendar";
 import { formatRelativeTime } from "@/lib/activity/format";
 import { TIMEZONE_OPTIONS } from "@/lib/settings/defaults";
@@ -662,6 +663,53 @@ export function SettingsWorkspacePage() {
                             </p>
                           </div>
                         </div>
+                        {integration.id === "dotloop" && integration.connected ? (
+                          <div className="flex shrink-0 items-center gap-2">
+                            <a
+                              href={DOTLOOP_APP_URL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="rounded-full bg-rose-gold px-5 py-2 text-[13px] font-medium text-ivory transition-opacity hover:opacity-95"
+                            >
+                              Open Dotloop
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                void (async () => {
+                                  const res = await fetch("/api/integrations/dotloop/status", {
+                                    method: "DELETE",
+                                  });
+                                  if (res.ok) {
+                                    setSettings((prev) =>
+                                      prev
+                                        ? {
+                                            ...prev,
+                                            integrations: prev.integrations.map((item) =>
+                                              item.id === "dotloop"
+                                                ? {
+                                                    ...item,
+                                                    connected: false,
+                                                    accountLabel: undefined,
+                                                    lastSync: undefined,
+                                                  }
+                                                : item,
+                                            ),
+                                          }
+                                        : prev,
+                                    );
+                                    showToast("Dotloop disconnected.");
+                                  } else {
+                                    showToast("Could not disconnect Dotloop.", "error");
+                                  }
+                                })();
+                              }}
+                              className="rounded-full border border-outline-variant/30 px-5 py-2 text-[13px] font-medium text-ink transition-colors hover:bg-ivory"
+                            >
+                              Disconnect
+                            </button>
+                          </div>
+                        ) : (
                         <button
                           type="button"
                           onClick={() => {
@@ -715,36 +763,6 @@ export function SettingsWorkspacePage() {
                               }
                               return;
                             }
-                            if (integration.id === "dotloop" && integration.connected) {
-                              void (async () => {
-                                const res = await fetch("/api/integrations/dotloop/status", {
-                                  method: "DELETE",
-                                });
-                                if (res.ok) {
-                                  setSettings((prev) =>
-                                    prev
-                                      ? {
-                                          ...prev,
-                                          integrations: prev.integrations.map((item) =>
-                                            item.id === "dotloop"
-                                              ? {
-                                                  ...item,
-                                                  connected: false,
-                                                  accountLabel: undefined,
-                                                  lastSync: undefined,
-                                                }
-                                              : item,
-                                          ),
-                                        }
-                                      : prev,
-                                  );
-                                  showToast("Dotloop disconnected.");
-                                } else {
-                                  showToast("Could not disconnect Dotloop.", "error");
-                                }
-                              })();
-                              return;
-                            }
                             if (integration.id === "claude") {
                               showToast(
                                 integration.connected
@@ -765,14 +783,13 @@ export function SettingsWorkspacePage() {
                         >
                           {integration.id === "google-calendar" && integration.connected
                             ? "Disconnect"
-                            : integration.id === "dotloop" && integration.connected
-                              ? "Disconnect"
-                              : integration.id === "claude" && integration.connected
-                                ? "Live"
-                                : integration.connected
-                                  ? "Configure"
-                                  : "Connect"}
+                            : integration.id === "claude" && integration.connected
+                              ? "Live"
+                              : integration.connected
+                                ? "Configure"
+                                : "Connect"}
                         </button>
+                        )}
                       </div>
                     ))}
                 </div>

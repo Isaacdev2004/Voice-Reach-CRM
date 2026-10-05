@@ -1,5 +1,8 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+/** Opens Dotloop in a new tab from Settings after OAuth connect. */
+export const DOTLOOP_APP_URL = "https://app.dotloop.com";
+
 export const DOTLOOP_SCOPES = [
   "account:read",
   "profile:read",
