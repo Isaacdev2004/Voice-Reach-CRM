@@ -20,10 +20,6 @@ import { breadcrumbSchema, faqPageSchema, softwareApplicationSchema } from "@/li
 
 
 
-const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
-
-
-
 type SeoLandingPageProps = {
 
   page: SeoLandingPageConfig;
@@ -132,9 +128,9 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
             <Image
 
-              src={DASHBOARD_IMAGE}
+              src={page.heroImage.src}
 
-              alt={`${page.h1} - ARI CRM dashboard with contacts, pipeline, and automated follow-up`}
+              alt={page.heroImage.alt}
 
               width={1200}
 

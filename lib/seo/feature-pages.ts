@@ -1,3 +1,4 @@
+import { HERO_IMAGES, type HeroImage } from "@/lib/marketing/hero-images";
 import { ADDITIONAL_FEATURE_PAGES } from "@/lib/seo/feature-pages-additions";
 
 export type FeaturePageSlug =
@@ -39,6 +40,7 @@ export type FeaturePageConfig = {
   highlights: Array<{ title: string; body: string }>;
   relatedProductHref: string;
   relatedProductLabel: string;
+  heroImage?: HeroImage;
 };
 
 const CORE_FEATURE_PAGES = {
@@ -87,6 +89,7 @@ const CORE_FEATURE_PAGES = {
     ],
     relatedProductHref: "/lead-follow-up",
     relatedProductLabel: "automated real estate lead follow-up",
+    heroImage: HERO_IMAGES.followUpWorkflow,
   },
   "lead-management": {
     slug: "lead-management",
@@ -311,6 +314,7 @@ const CORE_FEATURE_PAGES = {
     ],
     relatedProductHref: "/lead-reactivation",
     relatedProductLabel: "lead reactivation software",
+    heroImage: HERO_IMAGES.leadReactivationDetail,
   },
   notifications: {
     slug: "notifications",

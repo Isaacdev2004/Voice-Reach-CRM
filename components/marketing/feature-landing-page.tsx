@@ -5,13 +5,12 @@ import { JsonLd } from "@/components/marketing/json-ld";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { Icon } from "@/components/ui/icon";
+import { HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { SITE_OFFER, trialCtaLabel, trialSupportLine } from "@/lib/marketing/site-offer";
 import { FEATURE_CTA_HEADLINES } from "@/lib/seo/feature-cta-headlines";
 import { featureHeroImageClass } from "@/lib/seo/feature-hero-focus";
 import type { FeaturePageConfig } from "@/lib/seo/feature-pages";
 import { breadcrumbSchema, softwareApplicationSchema } from "@/lib/seo/schema";
-
-const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
 
 const COMPLIANCE_FEATURE_SLUGS = new Set([
   "text-automation",
@@ -29,6 +28,7 @@ type FeatureLandingPageProps = {
 };
 
 export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
+  const heroImage = page.heroImage ?? HERO_IMAGES.default;
   const schema = [
     softwareApplicationSchema({
       name: page.title,
@@ -75,8 +75,8 @@ export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
           </div>
           <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-card">
             <Image
-              src={DASHBOARD_IMAGE}
-              alt={`${page.h1} - ARI CRM feature for real estate agents`}
+              src={heroImage.src}
+              alt={heroImage.alt}
               width={1200}
               height={900}
               className={`h-auto w-full object-cover ${featureHeroImageClass(page.slug)}`}

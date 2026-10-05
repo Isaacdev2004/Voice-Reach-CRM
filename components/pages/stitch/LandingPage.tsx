@@ -11,11 +11,10 @@ import { LandingWhiteGlove } from "@/components/landing/landing-white-glove";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { Icon } from "@/components/ui/icon";
+import { HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { primaryTrialCta, SITE_OFFER, trialDisclosureLine } from "@/lib/marketing/site-offer";
 
 const { leadIntake } = SITE_OFFER;
-
-const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
 
 const HOW_IT_WORKS = [
   {
@@ -75,8 +74,8 @@ export function LandingPage() {
           <div className="relative w-full md:justify-self-end">
             <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-[0_24px_70px_rgba(26,20,16,0.16)] lg:rounded-[1.25rem]">
               <Image
-                src={DASHBOARD_IMAGE}
-                alt="ARI real estate CRM dashboard showing contacts, sales pipeline, and automated lead follow-up"
+                src={HERO_IMAGES.crmDashboard.src}
+                alt={HERO_IMAGES.crmDashboard.alt}
                 width={1200}
                 height={900}
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 52vw, 680px"

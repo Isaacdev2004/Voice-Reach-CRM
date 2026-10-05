@@ -1,3 +1,4 @@
+import { HERO_IMAGES, type HeroImage } from "@/lib/marketing/hero-images";
 import { CRM_COMPARISON_TABLE, SITE_OFFER } from "@/lib/marketing/site-offer";
 
 export type SeoPageSlug =
@@ -23,6 +24,7 @@ export type SeoLandingPageConfig = {
   faq: Array<{ q: string; a: string }>;
   relatedPages: Array<{ href: string; label: string }>;
   comparisonTable?: typeof CRM_COMPARISON_TABLE;
+  heroImage: HeroImage;
 };
 
 const SHARED_RELATED = [
@@ -156,6 +158,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/real-estate-crm"),
+    heroImage: HERO_IMAGES.crmDashboard,
   },
   "lead-follow-up": {
     slug: "lead-follow-up",
@@ -241,6 +244,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/lead-follow-up"),
+    heroImage: HERO_IMAGES.followUpWorkflow,
   },
   "realtor-lead-follow-up": {
     slug: "realtor-lead-follow-up",
@@ -331,6 +335,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/realtor-lead-follow-up"),
+    heroImage: HERO_IMAGES.followUpWorkflow,
   },
   "lead-reactivation": {
     slug: "lead-reactivation",
@@ -417,6 +422,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/lead-reactivation"),
+    heroImage: HERO_IMAGES.leadReactivation,
   },
 };
 

@@ -1,3 +1,4 @@
+import { HERO_IMAGES } from "@/lib/marketing/hero-images";
 import type { SeoLandingPageConfig } from "@/lib/seo/landing-pages";
 import { SITE_OFFER } from "@/lib/marketing/site-offer";
 
@@ -64,6 +65,7 @@ export const SMALL_BUSINESS_PAGE: SeoLandingPageConfig = {
     { href: "/real-estate-crm", label: "Real estate CRM" },
     { href: "/contact", label: "Contact us" },
   ],
+  heroImage: HERO_IMAGES.crmDashboard,
 };
 
 /** Metadata path for small business page. */

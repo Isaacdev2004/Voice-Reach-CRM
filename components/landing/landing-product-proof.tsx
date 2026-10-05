@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
+import { HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { SITE_OFFER } from "@/lib/marketing/site-offer";
 
 const PROOF_POINTS = [
@@ -26,8 +27,6 @@ const PROOF_POINTS = [
   },
 ];
 
-const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
-
 /** Product proof block - replaces unverified placeholder testimonials until real quotes are approved. */
 export function LandingProductProof() {
   return (
@@ -49,8 +48,8 @@ export function LandingProductProof() {
         <div className="mt-12 grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
           <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-card">
             <Image
-              src={DASHBOARD_IMAGE}
-              alt="ARI CRM dashboard with contacts, pipeline stages, and automated follow-up"
+              src={HERO_IMAGES.followUpWorkflow.src}
+              alt={HERO_IMAGES.followUpWorkflow.alt}
               width={1200}
               height={900}
               className="h-auto w-full object-cover object-top"
