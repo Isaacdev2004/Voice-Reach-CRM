@@ -166,7 +166,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     h1: "A Real Estate Follow-Up System That Works Even When You're Busy",
     eyebrow: "Lead follow-up system",
     intro:
-      "See how ARI turns follow-up into a repeatable system across text, email, and voicemail - so every lead gets a next step even when showings and listings fill your day.",
+      "ARI gives agents a repeatable follow-up system across SMS, email, and voicemail - so every lead has a clear next step.",
     sections: [
       {
         h2: "The follow-up problem is a systems problem",
@@ -190,7 +190,6 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
         paragraphs: [
           leadIntake.qualified,
           "You build multi-step campaigns across SMS, email, and ringless voicemail. ARI runs the schedule; you handle replies and high-intent conversations.",
-          "See how automated follow-up works inside ARI - sequence builder, channels, and controls.",
         ],
       },
       {

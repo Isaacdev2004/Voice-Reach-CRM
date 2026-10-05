@@ -8,9 +8,10 @@ export const SITE_OFFER = {
   primaryPromise: "Every lead gets a next step.",
   hero: {
     eyebrow: "Real Estate CRM + Automated Follow-Up",
-    headline: "Turn every lead into a real opportunity.",
+    headline: "A real estate CRM that helps you work every lead.",
     body:
-      "ARI organizes your pipeline, follows up automatically, and shows you who to contact next - so you spend less time chasing leads and more time closing.",
+      "Organize your contacts, manage your pipeline, automate SMS, email, and voicemail follow-up, and know exactly who needs your attention next.",
+    tagline: "Turn every lead into a real opportunity.",
   },
   tagline: "Lead Follow-Up on Autopilot.",
   positioning: {

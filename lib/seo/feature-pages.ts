@@ -52,7 +52,7 @@ const CORE_FEATURE_PAGES = {
     h1: "Automated Follow-Up That Keeps Leads Warm",
     eyebrow: "Automated follow-up",
     intro:
-      "Build automated follow-up sequences across SMS, email, and voicemail - all inside ARI. Set your sequence once; ARI delivers each touch on the schedule you configure.",
+      "Build automated follow-up sequences across SMS, email, and ringless voicemail - all inside ARI.",
     sections: [
       {
         h2: "Why automation beats manual follow-up",

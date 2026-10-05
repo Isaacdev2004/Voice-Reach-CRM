@@ -48,7 +48,7 @@ export function LandingSeoTopics() {
           </Link>
           ,{" "}
           <Link href="/features/automated-follow-up" className="font-semibold text-rose-gold-deep hover:underline">
-            product mechanics
+            automated follow-up
           </Link>
           , our{" "}
           <Link href="/resources" className="font-semibold text-rose-gold-deep hover:underline">

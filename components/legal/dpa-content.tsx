@@ -13,7 +13,8 @@ export function DpaContent() {
         <Link href={LEGAL_ROUTES.terms} className="text-rose-gold-deep underline">
           Terms of Service
         </Link>{" "}
-        between {LEGAL_ENTITY} (&ldquo;Processor,&rdquo; &ldquo;we,&rdquo; &ldquo;us&rdquo;) and the
+        between {LEGAL_ENTITY}{" "}
+        (&ldquo;Processor,&rdquo; &ldquo;we,&rdquo; &ldquo;us&rdquo;) and the
         Customer (&ldquo;Controller,&rdquo; &ldquo;you&rdquo;) and applies to the extent we process
         personal data on your behalf in connection with the Service. Capitalized terms not defined
         here have the meaning given in the Terms of Service or applicable data protection law (GDPR,

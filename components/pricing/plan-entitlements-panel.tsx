@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ENGAGEMENT_SCORING_DEFINITION, PLAN_ENTITLEMENTS } from "@/lib/billing/plan-entitlements";
 import { PLAN_OPTIONS } from "@/lib/billing/plans";
+import { SITE_OFFER } from "@/lib/marketing/site-offer";
 
 const DISPLAY_PLANS = PLAN_OPTIONS.filter((p) => p.id !== "team");
 
@@ -63,6 +64,7 @@ export function PlanEntitlementsPanel() {
           </Link>
           .
         </p>
+        <p className="mt-4 text-[14px] text-slate-text">{SITE_OFFER.plans.allPlansInclude}</p>
       </div>
     </section>
   );

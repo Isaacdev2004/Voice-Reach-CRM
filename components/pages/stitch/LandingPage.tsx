@@ -51,6 +51,9 @@ export function LandingPage() {
             <p className="mt-5 text-[16px] font-medium leading-relaxed text-ink/80 md:text-[17px] lg:text-[18px] lg:leading-[1.55]">
               {SITE_OFFER.hero.body}
             </p>
+            <p className="mt-4 font-serif text-[20px] font-semibold text-ink md:text-[22px] lg:text-[24px]">
+              {SITE_OFFER.hero.tagline}
+            </p>
             <div className="mt-8 flex flex-wrap items-center gap-4 md:mt-10">
               <StartFreeButton
                 location="hero"
@@ -67,9 +70,6 @@ export function LandingPage() {
               </a>
             </div>
             <p className="mt-8 text-[14px] text-slate-text md:text-[15px]">{trialDisclosureLine()}</p>
-            <p className="mt-3 text-[14px] font-medium text-ink/75 md:text-[15px]">
-              {SITE_OFFER.primaryPromise}
-            </p>
           </div>
 
           <div className="relative w-full md:justify-self-end">
@@ -89,8 +89,8 @@ export function LandingPage() {
       </section>
 
       <LandingFeaturesBar />
-      <LandingWhiteGlove />
       <DemoVideo />
+      <LandingWhiteGlove />
 
       {/* How it works */}
       <section id="how-it-works" className="scroll-mt-[4.25rem] bg-cream py-10 md:py-12 lg:py-14">

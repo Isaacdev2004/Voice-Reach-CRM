@@ -10,7 +10,8 @@ export function PrivacyPolicyContent() {
   return (
     <>
       <p className="mt-8 text-[15px] leading-relaxed text-slate-text">
-        This Privacy Policy explains how {LEGAL_ENTITY} (&ldquo;Company,&rdquo; &ldquo;we,&rdquo;
+        This Privacy Policy explains how {LEGAL_ENTITY}{" "}
+        (&ldquo;Company,&rdquo; &ldquo;we,&rdquo;
         &ldquo;us,&rdquo; or &ldquo;our&rdquo;) collects, uses, stores, and shares information in
         connection with ARI, our customer relationship management platform (the &ldquo;Service&rdquo;).
         It applies to our subscribers (&ldquo;Customers,&rdquo; &ldquo;you&rdquo;) and, where

@@ -10,7 +10,8 @@ export function TermsOfServiceContent() {
       <p className="mt-8 text-[15px] leading-relaxed text-slate-text">
         These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of ARI, a
         customer relationship management platform (&ldquo;Service&rdquo;), operated by{" "}
-        {LEGAL_ENTITY} (&ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or
+        {LEGAL_ENTITY}{" "}
+        (&ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or
         &ldquo;our&rdquo;). By creating an account, subscribing to, or otherwise using the
         Service, you (&ldquo;Customer,&rdquo; &ldquo;you,&rdquo; or &ldquo;your&rdquo;) agree to
         be bound by these Terms. If you do not agree, do not use the Service.
