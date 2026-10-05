@@ -25,11 +25,14 @@ export const twilioProvider: ProviderAdapter = {
     const auth = Buffer.from(`${sid}:${token}`).toString("base64");
 
     if (request.channel === "sms") {
-      const body = new URLSearchParams({
+      const params = new URLSearchParams({
         To: request.to,
         From: from,
         Body: request.body ?? "",
       });
+      for (const mediaUrl of request.mediaUrls ?? []) {
+        params.append("MediaUrl", mediaUrl);
+      }
       try {
         const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
           method: "POST",
@@ -37,7 +40,7 @@ export const twilioProvider: ProviderAdapter = {
             Authorization: `Basic ${auth}`,
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: body.toString(),
+          body: params.toString(),
         });
         const raw = await res.json().catch(() => ({}));
         const twilioError =

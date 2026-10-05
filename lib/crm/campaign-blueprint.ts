@@ -1,3 +1,4 @@
+import { attachmentsFromConditions } from "@/lib/campaigns/attachments";
 import type { CampaignDefinition, CampaignStep, CampaignStepStatus } from "./types";
 
 type DbCampaignStep = {
@@ -10,7 +11,7 @@ type DbCampaignStep = {
   time_label?: string | null;
   status?: string | null;
   voice_asset_id?: string | null;
-  conditions?: { voiceAssetId?: string } | null;
+  conditions?: { voiceAssetId?: string; attachments?: unknown } | null;
 };
 
 type DbCampaign = {
@@ -46,6 +47,7 @@ export function dbStepsToCampaignSteps(
       voiceAssetId,
       voiceAssetTitle: voiceMeta?.title ?? null,
       voicePlaybackUrl: voiceMeta?.playbackUrl ?? null,
+      attachments: attachmentsFromConditions(row.conditions ?? undefined),
     };
   });
 }

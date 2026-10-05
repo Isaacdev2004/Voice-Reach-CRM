@@ -64,6 +64,7 @@ export function CampaignFlowStep({
 
   const isVoicemail = step.type === "voicemail";
   const hasVoice = Boolean(step.voiceAssetId);
+  const attachmentCount = step.attachments?.length ?? 0;
 
   return (
     <LuxuryCard
@@ -156,6 +157,17 @@ export function CampaignFlowStep({
               ) : null}
             </>
           )}
+        </div>
+      ) : null}
+
+      {attachmentCount > 0 && (step.type === "sms" || step.type === "email") ? (
+        <div className="mt-3 w-full rounded-xl border border-outline-variant/15 bg-cream/60 px-3 py-2.5 text-left">
+          <p className="flex items-center gap-1.5 text-[12px] font-medium text-ink">
+            <Icon name="attach_file" className="text-[16px] text-rose-gold-deep" />
+            {attachmentCount === 1
+              ? step.attachments?.[0]?.fileName ?? "1 attachment"
+              : `${attachmentCount} attachments`}
+          </p>
         </div>
       ) : null}
 

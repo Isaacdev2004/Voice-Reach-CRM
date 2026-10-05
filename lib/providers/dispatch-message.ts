@@ -1,6 +1,11 @@
 import { recordEngagementEvent } from "@/lib/engagement/record";
 import { dispatch, pickAdapterForChannel } from "@/lib/providers/registry";
-import type { ProviderChannel, SendRequest, SendResult } from "@/lib/providers/types";
+import type {
+  EmailAttachmentPayload,
+  ProviderChannel,
+  SendRequest,
+  SendResult,
+} from "@/lib/providers/types";
 
 export type ContactForSend = {
   id: string;
@@ -35,6 +40,8 @@ export async function sendToContact(params: {
   body?: string;
   subject?: string;
   audioUrl?: string;
+  mediaUrls?: string[];
+  emailAttachments?: EmailAttachmentPayload[];
   providerId?: string;
   stepId?: string;
   recordEngagement?: boolean;
@@ -56,6 +63,8 @@ export async function sendToContact(params: {
     audioUrl: params.audioUrl,
     body: params.body,
     subject: params.subject,
+    mediaUrls: params.mediaUrls,
+    emailAttachments: params.emailAttachments,
     campaignId: params.campaignId,
     recipientId: params.recipientId,
     stepId: params.stepId,

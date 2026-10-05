@@ -21,6 +21,17 @@ const StepSchema = z.object({
   timeLabel: z.string().optional(),
   status: z.enum(["sent", "active", "pending", "draft"]).optional(),
   voiceAssetId: z.string().uuid().nullable().optional(),
+  attachments: z
+    .array(
+      z.object({
+        id: z.string(),
+        storagePath: z.string(),
+        fileName: z.string(),
+        mimeType: z.string(),
+        sizeBytes: z.number().optional(),
+      }),
+    )
+    .optional(),
 });
 
 const BlueprintSchema = z.object({
@@ -88,17 +99,22 @@ async function upsertCampaign(
 }
 
 function mapStepsToBlueprint(steps: z.infer<typeof StepSchema>[]): CampaignBlueprintStep[] {
-  return steps.map((step) => ({
-    id: step.id,
-    order: step.order,
-    type: (step.type === "retargeting" ? "email" : step.type) as CampaignBlueprintStep["type"],
-    title: step.title,
-    description: step.description,
-    delayMinutes: step.delayMinutes ?? guessDelay(step),
-    dayLabel: step.dayLabel,
-    timeLabel: step.timeLabel,
-    conditions: step.voiceAssetId ? { voiceAssetId: step.voiceAssetId } : undefined,
-  }));
+  return steps.map((step) => {
+    const conditions: Record<string, unknown> = {};
+    if (step.voiceAssetId) conditions.voiceAssetId = step.voiceAssetId;
+    if (step.attachments?.length) conditions.attachments = step.attachments;
+    return {
+      id: step.id,
+      order: step.order,
+      type: (step.type === "retargeting" ? "email" : step.type) as CampaignBlueprintStep["type"],
+      title: step.title,
+      description: step.description,
+      delayMinutes: step.delayMinutes ?? guessDelay(step),
+      dayLabel: step.dayLabel,
+      timeLabel: step.timeLabel,
+      conditions: Object.keys(conditions).length ? conditions : undefined,
+    };
+  });
 }
 
 function guessDelay(step: { dayLabel?: string }): number {

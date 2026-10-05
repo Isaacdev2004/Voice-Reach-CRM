@@ -1,5 +1,10 @@
 export type ProviderChannel = "voicemail" | "sms" | "email" | "video";
 
+export type EmailAttachmentPayload = {
+  filename: string;
+  content: string;
+};
+
 export type SendRequest = {
   channel: ProviderChannel;
   to: string;
@@ -7,6 +12,10 @@ export type SendRequest = {
   audioUrl?: string;
   body?: string;
   subject?: string;
+  /** Public HTTPS URLs for Twilio MMS (MediaUrl). */
+  mediaUrls?: string[];
+  /** Base64-encoded files for Resend email attachments. */
+  emailAttachments?: EmailAttachmentPayload[];
   campaignId: string;
   recipientId: string;
   stepId?: string;

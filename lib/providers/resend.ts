@@ -60,6 +60,10 @@ export const resendProvider: ProviderAdapter = {
           subject: request.subject ?? "Message from ARI",
           html: htmlBody,
           text: textBody.replace(/<[^>]+>/g, ""),
+          attachments: (request.emailAttachments ?? []).map((file) => ({
+            filename: file.filename,
+            content: file.content,
+          })),
           tags: [
             { name: "campaign_id", value: request.campaignId.slice(0, 40) },
             { name: "recipient_id", value: request.recipientId.slice(0, 40) },

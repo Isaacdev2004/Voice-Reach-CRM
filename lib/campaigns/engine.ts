@@ -16,6 +16,11 @@ import { recordEngagementEvent } from "@/lib/engagement/record";
 import { sendToContact } from "@/lib/providers/dispatch-message";
 import { loadWorkspaceSettings } from "@/lib/settings/load-workspace";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import {
+  attachmentsFromConditions,
+  emailAttachmentsForSend,
+  signAttachmentsForSend,
+} from "@/lib/campaigns/attachments";
 import { signVoiceAssetUrl, voiceAssetReady } from "@/lib/voice/signed-audio";
 
 export type CampaignStepType =
@@ -51,21 +56,28 @@ export async function persistSteps(
     .eq("campaign_id", campaignId)
     .eq("owner_id", ownerId);
 
-  const voiceBySlot = new Map<string, { voiceAssetId: string; conditions: Record<string, unknown> }>();
+  const metaBySlot = new Map<
+    string,
+    { voiceAssetId?: string | null; conditions: Record<string, unknown> }
+  >();
   for (const row of existingSteps ?? []) {
     const voiceAssetId =
       (row as { voice_asset_id?: string | null }).voice_asset_id ||
       ((row as { conditions?: { voiceAssetId?: string } }).conditions?.voiceAssetId ?? null);
-    if (!voiceAssetId) continue;
+    const existingConditions =
+      ((row as { conditions?: Record<string, unknown> }).conditions ?? {}) as Record<
+        string,
+        unknown
+      >;
+    const attachments = attachmentsFromConditions(existingConditions);
+    if (!voiceAssetId && !attachments.length) continue;
     const key = `${row.type}:${row.step_order}`;
-    voiceBySlot.set(key, {
+    metaBySlot.set(key, {
       voiceAssetId,
       conditions: {
-        ...(((row as { conditions?: Record<string, unknown> }).conditions ?? {}) as Record<
-          string,
-          unknown
-        >),
-        voiceAssetId,
+        ...existingConditions,
+        ...(voiceAssetId ? { voiceAssetId } : {}),
+        ...(attachments.length ? { attachments } : {}),
       },
     });
   }
@@ -76,11 +88,19 @@ export async function persistSteps(
   const rows = steps.map((step) => {
     const explicitVoice =
       (step.conditions as { voiceAssetId?: string } | undefined)?.voiceAssetId ?? null;
-    const preserved = voiceBySlot.get(`${step.type}:${step.order}`);
+    const explicitAttachments = attachmentsFromConditions(step.conditions);
+    const preserved = metaBySlot.get(`${step.type}:${step.order}`);
     const voiceAssetId = explicitVoice ?? preserved?.voiceAssetId ?? null;
-    const conditions = voiceAssetId
-      ? { ...(step.conditions ?? {}), voiceAssetId }
-      : (step.conditions ?? preserved?.conditions ?? {});
+    const attachments =
+      explicitAttachments.length > 0
+        ? explicitAttachments
+        : attachmentsFromConditions(preserved?.conditions);
+    const conditions: Record<string, unknown> = {
+      ...(step.conditions ?? preserved?.conditions ?? {}),
+    };
+    if (voiceAssetId) conditions.voiceAssetId = voiceAssetId;
+    if (attachments.length) conditions.attachments = attachments;
+    else delete conditions.attachments;
 
     return {
       owner_id: ownerId,
@@ -431,6 +451,34 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       continue;
     }
 
+    const stepAttachments = attachmentsFromConditions(
+      (step.conditions as Record<string, unknown> | null) ?? undefined,
+    );
+    let mediaUrls: string[] | undefined;
+    let emailAttachments: Array<{ filename: string; content: string }> | undefined;
+
+    if (channel === "sms" && stepAttachments.length) {
+      mediaUrls = await signAttachmentsForSend(stepAttachments);
+      if (!mediaUrls.length) {
+        await markRun(run.id, "failed", {
+          error: "Could not sign MMS attachment URL. Re-upload the image on this step.",
+        });
+        executed.push({ runId: run.id, status: "failed" });
+        continue;
+      }
+    }
+
+    if (channel === "email" && stepAttachments.length) {
+      emailAttachments = await emailAttachmentsForSend(stepAttachments);
+      if (!emailAttachments.length) {
+        await markRun(run.id, "failed", {
+          error: "Could not load email attachment. Re-upload the file on this step.",
+        });
+        executed.push({ runId: run.id, status: "failed" });
+        continue;
+      }
+    }
+
     const sendResult = await sendToContact({
       ownerId: run.owner_id,
       contact: {
@@ -445,6 +493,8 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
       body: outboundBody,
       subject: outboundSubject,
       audioUrl,
+      mediaUrls,
+      emailAttachments,
       providerId: preferredProvider,
       recordEngagement: true,
     });

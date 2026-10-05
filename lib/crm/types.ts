@@ -50,6 +50,14 @@ export type CampaignStepType =
 
 export type CampaignStepStatus = "sent" | "active" | "pending" | "draft";
 
+export type CampaignStepAttachment = {
+  id: string;
+  storagePath: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes?: number;
+};
+
 export type CampaignStep = {
   id: string;
   order: number;
@@ -63,6 +71,8 @@ export type CampaignStep = {
   voiceAssetId?: string | null;
   voiceAssetTitle?: string | null;
   voicePlaybackUrl?: string | null;
+  /** SMS MMS image or email file attachments */
+  attachments?: CampaignStepAttachment[];
 };
 
 export type CampaignDefinition = {
