@@ -7,6 +7,7 @@ import { EngagementTimeline } from "@/components/engagement/engagement-timeline"
 import { Icon } from "@/components/ui/icon";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
+import { categoriesUsedOnContacts, contactMatchesCategory } from "@/lib/contacts/categories";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -81,6 +82,8 @@ type Recipient = {
         phone: string | null;
         email: string | null;
         dnc: boolean;
+        category?: string | null;
+        type?: string | null;
       }
     | {
         id: string;
@@ -89,6 +92,8 @@ type Recipient = {
         phone: string | null;
         email: string | null;
         dnc: boolean;
+        category?: string | null;
+        type?: string | null;
       }[]
     | null;
 };
@@ -150,6 +155,8 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
   const [liveOutboundAllowed, setLiveOutboundAllowed] = useState(false);
   const [addPeopleOpen, setAddPeopleOpen] = useState(false);
   const [testRunOpen, setTestRunOpen] = useState(false);
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState<Set<string>>(new Set());
+  const [removingRecipients, setRemovingRecipients] = useState(false);
 
   const showToast = (message: string, tone: Toast["tone"] = "success") => {
     setToast({ message, tone });
@@ -355,18 +362,106 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
         const name = contact
           ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() || "Contact"
           : "Contact";
+        const category =
+          contact?.category?.trim() ||
+          (contact?.type?.toLowerCase().includes("commercial")
+            ? "Commercial"
+            : contact?.type?.toLowerCase().includes("residential")
+              ? "Residential"
+              : "");
         return {
           id: r.id,
           contactId: contact?.id ?? null,
           name,
           phone: contact?.phone ?? "",
           email: contact?.email ?? "",
+          category,
           eligibility: r.eligibility_status,
           delivery: r.delivery_status,
         };
       }),
     [recipients],
   );
+
+  const recipientCategories = useMemo(
+    () =>
+      categoriesUsedOnContacts(
+        recipients.map((r) => {
+          const contact = Array.isArray(r.contacts) ? r.contacts[0] : r.contacts;
+          return { category: contact?.category, type: contact?.type };
+        }),
+      ),
+    [recipients],
+  );
+
+  const allRecipientsSelected =
+    peopleRows.length > 0 && selectedRecipientIds.size === peopleRows.length;
+
+  const toggleRecipient = (recipientId: string) => {
+    setSelectedRecipientIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(recipientId)) next.delete(recipientId);
+      else next.add(recipientId);
+      return next;
+    });
+  };
+
+  const toggleAllRecipients = () => {
+    if (allRecipientsSelected) {
+      setSelectedRecipientIds(new Set());
+    } else {
+      setSelectedRecipientIds(new Set(peopleRows.map((r) => r.id)));
+    }
+  };
+
+  const removeRecipients = async (body: Record<string, unknown>, confirmMessage: string) => {
+    if (!window.confirm(confirmMessage)) return;
+    setRemovingRecipients(true);
+    const envelope = await safeFetch<{ removed: number; message: string }>(
+      `/api/campaigns/${campaignId}/recipients`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
+    setRemovingRecipients(false);
+    if (envelope.success) {
+      setSelectedRecipientIds(new Set());
+      showToast(envelope.data.message);
+      void refresh();
+    } else {
+      showToast(envelope.error, "error");
+    }
+  };
+
+  const removeSelectedRecipients = () => {
+    const count = selectedRecipientIds.size;
+    if (!count) return;
+    void removeRecipients(
+      { recipientIds: [...selectedRecipientIds] },
+      `Remove ${count} selected contact${count === 1 ? "" : "s"} from this campaign?\n\nThey stay in your CRM — only this campaign enrollment is removed. Pending steps are cancelled.`,
+    );
+  };
+
+  const removeByCategory = (category: string) => {
+    const count = recipients.filter((r) => {
+      const contact = Array.isArray(r.contacts) ? r.contacts[0] : r.contacts;
+      return contact && contactMatchesCategory(contact, category);
+    }).length;
+    void removeRecipients(
+      { category },
+      `Remove all ${category} contacts from this campaign${count ? ` (${count})` : ""}?\n\nThey stay in your CRM. Pending steps are cancelled.`,
+    );
+  };
+
+  const removeAllRecipients = () => {
+    if (!peopleRows.length) return;
+    void removeRecipients(
+      { removeAll: true },
+      `Remove all ${peopleRows.length} contacts from this campaign?\n\nThey stay in your CRM. Pending steps are cancelled.`,
+    );
+  };
 
   if (loading) {
     return (
@@ -696,15 +791,72 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                 : `${counts.total} recipient${counts.total === 1 ? "" : "s"} enrolled`}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setAddPeopleOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-rose-gold/40 bg-rose-gold/10 px-4 py-2 text-[13px] font-medium text-rose-gold-deep hover:bg-rose-gold/20"
-          >
-            <Icon name="person_add" className="text-[18px]" />
-            Add people
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setAddPeopleOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-rose-gold/40 bg-rose-gold/10 px-4 py-2 text-[13px] font-medium text-rose-gold-deep hover:bg-rose-gold/20"
+            >
+              <Icon name="person_add" className="text-[18px]" />
+              Add people
+            </button>
+          </div>
         </div>
+
+        {peopleRows.length > 0 ? (
+          <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-outline-variant/10 bg-cream/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleAllRecipients}
+                disabled={removingRecipients}
+                className="inline-flex items-center gap-2 rounded-full border border-outline-variant/20 bg-ivory px-4 py-2 text-[13px] font-medium text-ink hover:bg-champagne disabled:opacity-50"
+              >
+                <Icon
+                  name={allRecipientsSelected ? "check_box" : "check_box_outline_blank"}
+                  className="text-[18px]"
+                />
+                {allRecipientsSelected ? "Unselect all" : "Select all"}
+              </button>
+              <span className="text-[13px] text-taupe">
+                Selected:{" "}
+                <span className="font-medium text-ink">{selectedRecipientIds.size}</span>
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={selectedRecipientIds.size === 0 || removingRecipients}
+                onClick={removeSelectedRecipients}
+                className="inline-flex items-center gap-2 rounded-full bg-error/10 px-4 py-2 text-[13px] font-medium text-error disabled:opacity-50"
+              >
+                <Icon name="person_remove" className="text-[18px]" />
+                Remove selected
+              </button>
+              {recipientCategories.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  disabled={removingRecipients}
+                  onClick={() => removeByCategory(category)}
+                  className="inline-flex items-center gap-2 rounded-full border border-outline-variant/20 bg-ivory px-4 py-2 text-[13px] font-medium text-ink hover:bg-champagne disabled:opacity-50"
+                >
+                  <Icon name="filter_alt" className="text-[18px]" />
+                  Remove {category}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={removingRecipients}
+                onClick={removeAllRecipients}
+                className="inline-flex items-center gap-2 rounded-full border border-error/25 px-4 py-2 text-[13px] font-medium text-error hover:bg-error/5 disabled:opacity-50"
+              >
+                <Icon name="group_remove" className="text-[18px]" />
+                Remove all
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {peopleRows.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-outline-variant/30 bg-cream/50 px-6 py-10 text-center">
@@ -727,7 +879,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             <table className="w-full text-left text-[13px]">
               <thead>
                 <tr className="border-b border-outline-variant/15 text-[11px] uppercase tracking-wider text-taupe">
+                  <th className="w-10 py-2 pr-2 font-medium" aria-label="Select" />
                   <th className="py-2 pr-3 font-medium">Name</th>
+                  <th className="py-2 pr-3 font-medium">Category</th>
                   <th className="py-2 pr-3 font-medium">Phone / Email</th>
                   <th className="py-2 pr-3 font-medium">Eligibility</th>
                   <th className="py-2 font-medium">Delivery</th>
@@ -737,8 +891,28 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                 {peopleRows.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-b border-outline-variant/10 last:border-b-0"
+                    className={cn(
+                      "border-b border-outline-variant/10 last:border-b-0",
+                      selectedRecipientIds.has(row.id) && "bg-rose-gold/5",
+                    )}
                   >
+                    <td className="py-3 pr-2">
+                      <button
+                        type="button"
+                        onClick={() => toggleRecipient(row.id)}
+                        className="inline-flex text-taupe hover:text-ink"
+                        aria-label={`Select ${row.name}`}
+                      >
+                        <Icon
+                          name={
+                            selectedRecipientIds.has(row.id)
+                              ? "check_box"
+                              : "check_box_outline_blank"
+                          }
+                          className="text-[20px]"
+                        />
+                      </button>
+                    </td>
                     <td className="py-3 pr-3">
                       {row.contactId ? (
                         <Link
@@ -751,6 +925,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                         <span className="font-medium text-ink">{row.name}</span>
                       )}
                     </td>
+                    <td className="py-3 pr-3 text-slate-text">{row.category || " - "}</td>
                     <td className="py-3 pr-3 text-taupe">{row.phone || row.email || " - "}</td>
                     <td className="py-3 pr-3 capitalize text-slate-text">{row.eligibility}</td>
                     <td className="py-3 capitalize text-slate-text">

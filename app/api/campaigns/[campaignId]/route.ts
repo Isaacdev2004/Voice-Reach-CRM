@@ -45,7 +45,7 @@ export const GET = withApiHandler<RouteContext>(async (_request, context) => {
     supabaseAdmin
       .from("campaign_recipients")
       .select(
-        "id, eligibility_status, eligibility_issues, delivery_status, provider_message_id, updated_at, contacts(id, first_name, last_name, phone, email, dnc)",
+        "id, eligibility_status, eligibility_issues, delivery_status, provider_message_id, updated_at, contacts(id, first_name, last_name, phone, email, dnc, category, type)",
       )
       .eq("campaign_id", campaignId)
       .eq("owner_id", ownerId)
