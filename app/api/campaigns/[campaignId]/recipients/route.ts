@@ -11,6 +11,8 @@ type RouteContext = { params: Promise<{ campaignId: string }> };
 const BodySchema = z.object({
   enrollAllEligible: z.boolean().optional().default(false),
   contactIds: z.array(z.string().uuid()).optional(),
+  /** Enroll all eligible contacts in this category (Residential, Commercial, etc.). */
+  category: z.string().min(1).max(40).optional(),
 });
 
 export const POST = withApiHandler<RouteContext>(async (request, context) => {
@@ -18,8 +20,12 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
   const { campaignId } = await context.params;
   const body = BodySchema.parse(await request.json());
 
-  if (!body.enrollAllEligible && (!body.contactIds || body.contactIds.length === 0)) {
-    return apiError("Select at least one contact, or choose all eligible contacts.", {
+  if (
+    !body.enrollAllEligible &&
+    !body.category?.trim() &&
+    (!body.contactIds || body.contactIds.length === 0)
+  ) {
+    return apiError("Select at least one contact, a category, or choose all eligible contacts.", {
       status: 400,
       code: "validation_error",
     });
@@ -36,7 +42,8 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
   if (!campaign) return apiError("Campaign not found", { status: 404, code: "not_found" });
 
   const enrollment = await enrollContacts(ownerId, campaignId, {
-    contactIds: body.enrollAllEligible ? undefined : body.contactIds,
+    contactIds: body.enrollAllEligible || body.category ? undefined : body.contactIds,
+    category: body.category?.trim() || undefined,
   });
 
   let schedule = { scheduled: 0 };
@@ -76,9 +83,13 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
   const message =
     enrollment.enrolled === 0
       ? enrollment.eligible === 0
-        ? "No eligible contacts found. Mark consent valid on Contacts first."
+        ? body.category
+          ? `No eligible ${body.category} contacts found to add. Check consent and category tags on Contacts.`
+          : "No eligible contacts found. Mark consent valid on Contacts first."
         : "Those contacts are already on this campaign."
-      : `Added ${enrollment.enrolled} contact${enrollment.enrolled === 1 ? "" : "s"} to the campaign.`;
+      : body.category
+        ? `Added ${enrollment.enrolled} eligible ${body.category} contact${enrollment.enrolled === 1 ? "" : "s"} to the campaign.`
+        : `Added ${enrollment.enrolled} contact${enrollment.enrolled === 1 ? "" : "s"} to the campaign.`;
 
   return apiOk({
     enrollment,

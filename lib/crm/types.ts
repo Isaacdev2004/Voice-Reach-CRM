@@ -93,6 +93,7 @@ export type CampaignDefinition = {
 export type ActivateCampaignOptions = {
   enrollAllEligible: boolean;
   contactIds?: string[];
+  category?: string;
 };
 
 export type ContactProfile = {

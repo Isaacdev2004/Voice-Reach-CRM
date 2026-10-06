@@ -53,6 +53,8 @@ const BodySchema = z.object({
   contactIds: z.array(z.string().uuid()).optional(),
   /** Explicit opt-in to enroll every eligible contact in the CRM. */
   enrollAllEligible: z.boolean().optional().default(false),
+  /** Enroll all eligible contacts in this category. */
+  category: z.string().min(1).max(40).optional(),
 });
 
 async function upsertCampaign(
@@ -128,8 +130,14 @@ function guessDelay(step: { dayLabel?: string }): number {
 export const POST = withApiHandler(async (request: Request) => {
   const ownerId = await requireUserId();
   const body = BodySchema.parse(await request.json());
-  const { action, campaign: blueprint, campaignId: existingId, contactIds, enrollAllEligible } =
-    body;
+  const {
+    action,
+    campaign: blueprint,
+    campaignId: existingId,
+    contactIds,
+    enrollAllEligible,
+    category,
+  } = body;
 
   if (action === "template") {
     const record = await upsertCampaign(ownerId, blueprint, "draft", existingId);
@@ -150,17 +158,21 @@ export const POST = withApiHandler(async (request: Request) => {
     });
   }
 
-  if (!enrollAllEligible && (!contactIds || contactIds.length === 0)) {
-    return apiError("Select at least one contact before activating, or choose all eligible contacts.", {
-      status: 400,
-      code: "validation_error",
-    });
+  if (!enrollAllEligible && !category?.trim() && (!contactIds || contactIds.length === 0)) {
+    return apiError(
+      "Select at least one contact, a category, or choose all eligible contacts before activating.",
+      {
+        status: 400,
+        code: "validation_error",
+      },
+    );
   }
 
   const record = await upsertCampaign(ownerId, blueprint, "queued", existingId);
   await persistSteps(ownerId, record.id, mapStepsToBlueprint(blueprint.steps));
   const enrollment = await enrollContacts(ownerId, record.id, {
-    contactIds: enrollAllEligible ? undefined : contactIds,
+    contactIds: enrollAllEligible || category ? undefined : contactIds,
+    category: category?.trim() || undefined,
   });
   const schedule = await scheduleStepRunsForCampaign(ownerId, record.id);
 

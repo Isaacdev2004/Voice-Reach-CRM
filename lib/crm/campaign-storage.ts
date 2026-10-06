@@ -53,11 +53,18 @@ export async function saveCampaignBuilder(
       },
       campaignId: campaignId ?? undefined,
       contactIds:
-        action === "activate" && activateOptions && !activateOptions.enrollAllEligible
+        action === "activate" &&
+        activateOptions &&
+        !activateOptions.enrollAllEligible &&
+        !activateOptions.category
           ? activateOptions.contactIds
           : undefined,
       enrollAllEligible:
         action === "activate" ? Boolean(activateOptions?.enrollAllEligible) : undefined,
+      category:
+        action === "activate" && activateOptions?.category
+          ? activateOptions.category
+          : undefined,
     }),
   });
 

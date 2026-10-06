@@ -1,3 +1,4 @@
+import { contactMatchesCategory } from "@/lib/contacts/categories";
 import { evaluateEligibility } from "@/lib/compliance";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -29,11 +30,11 @@ export async function documentTestConsent(ownerId: string, contactIds: string[])
 export async function enrollContacts(
   ownerId: string,
   campaignId: string,
-  options?: { contactIds?: string[]; documentTestConsent?: boolean },
+  options?: { contactIds?: string[]; category?: string; documentTestConsent?: boolean },
 ): Promise<EnrollResult> {
   let query = supabaseAdmin
     .from("contacts")
-    .select("id, phone, dnc, opt_out_requested, consent_records(*)")
+    .select("id, phone, dnc, opt_out_requested, category, type, consent_records(*)")
     .eq("owner_id", ownerId);
 
   if (options?.contactIds?.length) {
@@ -43,23 +44,35 @@ export async function enrollContacts(
   const { data: contacts, error } = await query;
   if (error) throw new Error(error.message);
 
+  const categoryFilter = options?.category?.trim();
+  const scopedContacts = categoryFilter
+    ? (contacts ?? []).filter((c) => contactMatchesCategory(c, categoryFilter))
+    : (contacts ?? []);
+
   if (options?.documentTestConsent && options.contactIds?.length) {
-    const needingConsent = (contacts ?? [])
+    const needingConsent = scopedContacts
       .filter((c) => !evaluateEligibility(c).eligible)
       .map((c) => c.id as string);
     if (needingConsent.length) {
       await documentTestConsent(ownerId, needingConsent);
       const { data: refreshed, error: refreshError } = await supabaseAdmin
         .from("contacts")
-        .select("id, phone, dnc, opt_out_requested, consent_records(*)")
+        .select("id, phone, dnc, opt_out_requested, category, type, consent_records(*)")
         .eq("owner_id", ownerId)
         .in("id", options.contactIds);
       if (refreshError) throw new Error(refreshError.message);
-      return enrollEligible(ownerId, campaignId, refreshed ?? [], options.contactIds.length);
+      const refreshedScoped = categoryFilter
+        ? (refreshed ?? []).filter((c) => contactMatchesCategory(c, categoryFilter))
+        : (refreshed ?? []);
+      return enrollEligible(ownerId, campaignId, refreshedScoped, options.contactIds.length);
     }
   }
 
-  return enrollEligible(ownerId, campaignId, contacts ?? [], options?.contactIds?.length ?? null);
+  const requested =
+    options?.contactIds?.length ??
+    (categoryFilter ? scopedContacts.length : null);
+
+  return enrollEligible(ownerId, campaignId, scopedContacts, requested);
 }
 
 async function enrollEligible(

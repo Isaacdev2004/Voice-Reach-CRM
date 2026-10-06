@@ -8,6 +8,7 @@ import {
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { safeFetch } from "@/lib/api-response";
+import { contactMatchesCategory } from "@/lib/contacts/categories";
 import type { ActivateCampaignOptions, CampaignDefinition } from "@/lib/crm/types";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -18,6 +19,8 @@ type ContactRow = {
   last_name: string | null;
   phone: string | null;
   email: string | null;
+  category?: string | null;
+  type?: string | null;
   dnc?: boolean;
   eligibility: { eligible: boolean; issues: string[] };
   consent_records?: Array<{
@@ -47,26 +50,32 @@ export function ActivateCampaignModal({
   loading,
 }: ActivateCampaignModalProps) {
   const [contacts, setContacts] = useState<ContactRow[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
-  const [enrollMode, setEnrollMode] = useState<"all" | "selected">("selected");
+  const [enrollMode, setEnrollMode] = useState<"all" | "category" | "selected">("category");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (!open) return;
-    setEnrollMode("selected");
+    setEnrollMode("category");
+    setSelectedCategory(null);
     setSelectedIds(new Set());
     setSearch("");
     (async () => {
       setLoadingContacts(true);
       setContactError(null);
-      const envelope = await safeFetch<{ contacts: ContactRow[]; eligibleCount: number }>(
-        "/api/contacts",
-      );
+      const envelope = await safeFetch<{
+        contacts: ContactRow[];
+        eligibleCount: number;
+        categories?: string[];
+      }>("/api/contacts");
       setLoadingContacts(false);
       if (envelope.success) {
         setContacts(envelope.data.contacts);
+        setCategories(envelope.data.categories ?? ["Residential", "Commercial"]);
       } else {
         setContactError(envelope.error);
       }
@@ -77,6 +86,19 @@ export function ActivateCampaignModal({
     () => contacts.filter((c) => c.eligibility.eligible),
     [contacts],
   );
+
+  const eligibleByCategory = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const name of categories) {
+      const count = eligibleContacts.filter((c) => contactMatchesCategory(c, name)).length;
+      if (count > 0) counts.set(name, count);
+    }
+    return counts;
+  }, [eligibleContacts, categories]);
+
+  const categoryEligibleCount = selectedCategory
+    ? (eligibleByCategory.get(selectedCategory) ?? 0)
+    : 0;
 
   const filteredContacts = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -121,6 +143,10 @@ export function ActivateCampaignModal({
       onConfirm({ enrollAllEligible: true });
       return;
     }
+    if (enrollMode === "category" && selectedCategory) {
+      onConfirm({ enrollAllEligible: false, category: selectedCategory });
+      return;
+    }
     if (selectedEligibleCount === 0) return;
     onConfirm({
       enrollAllEligible: false,
@@ -135,6 +161,7 @@ export function ActivateCampaignModal({
     campaign.steps.length === 0 ||
     loadingContacts ||
     (enrollMode === "all" && eligibleContacts.length === 0) ||
+    (enrollMode === "category" && categoryEligibleCount === 0) ||
     (enrollMode === "selected" && selectedEligibleCount === 0);
 
   return (
@@ -210,10 +237,27 @@ export function ActivateCampaignModal({
                 need date, source, and proof.
               </p>
 
-              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
                 <label
                   className={cn(
-                    "flex flex-1 cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-[14px]",
+                    "flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-[14px]",
+                    enrollMode === "category"
+                      ? "border-rose-gold/40 bg-rose-gold/10"
+                      : "border-outline-variant/15",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="enrollMode"
+                    checked={enrollMode === "category"}
+                    onChange={() => setEnrollMode("category")}
+                    className="accent-rose-gold-deep"
+                  />
+                  By category
+                </label>
+                <label
+                  className={cn(
+                    "flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-[14px]",
                     enrollMode === "all"
                       ? "border-rose-gold/40 bg-rose-gold/10"
                       : "border-outline-variant/15",
@@ -226,11 +270,11 @@ export function ActivateCampaignModal({
                     onChange={() => setEnrollMode("all")}
                     className="accent-rose-gold-deep"
                   />
-                  All eligible contacts ({eligibleContacts.length})
+                  All eligible ({eligibleContacts.length})
                 </label>
                 <label
                   className={cn(
-                    "flex flex-1 cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-[14px]",
+                    "flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-[14px]",
                     enrollMode === "selected"
                       ? "border-rose-gold/40 bg-rose-gold/10"
                       : "border-outline-variant/15",
@@ -243,9 +287,45 @@ export function ActivateCampaignModal({
                     onChange={() => setEnrollMode("selected")}
                     className="accent-rose-gold-deep"
                   />
-                  Choose specific contacts
+                  Pick individually
                 </label>
               </div>
+
+              {enrollMode === "category" ? (
+                <div className="mt-4 rounded-xl border border-outline-variant/15 bg-cream/40 p-4">
+                  <p className="text-[13px] text-slate-text">
+                    Enroll all eligible contacts in a category (Residential, Commercial, etc.).
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {categories.map((name) => {
+                      const count = eligibleByCategory.get(name) ?? 0;
+                      const active = selectedCategory === name;
+                      return (
+                        <button
+                          key={name}
+                          type="button"
+                          disabled={count === 0}
+                          onClick={() => setSelectedCategory(name)}
+                          className={cn(
+                            "rounded-full px-4 py-2 text-[13px] font-medium disabled:opacity-40",
+                            active
+                              ? "bg-ink text-ivory"
+                              : "border border-outline-variant/20 bg-ivory text-ink hover:bg-champagne",
+                          )}
+                        >
+                          {name} ({count})
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {selectedCategory && categoryEligibleCount > 0 ? (
+                    <p className="mt-3 text-[12px] text-emerald-muted">
+                      {categoryEligibleCount} {selectedCategory} contact
+                      {categoryEligibleCount === 1 ? "" : "s"} will be enrolled.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
 
               {enrollMode === "selected" ? (
                 <div className="mt-4">
