@@ -1,5 +1,9 @@
 /** Marketing hero shots in `/public/brand/`. */
 export const HERO_IMAGES = {
+  homeDashboard: {
+    src: "/brand/hero-home-dashboard.png",
+    alt: "ARI home dashboard with contacts, campaigns, calendar, and marketing pulse for real estate agents",
+  },
   crmDashboard: {
     src: "/brand/hero-crm-dashboard.png",
     alt: "ARI real estate CRM dashboard with portal leads, automated SMS, email campaigns, and voicemail drops",

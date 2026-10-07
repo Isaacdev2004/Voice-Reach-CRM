@@ -74,8 +74,8 @@ export function LandingPage() {
           <div className="relative w-full md:justify-self-end">
             <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-[0_24px_70px_rgba(26,20,16,0.16)] lg:rounded-[1.25rem]">
               <Image
-                src={HERO_IMAGES.crmDashboard.src}
-                alt={HERO_IMAGES.crmDashboard.alt}
+                src={HERO_IMAGES.homeDashboard.src}
+                alt={HERO_IMAGES.homeDashboard.alt}
                 width={1200}
                 height={900}
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 52vw, 680px"
