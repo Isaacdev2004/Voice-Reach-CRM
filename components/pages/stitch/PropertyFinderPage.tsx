@@ -2,17 +2,12 @@
 
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { modalInputClass } from "@/components/crm/modal";
+import { SearchableContactSelect } from "@/components/crm/searchable-contact-select";
 import { Icon } from "@/components/ui/icon";
-import { cn } from "@/lib/cn";
-import type { ApiContact } from "@/lib/hooks/use-contacts";
 import { useContacts } from "@/lib/hooks/use-contacts";
 import { formatUsd } from "@/lib/mortgage/calculate";
 import { zillowSearchUrl } from "@/lib/property-finder/zillow";
 import { useMemo, useState } from "react";
-
-function contactName(c: ApiContact) {
-  return `${c.first_name} ${c.last_name ?? ""}`.trim();
-}
 
 export function PropertyFinderPage() {
   const { contacts, loading, refresh } = useContacts();
@@ -89,21 +84,16 @@ export function PropertyFinderPage() {
         </p>
       </LuxuryCard>
 
-      <label className="block">
+      <div className="block">
         <span className="mb-2 block text-[13px] font-medium text-taupe">Client</span>
-        <select
-          className={cn(modalInputClass, "border-rose-gold-deep/40")}
+        <SearchableContactSelect
+          contacts={contacts}
+          loading={loading}
           value={selectedId}
-          onChange={(e) => pickContact(e.target.value)}
-        >
-          <option value="">{loading ? "Loading clients…" : "Select a client"}</option>
-          {contacts.map((c) => (
-            <option key={c.id} value={c.id}>
-              {contactName(c)}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={pickContact}
+          placeholder="Select a client"
+        />
+      </div>
 
       {contact ? (
         <>
