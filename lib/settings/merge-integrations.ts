@@ -1,6 +1,15 @@
 import { getGoogleConnection } from "@/lib/calendar/google";
 import { getDotloopConnection } from "@/lib/integrations/dotloop";
+import { isLiveProvidersConfigured } from "@/lib/providers/registry";
 import type { IntegrationConfig } from "./types";
+
+const SERVER_MANAGED_IDS = new Set([
+  "twilio",
+  "sendgrid",
+  "resend",
+  "slybroadcast",
+  "slack",
+]);
 
 /** Merge saved integration rows with defaults so new integrations (e.g. Google Calendar) are never dropped. */
 export function mergeIntegrationLists(
@@ -9,10 +18,15 @@ export function mergeIntegrationLists(
 ): IntegrationConfig[] {
   const byId = new Map(defaults.map((item) => [item.id, { ...item }]));
   for (const item of saved ?? []) {
-    const existing = byId.get(item.id);
-    byId.set(item.id, existing ? { ...existing, ...item } : item);
+    const id = item.id === "sendgrid" ? "resend" : item.id;
+    const existing = byId.get(id);
+    byId.set(id, existing ? { ...existing, ...item, id } : { ...item, id });
   }
   return [...byId.values()];
+}
+
+export function isServerManagedIntegration(id: string): boolean {
+  return SERVER_MANAGED_IDS.has(id);
 }
 
 export async function applyLiveIntegrationStatus(
@@ -24,9 +38,56 @@ export async function applyLiveIntegrationStatus(
     getDotloopConnection(ownerId).catch(() => null),
   ]);
   const claudeReady = Boolean(process.env.ANTHROPIC_API_KEY?.trim());
+  const providers = isLiveProvidersConfigured();
 
   return integrations.map((item) => {
-    if (item.id === "google-calendar") {
+    const id = item.id === "sendgrid" ? "resend" : item.id;
+
+    if (id === "twilio") {
+      return {
+        ...item,
+        id,
+        name: item.name || "Twilio (SMS)",
+        connected: providers.sms,
+        accountLabel: providers.sms ? "Workspace configured" : undefined,
+        secretHint: undefined,
+        lastSync: providers.sms ? new Date().toISOString() : undefined,
+      };
+    }
+    if (id === "resend") {
+      return {
+        ...item,
+        id,
+        name: item.name || "Resend (Email)",
+        connected: providers.email,
+        accountLabel: providers.email ? "Workspace configured" : undefined,
+        secretHint: undefined,
+        lastSync: providers.email ? new Date().toISOString() : undefined,
+      };
+    }
+    if (id === "slybroadcast") {
+      return {
+        ...item,
+        id,
+        name: item.name || "Slybroadcast (Voicemail)",
+        connected: providers.voicemail,
+        accountLabel: providers.voicemail ? "Workspace configured" : undefined,
+        secretHint: undefined,
+        lastSync: providers.voicemail ? new Date().toISOString() : undefined,
+      };
+    }
+    if (id === "slack") {
+      return {
+        ...item,
+        id,
+        connected: false,
+        accountLabel: undefined,
+        secretHint: undefined,
+        lastSync: undefined,
+      };
+    }
+
+    if (id === "google-calendar") {
       if (!google) {
         return { ...item, connected: false, accountLabel: undefined, lastSync: undefined };
       }
@@ -37,7 +98,7 @@ export async function applyLiveIntegrationStatus(
         lastSync: google.updated_at ?? new Date().toISOString(),
       };
     }
-    if (item.id === "dotloop") {
+    if (id === "dotloop") {
       if (!dotloop) {
         return { ...item, connected: false, accountLabel: undefined, lastSync: undefined };
       }
@@ -48,7 +109,7 @@ export async function applyLiveIntegrationStatus(
         lastSync: dotloop.updated_at ?? new Date().toISOString(),
       };
     }
-    if (item.id === "claude") {
+    if (id === "claude") {
       return {
         ...item,
         connected: claudeReady,

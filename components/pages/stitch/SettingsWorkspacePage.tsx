@@ -15,6 +15,7 @@ import { connectGoogleCalendar } from "@/lib/connect-google-calendar";
 import { formatRelativeTime } from "@/lib/activity/format";
 import { TIMEZONE_OPTIONS } from "@/lib/settings/defaults";
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
+import { isServerManagedIntegration } from "@/lib/settings/merge-integrations";
 import {
   fetchSettings,
   generateApiKey,
@@ -201,6 +202,8 @@ export function SettingsWorkspacePage() {
           ? "Calendar database not set up yet - we’re fixing this on our side."
           : reason === "access_denied"
             ? "Google access was denied. Try Connect again and click Allow."
+            : reason === "redirect_uri_mismatch"
+              ? "Google redirect URL mismatch — your admin must add the exact callback URL from Vercel (APP_BASE_URL) in Google Cloud OAuth settings."
             : reason === "missing_code_or_session"
               ? "Session expired - click Connect again (stay signed in to ARI)."
               : `Google Calendar connection failed${reason ? `: ${reason}` : ""}.`;
@@ -772,6 +775,22 @@ export function SettingsWorkspacePage() {
                               );
                               return;
                             }
+                            if (isServerManagedIntegration(integration.id)) {
+                              if (integration.id === "slack") {
+                                showToast(
+                                  "Slack isn’t connectable here yet. Use Notifications below for email and SMS alerts.",
+                                  "error",
+                                );
+                                return;
+                              }
+                              showToast(
+                                integration.connected
+                                  ? `${integration.name} is configured for this workspace (Vercel). No keys are stored in Settings.`
+                                  : `${integration.name} isn’t configured yet. Your ARI admin adds Twilio / Resend / Slybroadcast keys in Vercel, then redeploys.`,
+                                integration.connected ? "success" : "error",
+                              );
+                              return;
+                            }
                             setIntegrationModal(integration);
                           }}
                           className={cn(
@@ -783,11 +802,15 @@ export function SettingsWorkspacePage() {
                         >
                           {integration.id === "google-calendar" && integration.connected
                             ? "Disconnect"
-                            : integration.id === "claude" && integration.connected
-                              ? "Live"
-                              : integration.connected
-                                ? "Configure"
-                                : "Connect"}
+                            : isServerManagedIntegration(integration.id)
+                              ? integration.connected
+                                ? "Configured"
+                                : "Not set up"
+                              : integration.id === "claude" && integration.connected
+                                ? "Live"
+                                : integration.connected
+                                  ? "Configure"
+                                  : "Connect"}
                         </button>
                         )}
                       </div>

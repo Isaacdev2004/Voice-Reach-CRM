@@ -45,10 +45,12 @@ Voice Studio → **Generate audio** creates a `voice_assets` row. Approve it, li
 | `GOOGLE_CLIENT_SECRET` | OAuth secret |
 | `APP_BASE_URL` | Must match authorized redirect |
 
-**Google Cloud console:** create OAuth client (Web), add redirect URI:
+**Google Cloud console:** create OAuth client (Web), add **every** redirect URI you use (must match character-for-character):
 
-`https://myari.io/api/integrations/google/callback`
-(or `https://<your-vercel-url>/api/integrations/google/callback` until the custom domain is live)
+- `https://www.myari.io/api/integrations/google/callback`
+- `https://myari.io/api/integrations/google/callback` (if users hit the apex domain)
+
+Set `APP_BASE_URL` in Vercel to the **same host** users sign in on (e.g. `https://www.myari.io`). Optional override: `GOOGLE_OAUTH_REDIRECT_URI` if you need a fixed callback URL.
 
 Settings → **Google Calendar** → Connect. Callback/task campaign steps create calendar events when connected.
 

@@ -8,6 +8,7 @@ import { ContactAvatar } from "@/components/crm/contact-avatar";
 import { ContactInfoLinks, ContactQuickActions } from "@/components/crm/contact-quick-actions";
 import { ContactNotesPanel } from "@/components/crm/contact-notes-panel";
 import { ContactTasksPanel } from "@/components/crm/contact-tasks-panel";
+import { AssignContactToCampaignModal } from "@/components/crm/assign-contact-to-campaign-modal";
 import { EditContactModal } from "@/components/crm/edit-contact-modal";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { RelationshipTag } from "@/components/crm/relationship-tag";
@@ -18,7 +19,7 @@ import { isUuid } from "@/lib/contacts/is-uuid";
 import { contactProfileFromApi, DEMO_CONTACT } from "@/lib/crm/mock-data";
 import type { ContactProfile } from "@/lib/crm/types";
 import { useContact } from "@/lib/hooks/use-contacts";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type RelationshipProfilePageProps = {
   contactId: string;
@@ -37,6 +38,27 @@ function profileFromId(contactId: string, apiContact: ReturnType<typeof useConta
 export function RelationshipProfilePage({ contactId }: RelationshipProfilePageProps) {
   const { contact: apiContact, loading, error, refresh } = useContact(contactId);
   const [editOpen, setEditOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [assignCampaignOpen, setAssignCampaignOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), 4500);
+    return () => window.clearTimeout(t);
+  }, [toast]);
   const profile = profileFromId(contactId, apiContact);
   const isDemo = !isUuid(contactId);
   const consentStatus =
@@ -151,13 +173,46 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
                 goal={profile.leadStatus}
                 label="AI follow-up"
               />
-              <button
-                type="button"
-                className="rounded-full border border-outline-variant/40 px-4 py-2.5 text-taupe transition-colors hover:bg-champagne"
-                aria-label="More options"
-              >
-                <Icon name="more_horiz" />
-              </button>
+              <div ref={menuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((o) => !o)}
+                  className="rounded-full border border-outline-variant/40 px-4 py-2.5 text-taupe transition-colors hover:bg-champagne"
+                  aria-label="More options"
+                  aria-expanded={menuOpen}
+                >
+                  <Icon name="more_horiz" />
+                </button>
+                {menuOpen ? (
+                  <div className="absolute left-0 top-[calc(100%+8px)] z-20 min-w-[220px] rounded-2xl border border-outline-variant/20 bg-ivory py-2 shadow-card">
+                    {apiContact && isUuid(contactId) ? (
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[14px] text-ink hover:bg-champagne"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setAssignCampaignOpen(true);
+                        }}
+                      >
+                        <Icon name="campaign" className="text-[18px] text-rose-gold-deep" />
+                        Assign to campaign
+                      </button>
+                    ) : (
+                      <p className="px-4 py-2 text-[13px] text-taupe">
+                        Open a saved contact to assign campaigns.
+                      </p>
+                    )}
+                    <Link
+                      href="/dashboard/campaigns"
+                      className="flex items-center gap-2 px-4 py-2.5 text-[14px] text-ink hover:bg-champagne"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <Icon name="open_in_new" className="text-[18px] text-taupe" />
+                      View all campaigns
+                    </Link>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
 
@@ -255,12 +310,28 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
         </LuxuryCard>
       </div>
 
+      {toast ? (
+        <div className="fixed bottom-6 right-6 z-50 max-w-sm rounded-2xl bg-ink px-4 py-3 text-[14px] text-ivory shadow-lg">
+          {toast}
+        </div>
+      ) : null}
+
       <EditContactModal
         contact={apiContact}
         open={editOpen}
         onClose={() => setEditOpen(false)}
         onSuccess={() => void refresh()}
       />
+
+      {apiContact && isUuid(contactId) ? (
+        <AssignContactToCampaignModal
+          open={assignCampaignOpen}
+          onClose={() => setAssignCampaignOpen(false)}
+          contactId={contactId}
+          contactName={`${profile.firstName} ${profile.lastName}`.trim()}
+          onAssigned={setToast}
+        />
+      ) : null}
     </div>
   );
 }

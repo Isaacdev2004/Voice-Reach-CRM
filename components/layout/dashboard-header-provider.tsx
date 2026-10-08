@@ -162,18 +162,26 @@ export function DashboardHeaderProvider({
     setSearchOpen(true);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      applySearchToUrl(value);
+      if (pathname.startsWith("/dashboard/contacts") && !pathname.includes("/contacts/")) {
+        applySearchToUrl(value);
+      }
       void runContactSearch(value);
     }, 300);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    applySearchToUrl(query);
     setSearchOpen(false);
-    if (pathname === "/dashboard" && query.trim()) {
-      router.push(`/dashboard/contacts?q=${encodeURIComponent(query.trim())}`);
+    const trimmed = query.trim();
+    if (!trimmed) {
+      applySearchToUrl("");
+      return;
     }
+    if (pathname.startsWith("/dashboard/contacts") && !pathname.includes("/contacts/")) {
+      applySearchToUrl(trimmed);
+      return;
+    }
+    router.push(`/dashboard/contacts?q=${encodeURIComponent(trimmed)}`);
   };
 
   const loadNotifications = useCallback(async () => {

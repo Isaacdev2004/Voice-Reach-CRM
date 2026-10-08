@@ -22,21 +22,21 @@ export const DEFAULT_SETTINGS: UserSettings = {
   integrations: [
     {
       id: "twilio",
-      name: "Twilio",
+      name: "Twilio (SMS)",
       icon: "call",
-      connected: true,
-      accountLabel: "AC••••4821",
-      secretHint: "••••••••",
-      lastSync: new Date().toISOString(),
+      connected: false,
     },
     {
-      id: "sendgrid",
-      name: "SendGrid",
+      id: "resend",
+      name: "Resend (Email)",
       icon: "mail",
-      connected: true,
-      accountLabel: "apikey",
-      secretHint: "••••••••",
-      lastSync: new Date().toISOString(),
+      connected: false,
+    },
+    {
+      id: "slybroadcast",
+      name: "Slybroadcast (Voicemail)",
+      icon: "voicemail",
+      connected: false,
     },
     {
       id: "slack",

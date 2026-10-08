@@ -30,6 +30,8 @@ export function isGoogleCalendarConfigured(): boolean {
 }
 
 export function googleRedirectUri(): string {
+  const explicit = process.env.GOOGLE_OAUTH_REDIRECT_URI?.trim();
+  if (explicit) return explicit.replace(/\/$/, "");
   const base = process.env.APP_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
   return `${base}/api/integrations/google/callback`;
 }
