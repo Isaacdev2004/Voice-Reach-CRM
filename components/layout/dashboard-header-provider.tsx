@@ -253,8 +253,8 @@ export function DashboardHeaderProvider({
           <Icon name="menu" className="text-[24px]" />
         </button>
 
-        <form className="flex min-w-0 flex-1 items-center" onSubmit={handleSearchSubmit}>
-          <div ref={searchRef} className="relative w-full max-w-md">
+        <form className="flex min-w-[140px] flex-1 items-center sm:min-w-[220px]" onSubmit={handleSearchSubmit}>
+          <div ref={searchRef} className="relative w-full min-w-[200px] max-w-md sm:min-w-[260px]">
             <Icon
               name="search"
               className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-on-surface-variant sm:left-4"
@@ -271,7 +271,7 @@ export function DashboardHeaderProvider({
               autoComplete="off"
             />
             {searchOpen && (query.trim() || contactHits.length > 0) ? (
-              <div className="absolute left-0 right-0 top-[calc(100%+8px)] max-h-[360px] overflow-y-auto rounded-2xl border border-outline-variant/20 bg-ivory py-2 shadow-card">
+              <div className="absolute left-0 top-[calc(100%+8px)] z-[100] max-h-[360px] w-[min(100vw-2rem,22rem)] min-w-[min(100%,18rem)] overflow-y-auto overflow-x-hidden rounded-2xl border border-outline-variant/20 bg-ivory py-2 shadow-card">
                 {searching ? (
                   <p className="px-4 py-3 text-[13px] text-taupe">Searching…</p>
                 ) : null}
@@ -322,7 +322,9 @@ export function DashboardHeaderProvider({
                     type="submit"
                     className="mx-2 mt-2 w-[calc(100%-16px)] rounded-full bg-rose-gold/15 py-2 text-[13px] font-medium text-rose-gold-deep hover:bg-rose-gold/25"
                   >
-                    Search &quot;{query}&quot; on this page
+                    {pathname.startsWith("/dashboard/contacts")
+                      ? `Show all matches for “${query}” in Contacts`
+                      : `Search “${query}” in Contacts`}
                   </button>
                 ) : null}
               </div>
