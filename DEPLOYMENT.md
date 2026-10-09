@@ -2,6 +2,10 @@
 
 Add these in **Vercel → Project → Settings → Environment Variables**, then **Redeploy**.
 
+## Brand assets
+
+Place the client **MyARI** wordmark PNG at `public/brand/myari-logo.png` (sidebar + favicon). Until then, the app uses `public/brand/myari-logo.svg`.
+
 ## Required (dashboard + auth)
 
 | Variable | Notes |
