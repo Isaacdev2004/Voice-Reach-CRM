@@ -135,8 +135,39 @@ export async function scheduleStepRunsForCampaign(ownerId: string, campaignId: s
  * Worker: executes step runs whose scheduled_at has passed.
  * In production this is called from a cron (Vercel Cron / Supabase Edge / external scheduler).
  */
+type CampaignRunContext = {
+  id: string;
+  provider?: string | null;
+  voice_asset_id?: string | null;
+  live_launched?: boolean | null;
+  status?: string | null;
+  voice_assets?: unknown;
+};
+
+async function campaignIdsEligibleForAutoSend(ownerId?: string): Promise<string[] | null> {
+  let query = supabaseAdmin.from("campaigns").select("id, provider, live_launched");
+  if (ownerId) query = query.eq("owner_id", ownerId);
+  const { data, error } = await query;
+  if (error?.message?.toLowerCase().includes("live_launched")) {
+    return null;
+  }
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .filter(
+      (row) =>
+        (row.provider ?? "").trim().toLowerCase() === "mock" ||
+        Boolean((row as { live_launched?: boolean }).live_launched),
+    )
+    .map((row) => row.id as string);
+}
+
 export async function runDueStepRuns(
-  options: { ownerId?: string; limit?: number; bypassLaunchGate?: boolean } = {},
+  options: {
+    ownerId?: string;
+    campaignId?: string;
+    limit?: number;
+    bypassLaunchGate?: boolean;
+  } = {},
 ) {
   const limit = options.limit ?? 25;
   const selectWithLaunch =
@@ -153,6 +184,26 @@ export async function runDueStepRuns(
     .limit(limit);
 
   if (options.ownerId) query = query.eq("owner_id", options.ownerId);
+  if (options.campaignId) query = query.eq("campaign_id", options.campaignId);
+  else if (!options.bypassLaunchGate) {
+    const eligibleCampaignIds = await campaignIdsEligibleForAutoSend(options.ownerId);
+    if (eligibleCampaignIds && eligibleCampaignIds.length > 0) {
+      query = query.in("campaign_id", eligibleCampaignIds);
+    } else if (eligibleCampaignIds && eligibleCampaignIds.length === 0) {
+      return {
+        processed: 0,
+        executed: [] as { runId: string; status: string }[],
+        summary: {
+          sent: 0,
+          failed: 0,
+          skipped: 0,
+          blocked: 0,
+          deferredNotLaunched: 0,
+          deferredQuietHours: 0,
+        },
+      };
+    }
+  }
 
   let { data: runs, error } = await query;
   // Older DBs without live_launched: fall back and treat every live campaign as not launched.
@@ -165,11 +216,64 @@ export async function runDueStepRuns(
       .order("scheduled_at", { ascending: true })
       .limit(limit);
     if (options.ownerId) fallback = fallback.eq("owner_id", options.ownerId);
+    if (options.campaignId) fallback = fallback.eq("campaign_id", options.campaignId);
+    else if (!options.bypassLaunchGate) {
+      const eligibleCampaignIds = await campaignIdsEligibleForAutoSend(options.ownerId);
+      if (eligibleCampaignIds?.length) {
+        fallback = fallback.in("campaign_id", eligibleCampaignIds);
+      }
+    }
     const retry = await fallback;
     runs = retry.data;
     error = retry.error;
   }
   if (error) throw new Error(error.message);
+
+  const campaignCache = new Map<string, CampaignRunContext | null>();
+
+  async function resolveCampaign(
+    run: {
+      campaign_id: string;
+      owner_id: string;
+      campaign_recipients?: {
+        campaigns?: CampaignRunContext | CampaignRunContext[] | null;
+      } | null;
+    },
+  ): Promise<CampaignRunContext | null> {
+    const nestedRaw = run.campaign_recipients?.campaigns;
+    const nested = Array.isArray(nestedRaw) ? nestedRaw[0] : nestedRaw;
+    const nestedProvider = (nested?.provider ?? "").trim().toLowerCase();
+    if (
+      nested?.id &&
+      nested.provider != null &&
+      (nestedProvider === "mock" || nested.live_launched !== undefined)
+    ) {
+      return nested;
+    }
+
+    if (!campaignCache.has(run.campaign_id)) {
+      const { data, error: campError } = await supabaseAdmin
+        .from("campaigns")
+        .select("id, provider, voice_asset_id, live_launched, status, voice_assets(*)")
+        .eq("id", run.campaign_id)
+        .eq("owner_id", run.owner_id)
+        .maybeSingle();
+
+      if (campError?.message?.toLowerCase().includes("live_launched")) {
+        const { data: fallbackRow } = await supabaseAdmin
+          .from("campaigns")
+          .select("id, provider, voice_asset_id, status, voice_assets(*)")
+          .eq("id", run.campaign_id)
+          .eq("owner_id", run.owner_id)
+          .maybeSingle();
+        campaignCache.set(run.campaign_id, (fallbackRow as CampaignRunContext) ?? null);
+      } else {
+        campaignCache.set(run.campaign_id, (data as CampaignRunContext) ?? null);
+      }
+    }
+
+    return campaignCache.get(run.campaign_id) ?? nested ?? null;
+  }
 
   const executed: { runId: string; status: string }[] = [];
   const summary = {
@@ -195,9 +299,9 @@ export async function runDueStepRuns(
   for (const run of runs ?? []) {
     const step = run.campaign_steps;
     const recipient = run.campaign_recipients;
-    const contact = recipient?.contacts;
-    const campaignRaw = recipient?.campaigns;
-    const campaign = Array.isArray(campaignRaw) ? campaignRaw[0] : campaignRaw;
+    const contactRaw = recipient?.contacts;
+    const contact = Array.isArray(contactRaw) ? contactRaw[0] : contactRaw;
+    const campaign = await resolveCampaign(run);
     if (
       !step ||
       !recipient ||

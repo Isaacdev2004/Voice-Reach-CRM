@@ -337,11 +337,13 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
       summary?: {
         sent?: number;
         failed?: number;
+        skipped?: number;
+        blocked?: number;
         deferredNotLaunched?: number;
         deferredQuietHours?: number;
       };
       inactive?: { scanned: number; triggered: number };
-    }>("/api/campaigns/runner", {
+    }>(`/api/campaigns/${campaignId}/run-due`, {
       method: "POST",
     });
     setTickingRunner(false);
@@ -352,10 +354,22 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
       let detail = `Processed ${processed} step run${processed === 1 ? "" : "s"}`;
       if (summary?.sent) detail += ` · ${summary.sent} sent`;
       if (summary?.failed) detail += ` · ${summary.failed} failed`;
+      if (summary?.skipped) detail += ` · ${summary.skipped} skipped`;
+      if (summary?.blocked) detail += ` · ${summary.blocked} blocked`;
       if (summary?.deferredNotLaunched) {
         detail += " · waiting on Launch campaign";
       } else if (summary?.deferredQuietHours) {
         detail += " · paused for quiet hours";
+      } else if (
+        processed > 0 &&
+        !summary?.sent &&
+        !summary?.failed &&
+        !summary?.skipped &&
+        !summary?.blocked &&
+        !summary?.deferredNotLaunched &&
+        !summary?.deferredQuietHours
+      ) {
+        detail += " · no status change (check other campaigns’ old scheduled runs)";
       } else if (processed === 0 && scheduleInsight.waiting > 0 && scheduleInsight.dueNow === 0) {
         detail += " · next steps are scheduled for later (see Step runs)";
       }
