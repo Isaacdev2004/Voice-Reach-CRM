@@ -135,7 +135,9 @@ export async function scheduleStepRunsForCampaign(ownerId: string, campaignId: s
  * Worker: executes step runs whose scheduled_at has passed.
  * In production this is called from a cron (Vercel Cron / Supabase Edge / external scheduler).
  */
-export async function runDueStepRuns(options: { ownerId?: string; limit?: number } = {}) {
+export async function runDueStepRuns(
+  options: { ownerId?: string; limit?: number; bypassLaunchGate?: boolean } = {},
+) {
   const limit = options.limit ?? 25;
   const selectWithLaunch =
     "*, campaign_steps(*), campaign_recipients(*, contacts(*, consent_records(*)), campaigns(id, provider, voice_asset_id, live_launched, status, voice_assets(*)))";
@@ -214,7 +216,11 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     const launched = Boolean(
       (campaign as { live_launched?: boolean | null } | null)?.live_launched,
     );
-    if (isLiveCampaignProvider(campaign?.provider) && !launched) {
+    if (
+      isLiveCampaignProvider(campaign?.provider) &&
+      !launched &&
+      !options.bypassLaunchGate
+    ) {
       // Keep the run scheduled - do not skip permanently - just defer until launched.
       executed.push({ runId: run.id, status: "deferred_not_launched" });
       summary.deferredNotLaunched += 1;

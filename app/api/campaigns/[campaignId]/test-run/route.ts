@@ -165,7 +165,12 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
 
   let processed = 0;
   for (let i = 0; i < 5; i++) {
-    const tick = await runDueStepRuns({ ownerId, limit: 50 });
+    const tick = await runDueStepRuns({
+      ownerId,
+      limit: 50,
+      // Run sequence is an explicit live test — do not require Launch campaign first.
+      bypassLaunchGate: live,
+    });
     processed += tick.processed;
     if (tick.processed === 0) break;
   }

@@ -120,6 +120,17 @@ type ApiData = {
     blocked: number;
     skipped: number;
   };
+  diagnostics?: {
+    liveOutboundAllowed: boolean;
+    cronConfigured: boolean;
+    campaignProvider: string;
+    liveLaunched: boolean;
+    status: string;
+    scheduledDueNow: number;
+    scheduledWaiting: number;
+    nextScheduledAt: string | null;
+    hint: string | null;
+  };
 };
 
 type Toast = { message: string; tone: "success" | "error" };
@@ -591,6 +602,22 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
               voicemails or SMS. Use Simulation, or set{" "}
               <span className="font-medium">ALLOW_LIVE_OUTBOUND=true</span> in Vercel when ready to
               go live.
+            </p>
+          ) : null}
+          {data?.diagnostics?.hint ? (
+            <p className="mt-3 max-w-2xl rounded-xl border border-rose-gold/30 bg-rose-gold/5 px-3 py-2 text-[13px] text-ink">
+              <span className="font-medium text-rose-gold-deep">Send pipeline: </span>
+              {data.diagnostics.hint}
+              {data.diagnostics.scheduledDueNow > 0 ? (
+                <span className="text-taupe">
+                  {" "}
+                  ({data.diagnostics.scheduledDueNow} due now
+                  {data.diagnostics.nextScheduledAt
+                    ? ` · next at ${new Date(data.diagnostics.nextScheduledAt).toLocaleString()}`
+                    : ""}
+                  )
+                </span>
+              ) : null}
             </p>
           ) : null}
         </div>

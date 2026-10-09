@@ -17,7 +17,7 @@ async function handle(request: Request) {
     Boolean(process.env.CRON_SECRET?.trim()) &&
     authHeader === `Bearer ${process.env.CRON_SECRET!.trim()}`;
 
-  if (vercelCron || (vercelCronHeader && !process.env.CRON_SECRET?.trim())) {
+  if (vercelCronHeader && !process.env.CRON_SECRET?.trim()) {
     console.warn(
       "[campaigns/runner] Vercel cron invoked but CRON_SECRET is not set — set CRON_SECRET in Vercel env so cron can authenticate.",
     );

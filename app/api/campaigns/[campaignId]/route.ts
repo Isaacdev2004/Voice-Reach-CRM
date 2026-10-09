@@ -139,11 +139,17 @@ export const GET = withApiHandler<RouteContext>(async (_request, context) => {
     nextScheduledAt: nextScheduledMs ? new Date(nextScheduledMs).toISOString() : null,
     hint: !liveOutboundAllowed
       ? "Set ALLOW_LIVE_OUTBOUND=true in Vercel and redeploy."
-      : !Boolean((campaignRow as { live_launched?: boolean }).live_launched)
-        ? "Click Launch campaign after Switch to Live."
-        : scheduledRuns.length > 0 && dueNow.length === 0
-          ? "No steps are due yet — use Run sequence (Live) for an immediate test, or wait for Next send."
-          : null,
+      : campaignRow.provider === "mock"
+        ? "Simulation mode — switch to Live and Launch for real delivery, or use Run sequence (Live) to test."
+        : !Boolean((campaignRow as { live_launched?: boolean }).live_launched)
+          ? "Live but not launched — cron and Run scheduler will not deliver until you click Launch campaign. Run sequence (Live) can still send an immediate test."
+          : !Boolean(process.env.CRON_SECRET?.trim()) && dueNow.length > 0
+            ? "Steps are due now but Vercel cron is not authenticated — set CRON_SECRET in Vercel, or click Run scheduler."
+            : scheduledRuns.length > 0 && dueNow.length === 0
+              ? "No steps are due yet — use Run sequence (Live) for an immediate test, or wait for Next send."
+              : dueNow.length > 0
+                ? `${dueNow.length} step(s) due — cron runs every minute when CRON_SECRET is set, or click Run scheduler.`
+                : null,
   };
 
   return apiOk({
