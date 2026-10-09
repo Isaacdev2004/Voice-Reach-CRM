@@ -14,7 +14,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     name: "Enterprise CRM",
     slug: "enterprise-crm",
     industry: "Real Estate",
-    defaultSenderName: "ARI Team",
+    defaultSenderName: "MyARI Team",
     quietHoursStart: "21:00",
     quietHoursEnd: "08:00",
     requireConsentProof: true,

@@ -44,7 +44,7 @@ export async function createSubscriptionSession(params: {
       unit_amount: plan.price * 100,
       recurring: { interval: "month" },
       product_data: {
-        name: `ARI ${plan.name}`,
+        name: `MyARI ${plan.name}`,
         description: plan.description,
         tax_code: SAAS_TAX_CODE,
       },

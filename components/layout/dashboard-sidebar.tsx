@@ -39,8 +39,8 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
       >
         <div className="mb-8 flex items-start justify-between px-6">
           <Link href="/dashboard" className="group" onClick={onMobileClose}>
-            <AriLogo height={36} />
-            <p className="mt-1.5 text-[13px] italic text-taupe group-hover:text-rose-gold-deep">
+            <AriLogo height={52} />
+            <p className="mt-2 text-[12px] italic leading-snug text-taupe group-hover:text-rose-gold-deep">
               {BRAND_TAGLINE}
             </p>
           </Link>
@@ -65,8 +65,8 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                 className={cn(
                   "mx-2 my-1 flex items-center gap-3 rounded-full px-4 py-3 transition-all",
                   active
-                    ? "bg-sage text-ivory shadow-sm"
-                    : "text-taupe hover:bg-cream",
+                    ? "bg-rose-gold-deep text-ivory shadow-sm"
+                    : "text-taupe hover:bg-champagne/80",
                 )}
               >
                 <Icon name={item.icon} />

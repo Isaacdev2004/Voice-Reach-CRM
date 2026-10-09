@@ -226,7 +226,7 @@ export function CalendarPage() {
                 const result = connectGoogleCalendar();
                 if (result.blocked) {
                   setConnectHint(
-                    "Google Calendar can’t connect inside this browser. Open ARI in Safari or Chrome, then try again.",
+                    "Google Calendar can’t connect inside this browser. Open MyARI in Safari or Chrome, then try again.",
                   );
                 }
               }}
@@ -319,7 +319,7 @@ export function CalendarPage() {
                 const result = connectGoogleCalendar();
                 if (result.blocked) {
                   setConnectHint(
-                    "Open ARI in Safari or Chrome, then reconnect Google Calendar.",
+                    "Open MyARI in Safari or Chrome, then reconnect Google Calendar.",
                   );
                 }
               }}

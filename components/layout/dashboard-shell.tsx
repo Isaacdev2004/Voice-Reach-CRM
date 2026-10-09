@@ -20,7 +20,7 @@ const headerConfig: Record<
   { searchPlaceholder?: string; showQuickCreate?: boolean; fullWidth?: boolean }
 > = {
   "/dashboard": {
-    searchPlaceholder: "Search data, contacts, campaigns...",
+    searchPlaceholder: "Search contacts, campaigns, or ask MyARI...",
     showQuickCreate: true,
     fullWidth: true,
   },
@@ -30,12 +30,12 @@ const headerConfig: Record<
     fullWidth: true,
   },
   "/dashboard/campaigns": {
-    searchPlaceholder: "Search campaigns...",
+    searchPlaceholder: "Search campaigns, contacts, or ask MyARI...",
     showQuickCreate: true,
     fullWidth: true,
   },
   "/dashboard/voice-scripts": {
-    searchPlaceholder: "Search recordings or scripts...",
+    searchPlaceholder: "Search voice scripts, campaigns, or keywords...",
     showQuickCreate: true,
     fullWidth: true,
   },

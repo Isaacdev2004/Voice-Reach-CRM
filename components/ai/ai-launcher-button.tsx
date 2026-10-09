@@ -14,7 +14,7 @@ type AiLauncherButtonProps = {
 };
 
 export function AiLauncherButton({
-  label = "Ask ARI AI",
+  label = "Ask MyARI",
   className,
   task = "follow_up",
   contactName,

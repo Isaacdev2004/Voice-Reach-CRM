@@ -1,5 +1,7 @@
-import Image from "next/image";
+"use client";
+
 import { cn } from "@/lib/cn";
+import { useState } from "react";
 
 type AriLogoProps = {
   className?: string;
@@ -7,21 +9,26 @@ type AriLogoProps = {
   height?: number;
 };
 
-/** Client ARI wordmark from `/public/brand/ari-logo.png`. */
-export function AriLogo({ className, height = 44 }: AriLogoProps) {
+/**
+ * MyARI wordmark. Place the client PNG at `/public/brand/myari-logo.png` (overrides SVG fallback).
+ */
+export function AriLogo({ className, height = 52 }: AriLogoProps) {
+  const [src, setSrc] = useState("/brand/myari-logo.png");
+
   return (
-    <span
-      className={cn("inline-flex shrink-0 items-center leading-none", className)}
+    // eslint-disable-next-line @next/next/no-img-element -- PNG/SVG swap on load error
+    <img
+      src={src}
+      alt="MyARI"
+      height={height}
+      onError={() => {
+        if (src !== "/brand/myari-logo.svg") setSrc("/brand/myari-logo.svg");
+      }}
+      className={cn("h-auto w-[128px] max-w-full object-contain object-left", className)}
       style={{ height }}
-    >
-      <Image
-        src="/brand/ari-logo.png"
-        alt="ARI"
-        width={864}
-        height={597}
-        priority
-        className="h-full w-auto max-w-none object-contain object-left"
-      />
-    </span>
+    />
   );
 }
+
+/** Alias for new call sites. */
+export const MyAriLogo = AriLogo;

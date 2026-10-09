@@ -14,7 +14,7 @@ export function isLiveOutboundAllowed(): boolean {
 
 export function liveOutboundBlockedMessage(): string {
   return (
-    "Live outbound is paused while ARI is in demo mode. " +
+    "Live outbound is paused while MyARI is in demo mode. " +
     "Campaigns stay in Simulation so nothing hits real phones. " +
     "When you're ready to go live, set ALLOW_LIVE_OUTBOUND=true in Vercel and switch the campaign to Live."
   );

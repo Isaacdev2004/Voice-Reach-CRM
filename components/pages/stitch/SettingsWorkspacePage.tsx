@@ -205,7 +205,7 @@ export function SettingsWorkspacePage() {
             : reason === "redirect_uri_mismatch"
               ? "Google redirect URL mismatch — your admin must add the exact callback URL from Vercel (APP_BASE_URL) in Google Cloud OAuth settings."
             : reason === "missing_code_or_session"
-              ? "Session expired - click Connect again (stay signed in to ARI)."
+              ? "Session expired - click Connect again (stay signed in to MyARI)."
               : `Google Calendar connection failed${reason ? `: ${reason}` : ""}.`;
       showToast(message, "error");
       router.replace("/dashboard/settings?tab=workspace", { scroll: false });
@@ -720,7 +720,7 @@ export function SettingsWorkspacePage() {
                               const result = connectGoogleCalendar();
                               if (result.blocked) {
                                 showToast(
-                                  "Open ARI in Safari or Chrome, then connect Google Calendar.",
+                                  "Open MyARI in Safari or Chrome, then connect Google Calendar.",
                                   "error",
                                 );
                               }
@@ -760,7 +760,7 @@ export function SettingsWorkspacePage() {
                               const result = connectDotloop();
                               if (result.blocked) {
                                 showToast(
-                                  "Open ARI in Safari or Chrome, then connect Dotloop.",
+                                  "Open MyARI in Safari or Chrome, then connect Dotloop.",
                                   "error",
                                 );
                               }
@@ -786,7 +786,7 @@ export function SettingsWorkspacePage() {
                               showToast(
                                 integration.connected
                                   ? `${integration.name} is configured for this workspace (Vercel). No keys are stored in Settings.`
-                                  : `${integration.name} isn’t configured yet. Your ARI admin adds Twilio / Resend / Slybroadcast keys in Vercel, then redeploys.`,
+                                  : `${integration.name} isn’t configured yet. Your MyARI admin adds Twilio / Resend / Slybroadcast keys in Vercel, then redeploys.`,
                                 integration.connected ? "success" : "error",
                               );
                               return;
@@ -857,7 +857,7 @@ export function SettingsWorkspacePage() {
                 <div>
                   <h2 className="font-serif text-[22px] font-semibold text-ink">API keys</h2>
                   <p className="text-[14px] text-slate-text">
-                    Authenticate server requests to ARI APIs.
+                    Authenticate server requests to MyARI APIs.
                   </p>
                 </div>
                 <button
@@ -1115,7 +1115,7 @@ export function SettingsWorkspacePage() {
                   </button>
                 ) : null}
                 <p className="mt-3 text-[12px] text-taupe">
-                  Starter pay-as-you-go: ARI tracks each live SMS ($0.03) and RVM ($0.10) and adds
+                  Starter pay-as-you-go: MyARI tracks each live SMS ($0.03) and RVM ($0.10) and adds
                   them to your next Stripe invoice automatically. Growth/Pro use included monthly
                   allotments first.
                 </p>

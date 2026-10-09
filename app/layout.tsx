@@ -36,11 +36,11 @@ export const metadata: Metadata = {
     template: `%s | ${BRAND_NAME} CRM`,
   },
   description:
-    "ARI helps real estate agents capture, organize, and automatically follow up with leads so opportunities don't fall through the cracks. Start your 14-day free trial.",
+    "MyARI helps real estate agents capture, organize, and automatically follow up with leads so opportunities don't fall through the cracks. Start your 14-day free trial.",
   robots: { index: true, follow: true },
   icons: {
-    icon: "/brand/ari-logo.png",
-    apple: "/brand/ari-logo.png",
+    icon: "/brand/myari-logo.svg",
+    apple: "/brand/myari-logo.png",
   },
   openGraph: {
     type: "website",

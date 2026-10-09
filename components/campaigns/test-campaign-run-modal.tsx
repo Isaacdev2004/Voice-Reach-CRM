@@ -186,7 +186,7 @@ export function TestCampaignRunModal({
           >
             <p className="font-medium text-ink">Simulation</p>
             <p className="mt-1 text-taupe">
-              Marks steps complete in ARI - does <strong>not</strong> text or call the phone.
+              Marks steps complete in MyARI - does <strong>not</strong> text or call the phone.
             </p>
           </button>
           <button
@@ -237,7 +237,7 @@ export function TestCampaignRunModal({
             </ul>
             {mode === "live" && providers && providers.liveOutboundAllowed === false ? (
               <p className="mt-2 text-amber-900">
-                Live outbound is paused while ARI is in demo mode. Simulation still works.
+                Live outbound is paused while MyARI is in demo mode. Simulation still works.
               </p>
             ) : null}
             {mode === "live" && !providers.canSendLive ? (
