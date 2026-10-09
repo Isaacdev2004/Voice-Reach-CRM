@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     "MyARI helps real estate agents capture, organize, and automatically follow up with leads so opportunities don't fall through the cracks. Start your 14-day free trial.",
   robots: { index: true, follow: true },
   icons: {
-    icon: "/brand/myari-logo.svg",
+    icon: "/brand/myari-logo.png",
     apple: "/brand/myari-logo.png",
   },
   openGraph: {

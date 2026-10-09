@@ -43,7 +43,7 @@ export function DashboardPageHero({ config, pathname, className }: DashboardPage
       <div className="absolute inset-0 bg-gradient-to-r from-cream/95 via-cream/80 to-cream/25 md:from-cream/92 md:via-cream/65 md:to-transparent" />
       <div className="relative z-10 flex min-h-[inherit] flex-col justify-between gap-4 p-5 sm:p-8 md:p-10 lg:flex-row lg:items-end">
         <div className="max-w-xl">
-          <AriLogo height={44} className="mb-3 sm:mb-4" />
+          <AriLogo height={56} className="mb-3 sm:mb-4" />
           <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-rose-gold-deep sm:text-[11px]">
             {config.eyebrow}
           </p>

@@ -39,7 +39,7 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
       >
         <div className="mb-8 flex items-start justify-between px-6">
           <Link href="/dashboard" className="group" onClick={onMobileClose}>
-            <AriLogo height={52} />
+            <AriLogo height={76} />
             <p className="mt-2 text-[12px] italic leading-snug text-taupe group-hover:text-rose-gold-deep">
               {BRAND_TAGLINE}
             </p>

@@ -12,20 +12,19 @@ type AriLogoProps = {
 /**
  * MyARI wordmark. Place the client PNG at `/public/brand/myari-logo.png` (overrides SVG fallback).
  */
-export function AriLogo({ className, height = 52 }: AriLogoProps) {
+export function AriLogo({ className, height = 72 }: AriLogoProps) {
   const [src, setSrc] = useState("/brand/myari-logo.png");
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- PNG/SVG swap on load error
+    // eslint-disable-next-line @next/next/no-img-element -- client PNG + SVG fallback
     <img
       src={src}
       alt="MyARI"
-      height={height}
       onError={() => {
         if (src !== "/brand/myari-logo.svg") setSrc("/brand/myari-logo.svg");
       }}
-      className={cn("h-auto w-[128px] max-w-full object-contain object-left", className)}
-      style={{ height }}
+      className={cn("w-auto max-w-[120px] object-contain object-left", className)}
+      style={{ height, width: "auto" }}
     />
   );
 }
