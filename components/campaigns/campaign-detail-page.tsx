@@ -1152,6 +1152,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
         onClose={() => setTestRunOpen(false)}
         campaignId={campaignId}
         campaignName={campaign.name}
+        enrolledContactIds={existingContactIds}
         onDone={(message) => {
           showToast(message);
           void refresh();

@@ -26,6 +26,8 @@ type TestCampaignRunModalProps = {
   onClose: () => void;
   campaignId: string;
   campaignName: string;
+  /** Contacts already enrolled on this campaign — pre-selected when the modal opens */
+  enrolledContactIds?: string[];
   onDone: (message: string) => void;
 };
 
@@ -34,6 +36,7 @@ export function TestCampaignRunModal({
   onClose,
   campaignId,
   campaignName,
+  enrolledContactIds = [],
   onDone,
 }: TestCampaignRunModalProps) {
   const [contacts, setContacts] = useState<ContactRow[]>([]);
@@ -44,13 +47,17 @@ export function TestCampaignRunModal({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [mode, setMode] = useState<"mock" | "live">("mock");
+  const [showEnrolledOnly, setShowEnrolledOnly] = useState(false);
+
+  const enrolledSet = useMemo(() => new Set(enrolledContactIds), [enrolledContactIds]);
 
   useEffect(() => {
     if (!open) return;
-    setSelectedIds(new Set());
+    setSelectedIds(new Set(enrolledContactIds));
     setSearch("");
     setError(null);
     setMode("mock");
+    setShowEnrolledOnly(enrolledContactIds.length > 0);
     (async () => {
       setLoading(true);
       const [contactsEnv, providersEnv] = await Promise.all([
@@ -62,12 +69,17 @@ export function TestCampaignRunModal({
       else setError(contactsEnv.error);
       if (providersEnv.success) setProviders(providersEnv.data);
     })();
-  }, [open]);
+  }, [open, enrolledContactIds]);
+
+  const listPool = useMemo(() => {
+    if (!showEnrolledOnly || enrolledSet.size === 0) return contacts;
+    return contacts.filter((c) => enrolledSet.has(c.id));
+  }, [contacts, enrolledSet, showEnrolledOnly]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return contacts;
-    return contacts.filter((c) => {
+    if (!q) return listPool;
+    return listPool.filter((c) => {
       const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim().toLowerCase();
       return (
         name.includes(q) ||
@@ -75,7 +87,22 @@ export function TestCampaignRunModal({
         (c.email ?? "").toLowerCase().includes(q)
       );
     });
-  }, [contacts, search]);
+  }, [listPool, search]);
+
+  const selectAllOnCampaign = () => {
+    setSelectedIds(new Set(enrolledContactIds));
+    setShowEnrolledOnly(true);
+  };
+
+  const selectAllFiltered = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      filtered.forEach((c) => next.add(c.id));
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
 
   const toggle = (id: string) => {
     setSelectedIds((prev) => {
@@ -225,6 +252,53 @@ export function TestCampaignRunModal({
           <p className="text-[13px] text-taupe">Loading contacts…</p>
         ) : (
           <>
+            {enrolledContactIds.length > 0 ? (
+              <p className="rounded-xl border border-emerald-muted/25 bg-emerald-muted/10 px-3 py-2 text-[13px] text-ink">
+                <span className="font-medium">{enrolledContactIds.length}</span> contact
+                {enrolledContactIds.length === 1 ? "" : "s"} already on this campaign — pre-selected.
+                You can send without searching again.
+              </p>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+              {enrolledContactIds.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={selectAllOnCampaign}
+                  className="rounded-full border border-outline-variant/30 px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-champagne"
+                >
+                  All on campaign ({enrolledContactIds.length})
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={selectAllFiltered}
+                disabled={filtered.length === 0}
+                className="rounded-full border border-outline-variant/30 px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-champagne disabled:opacity-50"
+              >
+                Select all shown
+              </button>
+              <button
+                type="button"
+                onClick={clearSelection}
+                className="rounded-full border border-outline-variant/30 px-3 py-1.5 text-[12px] font-medium text-taupe hover:bg-champagne"
+              >
+                Clear
+              </button>
+              {enrolledContactIds.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setShowEnrolledOnly((v) => !v)}
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-[12px] font-medium",
+                    showEnrolledOnly
+                      ? "border-rose-gold/40 bg-rose-gold/10 text-rose-gold-deep"
+                      : "border-outline-variant/30 text-ink hover:bg-champagne",
+                  )}
+                >
+                  {showEnrolledOnly ? "Showing campaign only" : "Show all contacts"}
+                </button>
+              ) : null}
+            </div>
             <input
               type="search"
               value={search}
