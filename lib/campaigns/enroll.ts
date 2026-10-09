@@ -243,6 +243,17 @@ export async function scheduleStepRunsForRecipients(
   return insertStepRunsDeduped(ownerId, campaignId, rows);
 }
 
+/** Drop pending step runs and rebuild from current steps (used on Launch). */
+export async function rebuildScheduledStepRuns(ownerId: string, campaignId: string) {
+  await supabaseAdmin
+    .from("campaign_step_runs")
+    .delete()
+    .eq("campaign_id", campaignId)
+    .eq("owner_id", ownerId)
+    .eq("status", "scheduled");
+  return ensureStepRunsForCampaign(ownerId, campaignId);
+}
+
 /** Schedule any missing step runs for enrolled recipients (used on explicit launch). */
 export async function ensureStepRunsForCampaign(ownerId: string, campaignId: string) {
   const [{ data: steps }, { data: recipients }] = await Promise.all([

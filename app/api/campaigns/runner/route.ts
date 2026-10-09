@@ -11,9 +11,17 @@ import { auth } from "@clerk/nextjs/server";
 async function handle(request: Request) {
   const cronSecret = request.headers.get("x-cron-secret");
   const envSecret = process.env.CAMPAIGN_RUNNER_SECRET;
-  const vercelCron = process.env.CRON_SECRET
-    ? request.headers.get("authorization") === `Bearer ${process.env.CRON_SECRET}`
-    : false;
+  const authHeader = request.headers.get("authorization");
+  const vercelCronHeader = request.headers.get("x-vercel-cron") === "1";
+  const vercelCron =
+    Boolean(process.env.CRON_SECRET?.trim()) &&
+    authHeader === `Bearer ${process.env.CRON_SECRET!.trim()}`;
+
+  if (vercelCron || (vercelCronHeader && !process.env.CRON_SECRET?.trim())) {
+    console.warn(
+      "[campaigns/runner] Vercel cron invoked but CRON_SECRET is not set — set CRON_SECRET in Vercel env so cron can authenticate.",
+    );
+  }
 
   if (vercelCron || (cronSecret && envSecret && cronSecret === envSecret)) {
     const inactive = await runInactiveLeadScan({ limit: 100 });

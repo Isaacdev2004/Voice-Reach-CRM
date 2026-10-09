@@ -26,7 +26,9 @@ Add these in **Vercel → Project → Settings → Environment Variables**, then
 | `TWILIO_FROM_NUMBER` | SMS-enabled number |
 | `RESEND_API_KEY` | Email |
 | `RESEND_FROM_EMAIL` | e.g. `ARI <noreply@myari.io>` (verified domain) |
-| `CAMPAIGN_RUNNER_SECRET` | Random string for cron |
+| `ALLOW_LIVE_OUTBOUND` | Must be `true` for real SMS / RVM / email (master kill switch) |
+| `CRON_SECRET` | Random string — **required** for Vercel Cron to auth to `/api/campaigns/runner` (auto-send every minute) |
+| `CAMPAIGN_RUNNER_SECRET` | Optional manual cron header `x-cron-secret` |
 
 ## Voice AI (ElevenLabs)
 

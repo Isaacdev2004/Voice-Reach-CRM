@@ -1,6 +1,7 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import { rebuildScheduledStepRuns } from "@/lib/campaigns/enroll";
 import {
   isLiveCampaignProvider,
   isLiveOutboundAllowed,
@@ -117,6 +118,34 @@ export const GET = withApiHandler<RouteContext>(async (_request, context) => {
     skipped: runs.filter((r) => r.status === "skipped").length,
   };
 
+  const nowMs = Date.now();
+  const scheduledRuns = runs.filter((r) => r.status === "scheduled");
+  const dueNow = scheduledRuns.filter((r) => new Date(r.scheduled_at).getTime() <= nowMs);
+  const nextScheduledMs =
+    scheduledRuns.length > 0
+      ? Math.min(...scheduledRuns.map((r) => new Date(r.scheduled_at).getTime()))
+      : null;
+
+  const liveOutboundAllowed = isLiveOutboundAllowed();
+  const campaignRow = campaignRes.data;
+  const diagnostics = {
+    liveOutboundAllowed,
+    cronConfigured: Boolean(process.env.CRON_SECRET?.trim()),
+    campaignProvider: campaignRow.provider,
+    liveLaunched: Boolean((campaignRow as { live_launched?: boolean }).live_launched),
+    status: campaignRow.status,
+    scheduledDueNow: dueNow.length,
+    scheduledWaiting: scheduledRuns.length - dueNow.length,
+    nextScheduledAt: nextScheduledMs ? new Date(nextScheduledMs).toISOString() : null,
+    hint: !liveOutboundAllowed
+      ? "Set ALLOW_LIVE_OUTBOUND=true in Vercel and redeploy."
+      : !Boolean((campaignRow as { live_launched?: boolean }).live_launched)
+        ? "Click Launch campaign after Switch to Live."
+        : scheduledRuns.length > 0 && dueNow.length === 0
+          ? "No steps are due yet — use Run sequence (Live) for an immediate test, or wait for Next send."
+          : null,
+  };
+
   return apiOk({
     campaign: campaignRes.data,
     steps: stepsRes.data ?? [],
@@ -126,6 +155,7 @@ export const GET = withApiHandler<RouteContext>(async (_request, context) => {
     counts,
     runCounts,
     blockedReport,
+    diagnostics,
   });
 });
 
@@ -222,8 +252,7 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
       }
       updates.live_launched = true;
       updates.status = "sending";
-      const { ensureStepRunsForCampaign } = await import("@/lib/campaigns/enroll");
-      await ensureStepRunsForCampaign(ownerId, campaignId);
+      await rebuildScheduledStepRuns(ownerId, campaignId);
     } else {
       updates.live_launched = false;
     }
