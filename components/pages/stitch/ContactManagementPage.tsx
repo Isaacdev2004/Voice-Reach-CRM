@@ -251,16 +251,7 @@ export function ContactManagementPage() {
         submitting={bulkSubmitting}
         error={bulkError}
       />
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
-            Contacts
-          </p>
-          <h1 className="font-serif text-[36px] font-semibold text-ink">Your relationships</h1>
-          <p className="mt-1 text-[15px] text-slate-text">
-            Click a name to open the full relationship profile.
-          </p>
-        </div>
+      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
         <ContactPageActions onRefresh={refresh} />
       </header>
 

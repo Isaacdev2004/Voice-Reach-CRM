@@ -315,19 +315,8 @@ export function NotesStrategyPage() {
           : "text-ink";
 
   return (
-    <div className="luxury-page mx-auto flex h-[calc(100vh-7rem)] min-h-[520px] w-full max-w-[1100px] flex-col gap-4 p-4 sm:p-6">
-      <div className="flex shrink-0 items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
-            Thinking
-          </p>
-          <h1 className="mt-1 font-serif text-[28px] font-semibold text-ink sm:text-[34px]">
-            Notes & Strategy
-          </h1>
-          <p className="mt-1 text-[14px] text-slate-text">
-            Freeform like Apple Notes - first line is the title. Auto-saves as you type.
-          </p>
-        </div>
+    <div className="luxury-page mx-auto flex h-[calc(100vh-7rem)] min-h-[520px] w-full max-w-[1100px] flex-col gap-4 p-4 pt-2 sm:p-6 sm:pt-4">
+      <div className="flex shrink-0 items-end justify-end gap-4">
         <button
           type="button"
           onClick={() => startNew(tab)}

@@ -5,7 +5,7 @@ import { Suspense } from "react";
 export default function CampaignsPage() {
   return (
     <div className="luxury-page space-y-0">
-      <div className="mx-auto max-w-[1400px] px-8 pt-8">
+      <div className="mx-auto max-w-[1400px] px-8 pt-2 sm:pt-4">
         <CampaignListPanel />
       </div>
       <div id="campaign-builder">

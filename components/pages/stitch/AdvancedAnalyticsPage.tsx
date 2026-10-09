@@ -122,16 +122,7 @@ export function AdvancedAnalyticsPage() {
         </div>
       ) : null}
 
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
-            Analytics
-          </p>
-          <h1 className="font-serif text-[36px] font-semibold text-ink">Performance analytics</h1>
-          <p className="mt-1 text-[15px] text-slate-text">
-            Insights across outreach, delivery, consent, and campaigns.
-          </p>
-        </div>
+      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"

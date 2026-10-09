@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ContactAvatar } from "@/components/crm/contact-avatar";
-import { DashboardDeckHero } from "@/components/crm/dashboard-deck-hero";
 import { KpiCard } from "@/components/crm/kpi-card";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { MarketingPulse } from "@/components/crm/marketing-pulse";
@@ -67,9 +66,7 @@ export function OperationalDashboardPage() {
   ];
 
   return (
-    <div className="luxury-page w-full max-w-[1400px] mx-auto space-y-6 px-4 py-6 sm:p-8">
-      <DashboardDeckHero />
-
+    <div className="luxury-page w-full max-w-[1400px] mx-auto space-y-6 px-4 pb-6 pt-2 sm:p-8 sm:pt-4">
       <MarketingPulse />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

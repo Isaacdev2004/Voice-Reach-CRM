@@ -62,16 +62,8 @@ export function TasksPage() {
   const done = tasks.filter((t) => t.completed);
 
   return (
-    <div className="luxury-page mx-auto block w-full min-w-0 max-w-[1400px] space-y-6 p-4 sm:p-8">
-      <header className="flex w-full flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Tasks</p>
-          <h1 className="font-serif text-[36px] font-semibold text-ink">Follow-ups & to-dos</h1>
-          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-slate-text">
-            Create daily, weekly, or monthly reminders with notes - synced to your calendar when
-            Google is connected.
-          </p>
-        </div>
+    <div className="luxury-page mx-auto block w-full min-w-0 max-w-[1400px] space-y-6 p-4 pt-2 sm:p-8 sm:pt-4">
+      <header className="flex w-full justify-end">
         <button
           type="button"
           onClick={() => setModalOpen(true)}

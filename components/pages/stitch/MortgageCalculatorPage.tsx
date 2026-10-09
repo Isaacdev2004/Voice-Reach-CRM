@@ -88,24 +88,17 @@ export function MortgageCalculatorPage() {
   );
 
   return (
-    <div className="luxury-page mx-auto w-full min-w-0 max-w-[720px] space-y-6 p-4 sm:p-8">
-      <LuxuryCard padding="lg" className="w-full min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Planning</p>
-        <h1 className="mt-2 font-serif text-[32px] font-semibold leading-tight text-ink sm:text-[40px]">
-          Mortgage Calculator
-        </h1>
-        <p className="mt-3 w-full text-[15px] leading-relaxed text-slate-text sm:max-w-2xl">
-          Estimate monthly payments with today’s average rates, refreshed daily.
-        </p>
+    <div className="luxury-page mx-auto w-full min-w-0 max-w-[720px] space-y-6 p-4 pt-2 sm:p-8 sm:pt-4">
+      <div className="flex justify-end">
         <button
           type="button"
           onClick={() => void loadRates()}
-          className="mt-5 inline-flex items-center gap-2 rounded-full border border-outline-variant/30 px-5 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne"
+          className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-ivory px-5 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne"
         >
           <Icon name={loadingRates ? "progress_activity" : "refresh"} className={loadingRates ? "animate-spin text-[18px]" : "text-[18px]"} />
           Refresh rates
         </button>
-      </LuxuryCard>
+      </div>
 
       <LuxuryCard padding="lg" className="w-full min-w-0">
         <div className="mb-6 flex items-center gap-2">

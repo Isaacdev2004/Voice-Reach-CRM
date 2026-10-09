@@ -11,17 +11,7 @@ export function VoiceScriptsStudioPage() {
   const [tab, setTab] = useState<StudioTab>("voice");
 
   return (
-    <div className="luxury-page p-8 max-w-[1224px] mx-auto space-y-8">
-      <header>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
-          Voice script studio
-        </p>
-        <h1 className="font-serif text-[36px] font-semibold text-ink">Creator workspace</h1>
-        <p className="mt-2 text-body-lg text-slate-text">
-          Record, preview, and assign scripts - voice and AI avatar drafts live side by side.
-        </p>
-      </header>
-
+    <div className="luxury-page mx-auto max-w-[1224px] space-y-8 p-4 pt-2 sm:p-8 sm:pt-4">
       <div className="flex gap-2 rounded-full bg-champagne/60 p-1 w-fit">
         {(
           [

@@ -166,29 +166,16 @@ export function CalendarPage() {
     }
   }, []);
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-
   return (
-    <div className="luxury-page mx-auto w-full max-w-[1400px] space-y-4 px-3 py-4 sm:space-y-6 sm:px-4 sm:py-6 sm:p-8">
-      <header className="flex w-full items-center justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-taupe sm:text-[11px] sm:tracking-[0.25em]">
-            Calendar
+    <div className="luxury-page mx-auto w-full max-w-[1400px] space-y-4 px-3 pb-4 pt-2 sm:space-y-6 sm:px-4 sm:pb-6 sm:pt-4 sm:p-8">
+      <header className="flex w-full flex-wrap items-center justify-between gap-3">
+        {connected && accountEmail ? (
+          <p className="min-w-0 flex-1 truncate text-[13px] text-taupe">
+            Synced with {accountEmail}
           </p>
-          <h1 className="truncate font-serif text-[26px] font-semibold tracking-tight text-ink sm:text-[36px] md:text-[40px]">
-            {greeting}
-          </h1>
-          <p className="mt-1 hidden text-[15px] leading-relaxed text-slate-text sm:mt-2 sm:block sm:max-w-2xl">
-            Your full schedule in one place - add events here and they sync to Google Calendar when
-            connected.
-          </p>
-          {connected && accountEmail ? (
-            <p className="mt-1 truncate text-[12px] text-taupe sm:mt-2 sm:text-[13px]">
-              Synced with {accountEmail}
-            </p>
-          ) : null}
-        </div>
+        ) : (
+          <span className="flex-1" />
+        )}
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <button
             type="button"

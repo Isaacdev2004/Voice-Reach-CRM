@@ -194,16 +194,7 @@ export function ActivityLogsPage() {
         </div>
       ) : null}
 
-      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
-            Activity
-          </p>
-          <h1 className="font-serif text-[36px] font-semibold text-ink">Activity logs</h1>
-          <p className="mt-1 text-[15px] text-slate-text">
-            Audit trail of campaigns, compliance events, engagement, and system actions.
-          </p>
-        </div>
+      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
