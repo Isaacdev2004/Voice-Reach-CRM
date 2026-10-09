@@ -195,19 +195,17 @@ function buildStepRunRows(
   const rows: Record<string, unknown>[] = [];
 
   for (const recipient of recipients) {
-    let cursor = baseTime;
     for (const [index, step] of steps.entries()) {
-      if (options?.accelerated) {
-        cursor = baseTime - (steps.length - index) * 1_000;
-      } else {
-        cursor += (step.delay_minutes ?? 0) * 60_000;
-      }
+      // delay_minutes is offset from enrollment (Day N → (N-1)*24h), not delta from prior step.
+      const scheduledMs = options?.accelerated
+        ? baseTime - (steps.length - index) * 1_000
+        : baseTime + (step.delay_minutes ?? 0) * 60_000;
       rows.push({
         owner_id: ownerId,
         campaign_id: campaignId,
         step_id: step.id,
         recipient_id: recipient.id,
-        scheduled_at: new Date(cursor).toISOString(),
+        scheduled_at: new Date(scheduledMs).toISOString(),
         status: "scheduled",
       });
     }

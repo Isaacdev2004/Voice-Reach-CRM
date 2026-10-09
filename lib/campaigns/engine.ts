@@ -170,6 +170,14 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
   if (error) throw new Error(error.message);
 
   const executed: { runId: string; status: string }[] = [];
+  const summary = {
+    sent: 0,
+    failed: 0,
+    skipped: 0,
+    blocked: 0,
+    deferredNotLaunched: 0,
+    deferredQuietHours: 0,
+  };
   const settingsCache = new Map<
     string,
     Awaited<ReturnType<typeof loadWorkspaceSettings>>
@@ -197,6 +205,7 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     ) {
       await markRun(run.id, "skipped", { reason: "missing entity" });
       executed.push({ runId: run.id, status: "skipped" });
+      summary.skipped += 1;
       continue;
     }
 
@@ -208,6 +217,7 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     if (isLiveCampaignProvider(campaign?.provider) && !launched) {
       // Keep the run scheduled - do not skip permanently - just defer until launched.
       executed.push({ runId: run.id, status: "deferred_not_launched" });
+      summary.deferredNotLaunched += 1;
       continue;
     }
 
@@ -230,6 +240,7 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
         .update({ scheduled_at: resumeAt.toISOString() })
         .eq("id", run.id);
       executed.push({ runId: run.id, status: "deferred_quiet_hours" });
+      summary.deferredQuietHours += 1;
       continue;
     }
 
@@ -249,6 +260,7 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
         .update({ eligibility_status: "blocked", eligibility_issues: issues })
         .eq("id", recipient.id);
       executed.push({ runId: run.id, status: "blocked" });
+      summary.blocked += 1;
       continue;
     }
 
@@ -544,7 +556,10 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     } else {
       await markRun(run.id, "failed", { error: sendResult.error });
     }
-    executed.push({ runId: run.id, status: sendResult.ok ? "sent" : "failed" });
+    const finalStatus = sendResult.ok ? "sent" : "failed";
+    executed.push({ runId: run.id, status: finalStatus });
+    if (sendResult.ok) summary.sent += 1;
+    else summary.failed += 1;
   }
 
   await writeAuditLog({
@@ -552,10 +567,10 @@ export async function runDueStepRuns(options: { ownerId?: string; limit?: number
     action: "CAMPAIGN_RUNNER_TICK",
     entityType: "campaign_step_run",
     entityId: null,
-    metadata: { processed: executed.length },
+    metadata: { processed: executed.length, summary },
   }).catch(() => undefined);
 
-  return { processed: executed.length, executed };
+  return { processed: executed.length, executed, summary };
 }
 
 async function markRun(

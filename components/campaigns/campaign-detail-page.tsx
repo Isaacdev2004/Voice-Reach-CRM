@@ -323,6 +323,12 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     const envelope = await safeFetch<{
       processed?: number;
       executed?: unknown[];
+      summary?: {
+        sent?: number;
+        failed?: number;
+        deferredNotLaunched?: number;
+        deferredQuietHours?: number;
+      };
       inactive?: { scanned: number; triggered: number };
     }>("/api/campaigns/runner", {
       method: "POST",
@@ -331,11 +337,21 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     if (envelope.success) {
       const processed = envelope.data.processed ?? envelope.data.executed?.length ?? 0;
       const inactive = envelope.data.inactive;
-      showToast(
-        `Processed ${processed} step run${processed === 1 ? "" : "s"}${
-          inactive ? ` · inactive leads scanned ${inactive.scanned}, enrolled ${inactive.triggered}` : ""
-        }`,
-      );
+      const summary = envelope.data.summary;
+      let detail = `Processed ${processed} step run${processed === 1 ? "" : "s"}`;
+      if (summary?.sent) detail += ` · ${summary.sent} sent`;
+      if (summary?.failed) detail += ` · ${summary.failed} failed`;
+      if (summary?.deferredNotLaunched) {
+        detail += " · waiting on Launch campaign";
+      } else if (summary?.deferredQuietHours) {
+        detail += " · paused for quiet hours";
+      } else if (processed === 0 && scheduleInsight.waiting > 0 && scheduleInsight.dueNow === 0) {
+        detail += " · next steps are scheduled for later (see Step runs)";
+      }
+      if (inactive) {
+        detail += ` · inactive scanned ${inactive.scanned}, enrolled ${inactive.triggered}`;
+      }
+      showToast(detail);
       void refresh();
     } else {
       showToast(envelope.error, "error");
@@ -462,6 +478,19 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
       `Remove all ${peopleRows.length} contacts from this campaign?\n\nThey stay in your CRM. Pending steps are cancelled.`,
     );
   };
+
+  const scheduleInsight = useMemo(() => {
+    const runRows = data?.runs ?? [];
+    const now = Date.now();
+    const scheduled = runRows.filter((r) => r.status === "scheduled");
+    const dueNow = scheduled.filter((r) => new Date(r.scheduled_at).getTime() <= now);
+    const future = scheduled.filter((r) => new Date(r.scheduled_at).getTime() > now);
+    const nextMs =
+      future.length > 0
+        ? Math.min(...future.map((r) => new Date(r.scheduled_at).getTime()))
+        : null;
+    return { dueNow: dueNow.length, waiting: future.length, nextMs };
+  }, [data?.runs]);
 
   if (loading) {
     return (
@@ -1056,9 +1085,26 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
               </li>
             ))}
           </ul>
+          {scheduleInsight.dueNow > 0 ? (
+            <p className="mt-3 text-[13px] text-emerald-muted">
+              {scheduleInsight.dueNow} step run{scheduleInsight.dueNow === 1 ? "" : "s"} due now —
+              use Run scheduler or wait for cron.
+            </p>
+          ) : scheduleInsight.waiting > 0 && scheduleInsight.nextMs ? (
+            <p className="mt-3 text-[13px] text-amber-950">
+              Next send window:{" "}
+              <span className="font-medium">
+                {new Date(scheduleInsight.nextMs).toLocaleString()}
+              </span>
+              {scheduleInsight.waiting > 1
+                ? ` (${scheduleInsight.waiting} steps queued after that)`
+                : ""}
+            </p>
+          ) : null}
           <p className="mt-4 text-[12px] text-taupe">
             Press <span className="font-medium text-ink">Run scheduler</span> to fire any due runs
-            immediately. In production this is invoked by cron.
+            immediately. For an instant test, use <span className="font-medium text-ink">Run sequence</span>{" "}
+            (Live) — it reschedules selected contacts to send now.
           </p>
         </LuxuryCard>
       </div>
