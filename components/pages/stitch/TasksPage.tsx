@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { recurrenceBadge, StandaloneTaskModal } from "@/components/crm/standalone-task-modal";
 import { Icon } from "@/components/ui/icon";
@@ -62,7 +63,7 @@ export function TasksPage() {
   const done = tasks.filter((t) => t.completed);
 
   return (
-    <div className="luxury-page mx-auto block w-full min-w-0 max-w-[1400px] space-y-6 p-4 pt-2 sm:p-8 sm:pt-4">
+    <div className={DASHBOARD_PAGE_BODY}>
       <header className="flex w-full justify-end">
         <button
           type="button"

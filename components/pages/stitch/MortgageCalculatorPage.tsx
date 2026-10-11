@@ -3,6 +3,7 @@
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { modalInputClass } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { calculateMortgage, formatUsd } from "@/lib/mortgage/calculate";
 import { useEffect, useMemo, useState } from "react";
 
@@ -88,7 +89,8 @@ export function MortgageCalculatorPage() {
   );
 
   return (
-    <div className="luxury-page mx-auto w-full min-w-0 max-w-[720px] space-y-6 p-4 pt-2 sm:p-8 sm:pt-4">
+    <div className={DASHBOARD_PAGE_BODY}>
+      <div className="mx-auto w-full min-w-0 max-w-[720px] space-y-6">
       <div className="flex justify-end">
         <button
           type="button"
@@ -263,6 +265,7 @@ export function MortgageCalculatorPage() {
             : "Using published averages until live rates load. Tap Refresh."}
         </p>
       </LuxuryCard>
+      </div>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { LuxuryCard } from "@/components/crm/luxury-card";
 import { MarketingPulse } from "@/components/crm/marketing-pulse";
 import { Icon } from "@/components/ui/icon";
 import { contactSegment } from "@/lib/contacts/lifecycle";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { DASHBOARD_ACTIVITY } from "@/lib/crm/mock-data";
 import { useContacts } from "@/lib/hooks/use-contacts";
 
@@ -66,7 +67,7 @@ export function OperationalDashboardPage() {
   ];
 
   return (
-    <div className="luxury-page w-full max-w-[1400px] mx-auto space-y-6 px-4 pb-6 pt-2 sm:p-8 sm:pt-4">
+    <div className={DASHBOARD_PAGE_BODY}>
       <MarketingPulse />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

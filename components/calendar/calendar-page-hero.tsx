@@ -34,11 +34,11 @@ export function CalendarPageHero() {
   return (
     <div className="space-y-3">
       <div
-        className="flex flex-wrap items-center justify-end gap-2"
+        className="flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-outline-variant/10 bg-ivory/80 px-3 py-2 sm:px-4"
         role="group"
         aria-label="Calendar hero style"
       >
-        <span className="mr-auto text-[12px] text-taupe sm:mr-0">Hero view</span>
+        <span className="mr-auto text-[12px] font-medium text-taupe">Calendar view</span>
         {(
           [
             { id: "schedule" as const, label: "Schedule" },

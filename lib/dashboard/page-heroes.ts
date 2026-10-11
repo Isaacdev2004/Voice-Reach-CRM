@@ -136,6 +136,14 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     brandQuote: "The right home changes everything.",
     imageAlt: "Luxury property",
   },
+  "/dashboard/settings": {
+    image: HERO("dashboard.jpg"),
+    eyebrow: "Settings",
+    title: "Your workspace, your way",
+    subtitle: "Profile, billing, integrations, and team access in one place.",
+    brandQuote: "Built for how you work.",
+    imageAlt: "Coastal living room with ocean view",
+  },
 };
 
 export const CALENDAR_HERO_STORAGE_KEY = "myari-calendar-hero-variant";

@@ -9,6 +9,7 @@ import { useUpgradePlan } from "@/components/billing/upgrade-plan-provider";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { connectDotloop } from "@/lib/connect-dotloop";
 import { DOTLOOP_APP_URL } from "@/lib/integrations/dotloop";
 import { connectGoogleCalendar } from "@/lib/connect-google-calendar";
@@ -334,7 +335,7 @@ export function SettingsWorkspacePage() {
   if (!settings) return null;
 
   return (
-    <div className="luxury-page mx-auto w-full max-w-[1224px] space-y-6 p-8 pb-24">
+    <div className={cn(DASHBOARD_PAGE_BODY, "mx-auto max-w-[1224px] pb-24")}>
       {toast ? (
         <div
           className={cn(
@@ -352,12 +353,7 @@ export function SettingsWorkspacePage() {
       ) : null}
 
       <header>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Settings</p>
-        <h1 className="font-serif text-[36px] font-semibold text-ink">Account & workspace</h1>
-        <p className="mt-1 text-[15px] text-slate-text">
-          Manage profile, team, integrations, API keys, and billing.
-        </p>
-        <div className="relative mt-4 max-w-md">
+        <div className="relative max-w-md">
           <Icon
             name="search"
             className="absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-taupe"

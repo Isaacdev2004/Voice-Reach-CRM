@@ -11,6 +11,7 @@ import { Icon } from "@/components/ui/icon";
 import { AppToast } from "@/components/ui/app-toast";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import {
   campaignFromApi,
   createBlankCampaign,
@@ -284,7 +285,7 @@ export function CampaignBuilderPage() {
   };
 
   return (
-    <div className="luxury-page p-8 max-w-[1400px] w-full mx-auto space-y-8">
+    <div className={cn(DASHBOARD_PAGE_BODY, "space-y-8")}>
       {toast ? <AppToast message={toast.message} tone={toast.tone} /> : null}
 
       <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">

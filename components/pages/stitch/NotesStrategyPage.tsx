@@ -2,6 +2,7 @@
 
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { freeformDocument, titleFromFreeform } from "@/lib/notes/freeform";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -315,7 +316,12 @@ export function NotesStrategyPage() {
           : "text-ink";
 
   return (
-    <div className="luxury-page mx-auto flex h-[calc(100vh-7rem)] min-h-[520px] w-full max-w-[1100px] flex-col gap-4 p-4 pt-2 sm:p-6 sm:pt-4">
+    <div
+      className={cn(
+        DASHBOARD_PAGE_BODY,
+        "mx-auto flex h-[calc(100vh-7rem)] min-h-[520px] max-w-[1100px] flex-col gap-4",
+      )}
+    >
       <div className="flex shrink-0 items-end justify-end gap-4">
         <button
           type="button"

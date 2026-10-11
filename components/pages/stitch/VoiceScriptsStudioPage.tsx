@@ -3,6 +3,7 @@
 import { AvatarStudioPanel } from "@/components/voice-studio/avatar-studio-panel";
 import { VoiceStudioWorkspace } from "@/components/voice-studio/voice-studio-workspace";
 import { cn } from "@/lib/cn";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { useState } from "react";
 
 type StudioTab = "voice" | "avatar";
@@ -11,7 +12,7 @@ export function VoiceScriptsStudioPage() {
   const [tab, setTab] = useState<StudioTab>("voice");
 
   return (
-    <div className="luxury-page mx-auto max-w-[1224px] space-y-8 p-4 pt-2 sm:p-8 sm:pt-4">
+    <div className={cn(DASHBOARD_PAGE_BODY, "mx-auto max-w-[1224px] space-y-8")}>
       <div className="flex gap-2 rounded-full bg-champagne/60 p-1 w-fit">
         {(
           [

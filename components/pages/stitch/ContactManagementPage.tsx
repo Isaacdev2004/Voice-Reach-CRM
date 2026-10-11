@@ -22,6 +22,7 @@ import { ManageCategoriesModal } from "@/components/crm/manage-categories-modal"
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
 import { useContacts, type ApiContact } from "@/lib/hooks/use-contacts";
 import { safeFetch } from "@/lib/api-response";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { DATABASE_SETUP_HINT } from "@/lib/supabase-errors";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -202,7 +203,7 @@ export function ContactManagementPage() {
   };
 
   return (
-    <div className="luxury-page p-8 max-w-[1400px] w-full mx-auto space-y-6">
+    <div className={DASHBOARD_PAGE_BODY}>
       <ManageCategoriesModal
         open={manageCatsOpen}
         onClose={() => setManageCatsOpen(false)}

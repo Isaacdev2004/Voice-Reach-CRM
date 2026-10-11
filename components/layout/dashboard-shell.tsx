@@ -5,10 +5,15 @@ import { AiAssistantSidebar } from "@/components/ai/ai-assistant-sidebar";
 import { AiFloatingButton } from "@/components/ai/ai-launcher-button";
 import { UpgradePlanProvider } from "@/components/billing/upgrade-plan-provider";
 import { StartTrialTracker } from "@/components/marketing/start-trial-tracker";
+import { CalendarPageHero } from "@/components/calendar/calendar-page-hero";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { SetupBanner } from "@/components/layout/setup-banner";
 import { DashboardHeaderProvider } from "@/components/layout/dashboard-header-provider";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
+import {
+  DASHBOARD_HERO_SLOT,
+  DASHBOARD_MAIN_COLUMN,
+} from "@/lib/dashboard/layout";
 import { getDashboardHeroForPath } from "@/lib/dashboard/page-heroes";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -97,6 +102,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
     fullWidth: true,
   };
   const pageHero = getDashboardHeroForPath(pathname);
+  const isCalendarRoute = pathname === "/dashboard/calendar";
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -129,12 +135,16 @@ export function DashboardShell({ children }: DashboardShellProps) {
             />
             <main className={mainClass}>
               <SetupBanner />
-              {pageHero ? (
-                <div className="mx-auto w-full max-w-[1400px] px-3 pt-3 sm:px-6 sm:pt-5 lg:px-8">
-                  <DashboardPageHero config={pageHero} pathname={pathname} />
+              <div className={DASHBOARD_MAIN_COLUMN}>
+                <div className={DASHBOARD_HERO_SLOT}>
+                  {isCalendarRoute ? (
+                    <CalendarPageHero />
+                  ) : pageHero ? (
+                    <DashboardPageHero config={pageHero} pathname={pathname} />
+                  ) : null}
                 </div>
-              ) : null}
-              {children}
+                {children}
+              </div>
             </main>
           </div>
           <AiFloatingButton />

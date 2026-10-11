@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarPageHero } from "@/components/calendar/calendar-page-hero";
 import { useCalendarReminders } from "@/components/calendar/use-calendar-reminders";
 import {
   AddCalendarEventModal,
@@ -168,11 +167,7 @@ export function CalendarPage() {
   }, []);
 
   return (
-    <>
-      <div className="mx-auto w-full max-w-[1400px] px-3 pt-3 sm:px-6 sm:pt-5 lg:px-8">
-        <CalendarPageHero />
-      </div>
-      <div className="luxury-page mx-auto w-full max-w-[1400px] space-y-4 px-3 pb-4 pt-2 sm:space-y-6 sm:px-4 sm:pb-6 sm:pt-4 sm:p-8">
+    <div className="luxury-page w-full min-w-0 space-y-4 pt-4 sm:space-y-6 sm:pt-5">
       <header className="flex w-full flex-wrap items-center justify-between gap-3">
         {connected && accountEmail ? (
           <p className="min-w-0 flex-1 truncate text-[13px] text-taupe">
@@ -459,8 +454,7 @@ export function CalendarPage() {
         connected={connected}
         onCreated={() => void load(true)}
       />
-      </div>
-    </>
+    </div>
   );
 }
 

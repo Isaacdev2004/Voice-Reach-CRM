@@ -5,6 +5,7 @@ import { activityRowClass, toneIconClass, toneTitleClass } from "@/components/ac
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { formatRelativeTime, inDateRange } from "@/lib/activity/format";
 import type { ActivityCategory, ActivityFilterState, ActivityLogEntry } from "@/lib/activity/types";
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
@@ -177,7 +178,7 @@ export function ActivityLogsPage() {
   };
 
   return (
-    <div className="luxury-page mx-auto w-full max-w-[1400px] space-y-6 p-8">
+    <div className={DASHBOARD_PAGE_BODY}>
       {toast ? (
         <div
           className={cn(

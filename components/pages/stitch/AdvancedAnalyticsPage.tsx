@@ -9,6 +9,7 @@ import { KpiCard } from "@/components/crm/kpi-card";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import type { AnalyticsRange, AnalyticsSnapshot } from "@/lib/analytics/types";
 import {
   exportAnalyticsCsv,
@@ -105,7 +106,7 @@ export function AdvancedAnalyticsPage() {
   const rangeLabel = RANGE_OPTIONS.find((o) => o.value === range)?.label ?? "Last 30 days";
 
   return (
-    <div className="luxury-page mx-auto w-full max-w-[1400px] space-y-6 p-8">
+    <div className={DASHBOARD_PAGE_BODY}>
       {toast ? (
         <div
           className={cn(

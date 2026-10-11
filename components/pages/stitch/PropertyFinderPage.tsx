@@ -6,6 +6,7 @@ import { SearchableContactSelect } from "@/components/crm/searchable-contact-sel
 import { Icon } from "@/components/ui/icon";
 import { useContacts } from "@/lib/hooks/use-contacts";
 import { formatUsd } from "@/lib/mortgage/calculate";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { zillowSearchUrl } from "@/lib/property-finder/zillow";
 import { useMemo, useState } from "react";
 
@@ -72,18 +73,8 @@ export function PropertyFinderPage() {
     : null;
 
   return (
-    <div className="luxury-page mx-auto w-full min-w-0 max-w-[720px] space-y-6 p-4 sm:p-8">
-      <LuxuryCard padding="lg" className="w-full min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">Search</p>
-        <h1 className="mt-2 font-serif text-[32px] font-semibold leading-tight text-ink sm:text-[40px]">
-          Property Finder
-        </h1>
-        <p className="mt-3 w-full text-[15px] leading-relaxed text-slate-text sm:max-w-2xl">
-          Select a client to generate a tailored Zillow search from their criteria, then send it in
-          one tap.
-        </p>
-      </LuxuryCard>
-
+    <div className={DASHBOARD_PAGE_BODY}>
+      <div className="mx-auto w-full min-w-0 max-w-[720px] space-y-6">
       <div className="block">
         <span className="mb-2 block text-[13px] font-medium text-taupe">Client</span>
         <SearchableContactSelect
@@ -202,6 +193,7 @@ export function PropertyFinderPage() {
           </p>
         </LuxuryCard>
       )}
+      </div>
     </div>
   );
 }
