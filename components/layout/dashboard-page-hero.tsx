@@ -19,6 +19,18 @@ function timeGreeting(hour: number) {
   return "Good evening";
 }
 
+function imageFocusClass(focus: DashboardPageHeroConfig["imageFocus"]) {
+  switch (focus) {
+    case "center":
+      return "object-center";
+    case "lower":
+      return "object-[center_72%]";
+    case "upper":
+    default:
+      return "object-[center_32%]";
+  }
+}
+
 export function DashboardPageHero({ config, className }: DashboardPageHeroProps) {
   const { user } = useUser();
   const hour = new Date().getHours();
@@ -48,7 +60,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
         className,
       )}
     >
-      <div className="grid w-full max-w-full grid-cols-1 lg:grid-cols-2 lg:min-h-[280px]">
+      <div className="grid w-full max-w-full grid-cols-1 lg:grid-cols-2 lg:items-stretch lg:min-h-[340px]">
         <div className="flex w-full max-w-full flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep sm:text-[11px]">
             {eyebrow}
@@ -131,22 +143,27 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
           ) : null}
         </div>
 
-        <div className="relative min-h-[220px] w-full max-w-full sm:min-h-[260px] lg:min-h-[280px]">
-          <Image
-            src={config.image}
-            alt={config.imageAlt}
-            fill
-            priority
-            className="object-cover object-center"
-            sizes="(max-width: 1024px) 100vw, 50vw"
-          />
-          <div
-            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-cream/50 via-transparent to-transparent lg:bg-gradient-to-l lg:from-cream/40 lg:via-transparent lg:to-transparent"
-            aria-hidden
-          />
+        <div className="flex w-full max-w-full items-stretch bg-champagne/25 p-4 sm:p-5 lg:min-h-[340px] lg:p-6 lg:pl-3">
+          <div className="relative min-h-[240px] w-full overflow-hidden rounded-[22px] shadow-sm ring-1 ring-outline-variant/10 sm:min-h-[280px] lg:min-h-0 lg:flex-1">
+            <Image
+              src={config.image}
+              alt={config.imageAlt}
+              fill
+              priority
+              className={cn("object-cover", imageFocusClass(config.imageFocus))}
+              sizes="(max-width: 1024px) 100vw, 560px"
+            />
+            <div
+              className="pointer-events-none absolute inset-y-0 left-0 w-[28%] max-w-[120px] bg-gradient-to-r from-cream/35 to-transparent lg:from-cream/25"
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-ink/10 to-transparent lg:hidden"
+              aria-hidden
+            />
 
           {config.editorialQuote && config.quote ? (
-            <div className="absolute inset-0 z-10 flex items-end justify-center p-6 pb-8 lg:items-center lg:justify-end lg:p-10">
+            <div className="absolute inset-0 z-10 flex items-end justify-center p-4 pb-6 lg:items-center lg:justify-end lg:p-6">
               <blockquote className="max-w-xs rounded-2xl bg-ivory/92 px-5 py-4 text-center font-serif text-[18px] leading-snug text-ink shadow-sm sm:text-[20px] lg:max-w-sm lg:bg-ivory/85 lg:text-right lg:text-[22px]">
                 &ldquo;{config.quote}&rdquo;
                 {config.attribution ? (
@@ -157,6 +174,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
               </blockquote>
             </div>
           ) : null}
+          </div>
         </div>
       </div>
     </section>

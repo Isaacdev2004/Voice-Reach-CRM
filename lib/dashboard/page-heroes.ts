@@ -27,6 +27,8 @@ export type DashboardPageHeroConfig = {
   features?: DashboardPageHeroFeature[];
   /** Editorial quote overlay on the photo (calendar faith variant). */
   editorialQuote?: boolean;
+  /** Crop anchor for lifestyle photography (default: upper third). */
+  imageFocus?: "center" | "upper" | "lower";
 };
 
 const HERO = (file: string) => `/brand/heroes/${file}`;
@@ -41,6 +43,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
       "Nurture your leads, stay top of mind, and create more opportunities with AI-driven outreach.",
     brandQuote: "More conversations. More opportunities.",
     imageAlt: "Coastal living room with ocean view",
+    imageFocus: "upper",
     actions: [
       {
         label: "Create a campaign",
@@ -60,6 +63,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     scriptAccent: "People over numbers. Always.",
     brandQuote: "Every touchpoint builds trust.",
     imageAlt: "Ocean from above",
+    imageFocus: "center",
   },
   "/dashboard/voice-scripts": {
     image: HERO("voice-scripts.jpg"),
@@ -114,6 +118,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle: "Estimate monthly payments with today's average rates, refreshed daily.",
     scriptAccent: "Home opens more doors.",
     imageAlt: "Luxury modern home",
+    imageFocus: "upper",
     features: [
       { icon: "percent", title: "Live rate data", subtitle: "Updated daily" },
       { icon: "bar_chart", title: "Compare scenarios", subtitle: "See your options" },
@@ -127,6 +132,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle: "Every contact, conversation, consent record, and next step in one place.",
     brandQuote: "People first. Always.",
     imageAlt: "Contemporary living room",
+    imageFocus: "upper",
   },
   "/dashboard/properties": {
     image: HERO("mortgage.jpg"),
@@ -135,6 +141,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle: "Search listings and send curated property follow-up tied to each contact.",
     brandQuote: "The right home changes everything.",
     imageAlt: "Luxury property",
+    imageFocus: "upper",
   },
   "/dashboard/settings": {
     image: HERO("dashboard.jpg"),
@@ -162,6 +169,7 @@ export const CALENDAR_HERO_VARIANTS: Record<
     subtitle: "Stay on top of your schedule, client meetings, and follow-ups.",
     brandQuote: "Purpose in every plan.",
     imageAlt: "Sunlit luxury residence",
+    imageFocus: "upper",
   },
   faith: {
     image: HERO("calendar-faith.jpg"),
@@ -174,6 +182,7 @@ export const CALENDAR_HERO_VARIANTS: Record<
     editorialQuote: true,
     brandQuote: "Trust the timing.",
     imageAlt: "Golden hour penthouse view",
+    imageFocus: "center",
   },
 };
 
