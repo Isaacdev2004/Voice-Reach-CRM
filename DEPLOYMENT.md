@@ -4,7 +4,7 @@ Add these in **Vercel → Project → Settings → Environment Variables**, then
 
 ## Brand assets
 
-Place the client **MyARI** wordmark PNG at `public/brand/myari-logo.png` (sidebar + favicon). Until then, the app uses `public/brand/myari-logo.svg`.
+Place the client **MyARI** wordmark as a **transparent PNG** at `public/brand/myari-logo.png` (sidebar, heroes, favicon). Do not use JPEG — transparency is required on cream/photo backgrounds.
 
 Optional: replace dashboard hero banners in `public/brand/heroes/` (calendar, campaigns, voice-scripts, etc.) with the client’s final PNG/JPG artwork — filenames must match those in `lib/dashboard/page-heroes.ts`.
 
