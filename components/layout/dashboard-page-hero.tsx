@@ -79,30 +79,30 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
   return (
     <section
       className={cn(
-        "block w-full max-w-full overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card",
+        "block w-full overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card",
         className,
       )}
     >
-      <div className="flex flex-col lg:flex-row lg:items-center">
-        <div className="flex w-full flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:min-w-0 lg:flex-1 lg:px-12 lg:py-10">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep sm:text-[11px]">
+      <div className="grid w-full grid-cols-1 lg:grid-cols-2 lg:items-center">
+        <div className="flex flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-10">
+          <p className="break-normal text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
             {eyebrow}
           </p>
-          <h1 className="mt-2 max-w-xl font-serif text-[26px] font-semibold leading-[1.15] text-ink sm:text-[34px] lg:text-[36px]">
+          <h1 className="mt-2 break-normal font-serif text-[26px] font-semibold leading-[1.15] text-ink sm:text-[34px] lg:text-[36px]">
             {title}
           </h1>
           {config.subtitle ? (
-            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
+            <p className="mt-3 break-normal text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
               {config.subtitle}
             </p>
           ) : null}
           {config.scriptAccent ? (
-            <p className="mt-3 max-w-xl font-hand text-[20px] leading-snug text-rose-gold-deep sm:text-[22px]">
+            <p className="mt-3 break-normal font-hand text-[20px] leading-snug text-rose-gold-deep sm:text-[22px]">
               {config.scriptAccent}
             </p>
           ) : null}
           {showInlineQuote ? (
-            <blockquote className="mt-3 max-w-xl border-l-2 border-rose-gold/40 pl-4 text-[14px] italic leading-relaxed text-slate-text">
+            <blockquote className="mt-3 break-normal border-l-2 border-rose-gold/40 pl-4 text-[14px] italic leading-relaxed text-slate-text">
               &ldquo;{config.quote}&rdquo;
               {config.attribution ? (
                 <footer className="mt-2 text-[10px] not-italic font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
@@ -112,7 +112,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
             </blockquote>
           ) : null}
           {config.brandQuote ? (
-            <div className="mt-4 max-w-xl border-t border-outline-variant/15 pt-4">
+            <div className="mt-4 break-normal border-t border-outline-variant/15 pt-4">
               <p className="font-serif text-[14px] italic leading-snug text-ink/85">
                 &ldquo;{config.brandQuote}&rdquo;
               </p>
@@ -156,7 +156,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-gold/15 text-rose-gold-deep">
                     <Icon name={f.icon} className="text-[18px]" />
                   </span>
-                  <div>
+                  <div className="min-w-0 break-normal">
                     <p className="text-[13px] font-semibold text-ink">{f.title}</p>
                     <p className="text-[11px] text-taupe">{f.subtitle}</p>
                   </div>
@@ -166,12 +166,12 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
           ) : null}
         </div>
 
-        <div className="w-full shrink-0 bg-champagne/20 px-4 pb-6 pt-2 sm:px-6 sm:pb-8 lg:w-[min(100%,520px)] lg:px-6 lg:py-8 lg:pl-4">
-          <div className="relative">
+        <div className="bg-champagne/20 px-4 pb-6 pt-2 sm:px-6 sm:pb-8 lg:px-6 lg:py-8 lg:pl-4">
+          <div className="relative w-full">
             <HeroArt config={config} />
             {config.editorialQuote && config.quote ? (
               <div className="pointer-events-none absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4">
-                <blockquote className="rounded-xl bg-ivory/95 px-4 py-3 text-center font-serif text-[15px] leading-snug text-ink shadow-sm backdrop-blur-sm sm:text-[16px]">
+                <blockquote className="break-normal rounded-xl bg-ivory/95 px-4 py-3 text-center font-serif text-[15px] leading-snug text-ink shadow-sm backdrop-blur-sm sm:text-[16px]">
                   &ldquo;{config.quote}&rdquo;
                   {config.attribution ? (
                     <footer className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">

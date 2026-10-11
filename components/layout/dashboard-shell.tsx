@@ -116,8 +116,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
   }, [mobileNavOpen]);
 
   const mainClass = config.fullWidth
-    ? "box-border min-h-screen w-full max-w-full min-w-0 flex-1 overflow-x-hidden pt-16 lg:ml-64 lg:max-w-[calc(100vw-16rem)]"
-    : "box-border min-h-screen w-full max-w-full min-w-0 flex-1 overflow-x-hidden px-4 pb-12 pt-24 lg:ml-64 lg:max-w-[calc(100vw-16rem)] lg:px-margin-desktop";
+    ? "box-border block min-h-screen w-full overflow-x-hidden pt-16 lg:ml-64 lg:w-[calc(100%-16rem)]"
+    : "box-border block min-h-screen w-full overflow-x-hidden px-4 pb-12 pt-24 lg:ml-64 lg:w-[calc(100%-16rem)] lg:px-margin-desktop";
 
   return (
     <UpgradePlanProvider>
