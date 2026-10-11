@@ -44,51 +44,53 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card",
+        "w-full min-w-0 overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card",
         className,
       )}
     >
-      <div className="grid min-h-0 lg:min-h-[280px] lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
-        <div className="relative z-10 flex flex-col justify-center gap-3 bg-cream px-6 py-8 sm:gap-4 sm:px-10 sm:py-10 lg:py-12">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-rose-gold-deep sm:text-[11px]">
-            {eyebrow}
-          </p>
-          <h1 className="max-w-lg font-serif text-[26px] font-semibold leading-[1.12] text-ink sm:text-[34px] lg:text-[38px]">
-            {title}
-          </h1>
-          {config.subtitle ? (
-            <p className="max-w-md text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
-              {config.subtitle}
+      <div className="dashboard-page-hero-split">
+        <div className="dashboard-page-hero-copy relative z-10 flex flex-col justify-center gap-3 bg-cream px-6 py-8 sm:gap-4 sm:px-10 sm:py-10 lg:py-12">
+          <div className="w-full min-w-0 max-w-xl">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-rose-gold-deep sm:text-[11px]">
+              {eyebrow}
             </p>
-          ) : null}
-          {config.scriptAccent ? (
-            <p className="max-w-md font-hand text-[20px] leading-snug text-rose-gold-deep sm:text-[22px]">
-              {config.scriptAccent}
-            </p>
-          ) : null}
-          {showInlineQuote ? (
-            <blockquote className="max-w-md border-l-2 border-rose-gold/40 pl-4 text-[14px] italic leading-relaxed text-slate-text">
-              &ldquo;{config.quote}&rdquo;
-              {config.attribution ? (
-                <footer className="mt-2 text-[10px] not-italic font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
-                  — {config.attribution}
-                </footer>
-              ) : null}
-            </blockquote>
-          ) : null}
-          {config.brandQuote ? (
-            <div className="mt-1 max-w-md border-t border-outline-variant/15 pt-4">
-              <p className="font-serif text-[14px] italic leading-snug text-ink/85">
-                &ldquo;{config.brandQuote}&rdquo;
+            <h1 className="mt-2 font-serif text-[26px] font-semibold leading-[1.12] text-ink text-balance sm:text-[34px] lg:text-[38px]">
+              {title}
+            </h1>
+            {config.subtitle ? (
+              <p className="mt-3 text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
+                {config.subtitle}
               </p>
-              <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-rose-gold-deep">
-                MyARI
+            ) : null}
+            {config.scriptAccent ? (
+              <p className="mt-3 font-hand text-[20px] leading-snug text-rose-gold-deep sm:text-[22px]">
+                {config.scriptAccent}
               </p>
-            </div>
-          ) : null}
+            ) : null}
+            {showInlineQuote ? (
+              <blockquote className="mt-3 border-l-2 border-rose-gold/40 pl-4 text-[14px] italic leading-relaxed text-slate-text">
+                &ldquo;{config.quote}&rdquo;
+                {config.attribution ? (
+                  <footer className="mt-2 text-[10px] not-italic font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
+                    — {config.attribution}
+                  </footer>
+                ) : null}
+              </blockquote>
+            ) : null}
+            {config.brandQuote ? (
+              <div className="mt-4 border-t border-outline-variant/15 pt-4">
+                <p className="font-serif text-[14px] italic leading-snug text-ink/85">
+                  &ldquo;{config.brandQuote}&rdquo;
+                </p>
+                <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-rose-gold-deep">
+                  MyARI
+                </p>
+              </div>
+            ) : null}
+          </div>
 
           {config.actions?.length ? (
-            <div className="mt-1 flex flex-wrap gap-3">
+            <div className="mt-1 flex w-full min-w-0 flex-wrap gap-3">
               {config.actions.map((action) =>
                 action.primary ? (
                   <Link
@@ -115,13 +117,13 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
           ) : null}
 
           {config.features?.length ? (
-            <ul className="mt-2 grid gap-3 sm:grid-cols-3">
+            <ul className="mt-2 grid w-full min-w-0 gap-3 sm:grid-cols-3">
               {config.features.map((f) => (
                 <li key={f.title} className="flex items-start gap-2.5">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-gold/15 text-rose-gold-deep">
                     <Icon name={f.icon} className="text-[18px]" />
                   </span>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-[13px] font-semibold text-ink">{f.title}</p>
                     <p className="text-[11px] text-taupe">{f.subtitle}</p>
                   </div>
@@ -131,7 +133,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
           ) : null}
         </div>
 
-        <div className="relative min-h-[200px] sm:min-h-[220px] lg:min-h-0">
+        <div className="dashboard-page-hero-media">
           <div
             className="absolute inset-0 overflow-hidden lg:[clip-path:ellipse(92%_100%_at_100%_50%)]"
             aria-hidden
