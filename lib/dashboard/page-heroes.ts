@@ -1,3 +1,16 @@
+export type DashboardPageHeroAction = {
+  label: string;
+  href: string;
+  icon: string;
+  primary?: boolean;
+};
+
+export type DashboardPageHeroFeature = {
+  icon: string;
+  title: string;
+  subtitle: string;
+};
+
 export type DashboardPageHeroConfig = {
   image: string;
   eyebrow: string;
@@ -5,9 +18,15 @@ export type DashboardPageHeroConfig = {
   subtitle?: string;
   quote?: string;
   attribution?: string;
-  /** Handwritten accent on the right (mockup taglines). */
   scriptAccent?: string;
+  brandQuote?: string;
   imageAlt: string;
+  /** How the H1 is resolved at runtime (Clerk user name). */
+  titleMode?: "fixed" | "dashboardHome" | "calendarGreeting";
+  actions?: DashboardPageHeroAction[];
+  features?: DashboardPageHeroFeature[];
+  /** Editorial quote overlay on the photo (calendar faith variant). */
+  editorialQuote?: boolean;
 };
 
 const HERO = (file: string) => `/brand/heroes/${file}`;
@@ -15,91 +34,118 @@ const HERO = (file: string) => `/brand/heroes/${file}`;
 export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   "/dashboard": {
     image: HERO("dashboard.jpg"),
-    eyebrow: "Home dashboard",
+    eyebrow: "Home",
     title: "Let's make today exceptional.",
-    subtitle: "Your AI-powered real estate operating system.",
-    imageAlt: "Luxury home interior at golden hour",
+    titleMode: "dashboardHome",
+    subtitle:
+      "Nurture your leads, stay top of mind, and create more opportunities with AI-driven outreach.",
+    brandQuote: "More conversations. More opportunities.",
+    imageAlt: "Coastal living room with ocean view",
+    actions: [
+      {
+        label: "Create a campaign",
+        href: "/dashboard/campaigns#campaign-builder",
+        icon: "rocket_launch",
+        primary: true,
+      },
+      { label: "View agenda", href: "/dashboard/calendar", icon: "calendar_today" },
+    ],
   },
   "/dashboard/calendar": {
     image: HERO("calendar.jpg"),
     eyebrow: "Calendar",
-    title: "Purpose in Every Plan",
-    quote:
-      "God knows the plans He has for you—plans for peace, hope, and a beautiful future.",
-    attribution: "Jeremiah 29:11",
-    imageAlt: "Ocean terrace at sunset",
+    title: "Your schedule, beautifully organized.",
+    titleMode: "calendarGreeting",
+    subtitle: "Stay on top of your schedule, client meetings, and follow-ups.",
+    brandQuote: "Purpose in every plan.",
+    imageAlt: "Sunlit luxury residence",
   },
   "/dashboard/campaigns": {
     image: HERO("campaigns.jpg"),
     eyebrow: "Campaigns",
-    title: "Meaningful Outreach. Real Relationships.",
-    subtitle: "Launch campaigns, engage consistently, and open more doors.",
+    title: "Meaningful outreach. Real relationships.",
+    subtitle: "Launch sequences, engage consistently, and open more doors.",
     scriptAccent: "People over numbers. Always.",
-    imageAlt: "Yacht on turquoise water",
+    brandQuote: "Every touchpoint builds trust.",
+    imageAlt: "Ocean from above",
   },
   "/dashboard/voice-scripts": {
     image: HERO("voice-scripts.jpg"),
     eyebrow: "Voice script studio",
-    title: "Speak with Purpose",
-    subtitle: "Create, personalize, and deliver messages that open doors.",
-    imageAlt: "Professional studio microphone",
+    title: "Voice Scripts Library",
+    subtitle:
+      "Create, organize, and manage voice scripts. Record, upload, or generate with AI—then assign them to campaigns.",
+    scriptAccent: "Your words create opportunity.",
+    brandQuote: "Real people. Real connections. Powered by AI.",
+    imageAlt: "Studio microphone",
   },
   "/dashboard/analytics": {
     image: HERO("analytics.jpg"),
     eyebrow: "Analytics",
-    title: "Insight Creates Opportunity",
+    title: "Insight creates opportunity",
     subtitle:
-      "See the bigger picture. Track progress, refine your strategy, and grow what matters most.",
-    imageAlt: "Abstract analytics waves",
+      "Track delivery, engagement, and campaign performance—then refine what works.",
+    brandQuote: "Data with direction.",
+    imageAlt: "Analytics waves",
   },
   "/dashboard/activity": {
     image: HERO("activity.jpg"),
     eyebrow: "Activity",
-    title: "Every Action Moves You Forward",
+    title: "Every action moves you forward",
     subtitle:
-      "A real-time view of your outreach, compliance, and engagement — all in one place.",
-    imageAlt: "Waterfront at sunset",
+      "A real-time view of outreach, compliance, and engagement—all in one place.",
+    brandQuote: "Clarity in every log.",
+    imageAlt: "Waterfront at golden hour",
   },
   "/dashboard/tasks": {
     image: HERO("tasks.jpg"),
     eyebrow: "Tasks",
-    title: "Small Steps. Big Results.",
+    title: "Small steps. Big results.",
     subtitle: "Stay focused, follow through, and make progress every day.",
-    scriptAccent: "Disciplined today for a brighter tomorrow.",
-    imageAlt: "Productive desk with coffee",
+    scriptAccent: "Productivity creates space for purpose.",
+    brandQuote: "Discipline today. Momentum tomorrow.",
+    imageAlt: "Productive office at sunrise",
   },
   "/dashboard/notes": {
     image: HERO("notes.jpg"),
     eyebrow: "Thinking",
-    title: "Ideas Today. Impact Tomorrow.",
-    subtitle: "Capture ideas, set strategy, and turn vision into action.",
+    title: "Ideas today. Impact tomorrow.",
+    subtitle: "Capture strategy, goals, and notes—linked to the people you serve.",
     scriptAccent: "A clear mind builds a brighter future.",
-    imageAlt: "Seaside workspace at dusk",
+    brandQuote: "Strategy on paper. Results in the field.",
+    imageAlt: "Seaside workspace",
   },
   "/dashboard/mortgage": {
     image: HERO("mortgage.jpg"),
     eyebrow: "Planning",
-    title: "Build the Life You're Meant For",
-    subtitle: "Clarity today for the home—and the future—you deserve.",
-    imageAlt: "Modern home with pool and ocean view",
+    title: "Mortgage Calculator",
+    subtitle: "Estimate monthly payments with today's average rates, refreshed daily.",
+    scriptAccent: "Home opens more doors.",
+    imageAlt: "Luxury modern home",
+    features: [
+      { icon: "percent", title: "Live rate data", subtitle: "Updated daily" },
+      { icon: "bar_chart", title: "Compare scenarios", subtitle: "See your options" },
+      { icon: "home", title: "Plan with confidence", subtitle: "Informed decisions" },
+    ],
   },
   "/dashboard/contacts": {
-    image: HERO("dashboard.jpg"),
+    image: HERO("contacts.jpg"),
     eyebrow: "Contacts",
     title: "Relationships that open doors",
-    subtitle: "Every contact, conversation, and next step in one place.",
-    imageAlt: "Luxury interior",
+    subtitle: "Every contact, conversation, consent record, and next step in one place.",
+    brandQuote: "People first. Always.",
+    imageAlt: "Contemporary living room",
   },
   "/dashboard/properties": {
     image: HERO("mortgage.jpg"),
     eyebrow: "Property finder",
     title: "Find the right match",
     subtitle: "Search listings and send curated property follow-up tied to each contact.",
-    imageAlt: "Coastal luxury property",
+    brandQuote: "The right home changes everything.",
+    imageAlt: "Luxury property",
   },
 };
 
-/** Returns hero config for top-level dashboard routes only (not detail views). */
 export function getDashboardHeroForPath(pathname: string): DashboardPageHeroConfig | null {
   if (!pathname.startsWith("/dashboard")) return null;
   if (pathname !== "/dashboard" && /\/dashboard\/[^/]+\/[^/]+/.test(pathname)) {
