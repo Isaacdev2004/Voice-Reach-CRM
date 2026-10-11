@@ -19,19 +19,22 @@ function timeGreeting(hour: number) {
   return "Good evening";
 }
 
+const HERO_FRAME_CLASS =
+  "relative w-full overflow-hidden rounded-[20px] bg-champagne shadow-[0_14px_44px_-18px_rgba(45,38,30,0.28)] ring-1 ring-outline-variant/15";
+
 function HeroArt({ config }: { config: DashboardPageHeroConfig }) {
   const isPhoto = config.imageLayout === "photo";
 
   if (isPhoto) {
     return (
-      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[20px] bg-champagne ring-1 ring-outline-variant/10 sm:aspect-video">
+      <div className={cn(HERO_FRAME_CLASS, "aspect-[16/10] sm:aspect-video")}>
         <Image
           src={config.image}
           alt={config.imageAlt}
           fill
           priority
           quality={92}
-          sizes="(max-width: 1024px) 100vw, 560px"
+          sizes="(max-width: 1024px) 100vw, 680px"
           className="object-cover object-center"
         />
       </div>
@@ -39,16 +42,21 @@ function HeroArt({ config }: { config: DashboardPageHeroConfig }) {
   }
 
   return (
-    <div className="relative w-full overflow-hidden rounded-[20px] bg-champagne ring-1 ring-outline-variant/10">
+    <div
+      className={HERO_FRAME_CLASS}
+      style={{ aspectRatio: `${config.imageWidth} / ${config.imageHeight}` }}
+    >
       <Image
         src={config.image}
         alt={config.imageAlt}
-        width={config.imageWidth}
-        height={config.imageHeight}
+        fill
         priority
         unoptimized
-        className="block h-auto w-full max-w-full"
-        sizes="(max-width: 1024px) 100vw, 560px"
+        sizes="(max-width: 1024px) 100vw, 680px"
+        className="object-cover"
+        style={{
+          objectPosition: config.imageObjectPosition ?? "center center",
+        }}
       />
     </div>
   );

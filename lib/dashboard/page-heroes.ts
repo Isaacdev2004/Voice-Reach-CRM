@@ -31,6 +31,8 @@ export type DashboardPageHeroConfig = {
   actions?: DashboardPageHeroAction[];
   features?: DashboardPageHeroFeature[];
   editorialQuote?: boolean;
+  /** CSS object-position when banner is cover-cropped in the frame (e.g. boat on left). */
+  imageObjectPosition?: string;
 };
 
 /** Matches resized client art in `public/brand/heroes/` (Oct 2026). */
@@ -94,6 +96,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     scriptAccent: "People over numbers. Always.",
     brandQuote: "Every touchpoint builds trust.",
     imageAlt: "Ocean from above with luxury boat",
+    imageObjectPosition: "22% center",
   },
   "/dashboard/voice-scripts": {
     ...hero("voice-scripts.jpg"),
