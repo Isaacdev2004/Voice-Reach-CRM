@@ -19,16 +19,39 @@ function timeGreeting(hour: number) {
   return "Good evening";
 }
 
-function imageFocusClass(focus: DashboardPageHeroConfig["imageFocus"]) {
-  switch (focus) {
-    case "center":
-      return "object-center";
-    case "lower":
-      return "object-[center_72%]";
-    case "upper":
-    default:
-      return "object-[center_32%]";
+function HeroArt({ config }: { config: DashboardPageHeroConfig }) {
+  const isPhoto = config.imageLayout === "photo";
+
+  if (isPhoto) {
+    return (
+      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[20px] bg-champagne ring-1 ring-outline-variant/10 sm:aspect-video">
+        <Image
+          src={config.image}
+          alt={config.imageAlt}
+          fill
+          priority
+          quality={92}
+          sizes="(max-width: 1024px) 100vw, 560px"
+          className="object-cover object-center"
+        />
+      </div>
+    );
   }
+
+  return (
+    <div className="relative w-full overflow-hidden rounded-[20px] bg-champagne ring-1 ring-outline-variant/10">
+      <Image
+        src={config.image}
+        alt={config.imageAlt}
+        width={config.imageWidth}
+        height={config.imageHeight}
+        priority
+        unoptimized
+        className="block h-auto w-full max-w-full"
+        sizes="(max-width: 1024px) 100vw, 560px"
+      />
+    </div>
+  );
 }
 
 export function DashboardPageHero({ config, className }: DashboardPageHeroProps) {
@@ -60,26 +83,26 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
         className,
       )}
     >
-      <div className="grid w-full max-w-full grid-cols-1 lg:grid-cols-2 lg:items-stretch lg:min-h-[340px]">
-        <div className="flex w-full max-w-full flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
+      <div className="flex flex-col lg:flex-row lg:items-center">
+        <div className="flex w-full flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:min-w-0 lg:flex-1 lg:px-12 lg:py-10">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep sm:text-[11px]">
             {eyebrow}
           </p>
-          <h1 className="mt-2 max-w-[28rem] font-serif text-[26px] font-semibold leading-[1.15] text-ink sm:text-[34px] lg:text-[38px]">
+          <h1 className="mt-2 max-w-xl font-serif text-[26px] font-semibold leading-[1.15] text-ink sm:text-[34px] lg:text-[36px]">
             {title}
           </h1>
           {config.subtitle ? (
-            <p className="mt-3 max-w-[28rem] text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
+            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
               {config.subtitle}
             </p>
           ) : null}
           {config.scriptAccent ? (
-            <p className="mt-3 max-w-[28rem] font-hand text-[20px] leading-snug text-rose-gold-deep sm:text-[22px]">
+            <p className="mt-3 max-w-xl font-hand text-[20px] leading-snug text-rose-gold-deep sm:text-[22px]">
               {config.scriptAccent}
             </p>
           ) : null}
           {showInlineQuote ? (
-            <blockquote className="mt-3 max-w-[28rem] border-l-2 border-rose-gold/40 pl-4 text-[14px] italic leading-relaxed text-slate-text">
+            <blockquote className="mt-3 max-w-xl border-l-2 border-rose-gold/40 pl-4 text-[14px] italic leading-relaxed text-slate-text">
               &ldquo;{config.quote}&rdquo;
               {config.attribution ? (
                 <footer className="mt-2 text-[10px] not-italic font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
@@ -89,7 +112,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
             </blockquote>
           ) : null}
           {config.brandQuote ? (
-            <div className="mt-4 max-w-[28rem] border-t border-outline-variant/15 pt-4">
+            <div className="mt-4 max-w-xl border-t border-outline-variant/15 pt-4">
               <p className="font-serif text-[14px] italic leading-snug text-ink/85">
                 &ldquo;{config.brandQuote}&rdquo;
               </p>
@@ -100,7 +123,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
           ) : null}
 
           {config.actions?.length ? (
-            <div className="mt-4 flex max-w-full flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap gap-3">
               {config.actions.map((action) =>
                 action.primary ? (
                   <Link
@@ -127,7 +150,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
           ) : null}
 
           {config.features?.length ? (
-            <ul className="mt-4 grid max-w-full gap-3 sm:grid-cols-3">
+            <ul className="mt-4 grid gap-3 sm:grid-cols-3">
               {config.features.map((f) => (
                 <li key={f.title} className="flex items-start gap-2.5">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-gold/15 text-rose-gold-deep">
@@ -143,37 +166,21 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
           ) : null}
         </div>
 
-        <div className="flex w-full max-w-full items-stretch bg-champagne/25 p-4 sm:p-5 lg:min-h-[340px] lg:p-6 lg:pl-3">
-          <div className="relative min-h-[240px] w-full overflow-hidden rounded-[22px] shadow-sm ring-1 ring-outline-variant/10 sm:min-h-[280px] lg:min-h-0 lg:flex-1">
-            <Image
-              src={config.image}
-              alt={config.imageAlt}
-              fill
-              priority
-              className={cn("object-cover", imageFocusClass(config.imageFocus))}
-              sizes="(max-width: 1024px) 100vw, 560px"
-            />
-            <div
-              className="pointer-events-none absolute inset-y-0 left-0 w-[28%] max-w-[120px] bg-gradient-to-r from-cream/35 to-transparent lg:from-cream/25"
-              aria-hidden
-            />
-            <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-ink/10 to-transparent lg:hidden"
-              aria-hidden
-            />
-
-          {config.editorialQuote && config.quote ? (
-            <div className="absolute inset-0 z-10 flex items-end justify-center p-4 pb-6 lg:items-center lg:justify-end lg:p-6">
-              <blockquote className="max-w-xs rounded-2xl bg-ivory/92 px-5 py-4 text-center font-serif text-[18px] leading-snug text-ink shadow-sm sm:text-[20px] lg:max-w-sm lg:bg-ivory/85 lg:text-right lg:text-[22px]">
-                &ldquo;{config.quote}&rdquo;
-                {config.attribution ? (
-                  <footer className="mt-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
-                    — {config.attribution}
-                  </footer>
-                ) : null}
-              </blockquote>
-            </div>
-          ) : null}
+        <div className="w-full shrink-0 bg-champagne/20 px-4 pb-6 pt-2 sm:px-6 sm:pb-8 lg:w-[min(100%,520px)] lg:px-6 lg:py-8 lg:pl-4">
+          <div className="relative">
+            <HeroArt config={config} />
+            {config.editorialQuote && config.quote ? (
+              <div className="pointer-events-none absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4">
+                <blockquote className="rounded-xl bg-ivory/95 px-4 py-3 text-center font-serif text-[15px] leading-snug text-ink shadow-sm backdrop-blur-sm sm:text-[16px]">
+                  &ldquo;{config.quote}&rdquo;
+                  {config.attribution ? (
+                    <footer className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
+                      — {config.attribution}
+                    </footer>
+                  ) : null}
+                </blockquote>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

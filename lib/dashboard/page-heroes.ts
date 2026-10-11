@@ -11,8 +11,14 @@ export type DashboardPageHeroFeature = {
   subtitle: string;
 };
 
+/** Client art is mostly ultra-wide strips — show full frame, not tall crops. */
+export type HeroImageLayout = "banner" | "photo";
+
 export type DashboardPageHeroConfig = {
   image: string;
+  imageWidth: number;
+  imageHeight: number;
+  imageLayout?: HeroImageLayout;
   eyebrow: string;
   title: string;
   subtitle?: string;
@@ -21,21 +27,47 @@ export type DashboardPageHeroConfig = {
   scriptAccent?: string;
   brandQuote?: string;
   imageAlt: string;
-  /** How the H1 is resolved at runtime (Clerk user name). */
   titleMode?: "fixed" | "dashboardHome" | "calendarGreeting";
   actions?: DashboardPageHeroAction[];
   features?: DashboardPageHeroFeature[];
-  /** Editorial quote overlay on the photo (calendar faith variant). */
   editorialQuote?: boolean;
-  /** Crop anchor for lifestyle photography (default: upper third). */
-  imageFocus?: "center" | "upper" | "lower";
 };
 
-const HERO = (file: string) => `/brand/heroes/${file}`;
+/** Pixel size of files in `public/brand/heroes/` (update when art is replaced). */
+const HERO_FILES: Record<
+  string,
+  { w: number; h: number; layout?: HeroImageLayout }
+> = {
+  "dashboard.jpg": { w: 1024, h: 240 },
+  "campaigns.jpg": { w: 1024, h: 287 },
+  "voice-scripts.jpg": { w: 1024, h: 129 },
+  "analytics.jpg": { w: 1024, h: 279 },
+  "activity.jpg": { w: 1024, h: 279 },
+  "activity-hero.jpg": { w: 1280, h: 720, layout: "photo" },
+  "tasks.jpg": { w: 1024, h: 224 },
+  "notes.jpg": { w: 1024, h: 287 },
+  "mortgage.jpg": { w: 1024, h: 191 },
+  "contacts.jpg": { w: 1024, h: 119 },
+  "calendar.jpg": { w: 1024, h: 203 },
+  "calendar-faith.jpg": { w: 1024, h: 188 },
+};
+
+function hero(file: string): Pick<
+  DashboardPageHeroConfig,
+  "image" | "imageWidth" | "imageHeight" | "imageLayout"
+> {
+  const meta = HERO_FILES[file] ?? { w: 1024, h: 280 };
+  return {
+    image: `/brand/heroes/${file}`,
+    imageWidth: meta.w,
+    imageHeight: meta.h,
+    imageLayout: meta.layout ?? "banner",
+  };
+}
 
 export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   "/dashboard": {
-    image: HERO("dashboard.jpg"),
+    ...hero("dashboard.jpg"),
     eyebrow: "Home",
     title: "Let's make today exceptional.",
     titleMode: "dashboardHome",
@@ -43,7 +75,6 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
       "Nurture your leads, stay top of mind, and create more opportunities with AI-driven outreach.",
     brandQuote: "More conversations. More opportunities.",
     imageAlt: "Coastal living room with ocean view",
-    imageFocus: "upper",
     actions: [
       {
         label: "Create a campaign",
@@ -54,19 +85,17 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
       { label: "View agenda", href: "/dashboard/calendar", icon: "calendar_today" },
     ],
   },
-  /** Calendar uses {@link CALENDAR_HERO_VARIANTS} + toggle on the calendar page. */
   "/dashboard/campaigns": {
-    image: HERO("campaigns.jpg"),
+    ...hero("campaigns.jpg"),
     eyebrow: "Campaigns",
     title: "Meaningful outreach. Real relationships.",
     subtitle: "Launch sequences, engage consistently, and open more doors.",
     scriptAccent: "People over numbers. Always.",
     brandQuote: "Every touchpoint builds trust.",
     imageAlt: "Ocean from above",
-    imageFocus: "center",
   },
   "/dashboard/voice-scripts": {
-    image: HERO("voice-scripts.jpg"),
+    ...hero("voice-scripts.jpg"),
     eyebrow: "Voice script studio",
     title: "Voice Scripts Library",
     subtitle:
@@ -76,7 +105,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     imageAlt: "Studio microphone",
   },
   "/dashboard/analytics": {
-    image: HERO("analytics.jpg"),
+    ...hero("analytics.jpg"),
     eyebrow: "Analytics",
     title: "Insight creates opportunity",
     subtitle:
@@ -85,7 +114,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     imageAlt: "Analytics waves",
   },
   "/dashboard/activity": {
-    image: HERO("activity.jpg"),
+    ...hero("activity-hero.jpg"),
     eyebrow: "Activity",
     title: "Every action moves you forward",
     subtitle:
@@ -94,7 +123,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     imageAlt: "Waterfront at golden hour",
   },
   "/dashboard/tasks": {
-    image: HERO("tasks.jpg"),
+    ...hero("tasks.jpg"),
     eyebrow: "Tasks",
     title: "Small steps. Big results.",
     subtitle: "Stay focused, follow through, and make progress every day.",
@@ -103,7 +132,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     imageAlt: "Productive office at sunrise",
   },
   "/dashboard/notes": {
-    image: HERO("notes.jpg"),
+    ...hero("notes.jpg"),
     eyebrow: "Thinking",
     title: "Ideas today. Impact tomorrow.",
     subtitle: "Capture strategy, goals, and notes—linked to the people you serve.",
@@ -112,13 +141,12 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     imageAlt: "Seaside workspace",
   },
   "/dashboard/mortgage": {
-    image: HERO("mortgage.jpg"),
+    ...hero("mortgage.jpg"),
     eyebrow: "Planning",
     title: "Mortgage Calculator",
     subtitle: "Estimate monthly payments with today's average rates, refreshed daily.",
     scriptAccent: "Home opens more doors.",
     imageAlt: "Luxury modern home",
-    imageFocus: "upper",
     features: [
       { icon: "percent", title: "Live rate data", subtitle: "Updated daily" },
       { icon: "bar_chart", title: "Compare scenarios", subtitle: "See your options" },
@@ -126,25 +154,23 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     ],
   },
   "/dashboard/contacts": {
-    image: HERO("contacts.jpg"),
+    ...hero("contacts.jpg"),
     eyebrow: "Contacts",
     title: "Relationships that open doors",
     subtitle: "Every contact, conversation, consent record, and next step in one place.",
     brandQuote: "People first. Always.",
     imageAlt: "Contemporary living room",
-    imageFocus: "upper",
   },
   "/dashboard/properties": {
-    image: HERO("mortgage.jpg"),
+    ...hero("mortgage.jpg"),
     eyebrow: "Property finder",
     title: "Find the right match",
     subtitle: "Search listings and send curated property follow-up tied to each contact.",
     brandQuote: "The right home changes everything.",
     imageAlt: "Luxury property",
-    imageFocus: "upper",
   },
   "/dashboard/settings": {
-    image: HERO("dashboard.jpg"),
+    ...hero("dashboard.jpg"),
     eyebrow: "Settings",
     title: "Your workspace, your way",
     subtitle: "Profile, billing, integrations, and team access in one place.",
@@ -162,17 +188,16 @@ export const CALENDAR_HERO_VARIANTS: Record<
   DashboardPageHeroConfig
 > = {
   schedule: {
-    image: HERO("calendar.jpg"),
+    ...hero("calendar.jpg"),
     eyebrow: "Calendar",
     title: "Your schedule, beautifully organized.",
     titleMode: "calendarGreeting",
     subtitle: "Stay on top of your schedule, client meetings, and follow-ups.",
     brandQuote: "Purpose in every plan.",
     imageAlt: "Sunlit luxury residence",
-    imageFocus: "upper",
   },
   faith: {
-    image: HERO("calendar-faith.jpg"),
+    ...hero("calendar-faith.jpg"),
     eyebrow: "Calendar",
     title: "Purpose in Every Plan",
     subtitle: "Plans for peace, hope, and a beautiful future.",
@@ -182,7 +207,6 @@ export const CALENDAR_HERO_VARIANTS: Record<
     editorialQuote: true,
     brandQuote: "Trust the timing.",
     imageAlt: "Golden hour penthouse view",
-    imageFocus: "center",
   },
 };
 

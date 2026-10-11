@@ -6,7 +6,16 @@ Add these in **Vercel → Project → Settings → Environment Variables**, then
 
 Place the client **MyARI** wordmark as a **transparent PNG** at `public/brand/myari-logo.png` (sidebar, heroes, favicon). Do not use JPEG — transparency is required on cream/photo backgrounds.
 
-Optional: replace dashboard hero banners in `public/brand/heroes/` (calendar, campaigns, voice-scripts, etc.) with the client’s final PNG/JPG artwork — filenames must match those in `lib/dashboard/page-heroes.ts`.
+Optional: replace dashboard hero art in `public/brand/heroes/` — filenames must match `lib/dashboard/page-heroes.ts`.
+
+**Hero image specs (client-ready):**
+
+| Layout | Use when | Recommended size |
+|--------|----------|------------------|
+| **Banner** (most tabs) | Wide strip art from mockups | **1200×350 px** minimum (full width shown, no crop) |
+| **Photo** (e.g. Activity) | Standard landscape photo | **1280×720** or **1200×675** |
+
+After replacing files, update width/height in `HERO_FILES` inside `lib/dashboard/page-heroes.ts` if dimensions change. Very short strips (e.g. 1024×120) look small in the hero panel until taller art is supplied.
 
 ## Required (dashboard + auth)
 
