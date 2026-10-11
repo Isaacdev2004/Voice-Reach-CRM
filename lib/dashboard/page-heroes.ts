@@ -33,30 +33,31 @@ export type DashboardPageHeroConfig = {
   editorialQuote?: boolean;
 };
 
-/** Pixel size of files in `public/brand/heroes/` (update when art is replaced). */
+/** Matches resized client art in `public/brand/heroes/` (Oct 2026). */
+const BANNER_2172 = { w: 2172, h: 724 } as const;
+
 const HERO_FILES: Record<
   string,
   { w: number; h: number; layout?: HeroImageLayout }
 > = {
-  "dashboard.jpg": { w: 1024, h: 240 },
-  "campaigns.jpg": { w: 1024, h: 287 },
-  "voice-scripts.jpg": { w: 1024, h: 129 },
-  "analytics.jpg": { w: 1024, h: 279 },
-  "activity.jpg": { w: 1024, h: 279 },
-  "activity-hero.jpg": { w: 1280, h: 720, layout: "photo" },
-  "tasks.jpg": { w: 1024, h: 224 },
-  "notes.jpg": { w: 1024, h: 287 },
-  "mortgage.jpg": { w: 1024, h: 191 },
-  "contacts.jpg": { w: 1024, h: 119 },
-  "calendar.jpg": { w: 1024, h: 203 },
-  "calendar-faith.jpg": { w: 1024, h: 188 },
+  "dashboard.jpg": BANNER_2172,
+  "campaigns.jpg": BANNER_2172,
+  "voice-scripts.jpg": BANNER_2172,
+  "analytics.jpg": BANNER_2172,
+  "activity.jpg": BANNER_2172,
+  "tasks.jpg": BANNER_2172,
+  "notes.jpg": BANNER_2172,
+  "mortgage.jpg": BANNER_2172,
+  "contacts.jpg": BANNER_2172,
+  "calendar.jpg": BANNER_2172,
+  "calendar-faith.jpg": BANNER_2172,
 };
 
 function hero(file: string): Pick<
   DashboardPageHeroConfig,
   "image" | "imageWidth" | "imageHeight" | "imageLayout"
 > {
-  const meta = HERO_FILES[file] ?? { w: 1024, h: 280 };
+  const meta = HERO_FILES[file] ?? BANNER_2172;
   return {
     image: `/brand/heroes/${file}`,
     imageWidth: meta.w,
@@ -74,7 +75,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle:
       "Nurture your leads, stay top of mind, and create more opportunities with AI-driven outreach.",
     brandQuote: "More conversations. More opportunities.",
-    imageAlt: "Coastal living room with ocean view",
+    imageAlt: "Luxury villa terrace at sunset",
     actions: [
       {
         label: "Create a campaign",
@@ -92,7 +93,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle: "Launch sequences, engage consistently, and open more doors.",
     scriptAccent: "People over numbers. Always.",
     brandQuote: "Every touchpoint builds trust.",
-    imageAlt: "Ocean from above",
+    imageAlt: "Ocean from above with luxury boat",
   },
   "/dashboard/voice-scripts": {
     ...hero("voice-scripts.jpg"),
@@ -102,7 +103,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
       "Create, organize, and manage voice scripts. Record, upload, or generate with AI—then assign them to campaigns.",
     scriptAccent: "Your words create opportunity.",
     brandQuote: "Real people. Real connections. Powered by AI.",
-    imageAlt: "Studio microphone",
+    imageAlt: "Coastal workspace at sunset",
   },
   "/dashboard/analytics": {
     ...hero("analytics.jpg"),
@@ -111,16 +112,16 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle:
       "Track delivery, engagement, and campaign performance—then refine what works.",
     brandQuote: "Data with direction.",
-    imageAlt: "Analytics waves",
+    imageAlt: "Analytics waves and chart motif",
   },
   "/dashboard/activity": {
-    ...hero("activity-hero.jpg"),
+    ...hero("activity.jpg"),
     eyebrow: "Activity",
     title: "Every action moves you forward",
     subtitle:
       "A real-time view of outreach, compliance, and engagement—all in one place.",
     brandQuote: "Clarity in every log.",
-    imageAlt: "Waterfront at golden hour",
+    imageAlt: "Coastal olive branch at golden hour",
   },
   "/dashboard/tasks": {
     ...hero("tasks.jpg"),
@@ -129,7 +130,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle: "Stay focused, follow through, and make progress every day.",
     scriptAccent: "Productivity creates space for purpose.",
     brandQuote: "Discipline today. Momentum tomorrow.",
-    imageAlt: "Productive office at sunrise",
+    imageAlt: "Outdoor desk overlooking the coast",
   },
   "/dashboard/notes": {
     ...hero("notes.jpg"),
@@ -138,7 +139,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle: "Capture strategy, goals, and notes—linked to the people you serve.",
     scriptAccent: "A clear mind builds a brighter future.",
     brandQuote: "Strategy on paper. Results in the field.",
-    imageAlt: "Seaside workspace",
+    imageAlt: "Journal and coffee with a coastal view",
   },
   "/dashboard/mortgage": {
     ...hero("mortgage.jpg"),
@@ -146,7 +147,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     title: "Mortgage Calculator",
     subtitle: "Estimate monthly payments with today's average rates, refreshed daily.",
     scriptAccent: "Home opens more doors.",
-    imageAlt: "Luxury modern home",
+    imageAlt: "Luxury pool and villa at sunset",
     features: [
       { icon: "percent", title: "Live rate data", subtitle: "Updated daily" },
       { icon: "bar_chart", title: "Compare scenarios", subtitle: "See your options" },
@@ -159,7 +160,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     title: "Relationships that open doors",
     subtitle: "Every contact, conversation, consent record, and next step in one place.",
     brandQuote: "People first. Always.",
-    imageAlt: "Contemporary living room",
+    imageAlt: "Elegant terrace overlooking the sea",
   },
   "/dashboard/properties": {
     ...hero("mortgage.jpg"),
@@ -167,7 +168,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     title: "Find the right match",
     subtitle: "Search listings and send curated property follow-up tied to each contact.",
     brandQuote: "The right home changes everything.",
-    imageAlt: "Luxury property",
+    imageAlt: "Luxury property at sunset",
   },
   "/dashboard/settings": {
     ...hero("dashboard.jpg"),
@@ -175,7 +176,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     title: "Your workspace, your way",
     subtitle: "Profile, billing, integrations, and team access in one place.",
     brandQuote: "Built for how you work.",
-    imageAlt: "Coastal living room with ocean view",
+    imageAlt: "Luxury villa terrace at sunset",
   },
 };
 
@@ -194,7 +195,7 @@ export const CALENDAR_HERO_VARIANTS: Record<
     titleMode: "calendarGreeting",
     subtitle: "Stay on top of your schedule, client meetings, and follow-ups.",
     brandQuote: "Purpose in every plan.",
-    imageAlt: "Sunlit luxury residence",
+    imageAlt: "Sunlit terrace with ocean view",
   },
   faith: {
     ...hero("calendar-faith.jpg"),
@@ -206,7 +207,7 @@ export const CALENDAR_HERO_VARIANTS: Record<
     attribution: "Jeremiah 29:11",
     editorialQuote: true,
     brandQuote: "Trust the timing.",
-    imageAlt: "Golden hour penthouse view",
+    imageAlt: "Golden hour olive branch and coastline",
   },
 };
 

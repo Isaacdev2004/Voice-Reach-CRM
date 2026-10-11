@@ -12,8 +12,8 @@ Optional: replace dashboard hero art in `public/brand/heroes/` — filenames mus
 
 | Layout | Use when | Recommended size |
 |--------|----------|------------------|
-| **Banner** (most tabs) | Wide strip art from mockups | **1200×350 px** minimum (full width shown, no crop) |
-| **Photo** (e.g. Activity) | Standard landscape photo | **1280×720** or **1200×675** |
+| **Banner** (most tabs) | Wide strip art from mockups | **2172×724 px** (current client set) or **1200×400 px** minimum |
+| **Photo** (optional) | Standard landscape photo | **1280×720** if using `imageLayout: photo` |
 
 After replacing files, update width/height in `HERO_FILES` inside `lib/dashboard/page-heroes.ts` if dimensions change. Very short strips (e.g. 1024×120) look small in the hero panel until taller art is supplied.
 
