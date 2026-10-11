@@ -51,15 +51,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
       { label: "View agenda", href: "/dashboard/calendar", icon: "calendar_today" },
     ],
   },
-  "/dashboard/calendar": {
-    image: HERO("calendar.jpg"),
-    eyebrow: "Calendar",
-    title: "Your schedule, beautifully organized.",
-    titleMode: "calendarGreeting",
-    subtitle: "Stay on top of your schedule, client meetings, and follow-ups.",
-    brandQuote: "Purpose in every plan.",
-    imageAlt: "Sunlit luxury residence",
-  },
+  /** Calendar uses {@link CALENDAR_HERO_VARIANTS} + toggle on the calendar page. */
   "/dashboard/campaigns": {
     image: HERO("campaigns.jpg"),
     eyebrow: "Campaigns",
@@ -146,8 +138,40 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   },
 };
 
+export const CALENDAR_HERO_STORAGE_KEY = "myari-calendar-hero-variant";
+
+export type CalendarHeroVariant = "schedule" | "faith";
+
+export const CALENDAR_HERO_VARIANTS: Record<
+  CalendarHeroVariant,
+  DashboardPageHeroConfig
+> = {
+  schedule: {
+    image: HERO("calendar.jpg"),
+    eyebrow: "Calendar",
+    title: "Your schedule, beautifully organized.",
+    titleMode: "calendarGreeting",
+    subtitle: "Stay on top of your schedule, client meetings, and follow-ups.",
+    brandQuote: "Purpose in every plan.",
+    imageAlt: "Sunlit luxury residence",
+  },
+  faith: {
+    image: HERO("calendar-faith.jpg"),
+    eyebrow: "Calendar",
+    title: "Purpose in Every Plan",
+    subtitle: "Plans for peace, hope, and a beautiful future.",
+    quote:
+      "God knows the plans He has for you—plans for peace, hope, and a beautiful future.",
+    attribution: "Jeremiah 29:11",
+    editorialQuote: true,
+    brandQuote: "Trust the timing.",
+    imageAlt: "Golden hour penthouse view",
+  },
+};
+
 export function getDashboardHeroForPath(pathname: string): DashboardPageHeroConfig | null {
   if (!pathname.startsWith("/dashboard")) return null;
+  if (pathname === "/dashboard/calendar") return null;
   if (pathname !== "/dashboard" && /\/dashboard\/[^/]+\/[^/]+/.test(pathname)) {
     return null;
   }
