@@ -19,49 +19,6 @@ function timeGreeting(hour: number) {
   return "Good evening";
 }
 
-const HERO_FRAME_CLASS =
-  "relative w-full overflow-hidden rounded-[20px] bg-champagne shadow-[0_14px_44px_-18px_rgba(45,38,30,0.28)] ring-1 ring-outline-variant/15";
-
-function HeroArt({ config }: { config: DashboardPageHeroConfig }) {
-  const isPhoto = config.imageLayout === "photo";
-
-  if (isPhoto) {
-    return (
-      <div className={cn(HERO_FRAME_CLASS, "aspect-[16/10] sm:aspect-video")}>
-        <Image
-          src={config.image}
-          alt={config.imageAlt}
-          fill
-          priority
-          quality={92}
-          sizes="(max-width: 1024px) 100vw, 680px"
-          className="object-cover object-center"
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={HERO_FRAME_CLASS}
-      style={{ aspectRatio: `${config.imageWidth} / ${config.imageHeight}` }}
-    >
-      <Image
-        src={config.image}
-        alt={config.imageAlt}
-        fill
-        priority
-        unoptimized
-        sizes="(max-width: 1024px) 100vw, 680px"
-        className="object-cover"
-        style={{
-          objectPosition: config.imageObjectPosition ?? "center center",
-        }}
-      />
-    </div>
-  );
-}
-
 export function DashboardPageHero({ config, className }: DashboardPageHeroProps) {
   const { user } = useUser();
   const hour = new Date().getHours();
@@ -83,6 +40,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
   }
 
   const showInlineQuote = config.quote && !config.editorialQuote;
+  const isPhoto = config.imageLayout === "photo";
 
   return (
     <section
@@ -91,7 +49,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
         className,
       )}
     >
-      <div className="grid w-full grid-cols-1 lg:grid-cols-2 lg:items-center">
+      <div className="grid w-full grid-cols-1 lg:grid-cols-2 lg:items-stretch">
         <div className="flex flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-10">
           <p className="break-normal text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
             {eyebrow}
@@ -174,24 +132,48 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
           ) : null}
         </div>
 
-        <div className="bg-champagne/20 px-4 pb-6 pt-2 sm:px-6 sm:pb-8 lg:px-6 lg:py-8 lg:pl-4">
-          <div className="relative w-full">
-            <HeroArt config={config} />
-            {config.editorialQuote && config.quote ? (
-              <div className="pointer-events-none absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4">
-                <blockquote className="break-normal rounded-xl bg-ivory/95 px-4 py-3 text-center font-serif text-[15px] leading-snug text-ink shadow-sm backdrop-blur-sm sm:text-[16px]">
-                  &ldquo;{config.quote}&rdquo;
-                  {config.attribution ? (
-                    <footer className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
-                      — {config.attribution}
-                    </footer>
-                  ) : null}
-                </blockquote>
-              </div>
-            ) : null}
-          </div>
+        {/* Mobile: wide banner aspect. Desktop: stretch to match copy column height (cover, no letterboxing). */}
+        <div
+          className={cn(
+            "relative w-full overflow-hidden bg-champagne",
+            isPhoto
+              ? "aspect-[16/10] sm:aspect-video lg:aspect-auto lg:h-full lg:min-h-[280px]"
+              : "aspect-[2172/724] lg:aspect-auto lg:h-full lg:min-h-[280px]",
+          )}
+        >
+          <Image
+            src={config.image}
+            alt={config.imageAlt}
+            fill
+            priority
+            unoptimized={!isPhoto}
+            quality={isPhoto ? 92 : undefined}
+            sizes="(max-width: 1024px) 100vw, 700px"
+            className="object-cover"
+            style={{
+              objectPosition: config.imageObjectPosition ?? "center center",
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-1/4 max-w-[140px] bg-gradient-to-r from-cream/50 to-transparent lg:from-cream/35"
+            aria-hidden
+          />
+
+          {config.editorialQuote && config.quote ? (
+            <div className="pointer-events-none absolute inset-x-4 bottom-4 z-[2] sm:inset-x-6 sm:bottom-6">
+              <blockquote className="break-normal rounded-xl bg-ivory/95 px-4 py-3 text-center font-serif text-[15px] leading-snug text-ink shadow-sm backdrop-blur-sm sm:text-[16px]">
+                &ldquo;{config.quote}&rdquo;
+                {config.attribution ? (
+                  <footer className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
+                    — {config.attribution}
+                  </footer>
+                ) : null}
+              </blockquote>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
   );
 }
+
