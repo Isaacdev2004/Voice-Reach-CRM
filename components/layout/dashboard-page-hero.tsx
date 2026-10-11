@@ -44,53 +44,51 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
   return (
     <section
       className={cn(
-        "w-full min-w-0 overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card",
+        "block w-full max-w-full overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card",
         className,
       )}
     >
-      <div className="dashboard-page-hero-split">
-        <div className="dashboard-page-hero-copy relative z-10 flex flex-col justify-center gap-3 bg-cream px-6 py-8 sm:gap-4 sm:px-10 sm:py-10 lg:py-12">
-          <div className="w-full min-w-0 max-w-xl">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-rose-gold-deep sm:text-[11px]">
-              {eyebrow}
+      <div className="grid w-full max-w-full grid-cols-1 lg:grid-cols-2 lg:min-h-[280px]">
+        <div className="flex w-full max-w-full flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep sm:text-[11px]">
+            {eyebrow}
+          </p>
+          <h1 className="mt-2 max-w-[28rem] font-serif text-[26px] font-semibold leading-[1.15] text-ink sm:text-[34px] lg:text-[38px]">
+            {title}
+          </h1>
+          {config.subtitle ? (
+            <p className="mt-3 max-w-[28rem] text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
+              {config.subtitle}
             </p>
-            <h1 className="mt-2 font-serif text-[26px] font-semibold leading-[1.12] text-ink text-balance sm:text-[34px] lg:text-[38px]">
-              {title}
-            </h1>
-            {config.subtitle ? (
-              <p className="mt-3 text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
-                {config.subtitle}
+          ) : null}
+          {config.scriptAccent ? (
+            <p className="mt-3 max-w-[28rem] font-hand text-[20px] leading-snug text-rose-gold-deep sm:text-[22px]">
+              {config.scriptAccent}
+            </p>
+          ) : null}
+          {showInlineQuote ? (
+            <blockquote className="mt-3 max-w-[28rem] border-l-2 border-rose-gold/40 pl-4 text-[14px] italic leading-relaxed text-slate-text">
+              &ldquo;{config.quote}&rdquo;
+              {config.attribution ? (
+                <footer className="mt-2 text-[10px] not-italic font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
+                  — {config.attribution}
+                </footer>
+              ) : null}
+            </blockquote>
+          ) : null}
+          {config.brandQuote ? (
+            <div className="mt-4 max-w-[28rem] border-t border-outline-variant/15 pt-4">
+              <p className="font-serif text-[14px] italic leading-snug text-ink/85">
+                &ldquo;{config.brandQuote}&rdquo;
               </p>
-            ) : null}
-            {config.scriptAccent ? (
-              <p className="mt-3 font-hand text-[20px] leading-snug text-rose-gold-deep sm:text-[22px]">
-                {config.scriptAccent}
+              <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-rose-gold-deep">
+                MyARI
               </p>
-            ) : null}
-            {showInlineQuote ? (
-              <blockquote className="mt-3 border-l-2 border-rose-gold/40 pl-4 text-[14px] italic leading-relaxed text-slate-text">
-                &ldquo;{config.quote}&rdquo;
-                {config.attribution ? (
-                  <footer className="mt-2 text-[10px] not-italic font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
-                    — {config.attribution}
-                  </footer>
-                ) : null}
-              </blockquote>
-            ) : null}
-            {config.brandQuote ? (
-              <div className="mt-4 border-t border-outline-variant/15 pt-4">
-                <p className="font-serif text-[14px] italic leading-snug text-ink/85">
-                  &ldquo;{config.brandQuote}&rdquo;
-                </p>
-                <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-rose-gold-deep">
-                  MyARI
-                </p>
-              </div>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
 
           {config.actions?.length ? (
-            <div className="mt-1 flex w-full min-w-0 flex-wrap gap-3">
+            <div className="mt-4 flex max-w-full flex-wrap gap-3">
               {config.actions.map((action) =>
                 action.primary ? (
                   <Link
@@ -117,13 +115,13 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
           ) : null}
 
           {config.features?.length ? (
-            <ul className="mt-2 grid w-full min-w-0 gap-3 sm:grid-cols-3">
+            <ul className="mt-4 grid max-w-full gap-3 sm:grid-cols-3">
               {config.features.map((f) => (
                 <li key={f.title} className="flex items-start gap-2.5">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-gold/15 text-rose-gold-deep">
                     <Icon name={f.icon} className="text-[18px]" />
                   </span>
-                  <div className="min-w-0">
+                  <div>
                     <p className="text-[13px] font-semibold text-ink">{f.title}</p>
                     <p className="text-[11px] text-taupe">{f.subtitle}</p>
                   </div>
@@ -133,25 +131,23 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
           ) : null}
         </div>
 
-        <div className="dashboard-page-hero-media">
+        <div className="relative min-h-[220px] w-full max-w-full sm:min-h-[260px] lg:min-h-[280px]">
+          <Image
+            src={config.image}
+            alt={config.imageAlt}
+            fill
+            priority
+            className="object-cover object-center"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+          />
           <div
-            className="absolute inset-0 overflow-hidden lg:[clip-path:ellipse(92%_100%_at_100%_50%)]"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-cream/50 via-transparent to-transparent lg:bg-gradient-to-l lg:from-cream/40 lg:via-transparent lg:to-transparent"
             aria-hidden
-          >
-            <Image
-              src={config.image}
-              alt={config.imageAlt}
-              fill
-              priority
-              className="object-cover object-center"
-              sizes="(max-width: 1024px) 100vw, 560px"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-cream/40 via-transparent to-transparent lg:bg-gradient-to-l lg:from-transparent lg:via-transparent lg:to-cream/45" />
-          </div>
+          />
 
           {config.editorialQuote && config.quote ? (
-            <div className="absolute inset-0 z-10 flex items-end justify-center p-6 pb-8 lg:items-center lg:justify-end lg:p-10 lg:pr-12">
-              <blockquote className="max-w-[min(100%,20rem)] rounded-2xl bg-ivory/90 px-5 py-4 text-center font-serif text-[18px] leading-snug text-ink shadow-sm backdrop-blur-sm sm:text-[20px] lg:bg-transparent lg:text-right lg:text-[24px] lg:shadow-none lg:backdrop-blur-none">
+            <div className="absolute inset-0 z-10 flex items-end justify-center p-6 pb-8 lg:items-center lg:justify-end lg:p-10">
+              <blockquote className="max-w-xs rounded-2xl bg-ivory/92 px-5 py-4 text-center font-serif text-[18px] leading-snug text-ink shadow-sm sm:text-[20px] lg:max-w-sm lg:bg-ivory/85 lg:text-right lg:text-[22px]">
                 &ldquo;{config.quote}&rdquo;
                 {config.attribution ? (
                   <footer className="mt-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
