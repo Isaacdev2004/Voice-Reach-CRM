@@ -11,6 +11,8 @@ export type CalendarAgendaItem = {
   source?: "google" | "crm" | "task";
 };
 
+export type CalendarViewMode = "month" | "week" | "day";
+
 type MonthCalendarProps = {
   viewDate: Date;
   onViewDateChange: (date: Date) => void;
@@ -19,7 +21,15 @@ type MonthCalendarProps = {
   onSelectDate: (date: Date) => void;
   /** When set, clicking a day cell selects it and runs this (e.g. open add-event modal). */
   onDayClick?: (date: Date) => void;
+  viewMode?: CalendarViewMode;
+  onViewModeChange?: (mode: CalendarViewMode) => void;
 };
+
+function eventChipClass(source?: CalendarAgendaItem["source"]) {
+  if (source === "task") return "bg-amber-100/90 text-amber-950";
+  if (source === "google") return "bg-sage-light/80 text-emerald-muted";
+  return "bg-rose-gold/15 text-rose-gold-deep";
+}
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WEEKDAYS_SHORT = ["S", "M", "T", "W", "T", "F", "S"];
@@ -62,6 +72,8 @@ export function MonthCalendar({
   selectedDate,
   onSelectDate,
   onDayClick,
+  viewMode = "month",
+  onViewModeChange,
 }: MonthCalendarProps) {
   const today = new Date();
   const cells = useMemo(() => buildMonthGrid(viewDate), [viewDate]);
@@ -99,16 +111,8 @@ export function MonthCalendar({
 
   return (
     <div className="w-full min-w-0">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 sm:mb-6 sm:gap-4">
-        <h2 className="font-serif text-[20px] font-semibold text-ink sm:text-[26px]">{monthLabel}</h2>
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <button
-            type="button"
-            onClick={goToday}
-            className="rounded-full border border-outline-variant/30 px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-champagne sm:px-4 sm:py-2 sm:text-[13px]"
-          >
-            Today
-          </button>
+      <div className="mb-3 flex flex-col gap-3 sm:mb-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={prevMonth}
@@ -117,6 +121,9 @@ export function MonthCalendar({
           >
             <Icon name="chevron_left" className="text-[22px]" />
           </button>
+          <h2 className="min-w-[140px] text-center font-serif text-[20px] font-semibold text-ink sm:text-[26px]">
+            {monthLabel}
+          </h2>
           <button
             type="button"
             onClick={nextMonth}
@@ -124,6 +131,30 @@ export function MonthCalendar({
             aria-label="Next month"
           >
             <Icon name="chevron_right" className="text-[22px]" />
+          </button>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {(["month", "week", "day"] as CalendarViewMode[]).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => onViewModeChange?.(mode)}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-[12px] font-medium capitalize sm:px-4 sm:text-[13px]",
+                viewMode === mode
+                  ? "bg-rose-gold text-ivory"
+                  : "border border-outline-variant/25 text-taupe hover:bg-champagne",
+              )}
+            >
+              {mode}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={goToday}
+            className="rounded-full border border-outline-variant/30 px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-champagne sm:px-4 sm:py-2 sm:text-[13px]"
+          >
+            Today
           </button>
         </div>
       </div>
@@ -157,7 +188,7 @@ export function MonthCalendar({
               className={cn(
                 "min-h-[52px] bg-ivory p-1 text-left transition-colors hover:bg-cream/70 sm:min-h-[88px] sm:p-2 md:min-h-[100px]",
                 !inMonth && "bg-cream/40 text-taupe/60",
-                isSelected && "ring-2 ring-inset ring-rose-gold-deep/50",
+                isSelected && "bg-champagne/70 ring-2 ring-inset ring-rose-gold-deep/40",
                 onDayClick && "cursor-pointer hover:ring-1 hover:ring-inset hover:ring-rose-gold/30",
               )}
             >
@@ -174,9 +205,15 @@ export function MonthCalendar({
                 {dayEvents.slice(0, 2).map((ev) => (
                   <p
                     key={ev.id}
-                    className="truncate rounded-md bg-sage-light/80 px-1.5 py-0.5 text-[10px] font-medium text-emerald-muted sm:text-[11px]"
+                    className={cn(
+                      "flex items-center gap-1 truncate rounded-md px-1.5 py-0.5 text-[10px] font-medium sm:text-[11px]",
+                      eventChipClass(ev.source),
+                    )}
                   >
-                    {ev.title}
+                    {ev.source === "task" ? (
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-600" aria-hidden />
+                    ) : null}
+                    <span className="truncate">{ev.title}</span>
                   </p>
                 ))}
                 {dayEvents.length > 2 ? (

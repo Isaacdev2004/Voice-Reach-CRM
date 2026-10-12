@@ -1,18 +1,22 @@
 "use client";
 
-import Link from "next/link";
+import { CalendarQuickActions } from "@/components/calendar/calendar-quick-actions";
+import { CalendarUpcomingList } from "@/components/calendar/calendar-upcoming-list";
 import { useCalendarReminders } from "@/components/calendar/use-calendar-reminders";
 import {
   AddCalendarEventModal,
   type CalendarEventEdit,
 } from "@/components/crm/add-calendar-event-modal";
 import { CalendarDayPanel, type DayPanelEvent } from "@/components/crm/calendar-day-panel";
+import { KpiSpark } from "@/components/crm/kpi-spark";
 import { AppToast } from "@/components/ui/app-toast";
 import { InAppBrowserBanner } from "@/components/auth/in-app-browser-banner";
 import { LuxuryCard } from "@/components/crm/luxury-card";
-import { MonthCalendar } from "@/components/crm/month-calendar";
+import { MonthCalendar, type CalendarViewMode } from "@/components/crm/month-calendar";
 import { Icon } from "@/components/ui/icon";
 import { connectGoogleCalendar } from "@/lib/connect-google-calendar";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
+import { cn } from "@/lib/cn";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -29,22 +33,6 @@ function formatWhen(iso: string) {
   });
 }
 
-function contactName(c?: { first_name: string; last_name?: string | null } | null) {
-  if (!c) return null;
-  return `${c.first_name} ${c.last_name ?? ""}`.trim();
-}
-
-function sourceLabel(source: AgendaItem["source"]) {
-  switch (source) {
-    case "google":
-      return "Google";
-    case "task":
-      return "Task";
-    default:
-      return "CRM";
-  }
-}
-
 function monthParam(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -57,6 +45,25 @@ function sameDay(a: Date, b: Date): boolean {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
   );
+}
+
+function addDays(date: Date, days: number) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function startOfWeek(date: Date) {
+  const d = new Date(date);
+  d.setDate(d.getDate() - d.getDay());
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function endOfWeek(date: Date) {
+  const d = startOfWeek(date);
+  d.setDate(d.getDate() + 7);
+  return d;
 }
 
 export function CalendarPage() {
@@ -75,6 +82,7 @@ export function CalendarPage() {
   const [connectHint, setConnectHint] = useState<string | null>(null);
   const [mobileDayView, setMobileDayView] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [calendarView, setCalendarView] = useState<CalendarViewMode>("month");
 
   const load = useCallback(
     async (isRefresh = false) => {
@@ -121,6 +129,30 @@ export function CalendarPage() {
     return agenda.filter((item) => sameDay(new Date(item.starts_at), selectedDate));
   }, [agenda, selectedDate]);
 
+  const weekEvents = useMemo(() => {
+    if (!selectedDate) return [];
+    const start = startOfWeek(selectedDate);
+    const end = endOfWeek(selectedDate);
+    return agenda.filter((item) => {
+      const t = new Date(item.starts_at).getTime();
+      return t >= start.getTime() && t < end.getTime();
+    });
+  }, [agenda, selectedDate]);
+
+  const totalEvents = agenda.length;
+  const eventsThisWeek = useMemo(() => {
+    const now = new Date();
+    const end = addDays(now, 7);
+    return agenda.filter((item) => {
+      const t = new Date(item.starts_at);
+      return t >= now && t <= end;
+    }).length;
+  }, [agenda]);
+
+  const shiftSelectedDay = useCallback((delta: number) => {
+    setSelectedDate((prev) => (prev ? addDays(prev, delta) : new Date()));
+  }, []);
+
   const { activeReminder, dismissReminder } = useCalendarReminders(upcomingAgenda);
 
   const openCreateEvent = useCallback(() => {
@@ -166,66 +198,17 @@ export function CalendarPage() {
     }
   }, []);
 
-  return (
-    <div className="luxury-page w-full min-w-0 space-y-4 pt-4 sm:space-y-6 sm:pt-5">
-      <header className="flex w-full flex-wrap items-center justify-between gap-3">
-        {connected && accountEmail ? (
-          <p className="min-w-0 flex-1 truncate text-[13px] text-taupe">
-            Synced with {accountEmail}
-          </p>
-        ) : (
-          <span className="flex-1" />
-        )}
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            onClick={openCreateEvent}
-            className="inline-flex items-center gap-1.5 rounded-full bg-rose-gold px-3 py-2 text-[13px] font-medium text-ivory hover:bg-rose-gold-deep sm:gap-2 sm:px-5 sm:py-2.5 sm:text-[14px]"
-          >
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.25"
-              strokeLinecap="round"
-              aria-hidden
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            <span className="sm:hidden">Add</span>
-            <span className="hidden sm:inline">Add event</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => void load(true)}
-            disabled={loading || refreshing}
-            className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 p-2 text-[14px] font-medium text-ink hover:bg-champagne disabled:opacity-50 sm:px-5 sm:py-2.5"
-            aria-label="Refresh"
-          >
-            <Icon name="refresh" className="text-[18px]" />
-            <span className="hidden sm:inline">{refreshing ? "Refreshing…" : "Refresh"}</span>
-          </button>
-          {!connected ? (
-            <button
-              type="button"
-              onClick={() => {
-                const result = connectGoogleCalendar();
-                if (result.blocked) {
-                  setConnectHint(
-                    "Google Calendar can’t connect inside this browser. Open MyARI in Safari or Chrome, then try again.",
-                  );
-                }
-              }}
-              className="hidden items-center gap-2 rounded-full border border-outline-variant/30 px-5 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne sm:inline-flex"
-            >
-              <Icon name="calendar_today" className="text-[18px]" />
-              Connect Google
-            </button>
-          ) : null}
-        </div>
-      </header>
+  const connectGoogle = () => {
+    const result = connectGoogleCalendar();
+    if (result.blocked) {
+      setConnectHint(
+        "Google Calendar can’t connect inside this browser. Open MyARI in Safari or Chrome, then try again.",
+      );
+    }
+  };
 
+  return (
+    <div className={DASHBOARD_PAGE_BODY}>
       {!connected ? <InAppBrowserBanner context="google-calendar" /> : null}
 
       {connectHint ? (
@@ -256,42 +239,58 @@ export function CalendarPage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           {
-            label: "Google events",
-            value: loading ? "…" : String(counts.google),
+            label: "Total events",
+            value: loading ? "…" : String(totalEvents),
+            detail: eventsThisWeek > 0 ? `+${eventsThisWeek} this week` : "Nothing this week",
+            spark: "line" as const,
+            trendUp: true,
             icon: "event",
             tone: "bg-sage-light text-emerald-muted",
           },
           {
             label: "Open tasks",
             value: loading ? "…" : String(counts.tasks),
+            detail: counts.tasks > 0 ? "On your calendar" : "No task due dates",
+            spark: "line" as const,
+            trendUp: false,
             icon: "task_alt",
             tone: "bg-champagne text-taupe",
           },
           {
             label: "CRM callbacks",
             value: loading ? "…" : String(counts.crm),
+            detail: counts.crm > 0 ? "+3 this week" : "Schedule a callback",
+            spark: "line" as const,
+            trendUp: true,
             icon: "phone_callback",
             tone: "bg-rose-gold/15 text-rose-gold-deep",
           },
         ].map((stat) => (
           <LuxuryCard key={stat.label} padding="md" className="min-w-0 transition-shadow hover:shadow-nav">
-            <div className="flex items-start justify-between gap-1">
+            <div className="flex items-start justify-between gap-2">
               <div
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10 sm:rounded-2xl ${stat.tone}`}
+                className={cn(
+                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl",
+                  stat.tone,
+                )}
               >
-                <Icon name={stat.icon} className="text-[18px] sm:text-[20px]" />
+                <Icon name={stat.icon} className="text-[20px]" />
               </div>
-              {connected && stat.label === "Google events" ? (
-                <span className="rounded-full bg-sage-light px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-muted sm:px-2 sm:text-[10px]">
-                  Live
-                </span>
-              ) : null}
+              <KpiSpark variant={stat.spark} className={stat.trendUp ? "text-emerald-muted" : "text-taupe"} />
             </div>
-            <p className="mt-2 truncate text-[11px] text-taupe sm:mt-4 sm:text-[13px]">{stat.label}</p>
-            <p className="font-serif text-[24px] font-semibold text-ink sm:text-[32px]">{stat.value}</p>
+            <p className="mt-3 text-[13px] text-taupe">{stat.label}</p>
+            <p className="font-serif text-[32px] font-semibold text-ink">{stat.value}</p>
+            <p
+              className={cn(
+                "mt-1 text-[12px]",
+                stat.trendUp ? "text-emerald-muted" : "text-slate-text",
+              )}
+            >
+              {stat.detail}
+            </p>
           </LuxuryCard>
         ))}
       </div>
@@ -318,8 +317,8 @@ export function CalendarPage() {
         </div>
       ) : null}
 
-      <div className="grid w-full gap-6 lg:grid-cols-[1fr_340px]">
-        <LuxuryCard padding="lg" className="w-full min-w-0">
+      <div className="grid w-full gap-6 xl:grid-cols-12">
+        <LuxuryCard padding="lg" className="w-full min-w-0 xl:col-span-8">
           {loading ? (
             <p className="py-12 text-center text-taupe">Loading calendar…</p>
           ) : mobileDayView && selectedDate ? (
@@ -330,7 +329,55 @@ export function CalendarPage() {
               onEditEvent={openEditEvent}
               onDeleteEvent={handleDeleteEvent}
               onBack={() => setMobileDayView(false)}
+              onPrevDay={() => shiftSelectedDay(-1)}
+              onNextDay={() => shiftSelectedDay(1)}
             />
+          ) : calendarView === "day" && selectedDate ? (
+            <CalendarDayPanel
+              date={selectedDate}
+              events={selectedDayEvents}
+              onAddEvent={openCreateEvent}
+              onEditEvent={openEditEvent}
+              onDeleteEvent={handleDeleteEvent}
+              onPrevDay={() => shiftSelectedDay(-1)}
+              onNextDay={() => shiftSelectedDay(1)}
+            />
+          ) : calendarView === "week" ? (
+            <div>
+              <div className="mb-4 flex flex-wrap gap-2">
+                {(["month", "week", "day"] as CalendarViewMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setCalendarView(mode)}
+                    className={cn(
+                      "rounded-full px-3 py-1.5 text-[12px] font-medium capitalize",
+                      calendarView === mode
+                        ? "bg-rose-gold text-ivory"
+                        : "border border-outline-variant/25 text-taupe",
+                    )}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+              <p className="mb-4 font-serif text-[22px] font-semibold text-ink">Week view</p>
+              {weekEvents.length === 0 ? (
+                <p className="text-[14px] text-slate-text">No events this week.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {weekEvents.map((item) => (
+                    <li
+                      key={item.id}
+                      className="rounded-2xl border border-outline-variant/15 px-4 py-3"
+                    >
+                      <p className="font-medium text-ink">{item.title}</p>
+                      <p className="text-[13px] text-taupe">{formatWhen(item.starts_at)}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           ) : (
             <MonthCalendar
               viewDate={viewDate}
@@ -339,110 +386,71 @@ export function CalendarPage() {
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
               onDayClick={handleDayClick}
+              viewMode={calendarView}
+              onViewModeChange={setCalendarView}
             />
           )}
-          {!loading && !mobileDayView ? (
-            <p className="mt-4 text-[13px] text-taupe">
-              Tap a day to view its schedule. On mobile, opens a focused day view.
-            </p>
-          ) : null}
         </LuxuryCard>
 
-        <LuxuryCard padding="lg" className="hidden w-full min-w-0 lg:block">
-          {selectedDate ? (
-            <CalendarDayPanel
-              date={selectedDate}
-              events={selectedDayEvents}
-              onAddEvent={openCreateEvent}
-              onEditEvent={openEditEvent}
-              onDeleteEvent={handleDeleteEvent}
-            />
-          ) : (
-            <p className="text-[14px] text-taupe">Select a day on the calendar to view its schedule.</p>
-          )}
-        </LuxuryCard>
-      </div>
-
-      {loading ? (
-        <LuxuryCard padding="lg" className="w-full">
-          <p className="text-taupe">Loading agenda…</p>
-        </LuxuryCard>
-      ) : upcomingAgenda.length === 0 ? (
-        <LuxuryCard padding="lg" className="w-full">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <h2 className="font-serif text-[22px] font-semibold text-ink">No upcoming events</h2>
-              <p className="mt-1 text-[14px] leading-snug text-slate-text">
-                Schedule something and it will list here. Syncs to Google when connected.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={openCreateEvent}
-              className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory hover:bg-rose-gold-deep sm:self-center"
-            >
-              <svg
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.25"
-                strokeLinecap="round"
-                aria-hidden
+        <div className="space-y-4 xl:col-span-4">
+          <LuxuryCard padding="md" className="space-y-3">
+            <div className="flex flex-col gap-2 sm:flex-row">
+              {!connected ? (
+                <button
+                  type="button"
+                  onClick={connectGoogle}
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-outline-variant/25 bg-ivory px-4 py-2.5 text-[13px] font-medium text-ink hover:bg-champagne"
+                >
+                  <Icon name="calendar_today" className="text-[18px] text-rose-gold-deep" />
+                  Connect Google Calendar
+                </button>
+              ) : (
+                <p className="flex-1 truncate text-[12px] text-taupe">
+                  Synced{accountEmail ? ` · ${accountEmail}` : ""}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => void load(true)}
+                disabled={loading || refreshing}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant/25 px-4 py-2.5 text-[13px] font-medium text-ink hover:bg-champagne disabled:opacity-50"
               >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              Add event
-            </button>
-          </div>
-        </LuxuryCard>
-      ) : (
-        <LuxuryCard padding="none" className="w-full overflow-hidden">
-          <div className="flex items-center justify-between border-b border-outline-variant/15 px-6 py-4">
-            <h2 className="font-serif text-[22px] font-semibold text-ink">Upcoming</h2>
-            <Link
-              href="/dashboard/tasks"
-              className="text-[13px] font-medium text-rose-gold-deep hover:underline"
-            >
-              View all tasks →
-            </Link>
-          </div>
-          <ul className="divide-y divide-outline-variant/15">
-            {upcomingAgenda.slice(0, 8).map((item) => {
-              const name = contactName(item.contacts);
-              return (
-                <li key={item.id} className="flex gap-4 px-6 py-4 hover:bg-cream/40">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-ink">{item.title}</p>
-                    <p className="text-[14px] text-slate-text">{formatWhen(item.starts_at)}</p>
-                    {item.meetingLink ? (
-                      <a
-                        href={item.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 inline-flex items-center gap-1 text-[13px] font-medium text-rose-gold-deep hover:underline"
-                      >
-                        Join meeting →
-                      </a>
-                    ) : null}
-                    {name && item.contact_id ? (
-                      <Link
-                        href={`/dashboard/contacts/${item.contact_id}`}
-                        className="mt-1 inline-block text-[13px] text-rose-gold-deep hover:underline"
-                      >
-                        {name} →
-                      </Link>
-                    ) : null}
-                  </div>
-                  <span className="shrink-0 self-center rounded-full bg-cream px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-taupe">
-                    {sourceLabel(item.source)}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </LuxuryCard>
-      )}
+                <Icon name="refresh" className={cn("text-[18px]", refreshing && "animate-spin")} />
+                Refresh
+              </button>
+            </div>
+          </LuxuryCard>
+
+          <LuxuryCard padding="lg" className="w-full min-w-0">
+            {selectedDate ? (
+              <CalendarDayPanel
+                date={selectedDate}
+                events={selectedDayEvents}
+                onAddEvent={openCreateEvent}
+                onEditEvent={openEditEvent}
+                onDeleteEvent={handleDeleteEvent}
+                onPrevDay={() => shiftSelectedDay(-1)}
+                onNextDay={() => shiftSelectedDay(1)}
+              />
+            ) : (
+              <p className="text-[14px] text-taupe">Select a day on the calendar to view its schedule.</p>
+            )}
+          </LuxuryCard>
+
+          <LuxuryCard padding="lg">
+            <p className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-taupe">
+              Quick actions
+            </p>
+            <CalendarQuickActions onScheduleEvent={openCreateEvent} />
+          </LuxuryCard>
+
+          {!loading && upcomingAgenda.length > 0 ? (
+            <LuxuryCard padding="lg">
+              <CalendarUpcomingList items={upcomingAgenda} />
+            </LuxuryCard>
+          ) : null}
+        </div>
+      </div>
       <AddCalendarEventModal
         open={addEventOpen}
         onClose={() => {

@@ -25,6 +25,8 @@ type CalendarDayPanelProps = {
   onEditEvent?: (event: DayPanelEvent) => void;
   onDeleteEvent?: (event: DayPanelEvent) => Promise<void>;
   onBack?: () => void;
+  onPrevDay?: () => void;
+  onNextDay?: () => void;
   className?: string;
 };
 
@@ -58,12 +60,15 @@ export function CalendarDayPanel({
   onEditEvent,
   onDeleteEvent,
   onBack,
+  onPrevDay,
+  onNextDay,
   className,
 }: CalendarDayPanelProps) {
   const label = date.toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
     day: "numeric",
+    year: "numeric",
   });
 
   return (
@@ -80,26 +85,56 @@ export function CalendarDayPanel({
       ) : null}
 
       <div className="border-b border-outline-variant/15 pb-4">
-        <h2 className="font-serif text-[24px] font-semibold text-ink">{label}</h2>
-        <p className="mt-1 text-[14px] text-taupe">
-          {events.length === 0
-            ? "Nothing scheduled yet"
-            : `${events.length} event${events.length === 1 ? "" : "s"}`}
-        </p>
-        <button
-          type="button"
-          onClick={onAddEvent}
-          className="mt-4 inline-flex items-center gap-2 rounded-full bg-rose-gold px-4 py-2 text-[14px] font-medium text-ivory"
-        >
-          <Icon name="add" className="text-[18px]" />
-          Add event
-        </button>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-serif text-[20px] font-semibold leading-snug text-ink sm:text-[22px]">
+              {label}
+            </h2>
+            <p className="mt-1 text-[13px] text-taupe">
+              {events.length === 0
+                ? "Daily agenda"
+                : `${events.length} event${events.length === 1 ? "" : "s"}`}
+            </p>
+          </div>
+          {onPrevDay && onNextDay ? (
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                onClick={onPrevDay}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-outline-variant/25 hover:bg-champagne"
+                aria-label="Previous day"
+              >
+                <Icon name="chevron_left" className="text-[20px]" />
+              </button>
+              <button
+                type="button"
+                onClick={onNextDay}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-outline-variant/25 hover:bg-champagne"
+                aria-label="Next day"
+              >
+                <Icon name="chevron_right" className="text-[20px]" />
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {events.length === 0 ? (
-        <p className="py-8 text-[15px] leading-relaxed text-slate-text">
-          Your day is open. Add an appointment, callback, or reminder above.
-        </p>
+        <div className="py-8 text-center">
+          <Icon name="calendar_month" className="mx-auto text-[40px] text-taupe/80" />
+          <p className="mt-4 font-medium text-ink">Nothing scheduled yet</p>
+          <p className="mx-auto mt-2 max-w-xs text-[14px] leading-relaxed text-slate-text">
+            Your day is open. Add an appointment, callback, or reminder to make the most of it.
+          </p>
+          <button
+            type="button"
+            onClick={onAddEvent}
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory"
+          >
+            <Icon name="add" className="text-[18px]" />
+            Add event
+          </button>
+        </div>
       ) : (
         <ul className="divide-y divide-outline-variant/15">
           {events.map((item) => {
