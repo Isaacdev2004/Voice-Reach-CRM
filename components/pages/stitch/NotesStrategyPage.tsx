@@ -1,30 +1,25 @@
 "use client";
 
+import {
+  NotesStrategySidebar,
+  type ContactDetail,
+} from "@/components/notes/notes-strategy-sidebar";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
+import {
+  checklistLines,
+  matchesFilterTab,
+  NOTES_FILTER_TABS,
+  noteListIcon,
+  tagChips,
+  type NotesFilterTab,
+} from "@/lib/notes/filters";
 import { freeformDocument, titleFromFreeform } from "@/lib/notes/freeform";
+import type { NoteKind, NoteRow } from "@/lib/notes/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-export type NoteKind = "note" | "strategy" | "goal";
-
-export type NoteRow = {
-  id: string;
-  kind: NoteKind;
-  title: string;
-  body: string;
-  contact_id?: string | null;
-  created_at: string;
-  updated_at?: string;
-  contacts?: { id: string; first_name: string; last_name?: string | null } | null;
-};
-
-const TABS: { id: NoteKind | "all"; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "note", label: "Notes" },
-  { id: "strategy", label: "Strategy" },
-  { id: "goal", label: "Goals" },
-];
+export type { NoteKind, NoteRow } from "@/lib/notes/types";
 
 function previewLine(note: NoteRow) {
   const doc = freeformDocument(note.title, note.body);
@@ -48,18 +43,25 @@ function formatWhen(iso: string) {
   }
 }
 
-function kindLabel(kind: NoteKind | "all") {
-  if (kind === "all") return "notes";
-  if (kind === "note") return "notes";
-  if (kind === "strategy") return "strategy notes";
-  return "goals";
+function kindLabel(tab: NotesFilterTab) {
+  if (tab === "all") return "notes";
+  if (tab === "goal") return "goals";
+  if (tab === "clients") return "client notes";
+  return "notes";
 }
+
+const PINNED_KEY = "ari-notes-pinned";
 
 export function NotesStrategyPage() {
   const [notes, setNotes] = useState<NoteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<NoteKind | "all">("all");
+  const [filterTab, setFilterTab] = useState<NotesFilterTab>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [pinnedIds, setPinnedIds] = useState<string[]>([]);
+  const [contactDetail, setContactDetail] = useState<ContactDetail | null>(null);
+  const [contactLoading, setContactLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draftText, setDraftText] = useState("");
   const [kind, setKind] = useState<NoteKind>("note");
@@ -86,10 +88,32 @@ export function NotesStrategyPage() {
   contactIdRef.current = contactId;
   draftTextRef.current = draftText;
 
-  const filtered = useMemo(
-    () => (tab === "all" ? notes : notes.filter((n) => n.kind === tab)),
-    [notes, tab],
-  );
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PINNED_KEY);
+      if (raw) setPinnedIds(JSON.parse(raw) as string[]);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    let list = notes.filter((n) => matchesFilterTab(n, filterTab));
+    if (q) {
+      list = list.filter((n) => `${n.title} ${n.body}`.toLowerCase().includes(q));
+    }
+    const pinSet = new Set(pinnedIds);
+    return [...list].sort((a, b) => {
+      const ap = pinSet.has(a.id) ? 1 : 0;
+      const bp = pinSet.has(b.id) ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      return (
+        new Date(b.updated_at || b.created_at).getTime() -
+        new Date(a.updated_at || a.created_at).getTime()
+      );
+    });
+  }, [notes, filterTab, searchQuery, pinnedIds]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -129,12 +153,13 @@ export function NotesStrategyPage() {
     window.setTimeout(() => textareaRef.current?.focus(), 40);
   }, []);
 
-  const startNew = useCallback((forTab?: NoteKind | "all") => {
+  const startNew = useCallback((forTab?: NotesFilterTab) => {
     if (saveTimer.current) {
       window.clearTimeout(saveTimer.current);
       saveTimer.current = null;
     }
-    const nextKind = !forTab || forTab === "all" ? "note" : forTab;
+    const nextKind: NoteKind =
+      forTab === "strategy" ? "strategy" : forTab === "goal" ? "goal" : "note";
     setSelectedId(null);
     selectedIdRef.current = null;
     setDraftText("");
@@ -191,8 +216,44 @@ export function NotesStrategyPage() {
       if (stillVisible) return;
     }
     if (filtered[0]) openNote(filtered[0]);
-    else startNew(tab);
-  }, [tab, filtered, openNote, startNew]);
+    else startNew(filterTab);
+  }, [filterTab, filtered, openNote, startNew]);
+
+  useEffect(() => {
+    if (!contactId) {
+      setContactDetail(null);
+      return;
+    }
+    setContactLoading(true);
+    void fetch(`/api/contacts/${contactId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setContactDetail(data.contact ?? data ?? null);
+      })
+      .catch(() => setContactDetail(null))
+      .finally(() => setContactLoading(false));
+  }, [contactId]);
+
+  const relatedNotes = useMemo(() => {
+    if (!selectedId || !contactId) return [];
+    return notes
+      .filter((n) => n.contact_id === contactId && n.id !== selectedId)
+      .slice(0, 3);
+  }, [notes, selectedId, contactId]);
+
+  const goalLines = useMemo(() => {
+    const fromDraft = checklistLines(draftText);
+    const fromGoals = notes.filter((n) => n.kind === "goal").map((n) => n.title);
+    return [...fromDraft, ...fromGoals].slice(0, 6);
+  }, [draftText, notes]);
+
+  const togglePin = (id: string) => {
+    setPinnedIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      localStorage.setItem(PINNED_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
 
   const persist = useCallback(async () => {
     const text = draftTextRef.current;
@@ -259,6 +320,14 @@ export function NotesStrategyPage() {
     }, 650);
   };
 
+  const appendGoalToDraft = (line: string) => {
+    const insert = draftText.trim() ? `\n- [ ] ${line}` : `- [ ] ${line}`;
+    const next = draftText + insert;
+    setDraftText(next);
+    draftTextRef.current = next;
+    scheduleSave();
+  };
+
   const remove = async (id: string) => {
     if (saveTimer.current) {
       window.clearTimeout(saveTimer.current);
@@ -267,7 +336,7 @@ export function NotesStrategyPage() {
     const res = await fetch(`/api/notes/${id}`, { method: "DELETE" });
     if (!res.ok) return;
     setNotes((prev) => prev.filter((n) => n.id !== id));
-    if (selectedIdRef.current === id) startNew(tab);
+    if (selectedIdRef.current === id) startNew(filterTab);
   };
 
   const insertChecklist = () => {
@@ -315,26 +384,100 @@ export function NotesStrategyPage() {
           ? "text-emerald-muted"
           : "text-ink";
 
+  const selectedNote = notes.find((n) => n.id === selectedId);
+  const displayTags = selectedNote ? tagChips(selectedNote) : tagChips({ id: "", kind, title: liveTitle, body: draftText });
+
   return (
     <div
       className={cn(
         DASHBOARD_PAGE_BODY,
-        "mx-auto flex h-[calc(100vh-7rem)] min-h-[520px] max-w-[1100px] flex-col gap-4",
+        "mx-auto flex min-h-[calc(100vh-8rem)] max-w-[1400px] flex-col gap-4",
       )}
     >
-      <div className="flex shrink-0 items-end justify-end gap-4">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-[28px] font-semibold text-ink sm:text-[32px]">
+            Notes &amp; Strategy
+          </h1>
+          <p className="mt-1 max-w-2xl text-[14px] text-slate-text">
+            Capture ideas, plan strategy, and keep client context — all in one place.
+          </p>
+        </div>
         <button
           type="button"
-          onClick={() => startNew(tab)}
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-rose-gold-deep px-5 py-2.5 text-[14px] font-medium text-ivory shadow-none outline-none ring-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0"
+          onClick={() => startNew(filterTab)}
+          className="inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory"
         >
-          <Icon name="edit_square" className="text-[18px]" />
-          New {tab === "goal" ? "goal" : tab === "strategy" ? "strategy" : "note"}
+          <Icon name="add" className="text-[18px]" />
+          New note
         </button>
+      </header>
+
+      <div className="flex flex-col gap-3">
+        <div className="flex gap-1 overflow-x-auto pb-1">
+          {NOTES_FILTER_TABS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setFilterTab(item.id)}
+              className={cn(
+                "shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium sm:px-4 sm:text-[13px]",
+                filterTab === item.id
+                  ? "bg-rose-gold text-ivory"
+                  : "bg-champagne/60 text-taupe hover:text-ink",
+              )}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[200px] flex-1 max-w-sm">
+            <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-taupe" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search notes…"
+              className="w-full rounded-full border border-outline-variant/20 bg-ivory py-2 pl-10 pr-4 text-[13px] outline-none focus:border-rose-gold/40"
+            />
+          </div>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 rounded-full border border-outline-variant/20 px-3 py-2 text-[12px] text-taupe"
+          >
+            Filter
+            <Icon name="expand_more" className="text-[16px]" />
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 rounded-full border border-outline-variant/20 px-3 py-2 text-[12px] text-taupe"
+          >
+            Sort: Recent
+            <Icon name="expand_more" className="text-[16px]" />
+          </button>
+          <div className="ml-auto flex rounded-full border border-outline-variant/20 p-0.5">
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              className={cn("rounded-full p-1.5", viewMode === "list" ? "bg-champagne" : "text-taupe")}
+              aria-label="List view"
+            >
+              <Icon name="view_list" className="text-[18px]" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={cn("rounded-full p-1.5", viewMode === "grid" ? "bg-champagne" : "text-taupe")}
+              aria-label="Grid view"
+            >
+              <Icon name="grid_view" className="text-[18px]" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {error ? (
-        <p className="shrink-0 rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
+        <p className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
           {error.includes("contact_notes") ||
           error.includes("schema") ||
           error.toLowerCase().includes("does not exist")
@@ -343,58 +486,64 @@ export function NotesStrategyPage() {
         </p>
       ) : null}
 
-      <div className="grid min-h-0 flex-1 overflow-hidden rounded-2xl border border-outline-variant/15 bg-ivory shadow-card md:grid-cols-[260px_1fr]">
-        <aside className="flex min-h-0 flex-col border-b border-outline-variant/15 md:border-b-0 md:border-r">
-          <div className="flex gap-1 overflow-x-auto border-b border-outline-variant/10 p-2">
-            {TABS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setTab(item.id)}
-                className={cn(
-                  "shrink-0 rounded-full px-3 py-1 text-[12px] font-medium",
-                  tab === item.id ? "bg-champagne text-ink" : "text-taupe hover:text-ink",
-                )}
-              >
-                {item.label}
-              </button>
-            ))}
+      <div className="grid min-h-[520px] flex-1 gap-4 overflow-hidden lg:grid-cols-12">
+        <aside className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-outline-variant/15 bg-ivory lg:col-span-3">
+          <div className="flex items-center justify-between border-b border-outline-variant/10 px-4 py-3">
+            <h2 className="font-medium text-ink">
+              Notes{" "}
+              <span className="text-[13px] font-normal text-taupe">({filtered.length})</span>
+            </h2>
+            <button type="button" onClick={() => startNew(filterTab)} aria-label="New note">
+              <Icon name="add" className="text-[20px] text-rose-gold-deep" />
+            </button>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto p-2">
             {loading ? (
               <p className="p-4 text-[13px] text-taupe">Loading…</p>
             ) : filtered.length === 0 ? (
-              <p className="p-4 text-[13px] leading-relaxed text-taupe">
-                No {kindLabel(tab)} here yet. Tap New to create one in this folder.
+              <p className="p-4 text-[13px] text-taupe">
+                No {kindLabel(filterTab)} here yet. Tap New note to create one.
               </p>
             ) : (
-              <ul>
+              <ul className={cn(viewMode === "grid" && "grid gap-2 sm:grid-cols-2 lg:grid-cols-1")}>
                 {filtered.map((note) => {
                   const active = note.id === selectedId;
+                  const tags = tagChips(note);
                   return (
                     <li key={note.id}>
                       <button
                         type="button"
                         onClick={() => openNote(note)}
                         className={cn(
-                          "w-full border-b border-outline-variant/10 px-4 py-3 text-left transition-colors",
-                          active ? "bg-champagne/70" : "hover:bg-cream",
+                          "w-full rounded-xl border px-3 py-3 text-left transition-colors",
+                          active
+                            ? "border-rose-gold/40 bg-rose-gold/5"
+                            : "border-transparent hover:border-outline-variant/15 hover:bg-cream/60",
                         )}
                       >
-                        <p className="truncate font-serif text-[16px] font-semibold text-ink">
-                          {note.title || "Untitled"}
-                        </p>
-                        <p className="mt-0.5 truncate text-[12px] text-taupe">
-                          {previewLine(note)}
-                        </p>
-                        <p className="mt-1 text-[11px] text-taupe/80">
-                          {formatWhen(note.updated_at || note.created_at)} ·{" "}
-                          {note.kind === "note"
-                            ? "Note"
-                            : note.kind === "strategy"
-                              ? "Strategy"
-                              : "Goal"}
-                        </p>
+                        <div className="flex gap-2">
+                          <Icon name={noteListIcon(note)} className="shrink-0 text-[20px] text-rose-gold-deep" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium text-ink">{note.title || "Untitled"}</p>
+                            <p className="mt-0.5 line-clamp-2 text-[12px] text-slate-text">{previewLine(note)}</p>
+                            <p className="mt-1 text-[11px] text-taupe">
+                              {formatWhen(note.updated_at || note.created_at)}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {tags.map((t) => (
+                                <span
+                                  key={t.label}
+                                  className={cn(
+                                    "rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide",
+                                    t.className,
+                                  )}
+                                >
+                                  {t.label}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                       </button>
                     </li>
                   );
@@ -404,29 +553,44 @@ export function NotesStrategyPage() {
           </div>
         </aside>
 
-        <section className="flex min-h-0 flex-col bg-cream/40">
-          <div className="flex flex-wrap items-center gap-2 border-b border-outline-variant/10 px-3 py-2">
-            <label className="flex items-center gap-1.5 text-[11px] text-taupe">
-              Type
-              <select
-                value={kind}
-                onChange={(e) => {
-                  const next = e.target.value as NoteKind;
-                  setKind(next);
-                  kindRef.current = next;
-                  if (tab !== "all") setTab(next);
-                  scheduleSave();
-                }}
-                className={selectClass}
-                style={{ backgroundImage: selectChevron }}
-              >
-                <option value="note">Note</option>
-                <option value="strategy">Strategy</option>
-                <option value="goal">Goal</option>
-              </select>
-            </label>
-            <label className="flex items-center gap-1.5 text-[11px] text-taupe">
-              Client
+        <section className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-outline-variant/15 bg-ivory lg:col-span-5">
+          <div className="border-b border-outline-variant/10 px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[12px] text-taupe">
+                Notes / <span className="text-ink">{liveTitle}</span>
+              </p>
+              <div className="flex items-center gap-2">
+                <button type="button" className="rounded-full border border-outline-variant/20 px-3 py-1 text-[12px] text-ink">
+                  Share
+                </button>
+                <button type="button" className="rounded-full p-1 text-taupe hover:bg-champagne">
+                  <Icon name="more_horiz" />
+                </button>
+              </div>
+            </div>
+            <h2 className="mt-2 font-serif text-[26px] font-semibold text-ink">{liveTitle}</h2>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {displayTags.map((t) => (
+                <span
+                  key={t.label}
+                  className={cn(
+                    "rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                    t.className,
+                  )}
+                >
+                  {t.label}
+                </span>
+              ))}
+              <button type="button" className="rounded-full border border-dashed border-outline-variant/30 px-2.5 py-0.5 text-[10px] text-taupe">
+                + Add tag
+              </button>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-[12px] text-taupe">
+              <span>
+                {selectedNote
+                  ? formatWhen(selectedNote.created_at)
+                  : new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+              </span>
               <select
                 value={contactId}
                 onChange={(e) => {
@@ -435,90 +599,103 @@ export function NotesStrategyPage() {
                   contactIdRef.current = next;
                   scheduleSave();
                 }}
-                className={cn(selectClass, "max-w-[170px]")}
+                className={cn(selectClass, "max-w-[180px]")}
                 style={{ backgroundImage: selectChevron }}
               >
-                <option value="">None</option>
+                <option value="">Assign contact…</option>
                 {contacts.map((c) => (
                   <option key={c.id} value={c.id}>
                     {`${c.first_name} ${c.last_name ?? ""}`.trim()}
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="flex items-center gap-1.5 text-[11px] text-taupe">
-              Size
-              <select
-                value={fontSize}
-                onChange={(e) => setFontSize(e.target.value as "sm" | "md" | "lg")}
-                className={selectClass}
-                style={{ backgroundImage: selectChevron }}
-              >
-                <option value="sm">Small</option>
-                <option value="md">Medium</option>
-                <option value="lg">Large</option>
-              </select>
-            </label>
-            <label className="flex items-center gap-1.5 text-[11px] text-taupe">
-              Font
-              <select
-                value={fontFamily}
-                onChange={(e) => setFontFamily(e.target.value as "serif" | "sans" | "hand")}
-                className={selectClass}
-                style={{ backgroundImage: selectChevron }}
-              >
-                <option value="serif">Serif</option>
-                <option value="sans">Sans</option>
-                <option value="hand">Handwriting</option>
-              </select>
-            </label>
-            <label className="flex items-center gap-1.5 text-[11px] text-taupe">
-              Color
-              <select
-                value={inkColor}
-                onChange={(e) =>
-                  setInkColor(e.target.value as "ink" | "slate" | "rose" | "sage")
-                }
-                className={selectClass}
-                style={{ backgroundImage: selectChevron }}
-              >
-                <option value="ink">Black</option>
-                <option value="slate">Gray</option>
-                <option value="rose">Rose</option>
-                <option value="sage">Green</option>
-              </select>
-            </label>
-            <button
-              type="button"
-              onClick={insertChecklist}
-              className="rounded-lg border border-outline-variant/20 bg-ivory px-2.5 py-1.5 text-[12px] text-ink hover:bg-champagne"
-              title="Insert checklist item"
-            >
-              ☐ Checklist
-            </button>
-            <div className="ml-auto flex items-center gap-2">
-              <span className="text-[11px] text-taupe">
-                {saveState === "saving"
-                  ? "Saving…"
-                  : saveState === "saved"
-                    ? "Saved"
-                    : saveState === "error"
-                      ? (saveError ?? "Save failed")
-                      : liveTitle !== "Untitled"
-                        ? liveTitle
-                        : "Start typing…"}
-              </span>
               {selectedId ? (
                 <button
                   type="button"
-                  onClick={() => void remove(selectedId)}
-                  className="rounded-lg p-1.5 text-taupe hover:bg-error/10 hover:text-error"
-                  aria-label="Delete note"
+                  onClick={() => togglePin(selectedId)}
+                  className="inline-flex items-center gap-1 text-rose-gold-deep"
                 >
-                  <Icon name="delete" className="text-[18px]" />
+                  <Icon name="push_pin" className="text-[16px]" />
+                  {pinnedIds.includes(selectedId) ? "Pinned" : "Pin to top"}
                 </button>
               ) : null}
             </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1 border-b border-outline-variant/10 px-3 py-2">
+            {["format_bold", "format_italic", "format_list_bulleted", "check_box", "link", "image", "table"].map(
+              (icon) => (
+                <button
+                  key={icon}
+                  type="button"
+                  className="rounded-lg p-2 text-taupe hover:bg-champagne"
+                  aria-label={icon}
+                >
+                  <Icon name={icon} className="text-[18px]" />
+                </button>
+              ),
+            )}
+            <button
+              type="button"
+              onClick={insertChecklist}
+              className="ml-1 rounded-full border border-outline-variant/20 px-3 py-1 text-[11px] text-ink"
+            >
+              Checklist
+            </button>
+            <button
+              type="button"
+              className="ml-auto inline-flex items-center gap-1 rounded-full bg-violet-100 px-3 py-1 text-[11px] font-medium text-violet-900"
+            >
+              <Icon name="auto_awesome" className="text-[14px]" />
+              AI Assist
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 border-b border-outline-variant/10 px-3 py-2 text-[11px] text-taupe">
+            <select
+              value={kind}
+              onChange={(e) => {
+                const next = e.target.value as NoteKind;
+                setKind(next);
+                kindRef.current = next;
+                scheduleSave();
+              }}
+              className={selectClass}
+              style={{ backgroundImage: selectChevron }}
+            >
+              <option value="note">Note</option>
+              <option value="strategy">Strategy</option>
+              <option value="goal">Goal</option>
+            </select>
+            <select
+              value={fontSize}
+              onChange={(e) => setFontSize(e.target.value as "sm" | "md" | "lg")}
+              className={selectClass}
+              style={{ backgroundImage: selectChevron }}
+            >
+              <option value="sm">Small</option>
+              <option value="md">Medium</option>
+              <option value="lg">Large</option>
+            </select>
+            <span className="ml-auto">
+              {saveState === "saving"
+                ? "Saving…"
+                : saveState === "saved"
+                  ? "Saved"
+                  : saveState === "error"
+                    ? (saveError ?? "Save failed")
+                    : ""}
+            </span>
+            {selectedId ? (
+              <button
+                type="button"
+                onClick={() => void remove(selectedId)}
+                className="rounded-lg p-1 text-taupe hover:text-error"
+                aria-label="Delete"
+              >
+                <Icon name="delete" className="text-[18px]" />
+              </button>
+            ) : null}
           </div>
 
           <textarea
@@ -538,7 +715,7 @@ export function NotesStrategyPage() {
             }}
             placeholder={"Title\n\nStart writing freely…\n\n- [ ] Optional checklist item"}
             className={cn(
-              "min-h-0 flex-1 resize-none border-0 bg-transparent px-5 py-5 leading-relaxed shadow-none outline-none ring-0 placeholder:text-taupe/50 focus:border-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 sm:px-8",
+              "min-h-[280px] flex-1 resize-none border-0 bg-transparent px-5 py-4 leading-relaxed outline-none placeholder:text-taupe/50 lg:min-h-0",
               editorFontClass,
               editorSizeClass,
               editorColorClass,
@@ -546,6 +723,17 @@ export function NotesStrategyPage() {
             spellCheck
           />
         </section>
+
+        <div className="hidden min-h-0 lg:col-span-4 lg:block">
+          <NotesStrategySidebar
+            contact={contactDetail}
+            contactLoading={contactLoading}
+            goalLines={goalLines}
+            related={relatedNotes}
+            onOpenNote={openNote}
+            onAddGoalLine={appendGoalToDraft}
+          />
+        </div>
       </div>
     </div>
   );
