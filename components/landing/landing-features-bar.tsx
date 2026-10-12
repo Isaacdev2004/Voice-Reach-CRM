@@ -1,3 +1,4 @@
+import { RevealStagger } from "@/components/marketing/motion-reveal";
 import { Icon } from "@/components/ui/icon";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
 import { SITE_OFFER } from "@/lib/marketing/site-offer";
@@ -28,10 +29,10 @@ const FEATURES = [
 export function LandingFeaturesBar() {
   return (
     <section className="border-y border-outline-variant/10 bg-ivory py-8 md:py-10">
-      <div className="landing-shell grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+      <RevealStagger className="landing-shell grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6" stepMs={100}>
         {FEATURES.map((item) => (
-          <article key={item.title} className="flex gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-rose-gold/15 text-rose-gold-deep">
+          <article key={item.title} className="luxury-hover flex gap-4 rounded-2xl px-2 py-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-rose-gold/15 text-rose-gold-deep transition-transform duration-300 group-hover:scale-105">
               <Icon name={item.icon} className="text-[22px]" />
             </div>
             <div>
@@ -42,7 +43,7 @@ export function LandingFeaturesBar() {
             </div>
           </article>
         ))}
-      </div>
+      </RevealStagger>
     </section>
   );
 }

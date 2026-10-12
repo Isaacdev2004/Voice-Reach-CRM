@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MarketingHeroImage } from "@/components/marketing/marketing-hero-image";
+import { LandingPageHero } from "@/components/landing/landing-page-hero";
 import { DemoVideo } from "@/components/landing/demo-video";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFeaturesBar } from "@/components/landing/landing-features-bar";
@@ -8,11 +8,9 @@ import { LandingPricing } from "@/components/landing/landing-pricing";
 import { LandingProductProof } from "@/components/landing/landing-product-proof";
 import { LandingReactivation } from "@/components/landing/landing-reactivation";
 import { LandingWhiteGlove } from "@/components/landing/landing-white-glove";
-import { StartFreeButton } from "@/components/landing/start-free-button";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
-import { Icon } from "@/components/ui/icon";
-import { HERO_IMAGES } from "@/lib/marketing/hero-images";
-import { primaryTrialCta, SITE_OFFER, trialDisclosureLine } from "@/lib/marketing/site-offer";
+import { Reveal, RevealStagger } from "@/components/marketing/motion-reveal";
+import { SITE_OFFER } from "@/lib/marketing/site-offer";
 
 const { leadIntake } = SITE_OFFER;
 
@@ -37,64 +35,30 @@ const HOW_IT_WORKS = [
 export function LandingPage() {
   return (
     <MarketingShell variant="home">
-      {/* Hero */}
-      <section className="hero-gradient">
-        <div className="landing-shell grid items-center gap-10 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.12fr)] md:gap-10 md:py-16 lg:gap-14 lg:py-20 xl:gap-16">
-          <div className="max-w-[36rem] md:max-w-none">
-            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep md:text-[12px]">
-              {SITE_OFFER.hero.eyebrow}
-            </p>
-            <h1 className="font-serif text-[2.125rem] font-semibold leading-[1.08] tracking-tight text-ink sm:text-[2.5rem] md:text-[3rem] lg:text-[3.375rem] xl:text-[3.625rem]">
-              {SITE_OFFER.hero.headline}
-            </h1>
-            <p className="mt-5 text-[16px] font-medium leading-relaxed text-ink/80 md:text-[17px] lg:text-[18px] lg:leading-[1.55]">
-              {SITE_OFFER.hero.body}
-            </p>
-            <p className="mt-4 font-serif text-[20px] font-semibold text-ink md:text-[22px] lg:text-[24px]">
-              {SITE_OFFER.hero.tagline}
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-4 md:mt-10">
-              <StartFreeButton
-                location="hero"
-                label={primaryTrialCta()}
-                showArrow
-                className="!px-10 !py-3.5 !text-[14px] md:!px-12 md:!py-4 md:!text-[15px]"
-              />
-              <a
-                href="#demo"
-                className="inline-flex items-center gap-2 rounded-full border border-outline-variant/25 bg-ivory/80 px-5 py-3.5 text-[15px] font-semibold text-ink transition-colors hover:border-rose-gold/40 hover:bg-ivory md:text-[16px]"
-              >
-                <Icon name="play_circle" className="text-[22px] text-rose-gold-deep" />
-                See How ARI Works
-              </a>
-            </div>
-            <p className="mt-8 text-[14px] text-slate-text md:text-[15px]">{trialDisclosureLine()}</p>
-          </div>
-
-          <div className="relative w-full md:justify-self-end">
-            <MarketingHeroImage image={HERO_IMAGES.homeDashboard} priority />
-          </div>
-        </div>
-      </section>
+      <LandingPageHero />
 
       <LandingFeaturesBar />
-      <DemoVideo />
-      <LandingWhiteGlove />
+      <Reveal>
+        <DemoVideo />
+      </Reveal>
+      <Reveal delayMs={80}>
+        <LandingWhiteGlove />
+      </Reveal>
 
       {/* How it works */}
       <section id="how-it-works" className="scroll-mt-[4.25rem] bg-cream py-10 md:py-12 lg:py-14">
         <div className="landing-shell">
-          <div className="text-center">
+          <Reveal className="text-center">
             <h2 className="font-serif text-[32px] font-semibold text-ink md:text-[40px] lg:text-[44px]">
               Everything you need to keep leads moving
             </h2>
             <p className="mt-2 text-[17px] text-slate-text lg:text-[18px]">
               {SITE_OFFER.whiteGlove.setupWindow}
             </p>
-          </div>
-          <div className="mt-8 grid gap-8 md:mt-10 md:grid-cols-3 md:gap-6 lg:gap-8">
+          </Reveal>
+          <RevealStagger className="mt-8 grid gap-8 md:mt-10 md:grid-cols-3 md:gap-6 lg:gap-8" stepMs={120}>
             {HOW_IT_WORKS.map((step) => (
-              <article key={step.num} className="text-center">
+              <article key={step.num} className="luxury-hover text-center rounded-2xl bg-ivory/40 px-4 py-6">
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-rose-gold/20 bg-ivory font-serif text-[20px] font-semibold text-rose-gold-deep">
                   {step.num}
                 </div>
@@ -104,8 +68,8 @@ export function LandingPage() {
                 <p className="text-[16px] leading-relaxed text-slate-text lg:text-[17px]">{step.body}</p>
               </article>
             ))}
-          </div>
-          <p className="mt-10 text-center text-[15px] text-slate-text">
+          </RevealStagger>
+          <Reveal className="mt-10 text-center text-[15px] text-slate-text" delayMs={100}>
             Learn more about our{" "}
             <Link href="/real-estate-crm" className="font-semibold text-rose-gold-deep hover:underline">
               real estate CRM
@@ -115,15 +79,25 @@ export function LandingPage() {
               lead follow-up system
             </Link>
             .
-          </p>
+          </Reveal>
         </div>
       </section>
 
-      <LandingProductProof />
-      <LandingReactivation />
-      <LandingPricing />
-      <LandingFaq />
-      <LandingFinalCta />
+      <Reveal>
+        <LandingProductProof />
+      </Reveal>
+      <Reveal delayMs={60}>
+        <LandingReactivation />
+      </Reveal>
+      <Reveal>
+        <LandingPricing />
+      </Reveal>
+      <Reveal>
+        <LandingFaq />
+      </Reveal>
+      <Reveal>
+        <LandingFinalCta />
+      </Reveal>
     </MarketingShell>
   );
 }

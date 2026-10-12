@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { MarketingHeroImage } from "@/components/marketing/marketing-hero-image";
+import { MarketingHeroBackdrop } from "@/components/marketing/marketing-hero-backdrop";
+import { HeroEntrance, Reveal, RevealStagger } from "@/components/marketing/motion-reveal";
 import { Breadcrumbs } from "@/components/marketing/breadcrumbs";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
@@ -58,33 +60,45 @@ export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
         ]}
       />
 
-      <section className="hero-gradient">
+      <MarketingHeroBackdrop>
         <div className="landing-shell grid items-center gap-10 py-8 md:grid-cols-2 md:py-12 lg:gap-14">
           <div>
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
-              {page.category}
-            </p>
-            <h1 className="font-serif text-[2rem] font-semibold leading-tight text-ink md:text-[2.5rem] lg:text-[2.75rem]">
-              {page.h1}
-            </h1>
-            <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">{page.intro}</p>
-            <div className="mt-7 flex flex-wrap gap-4">
-              <StartFreeButton location={`feature-${page.slug}`} label={trialCtaLabel()} showArrow />
-              <Link
-                href={page.relatedProductHref}
-                className="inline-flex items-center rounded-full border border-outline-variant/25 px-5 py-3 text-[14px] font-semibold text-ink hover:border-rose-gold/40"
-              >
-                See {page.relatedProductLabel}
-              </Link>
-            </div>
+            <HeroEntrance>
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
+                {page.category}
+              </p>
+            </HeroEntrance>
+            <HeroEntrance delayMs={90}>
+              <h1 className="font-serif text-[2rem] font-semibold leading-tight text-ink md:text-[2.5rem] lg:text-[2.75rem]">
+                {page.h1}
+              </h1>
+            </HeroEntrance>
+            <HeroEntrance delayMs={160}>
+              <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">{page.intro}</p>
+            </HeroEntrance>
+            <HeroEntrance delayMs={230}>
+              <div className="mt-7 flex flex-wrap gap-4">
+                <StartFreeButton location={`feature-${page.slug}`} label={trialCtaLabel()} showArrow />
+                <Link
+                  href={page.relatedProductHref}
+                  className="luxury-hover inline-flex items-center rounded-full border border-outline-variant/25 px-5 py-3 text-[14px] font-semibold text-ink hover:border-rose-gold/40"
+                >
+                  See {page.relatedProductLabel}
+                </Link>
+              </div>
+            </HeroEntrance>
           </div>
-          <MarketingHeroImage image={heroImage} />
+          <HeroEntrance delayMs={140}>
+            <div className="marketing-hero-image-float">
+              <MarketingHeroImage image={heroImage} />
+            </div>
+          </HeroEntrance>
         </div>
-      </section>
+      </MarketingHeroBackdrop>
 
       {page.sections.map((section, index) => (
         <section key={section.h2} className={index % 2 === 0 ? "bg-cream py-10 md:py-14" : "bg-ivory py-10 md:py-14"}>
-          <div className="landing-shell mx-auto max-w-[44rem]">
+          <Reveal className="landing-shell mx-auto max-w-[44rem]">
             <h2 className="font-serif text-[24px] font-semibold text-ink md:text-[28px]">{section.h2}</h2>
             <div className="mt-4 space-y-4">
               {section.paragraphs.map((p) => (
@@ -103,23 +117,23 @@ export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
                 ))}
               </ul>
             ) : null}
-          </div>
+          </Reveal>
         </section>
       ))}
 
       <section className="border-y border-outline-variant/10 bg-ivory py-10 md:py-12">
-        <div className="landing-shell grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <RevealStagger className="landing-shell grid gap-5 sm:grid-cols-2 lg:grid-cols-4" stepMs={80}>
           {page.highlights.map((h) => (
-            <article key={h.title} className="rounded-xl border border-outline-variant/10 bg-cream p-5">
+            <article key={h.title} className="luxury-hover rounded-xl border border-outline-variant/10 bg-cream p-5">
               <h3 className="font-serif text-[17px] font-semibold text-ink">{h.title}</h3>
               <p className="mt-2 text-[14px] leading-relaxed text-slate-text">{h.body}</p>
             </article>
           ))}
-        </div>
+        </RevealStagger>
       </section>
 
       <section className="hero-gradient py-12 text-center md:py-14">
-        <div className="landing-shell mx-auto max-w-[36rem]">
+        <Reveal className="landing-shell mx-auto max-w-[36rem]">
           <h2 className="font-serif text-[26px] font-semibold text-ink md:text-[32px]">
             {FEATURE_CTA_HEADLINES[page.slug]}
           </h2>
@@ -147,7 +161,7 @@ export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
           <div className="mt-6">
             <StartFreeButton location={`feature-${page.slug}-final`} label={trialCtaLabel()} showArrow />
           </div>
-        </div>
+        </Reveal>
       </section>
     </MarketingShell>
   );

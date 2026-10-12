@@ -20,7 +20,7 @@ export function MarketingHeroImage({
   return (
     <div
       className={cn(
-        "relative w-full overflow-hidden rounded-2xl border border-outline-variant/15 shadow-[0_24px_70px_rgba(26,20,16,0.16)] lg:rounded-[1.25rem]",
+        "relative w-full overflow-hidden rounded-2xl border border-outline-variant/15 shadow-[0_24px_70px_rgba(26,20,16,0.16)] transition-shadow duration-500 hover:shadow-[0_28px_80px_rgba(26,20,16,0.2)] lg:rounded-[1.25rem]",
         className,
       )}
     >

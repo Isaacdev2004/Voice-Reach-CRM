@@ -6,6 +6,7 @@ import { CheckCircleIcon } from "@/components/icons/landing-icons";
 import { PLAN_OPTIONS } from "@/lib/billing/plans";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
 import { primaryTrialCta, SITE_OFFER } from "@/lib/marketing/site-offer";
+import { Reveal, RevealStagger } from "@/components/marketing/motion-reveal";
 import { trackMarketingEvent } from "@/lib/marketing/track";
 
 const SALES_EMAIL = "hello@myari.io";
@@ -27,7 +28,7 @@ export function LandingPricing() {
   return (
     <section id="pricing" className="scroll-mt-[4.25rem] bg-cream py-12 md:py-20 lg:py-24">
       <div className="landing-shell">
-        <div className="text-center">
+        <Reveal className="text-center">
           <h2 className="font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
             Start free. Scale when you&apos;re ready.
           </h2>
@@ -63,9 +64,9 @@ export function LandingPricing() {
               Yearly
             </button>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="mt-12 grid items-stretch gap-6 md:grid-cols-3">
+        <RevealStagger className="mt-12 grid items-stretch gap-6 md:grid-cols-3" stepMs={120}>
           {DISPLAY_PLANS.map((plan) => {
             const featured = Boolean(plan.featured);
             const monthly = plan.price;
@@ -156,11 +157,11 @@ export function LandingPricing() {
               </article>
             );
           })}
-        </div>
+        </RevealStagger>
 
         {/* Team tier - full width below */}
         {PLAN_OPTIONS.filter((p) => p.id === "team").map((plan) => (
-          <div
+          <Reveal
             key={plan.id}
             className="mt-6 flex flex-col items-center justify-between gap-4 rounded-2xl border border-outline-variant/15 bg-ivory px-6 py-5 md:flex-row"
           >
@@ -178,7 +179,7 @@ export function LandingPricing() {
             >
               Contact Sales
             </a>
-          </div>
+          </Reveal>
         ))}
       </div>
     </section>

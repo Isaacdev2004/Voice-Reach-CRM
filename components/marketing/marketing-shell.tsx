@@ -29,7 +29,7 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
       >
         Skip to main content
       </a>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-outline-variant/15 bg-ivory/95 backdrop-blur-md">
+      <header className="marketing-nav-enter fixed inset-x-0 top-0 z-50 border-b border-outline-variant/15 bg-ivory/95 backdrop-blur-md">
         <nav className="landing-shell flex h-14 items-center justify-between gap-4 md:h-[4.25rem]">
           <Link href="/" className="shrink-0" aria-label={`${BRAND_NAME} home`}>
             <AriLogo height={48} />

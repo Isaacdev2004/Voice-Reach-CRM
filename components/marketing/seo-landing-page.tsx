@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { MarketingHeroImage } from "@/components/marketing/marketing-hero-image";
-
 import { JsonLd } from "@/components/marketing/json-ld";
+import { Reveal, RevealStagger } from "@/components/marketing/motion-reveal";
+import { SeoLandingPageHero } from "@/components/marketing/seo-landing-page-hero";
 
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 
@@ -62,73 +62,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
       <JsonLd data={schema} />
 
-      <section className="hero-gradient">
-
-        <div className="landing-shell grid items-center gap-10 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] md:py-16 lg:gap-14 lg:py-20">
-
-          <div>
-
-            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep md:text-[12px]">
-
-              {page.eyebrow}
-
-            </p>
-
-            <h1 className="font-serif text-[2rem] font-semibold leading-[1.1] tracking-tight text-ink sm:text-[2.375rem] md:text-[2.75rem] lg:text-[3rem]">
-
-              {page.h1}
-
-            </h1>
-
-            <p className="mt-5 text-[16px] leading-relaxed text-ink/80 md:text-[17px] lg:text-[18px]">
-
-              {page.intro}
-
-            </p>
-
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-
-              <StartFreeButton
-
-                location={`seo-${page.slug}-hero`}
-
-                label={trialCtaLabel()}
-
-                showArrow
-
-                className="!px-10 !py-3.5 !text-[14px] md:!px-12 md:!py-4 md:!text-[15px]"
-
-              />
-
-              <Link
-
-                href="/pricing"
-
-                className="inline-flex items-center gap-2 rounded-full border border-outline-variant/25 bg-ivory/80 px-5 py-3.5 text-[15px] font-semibold text-ink transition-colors hover:border-rose-gold/40 hover:bg-ivory"
-
-              >
-
-                View pricing
-
-              </Link>
-
-            </div>
-
-            <p className="mt-6 text-[14px] text-slate-text">
-
-              {SITE_OFFER.trialDays}-day free trial · {SITE_OFFER.cardRequiredNote} · {SITE_OFFER.whiteGlove.shortLine}
-
-            </p>
-
-          </div>
-
-
-
-          <MarketingHeroImage image={page.heroImage} priority />
-
-        </div>
-
-      </section>
+      <SeoLandingPageHero page={page} />
 
 
 
@@ -142,7 +76,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
         >
 
-          <div className="landing-shell mx-auto max-w-[44rem] lg:max-w-[48rem]">
+          <Reveal className="landing-shell mx-auto max-w-[44rem] lg:max-w-[48rem]">
 
             <h2 className="font-serif text-[26px] font-semibold text-ink md:text-[32px] lg:text-[36px]">
 
@@ -202,7 +136,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
             ) : null}
 
-          </div>
+          </Reveal>
 
         </section>
 
