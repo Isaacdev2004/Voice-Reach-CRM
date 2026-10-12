@@ -1,27 +1,28 @@
 import { HERO_IMAGES, type HeroImage } from "@/lib/marketing/hero-images";
 import type { FeaturePageSlug } from "@/lib/seo/feature-pages";
 
-const FEATURE_PAGE_HERO: Partial<Record<FeaturePageSlug, HeroImage>> = {
-  "lead-management": HERO_IMAGES.contacts,
-  "pipeline-management": HERO_IMAGES.dashboard,
-  "automated-follow-up": HERO_IMAGES.campaigns,
-  "campaign-builder": HERO_IMAGES.campaigns,
-  "text-automation": HERO_IMAGES.campaigns,
-  "email-automation": HERO_IMAGES.campaigns,
-  "client-email-updates": HERO_IMAGES.campaigns,
-  "lead-reactivation": HERO_IMAGES.campaigns,
-  "ringless-voicemail": HERO_IMAGES.voiceScripts,
+/** Distinct public-site mockup per feature page (see `HERO_IMAGES` — not dashboard JPGs). */
+const FEATURE_PAGE_HERO: Record<FeaturePageSlug, HeroImage> = {
+  "lead-management": HERO_IMAGES.crmDashboard,
+  "pipeline-management": HERO_IMAGES.homeDashboard,
+  "automated-follow-up": HERO_IMAGES.followUpWorkflow,
+  "campaign-builder": HERO_IMAGES.campaignBuilder,
+  "text-automation": HERO_IMAGES.campaignLibrary,
+  "email-automation": HERO_IMAGES.leadReactivation,
+  "client-email-updates": HERO_IMAGES.leadReactivationDetail,
+  "lead-reactivation": HERO_IMAGES.leadReactivation,
+  "ringless-voicemail": HERO_IMAGES.workspaceOverview,
   "voice-studio": HERO_IMAGES.voiceScripts,
-  "calendar-and-tasks": HERO_IMAGES.calendar,
-  "notes-and-strategy": HERO_IMAGES.notes,
-  "mortgage-calculator": HERO_IMAGES.mortgage,
-  "property-finder": HERO_IMAGES.mortgage,
-  analytics: HERO_IMAGES.analytics,
-  notifications: HERO_IMAGES.tasks,
-  "google-calendar": HERO_IMAGES.calendar,
-  "ai-assistant": HERO_IMAGES.dashboard,
-  "automation-workflows": HERO_IMAGES.campaigns,
-  "dotloop-integration": HERO_IMAGES.dashboard,
+  "calendar-and-tasks": HERO_IMAGES.homeDashboard,
+  "notes-and-strategy": HERO_IMAGES.leadReactivationDetail,
+  "mortgage-calculator": HERO_IMAGES.workspaceOverview,
+  "property-finder": HERO_IMAGES.campaignLibrary,
+  analytics: HERO_IMAGES.leadReactivation,
+  notifications: HERO_IMAGES.followUpWorkflow,
+  "google-calendar": HERO_IMAGES.crmDashboard,
+  "ai-assistant": HERO_IMAGES.workspaceOverview,
+  "automation-workflows": HERO_IMAGES.campaignBuilder,
+  "dotloop-integration": HERO_IMAGES.crmDashboard,
 };
 
 export function heroImageForFeaturePage(slug: FeaturePageSlug): HeroImage {

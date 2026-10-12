@@ -6,7 +6,9 @@ Add these in **Vercel → Project → Settings → Environment Variables**, then
 
 Place the client **MyARI** wordmark as a **transparent PNG** at `public/brand/myari-logo.png` (sidebar, heroes, favicon). Do not use JPEG — transparency is required on cream/photo backgrounds.
 
-Optional: replace dashboard hero art in `public/brand/heroes/` — **one JPG per sidebar tab** (see `HERO_FILES` in `lib/dashboard/page-heroes.ts`). Filenames include `dashboard.jpg`, `contacts.jpg`, `properties.jpg`, `campaigns.jpg`, `calendar.jpg`, `calendar-faith.jpg`, `mortgage.jpg`, `notes.jpg`, `tasks.jpg`, `voice-scripts.jpg`, `activity.jpg`, `analytics.jpg`, and `settings.jpg`.
+**Public marketing site** heroes use UI mockup PNGs in `public/brand/marketing/` and legacy `public/brand/hero-*.png` — configured in `lib/marketing/hero-images.ts`. Do not reuse dashboard JPG strips on the public site.
+
+**In-app dashboard** tab heroes use lifestyle JPGs in `public/brand/heroes/` — **one file per sidebar tab** (see `HERO_FILES` in `lib/dashboard/page-heroes.ts`). Optional drops: `public-calendar.png`, `public-tasks.png` in `marketing/` when you add calendar/tasks mockups for feature pages.
 
 **Hero image specs (client-ready):**
 

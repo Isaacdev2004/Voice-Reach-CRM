@@ -46,7 +46,7 @@ export function LandingProductProof() {
         </div>
 
         <div className="mt-12 grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
-          <MarketingHeroImage image={HERO_IMAGES.campaigns} />
+          <MarketingHeroImage image={HERO_IMAGES.campaignLibrary} />
           <ul className="space-y-5">
             {PROOF_POINTS.map((point) => (
               <li key={point.title} className="flex gap-4 rounded-2xl border border-outline-variant/10 bg-cream p-5">

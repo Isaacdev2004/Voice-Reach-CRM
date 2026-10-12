@@ -1,5 +1,8 @@
-/** Lifestyle banner art + legacy aliases for the public marketing site. */
-export type HeroImageVariant = "banner" | "screenshot";
+/**
+ * Public marketing site heroes — UI mockup PNGs only.
+ * Dashboard tab art: `/brand/heroes/*.jpg` in `lib/dashboard/page-heroes.ts`.
+ */
+export type HeroImageVariant = "mockup";
 
 export type HeroImage = {
   src: string;
@@ -7,107 +10,76 @@ export type HeroImage = {
   width: number;
   height: number;
   variant: HeroImageVariant;
-  /** CSS object-position when the frame crops the banner. */
   objectPosition?: string;
 };
 
-const BANNER_SIZE = { width: 2172, height: 724 } as const;
-
-function lifestyleBanner(
-  file: string,
+function mockup(
+  src: string,
   alt: string,
+  width = 1024,
+  height = 768,
   objectPosition?: string,
 ): HeroImage {
-  return {
-    src: `/brand/heroes/${file}`,
-    alt,
-    ...BANNER_SIZE,
-    variant: "banner",
-    objectPosition,
-  };
+  return { src, alt, width, height, variant: "mockup", objectPosition };
 }
 
-function productScreenshot(src: string, alt: string, width: number, height: number): HeroImage {
-  return { src, alt, width, height, variant: "screenshot" };
-}
+const MKT = "/brand/marketing";
+const BRAND = "/brand";
 
-/** Primary lifestyle heroes (MyARI brand art in `/public/brand/heroes/`). */
 export const HERO_IMAGES = {
-  dashboard: lifestyleBanner(
-    "dashboard.jpg",
-    "Sunlit luxury interior opening to a bright living space — MyARI home experience",
+  homeDashboard: mockup(
+    `${MKT}/public-home-dashboard.png`,
+    "MyARI dashboard home with contacts, campaigns, and marketing pulse",
   ),
-  campaigns: lifestyleBanner(
-    "campaigns.jpg",
-    "Aerial view of a luxury boat on clear water — meaningful outreach and campaigns",
-    "22% center",
+  campaignLibrary: mockup(
+    `${MKT}/public-campaign-library.png`,
+    "MyARI campaign library with pinned folders and outreach cards",
   ),
-  mortgage: lifestyleBanner(
-    "mortgage.jpg",
-    "Modern home at dusk with warm interior light — mortgage planning",
+  campaignBuilder: mockup(
+    `${MKT}/public-campaign-builder.png`,
+    "MyARI campaign builder with automation sequence and audience tools",
   ),
-  tasks: lifestyleBanner(
-    "tasks.jpg",
-    "Desk with laptop and city skyline at golden hour — tasks and productivity",
+  voiceScripts: mockup(
+    `${MKT}/public-voice-scripts.png`,
+    "MyARI Voice Scripts Library with transcript and campaign linking",
   ),
-  calendar: lifestyleBanner(
-    "calendar.jpg",
-    "Sunlit terrace with ocean view — calendar and scheduling",
+  crmDashboard: mockup(
+    `${BRAND}/hero-crm-dashboard.png`,
+    "MyARI real estate CRM with portal leads and automated follow-up",
+    1200,
+    900,
   ),
-  calendarFaith: lifestyleBanner(
-    "calendar-faith.jpg",
-    "Golden-hour coastline — inspiration and purpose in every plan",
+  followUpWorkflow: mockup(
+    `${BRAND}/hero-follow-up-workflow.png`,
+    "Automated follow-up workflow across SMS, email, and voicemail",
+    1200,
+    900,
   ),
-  voiceScripts: lifestyleBanner(
-    "voice-scripts.jpg",
-    "Sunlit room overlooking the city — voice scripts and conversations",
+  leadReactivation: mockup(
+    `${BRAND}/hero-lead-reactivation.png`,
+    "Lead reactivation dashboard turning dormant leads into conversations",
+    1200,
+    900,
   ),
-  notes: lifestyleBanner(
-    "notes.jpg",
-    "Flowing gold and cream fabric — notes and strategy",
+  leadReactivationDetail: mockup(
+    `${BRAND}/hero-lead-reactivation-detail.png`,
+    "Segmented lead reactivation with campaigns and booked appointments",
+    1200,
+    900,
   ),
-  contacts: lifestyleBanner(
-    "contacts.jpg",
-    "Elegant terrace overlooking the sea — relationships and contacts",
+  workspaceOverview: mockup(
+    `${BRAND}/ari-dashboard-hero.png`,
+    "MyARI workspace with pipeline, tasks, and AI assistant",
+    1360,
+    860,
   ),
-  analytics: lifestyleBanner(
-    "analytics.jpg",
-    "Abstract analytics waves — insight and performance",
-  ),
-
-  /** @deprecated Use `dashboard` — kept for imports migrating to lifestyle art. */
-  homeDashboard: lifestyleBanner(
-    "dashboard.jpg",
-    "Sunlit luxury interior — MyARI CRM for real estate agents",
-  ),
-  crmDashboard: lifestyleBanner(
-    "contacts.jpg",
-    "Real estate relationships and contacts in MyARI",
-  ),
-  followUpWorkflow: lifestyleBanner(
-    "campaigns.jpg",
-    "Campaign outreach across SMS, email, and voicemail",
-    "22% center",
-  ),
-  leadReactivation: lifestyleBanner(
-    "campaigns.jpg",
-    "Re-engage dormant leads with structured campaigns",
-    "22% center",
-  ),
-  leadReactivationDetail: lifestyleBanner(
-    "campaigns.jpg",
-    "Lead reactivation with segmentation and multi-channel touchpoints",
-    "22% center",
-  ),
-  default: lifestyleBanner(
-    "dashboard.jpg",
+  default: mockup(
+    `${MKT}/public-home-dashboard.png`,
     "MyARI real estate CRM — contacts, campaigns, and follow-up",
   ),
-
-  /** Product UI still used for demo poster / OG where a screenshot is required. */
-  productScreenshot: productScreenshot(
-    "/brand/ari-dashboard-hero.png",
-    "ARI real estate CRM dashboard showing contacts, pipeline, and automated lead follow-up",
+  productScreenshot: mockup(
+    `${BRAND}/ari-dashboard-hero.png`,
+    "MyARI CRM product screenshot",
     1360,
     860,
   ),

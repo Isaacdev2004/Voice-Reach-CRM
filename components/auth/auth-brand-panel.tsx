@@ -48,7 +48,7 @@ export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
           </p>
         </div>
 
-        <MarketingHeroImage image={HERO_IMAGES.dashboard} priority />
+        <MarketingHeroImage image={HERO_IMAGES.homeDashboard} priority />
 
         <div className="rounded-[20px] border border-outline-variant/15 bg-ivory/85 p-5 backdrop-blur-sm">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">

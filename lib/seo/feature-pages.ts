@@ -89,7 +89,7 @@ const CORE_FEATURE_PAGES = {
     ],
     relatedProductHref: "/lead-follow-up",
     relatedProductLabel: "automated real estate lead follow-up",
-    heroImage: HERO_IMAGES.campaigns,
+    heroImage: HERO_IMAGES.followUpWorkflow,
   },
   "lead-management": {
     slug: "lead-management",
@@ -314,7 +314,7 @@ const CORE_FEATURE_PAGES = {
     ],
     relatedProductHref: "/lead-reactivation",
     relatedProductLabel: "lead reactivation software",
-    heroImage: HERO_IMAGES.campaigns,
+    heroImage: HERO_IMAGES.leadReactivationDetail,
   },
   notifications: {
     slug: "notifications",
