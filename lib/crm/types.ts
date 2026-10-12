@@ -123,9 +123,15 @@ export type DashboardKpi = {
   id: string;
   label: string;
   value: string;
+  /** Green/red delta pill, e.g. "+12%" */
   change?: string;
+  changeTone?: "up" | "down" | "neutral";
+  /** Secondary line under the value, e.g. "+159 this month" */
+  detail?: string;
   icon: string;
   tone?: "default" | "sage" | "bronze" | "rose";
+  /** Optional mini chart in the card corner */
+  spark?: "line" | "bars";
 };
 
 export type ActivityFeedItem = {
