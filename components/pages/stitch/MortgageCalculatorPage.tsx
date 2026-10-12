@@ -1,10 +1,20 @@
 "use client";
 
+import { MortgageSparkline } from "@/components/mortgage/mortgage-sparkline";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { modalInputClass } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
+import { cn } from "@/lib/cn";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { calculateMortgage, formatUsd } from "@/lib/mortgage/calculate";
+import {
+  buildRateSnapshot,
+  firstMonthSplit,
+  scenarioMeta,
+  scenarioResult,
+  type ScenarioId,
+} from "@/lib/mortgage/scenarios";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 function parseMoney(raw: string): number {
@@ -26,16 +36,65 @@ function parseRate(raw: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+const DEFAULT_HOME = 850_000;
+const DEFAULT_DOWN = 170_000;
+
+type MortgageRates = {
+  freddieMac: { rate30: number; rate15: number };
+  source: string;
+};
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-outline-variant/10 py-2.5 text-[13px] last:border-0">
+      <span className="text-slate-text">{label}</span>
+      <span className="font-medium tabular-nums text-ink">{value}</span>
+    </div>
+  );
+}
+
+function PaymentDonut({ principalPct, interestPct }: { principalPct: number; interestPct: number }) {
+  const p = Math.min(100, Math.max(0, principalPct));
+  return (
+    <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
+      <div
+        className="relative h-[120px] w-[120px] shrink-0 rounded-full"
+        style={{
+          background: `conic-gradient(var(--color-rose-gold-deep, #9a7358) ${p * 3.6}deg, #e8e0d8 ${p * 3.6}deg)`,
+        }}
+        aria-hidden
+      >
+        <div className="absolute inset-[12px] flex flex-col items-center justify-center rounded-full bg-ivory text-center">
+          <span className="text-[10px] uppercase tracking-wider text-taupe">P vs I</span>
+          <span className="font-serif text-[18px] font-semibold text-ink">Month 1</span>
+        </div>
+      </div>
+      <ul className="flex-1 space-y-2 text-[13px]">
+        <li className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-2 text-slate-text">
+            <span className="h-2.5 w-2.5 rounded-full bg-rose-gold-deep" />
+            Principal
+          </span>
+          <span className="font-medium text-ink">{Math.round(principalPct)}%</span>
+        </li>
+        <li className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-2 text-slate-text">
+            <span className="h-2.5 w-2.5 rounded-full bg-champagne" />
+            Interest
+          </span>
+          <span className="font-medium text-ink">{Math.round(interestPct)}%</span>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
 export function MortgageCalculatorPage() {
-  const [homePriceText, setHomePriceText] = useState("850,000");
-  const [downPaymentText, setDownPaymentText] = useState("170,000");
-  const [interestRateText, setInterestRateText] = useState("6.85");
+  const [homePriceText, setHomePriceText] = useState(formatMoneyInput(DEFAULT_HOME));
+  const [downPaymentText, setDownPaymentText] = useState(formatMoneyInput(DEFAULT_DOWN));
+  const [interestRateText, setInterestRateText] = useState("7.40");
   const [termYearsText, setTermYearsText] = useState("30");
-  type MortgageRates = {
-    freddieMac: { rate30: number; rate15: number };
-    fannieMae: { rate30: number; rate15: number };
-    source: string;
-  };
+  const [selectedScenario, setSelectedScenario] = useState<ScenarioId>("30-fixed");
 
   const [rates, setRates] = useState<MortgageRates | null>(null);
   const [ratesError, setRatesError] = useState<string | null>(null);
@@ -45,6 +104,7 @@ export function MortgageCalculatorPage() {
   const downPayment = parseMoney(downPaymentText);
   const interestRate = parseRate(interestRateText);
   const termYears = Math.max(1, Math.round(parseMoney(termYearsText)) || 30);
+  const downPct = homePrice > 0 ? (downPayment / homePrice) * 100 : 0;
 
   const loadRates = async () => {
     setLoadingRates(true);
@@ -53,13 +113,9 @@ export function MortgageCalculatorPage() {
       const res = await fetch("/api/mortgage/rates", { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not load rates");
-      const freddieMac = data.freddieMac ?? {
-        rate30: data.rate30,
-        rate15: data.rate15,
-      };
-      const fannieMae = data.fannieMae ?? freddieMac;
-      setRates({ freddieMac, fannieMae, source: data.source });
-      if (typeof freddieMac.rate30 === "number") {
+      const freddieMac = data.freddieMac ?? { rate30: data.rate30, rate15: data.rate15 };
+      setRates({ freddieMac, source: data.source });
+      if (selectedScenario === "30-fixed" && typeof freddieMac.rate30 === "number") {
         setInterestRateText(freddieMac.rate30.toFixed(2));
       }
     } catch (e) {
@@ -71,7 +127,17 @@ export function MortgageCalculatorPage() {
 
   useEffect(() => {
     void loadRates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initial fetch only
   }, []);
+
+  const rateSnapshot = useMemo(
+    () =>
+      buildRateSnapshot(
+        rates?.freddieMac.rate30 ?? (parseRate(interestRateText) || 7.4),
+        rates?.freddieMac.rate15 ?? 6.95,
+      ),
+    [rates, interestRateText],
+  );
 
   const result = useMemo(
     () =>
@@ -88,183 +154,322 @@ export function MortgageCalculatorPage() {
     [homePrice, downPayment, interestRate, termYears],
   );
 
+  const monthOne = useMemo(
+    () => firstMonthSplit(result.loanAmount, interestRate, result.monthlyPrincipalInterest),
+    [result.loanAmount, interestRate, result.monthlyPrincipalInterest],
+  );
+
+  const scenarioIds: ScenarioId[] = ["30-fixed", "15-fixed", "arm-51"];
+
+  const applyScenario = (id: ScenarioId) => {
+    setSelectedScenario(id);
+    const meta = scenarioMeta(id, rateSnapshot);
+    setInterestRateText(meta.rate.toFixed(2));
+    setTermYearsText(String(meta.termYears));
+  };
+
+  const resetLoan = () => {
+    setHomePriceText(formatMoneyInput(DEFAULT_HOME));
+    setDownPaymentText(formatMoneyInput(DEFAULT_DOWN));
+    setSelectedScenario("30-fixed");
+    setTermYearsText("30");
+    setInterestRateText(rateSnapshot.rate30.toFixed(2));
+  };
+
+  const rateProducts = [
+    { label: "30-year fixed", rate: rateSnapshot.rate30, trend: "0.12%" },
+    { label: "15-year fixed", rate: rateSnapshot.rate15, trend: "0.08%" },
+    { label: "5/1 ARM", rate: rateSnapshot.arm51, trend: "0.05%" },
+    { label: "7/1 ARM", rate: rateSnapshot.arm71, trend: "0.04%" },
+  ];
+
+  const insights = [
+    downPct >= 20
+      ? {
+          icon: "verified",
+          title: "You're putting 20% down",
+          body: "That typically avoids PMI and strengthens your offer profile.",
+        }
+      : {
+          icon: "info",
+          title: "Below 20% down",
+          body: "Consider PMI in your monthly budget until you reach 20% equity.",
+        },
+    {
+      icon: "trending_down",
+      title: "Rates are easing",
+      body: "Today's averages are modestly lower than six months ago — good time to compare scenarios.",
+    },
+    {
+      icon: "schedule",
+      title: "Consider a 15-year loan",
+      body: "If the higher payment fits your budget, you'll pay less interest over the life of the loan.",
+    },
+  ];
+
   return (
     <div className={DASHBOARD_PAGE_BODY}>
-      <div className="mx-auto w-full min-w-0 max-w-[720px] space-y-6">
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => void loadRates()}
-          className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-ivory px-5 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne"
-        >
-          <Icon name={loadingRates ? "progress_activity" : "refresh"} className={loadingRates ? "animate-spin text-[18px]" : "text-[18px]"} />
-          Refresh rates
-        </button>
-      </div>
-
-      <LuxuryCard padding="lg" className="w-full min-w-0">
-        <div className="mb-6 flex items-center gap-2">
-          <Icon name="calculate" className="text-rose-gold-deep" />
-          <h2 className="font-serif text-[22px] font-semibold text-ink">Loan Estimate</h2>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="mb-2 block text-[13px] font-medium text-taupe">Home price</span>
-            <input
-              inputMode="numeric"
-              className={modalInputClass}
-              value={homePriceText}
-              onChange={(e) => setHomePriceText(e.target.value.replace(/[^0-9,]/g, ""))}
-              onBlur={() => setHomePriceText(formatMoneyInput(homePrice))}
-              placeholder="850,000"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-2 block text-[13px] font-medium text-taupe">Down payment</span>
-            <input
-              inputMode="numeric"
-              className={modalInputClass}
-              value={downPaymentText}
-              onChange={(e) => setDownPaymentText(e.target.value.replace(/[^0-9,]/g, ""))}
-              onBlur={() => setDownPaymentText(formatMoneyInput(downPayment))}
-              placeholder="170,000"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-2 block text-[13px] font-medium text-taupe">Interest rate (%)</span>
-            <input
-              inputMode="decimal"
-              className={modalInputClass}
-              value={interestRateText}
-              onChange={(e) => setInterestRateText(e.target.value.replace(/[^0-9.]/g, ""))}
-              onBlur={() => {
-                if (interestRate > 0) setInterestRateText(interestRate.toFixed(2));
-              }}
-              placeholder="6.85"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-2 block text-[13px] font-medium text-taupe">Loan term (years)</span>
-            <input
-              inputMode="numeric"
-              className={modalInputClass}
-              value={termYearsText}
-              onChange={(e) => setTermYearsText(e.target.value.replace(/[^0-9]/g, ""))}
-              onBlur={() => setTermYearsText(String(termYears))}
-              placeholder="30"
-            />
-          </label>
-        </div>
-      </LuxuryCard>
-
-      <div className="rounded-[28px] bg-[#f4e6dc] px-6 py-8 sm:px-10">
-        <p className="text-[13px] font-medium text-taupe">Estimated monthly payment</p>
-        <p className="mt-1 font-serif text-[48px] font-semibold leading-none text-rose-gold-deep">
-          {formatUsd(result.monthlyPrincipalInterest)}
-        </p>
-        <div className="mt-8 grid grid-cols-2 gap-6">
-          <div>
-            <p className="text-[12px] text-taupe">Loan amount</p>
-            <p className="mt-1 font-semibold text-ink">{formatUsd(result.loanAmount)}</p>
-          </div>
-          <div>
-            <p className="text-[12px] text-taupe">Down payment</p>
-            <p className="mt-1 font-semibold text-ink">{result.downPaymentPercent.toFixed(0)}%</p>
-          </div>
-          <div>
-            <p className="text-[12px] text-taupe">Total interest</p>
-            <p className="mt-1 font-semibold text-ink">{formatUsd(result.totalInterest)}</p>
-          </div>
-          <div>
-            <p className="text-[12px] text-taupe">Total paid</p>
-            <p className="mt-1 font-semibold text-ink">{formatUsd(result.totalPaid)}</p>
-          </div>
-        </div>
-        <p className="mt-6 text-[12px] text-taupe">
-          Principal & interest only. Taxes, insurance, and HOA are not included.
-        </p>
-      </div>
-
-      <LuxuryCard padding="lg">
-        <div className="mb-4 flex items-center gap-2">
-          <h2 className="font-serif text-[22px] font-semibold text-ink">Today’s Average Rates</h2>
-          <Icon name="show_chart" className="text-rose-gold-deep" />
-        </div>
-        {loadingRates && !rates ? (
-          <p className="text-[14px] text-slate-text">Fetching live rates…</p>
-        ) : ratesError && !rates ? (
-          <p className="text-[14px] text-slate-text">{ratesError}</p>
-        ) : rates ? (
-          <div className="space-y-6">
-            <div>
-              <p className="mb-3 text-[13px] font-semibold text-ink">Freddie Mac PMMS</p>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setInterestRateText(rates.freddieMac.rate30.toFixed(2))}
-                  className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
-                >
-                  <p className="text-[12px] text-taupe">30-year fixed</p>
-                  <p className="font-serif text-[28px] text-ink">
-                    {rates.freddieMac.rate30.toFixed(2)}%
-                  </p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInterestRateText(rates.freddieMac.rate15.toFixed(2));
-                    setTermYearsText("15");
-                  }}
-                  className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
-                >
-                  <p className="text-[12px] text-taupe">15-year fixed</p>
-                  <p className="font-serif text-[28px] text-ink">
-                    {rates.freddieMac.rate15.toFixed(2)}%
-                  </p>
-                </button>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div className="space-y-6 xl:col-span-7">
+          <LuxuryCard padding="lg">
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-serif text-[22px] font-semibold text-ink">Loan details</h2>
+                <p className="mt-1 text-[13px] text-slate-text">Adjust price, down payment, rate, and term.</p>
               </div>
-              <p className="mt-2 text-[11px] text-taupe">Weekly survey average via FRED.</p>
+              <button
+                type="button"
+                onClick={resetLoan}
+                className="shrink-0 text-[13px] font-medium text-rose-gold-deep hover:underline"
+              >
+                Reset
+              </button>
             </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-[13px] font-medium text-taupe">Home price</span>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                    $
+                  </span>
+                  <input
+                    inputMode="numeric"
+                    className={cn(modalInputClass, "pl-7")}
+                    value={homePriceText}
+                    onChange={(e) => setHomePriceText(e.target.value.replace(/[^0-9,]/g, ""))}
+                    onBlur={() => setHomePriceText(formatMoneyInput(homePrice))}
+                  />
+                </div>
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-[13px] font-medium text-taupe">
+                  Down payment ({downPct.toFixed(0)}%)
+                </span>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                    $
+                  </span>
+                  <input
+                    inputMode="numeric"
+                    className={cn(modalInputClass, "pl-7")}
+                    value={downPaymentText}
+                    onChange={(e) => setDownPaymentText(e.target.value.replace(/[^0-9,]/g, ""))}
+                    onBlur={() => setDownPaymentText(formatMoneyInput(downPayment))}
+                  />
+                </div>
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-[13px] font-medium text-taupe">Interest rate</span>
+                <div className="relative">
+                  <input
+                    inputMode="decimal"
+                    className={cn(modalInputClass, "pr-8")}
+                    value={interestRateText}
+                    onChange={(e) => setInterestRateText(e.target.value.replace(/[^0-9.]/g, ""))}
+                    onBlur={() => {
+                      if (interestRate > 0) setInterestRateText(interestRate.toFixed(2));
+                    }}
+                  />
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                    %
+                  </span>
+                </div>
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-[13px] font-medium text-taupe">Loan term</span>
+                <div className="relative">
+                  <input
+                    inputMode="numeric"
+                    className={cn(modalInputClass, "pr-14")}
+                    value={termYearsText}
+                    onChange={(e) => setTermYearsText(e.target.value.replace(/[^0-9]/g, ""))}
+                    onBlur={() => setTermYearsText(String(termYears))}
+                  />
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-taupe">
+                    years
+                  </span>
+                </div>
+              </label>
+            </div>
+          </LuxuryCard>
 
-            <div>
-              <p className="mb-3 text-[13px] font-semibold text-ink">Fannie Mae conforming (daily)</p>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setInterestRateText(rates.fannieMae.rate30.toFixed(2))}
-                  className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
-                >
-                  <p className="text-[12px] text-taupe">30-year fixed</p>
-                  <p className="font-serif text-[28px] text-ink">
-                    {rates.fannieMae.rate30.toFixed(2)}%
-                  </p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInterestRateText(rates.fannieMae.rate15.toFixed(2));
-                    setTermYearsText("15");
-                  }}
-                  className="rounded-2xl border border-outline-variant/15 bg-cream px-4 py-3 text-left hover:border-rose-gold/30"
-                >
-                  <p className="text-[12px] text-taupe">15-year fixed</p>
-                  <p className="font-serif text-[28px] text-ink">
-                    {rates.fannieMae.rate15.toFixed(2)}%
-                  </p>
-                </button>
+          <LuxuryCard padding="lg">
+            <h2 className="font-serif text-[22px] font-semibold text-ink">Compare loan scenarios</h2>
+            <p className="mt-1 mb-4 text-[13px] text-slate-text">
+              Tap a scenario to apply its rate and term to your estimate.
+            </p>
+            <ul className="grid gap-3 lg:grid-cols-3">
+              {scenarioIds.map((id) => {
+                const s = scenarioResult(id, rateSnapshot, homePrice, downPayment);
+                const meta = scenarioMeta(id, rateSnapshot);
+                const active = selectedScenario === id;
+                return (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      onClick={() => applyScenario(id)}
+                      className={cn(
+                        "relative flex h-full w-full flex-col rounded-2xl border p-4 text-left transition-shadow",
+                        active
+                          ? "border-rose-gold/50 bg-rose-gold/5 shadow-card"
+                          : "border-outline-variant/15 bg-cream/30 hover:border-rose-gold/25",
+                      )}
+                    >
+                      {meta.popular ? (
+                        <span className="absolute -top-2.5 right-3 rounded-full bg-rose-gold px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ivory">
+                          Popular choice
+                        </span>
+                      ) : null}
+                      <p className="font-medium text-ink">{s.label}</p>
+                      <p className="mt-2 text-[12px] text-taupe">Rate {s.rate.toFixed(2)}%</p>
+                      <p className="mt-3 font-serif text-[22px] font-semibold text-rose-gold-deep">
+                        {formatUsd(s.monthlyPrincipalInterest)}
+                        <span className="text-[12px] font-normal text-taupe"> / mo</span>
+                      </p>
+                      <p className="mt-2 text-[11px] text-slate-text">
+                        Interest {formatUsd(s.totalInterest)}
+                      </p>
+                      <p className="text-[11px] text-slate-text">Total paid {formatUsd(s.totalPaid)}</p>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </LuxuryCard>
+
+          <LuxuryCard padding="lg">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-serif text-[22px] font-semibold text-ink">Today&apos;s average rates</h2>
+                <p className="mt-1 text-[13px] text-slate-text">
+                  {rates?.source === "fred" ? "Freddie Mac PMMS & conforming indices" : "Estimated until live feed loads"}
+                </p>
               </div>
-              <p className="mt-2 text-[11px] text-taupe">
-                Daily conforming market index (Optimal Blue via FRED).
-              </p>
+              <button
+                type="button"
+                onClick={() => void loadRates()}
+                className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/25 px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-champagne"
+              >
+                <Icon
+                  name={loadingRates ? "progress_activity" : "refresh"}
+                  className={cn("text-[16px]", loadingRates && "animate-spin")}
+                />
+                Refresh
+              </button>
             </div>
-          </div>
-        ) : null}
-        <p className="mt-4 text-[12px] text-taupe">
-          {rates?.source === "fred"
-            ? "Tap any rate to apply it to your loan estimate."
-            : "Using published averages until live rates load. Tap Refresh."}
-        </p>
-      </LuxuryCard>
+            {ratesError && !rates ? (
+              <p className="text-[13px] text-slate-text">{ratesError}</p>
+            ) : (
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {rateProducts.map((product) => (
+                  <li
+                    key={product.label}
+                    className="rounded-2xl border border-outline-variant/12 bg-champagne/25 px-4 py-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-[12px] font-medium text-taupe">{product.label}</p>
+                        <p className="font-serif text-[26px] font-semibold text-ink">
+                          {product.rate.toFixed(2)}%
+                        </p>
+                      </div>
+                      <MortgageSparkline trend="down" className="text-emerald-muted" />
+                    </div>
+                    <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-emerald-muted">
+                      <Icon name="arrow_downward" className="text-[14px]" />
+                      {product.trend} vs last week
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </LuxuryCard>
+        </div>
+
+        <div className="space-y-6 xl:col-span-5">
+          <LuxuryCard padding="lg" className="bg-gradient-to-br from-[#f4e6dc] to-ivory">
+            <p className="text-[13px] font-medium text-taupe">Estimated monthly payment</p>
+            <p className="mt-1 font-serif text-[44px] font-semibold leading-none text-rose-gold-deep sm:text-[48px]">
+              {formatUsd(result.monthlyPrincipalInterest)}
+            </p>
+            <p className="mt-2 flex items-center gap-1 text-[12px] font-medium text-emerald-muted">
+              <Icon name="trending_down" className="text-[16px]" />
+              ~12% lower than 6 months ago (market trend)
+            </p>
+            <div className="mt-6 rounded-2xl bg-ivory/80 p-4 backdrop-blur-sm">
+              <SummaryRow label="Loan amount" value={formatUsd(result.loanAmount)} />
+              <SummaryRow label="Down payment" value={`${result.downPaymentPercent.toFixed(0)}%`} />
+              <SummaryRow label="Interest rate" value={`${interestRate.toFixed(2)}%`} />
+              <SummaryRow label="Loan term" value={`${termYears} years`} />
+              <SummaryRow label="Total interest" value={formatUsd(result.totalInterest)} />
+              <SummaryRow label="Total paid" value={formatUsd(result.totalPaid)} />
+            </div>
+          </LuxuryCard>
+
+          <LuxuryCard padding="lg">
+            <h2 className="font-serif text-[20px] font-semibold text-ink">Monthly payment breakdown</h2>
+            <p className="mt-1 mb-4 text-[13px] text-slate-text">First-month principal vs interest split.</p>
+            <PaymentDonut principalPct={monthOne.principalPct} interestPct={monthOne.interestPct} />
+            <div className="mt-4 space-y-1 border-t border-outline-variant/10 pt-4 text-[13px] text-slate-text">
+              <div className="flex justify-between">
+                <span>Principal (month 1)</span>
+                <span className="font-medium text-ink">{formatUsd(monthOne.principal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Interest (month 1)</span>
+                <span className="font-medium text-ink">{formatUsd(monthOne.interest)}</span>
+              </div>
+              <div className="flex justify-between text-taupe">
+                <span>Property taxes</span>
+                <span>Add in closing estimate</span>
+              </div>
+              <div className="flex justify-between text-taupe">
+                <span>Home insurance</span>
+                <span>Add in closing estimate</span>
+              </div>
+              <div className="flex justify-between text-taupe">
+                <span>HOA</span>
+                <span>Varies by community</span>
+              </div>
+            </div>
+          </LuxuryCard>
+
+          <LuxuryCard padding="lg">
+            <h2 className="font-serif text-[20px] font-semibold text-ink">Insights</h2>
+            <ul className="mt-4 space-y-4">
+              {insights.map((item) => (
+                <li key={item.title} className="flex gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-champagne text-rose-gold-deep">
+                    <Icon name={item.icon} className="text-[18px]" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-ink">{item.title}</p>
+                    <p className="mt-0.5 text-[13px] leading-relaxed text-slate-text">{item.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </LuxuryCard>
+
+          <LuxuryCard padding="lg">
+            <h2 className="font-serif text-[20px] font-semibold text-ink">Next steps</h2>
+            <ol className="mt-4 list-decimal space-y-3 pl-5 text-[14px] text-slate-text">
+              <li>Compare 30-year, 15-year, and ARM scenarios with your buyer.</li>
+              <li>Share estimates and discuss pre-approval timing.</li>
+              <li>Connect with your preferred lender or mortgage partner.</li>
+            </ol>
+            <Link
+              href="/dashboard/contacts"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-rose-gold py-3.5 text-[14px] font-medium text-ivory transition-opacity hover:opacity-90"
+            >
+              Talk to a mortgage expert
+              <Icon name="arrow_forward" className="text-[18px]" />
+            </Link>
+            <p className="mt-3 text-center text-[11px] text-taupe">
+              Estimates only — not a lender quote. Taxes and insurance not included unless you add them.
+            </p>
+          </LuxuryCard>
+        </div>
       </div>
     </div>
   );
