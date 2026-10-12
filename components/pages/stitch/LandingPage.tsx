@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { MarketingHeroImage } from "@/components/marketing/marketing-hero-image";
 import { DemoVideo } from "@/components/landing/demo-video";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFeaturesBar } from "@/components/landing/landing-features-bar";
@@ -72,17 +72,7 @@ export function LandingPage() {
           </div>
 
           <div className="relative w-full md:justify-self-end">
-            <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-[0_24px_70px_rgba(26,20,16,0.16)] lg:rounded-[1.25rem]">
-              <Image
-                src={HERO_IMAGES.homeDashboard.src}
-                alt={HERO_IMAGES.homeDashboard.alt}
-                width={1200}
-                height={900}
-                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 52vw, 680px"
-                className="h-auto w-full object-cover object-top"
-                priority
-              />
-            </div>
+            <MarketingHeroImage image={HERO_IMAGES.homeDashboard} priority />
           </div>
         </div>
       </section>

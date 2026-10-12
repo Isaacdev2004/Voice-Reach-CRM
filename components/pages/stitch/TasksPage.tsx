@@ -64,15 +64,35 @@ export function TasksPage() {
 
   return (
     <div className={DASHBOARD_PAGE_BODY}>
-      <header className="flex w-full justify-end">
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory hover:bg-rose-gold-deep"
-        >
-          <Icon name="add" className="text-[18px]" />
-          New task
-        </button>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
+            Tasks
+          </p>
+          <h1 className="mt-1 font-serif text-[28px] font-semibold text-ink sm:text-[32px]">
+            Follow-ups &amp; to-dos
+          </h1>
+          <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-slate-text">
+            Stay focused, follow through, and make progress every day.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/dashboard/calendar"
+            className="inline-flex items-center gap-2 rounded-full border border-outline-variant/25 bg-ivory px-5 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne"
+          >
+            <Icon name="calendar_today" className="text-[18px] text-rose-gold-deep" />
+            View calendar
+          </Link>
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory hover:bg-rose-gold-deep"
+          >
+            <Icon name="add" className="text-[18px]" />
+            New task
+          </button>
+        </div>
       </header>
 
       {error ? (

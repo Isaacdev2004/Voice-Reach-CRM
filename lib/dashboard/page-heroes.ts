@@ -33,6 +33,14 @@ export type DashboardPageHeroConfig = {
   editorialQuote?: boolean;
   /** CSS object-position when banner is cover-cropped in the frame (e.g. boat on left). */
   imageObjectPosition?: string;
+  /** Full-width image strip; copy lives in the page body (Tasks). */
+  heroLayout?: "split" | "banner";
+  /** Hand script on the photo, not in the copy column. */
+  scriptAccentOnImage?: boolean;
+  /** MyARI quote card on the photo (Dashboard home). */
+  brandQuoteOnImage?: boolean;
+  /** Large faith / editorial quote as the main left column (Calendar inspiration). */
+  editorialQuoteOnCopy?: boolean;
 };
 
 /** Matches resized client art in `public/brand/heroes/` (Oct 2026). */
@@ -77,7 +85,8 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle:
       "Nurture your leads, stay top of mind, and create more opportunities with AI-driven outreach.",
     brandQuote: "More conversations. More opportunities.",
-    imageAlt: "Luxury villa terrace at sunset",
+    brandQuoteOnImage: true,
+    imageAlt: "Sunlit interior with arched doorway",
     actions: [
       {
         label: "Create a campaign",
@@ -88,25 +97,15 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
       { label: "View agenda", href: "/dashboard/calendar", icon: "calendar_today" },
     ],
   },
-  "/dashboard/campaigns": {
-    ...hero("campaigns.jpg"),
-    eyebrow: "Campaigns",
-    title: "Meaningful outreach. Real relationships.",
-    subtitle: "Launch sequences, engage consistently, and open more doors.",
-    scriptAccent: "People over numbers. Always.",
-    brandQuote: "Every touchpoint builds trust.",
-    imageAlt: "Ocean from above with luxury boat",
-    imageObjectPosition: "22% center",
-  },
   "/dashboard/voice-scripts": {
     ...hero("voice-scripts.jpg"),
     eyebrow: "Voice script studio",
     title: "Voice Scripts Library",
     subtitle:
-      "Create, organize, and manage voice scripts. Record, upload, or generate with AI—then assign them to campaigns.",
-    scriptAccent: "Your words create opportunity.",
-    brandQuote: "Real people. Real connections. Powered by AI.",
-    imageAlt: "Coastal workspace at sunset",
+      "Create, manage, and organize your voice scripts. Turn conversations into opportunities.",
+    scriptAccent: "Every conversation can open a door.",
+    scriptAccentOnImage: true,
+    imageAlt: "Sunlit room overlooking the city",
   },
   "/dashboard/analytics": {
     ...hero("analytics.jpg"),
@@ -129,28 +128,30 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   "/dashboard/tasks": {
     ...hero("tasks.jpg"),
     eyebrow: "Tasks",
-    title: "Small steps. Big results.",
-    subtitle: "Stay focused, follow through, and make progress every day.",
+    title: "Follow-ups & to-dos",
     scriptAccent: "Productivity creates space for purpose.",
-    brandQuote: "Discipline today. Momentum tomorrow.",
-    imageAlt: "Outdoor desk overlooking the coast",
+    scriptAccentOnImage: true,
+    heroLayout: "banner",
+    imageAlt: "Desk with laptop and city view at golden hour",
   },
   "/dashboard/notes": {
     ...hero("notes.jpg"),
     eyebrow: "Thinking",
-    title: "Ideas today. Impact tomorrow.",
-    subtitle: "Capture strategy, goals, and notes—linked to the people you serve.",
-    scriptAccent: "A clear mind builds a brighter future.",
-    brandQuote: "Strategy on paper. Results in the field.",
-    imageAlt: "Journal and coffee with a coastal view",
+    title: "Notes & Strategy",
+    subtitle:
+      "Capture ideas, plan strategy, and keep client context — all in one place.",
+    scriptAccent: "Ideas Create Opportunities",
+    scriptAccentOnImage: true,
+    imageAlt: "Flowing gold and cream fabric texture",
   },
   "/dashboard/mortgage": {
     ...hero("mortgage.jpg"),
     eyebrow: "Planning",
     title: "Mortgage Calculator",
     subtitle: "Estimate monthly payments with today's average rates, refreshed daily.",
-    scriptAccent: "Home opens more doors.",
-    imageAlt: "Luxury pool and villa at sunset",
+    scriptAccent: "Home Opens More",
+    scriptAccentOnImage: true,
+    imageAlt: "Modern home at dusk with warm interior light",
     features: [
       { icon: "percent", title: "Live rate data", subtitle: "Updated daily" },
       { icon: "bar_chart", title: "Compare scenarios", subtitle: "See your options" },
@@ -204,19 +205,18 @@ export const CALENDAR_HERO_VARIANTS: Record<
     ...hero("calendar-faith.jpg"),
     eyebrow: "Calendar",
     title: "Purpose in Every Plan",
-    subtitle: "Plans for peace, hope, and a beautiful future.",
     quote:
       "God knows the plans He has for you—plans for peace, hope, and a beautiful future.",
     attribution: "Jeremiah 29:11",
-    editorialQuote: true,
-    brandQuote: "Trust the timing.",
-    imageAlt: "Golden hour olive branch and coastline",
+    editorialQuoteOnCopy: true,
+    imageAlt: "Sunlit living room with city view at sunset",
   },
 };
 
 export function getDashboardHeroForPath(pathname: string): DashboardPageHeroConfig | null {
   if (!pathname.startsWith("/dashboard")) return null;
   if (pathname === "/dashboard/calendar") return null;
+  if (pathname === "/dashboard/campaigns") return null;
   if (pathname !== "/dashboard" && /\/dashboard\/[^/]+\/[^/]+/.test(pathname)) {
     return null;
   }

@@ -1,14 +1,14 @@
-import Image from "next/image";
 import Link from "next/link";
+import { MarketingHeroImage } from "@/components/marketing/marketing-hero-image";
 import { Breadcrumbs } from "@/components/marketing/breadcrumbs";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { Icon } from "@/components/ui/icon";
-import { HERO_IMAGES } from "@/lib/marketing/hero-images";
+import { heroImageForFeaturePage } from "@/lib/marketing/feature-page-heroes";
 import { SITE_OFFER, trialCtaLabel, trialSupportLine } from "@/lib/marketing/site-offer";
 import { FEATURE_CTA_HEADLINES } from "@/lib/seo/feature-cta-headlines";
-import { featureHeroImageClass } from "@/lib/seo/feature-hero-focus";
+import { featureHeroObjectPosition } from "@/lib/seo/feature-hero-focus";
 import type { FeaturePageConfig } from "@/lib/seo/feature-pages";
 import { breadcrumbSchema, softwareApplicationSchema } from "@/lib/seo/schema";
 
@@ -28,7 +28,12 @@ type FeatureLandingPageProps = {
 };
 
 export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
-  const heroImage = page.heroImage ?? HERO_IMAGES.default;
+  const baseHero = page.heroImage ?? heroImageForFeaturePage(page.slug);
+  const focus = featureHeroObjectPosition(page.slug);
+  const heroImage =
+    focus && !baseHero.objectPosition
+      ? { ...baseHero, objectPosition: focus }
+      : baseHero;
   const schema = [
     softwareApplicationSchema({
       name: page.title,
@@ -73,16 +78,7 @@ export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
               </Link>
             </div>
           </div>
-          <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-card">
-            <Image
-              src={heroImage.src}
-              alt={heroImage.alt}
-              width={1200}
-              height={900}
-              className={`h-auto w-full object-cover ${featureHeroImageClass(page.slug)}`}
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          </div>
+          <MarketingHeroImage image={heroImage} />
         </div>
       </section>
 

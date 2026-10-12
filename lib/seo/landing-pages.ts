@@ -158,7 +158,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/real-estate-crm"),
-    heroImage: HERO_IMAGES.crmDashboard,
+    heroImage: HERO_IMAGES.contacts,
   },
   "lead-follow-up": {
     slug: "lead-follow-up",
@@ -244,7 +244,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/lead-follow-up"),
-    heroImage: HERO_IMAGES.followUpWorkflow,
+    heroImage: HERO_IMAGES.campaigns,
   },
   "realtor-lead-follow-up": {
     slug: "realtor-lead-follow-up",
@@ -335,7 +335,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/realtor-lead-follow-up"),
-    heroImage: HERO_IMAGES.followUpWorkflow,
+    heroImage: HERO_IMAGES.campaigns,
   },
   "lead-reactivation": {
     slug: "lead-reactivation",
@@ -422,7 +422,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/lead-reactivation"),
-    heroImage: HERO_IMAGES.leadReactivation,
+    heroImage: HERO_IMAGES.campaigns,
   },
 };
 

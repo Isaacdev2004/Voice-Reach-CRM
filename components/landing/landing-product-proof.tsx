@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { MarketingHeroImage } from "@/components/marketing/marketing-hero-image";
 import { Icon } from "@/components/ui/icon";
 import { HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { SITE_OFFER } from "@/lib/marketing/site-offer";
@@ -46,16 +46,7 @@ export function LandingProductProof() {
         </div>
 
         <div className="mt-12 grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
-          <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-card">
-            <Image
-              src={HERO_IMAGES.followUpWorkflow.src}
-              alt={HERO_IMAGES.followUpWorkflow.alt}
-              width={1200}
-              height={900}
-              className="h-auto w-full object-cover object-top"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-          </div>
+          <MarketingHeroImage image={HERO_IMAGES.campaigns} />
           <ul className="space-y-5">
             {PROOF_POINTS.map((point) => (
               <li key={point.title} className="flex gap-4 rounded-2xl border border-outline-variant/10 bg-cream p-5">

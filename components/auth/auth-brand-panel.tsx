@@ -1,5 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
+import { MarketingHeroImage } from "@/components/marketing/marketing-hero-image";
+import { HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { AriLogo } from "@/components/brand/ari-logo";
 import { Icon } from "@/components/ui/icon";
 import { BRAND_DOMAIN } from "@/lib/brand";
@@ -8,8 +9,6 @@ import { SITE_OFFER } from "@/lib/marketing/site-offer";
 type AuthBrandPanelProps = {
   mode: "sign-in" | "sign-up";
 };
-
-const DASHBOARD_IMAGE = "/brand/ari-dashboard-hero.png";
 
 const FEATURES = [
   "Contacts, tasks, and calendar in one workspace",
@@ -49,17 +48,7 @@ export function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-[0_24px_70px_rgba(26,20,16,0.14)]">
-          <Image
-            src={DASHBOARD_IMAGE}
-            alt="ARI CRM dashboard showing contacts, tasks, and marketing pulse on desktop"
-            width={1360}
-            height={860}
-            priority
-            sizes="50vw"
-            className="h-auto w-full object-cover object-top"
-          />
-        </div>
+        <MarketingHeroImage image={HERO_IMAGES.dashboard} priority />
 
         <div className="rounded-[20px] border border-outline-variant/15 bg-ivory/85 p-5 backdrop-blur-sm">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">

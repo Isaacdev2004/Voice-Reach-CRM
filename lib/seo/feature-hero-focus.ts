@@ -1,18 +1,13 @@
 import type { FeaturePageSlug } from "./feature-pages";
 
-/** Per-feature dashboard crop until dedicated screenshots are available. */
+/** Optional crop tweak per feature when the banner is letterboxed in the grid. */
 export const FEATURE_HERO_FOCUS: Partial<Record<FeaturePageSlug, string>> = {
-  "lead-management": "object-[center_12%]",
-  "pipeline-management": "object-[center_18%]",
-  "campaign-builder": "object-[center_22%]",
-  "text-automation": "object-[center_15%]",
-  analytics: "object-[center_28%]",
-  notifications: "object-[center_20%]",
-  "calendar-and-tasks": "object-[center_24%]",
-  "voice-studio": "object-[center_16%]",
-  "ringless-voicemail": "object-[center_14%]",
+  "campaign-builder": "22% center",
+  "text-automation": "22% center",
+  "automated-follow-up": "22% center",
+  "lead-reactivation": "22% center",
 };
 
-export function featureHeroImageClass(slug: FeaturePageSlug) {
-  return FEATURE_HERO_FOCUS[slug] ?? "object-top";
+export function featureHeroObjectPosition(slug: FeaturePageSlug): string | undefined {
+  return FEATURE_HERO_FOCUS[slug];
 }

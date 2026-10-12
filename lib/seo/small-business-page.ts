@@ -65,7 +65,7 @@ export const SMALL_BUSINESS_PAGE: SeoLandingPageConfig = {
     { href: "/real-estate-crm", label: "Real estate CRM" },
     { href: "/contact", label: "Contact us" },
   ],
-  heroImage: HERO_IMAGES.crmDashboard,
+  heroImage: HERO_IMAGES.contacts,
 };
 
 /** Metadata path for small business page. */

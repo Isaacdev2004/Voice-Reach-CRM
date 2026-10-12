@@ -1,6 +1,6 @@
-import Image from "next/image";
-
 import Link from "next/link";
+
+import { MarketingHeroImage } from "@/components/marketing/marketing-hero-image";
 
 import { JsonLd } from "@/components/marketing/json-ld";
 
@@ -124,27 +124,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
 
 
-          <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-[0_24px_70px_rgba(26,20,16,0.16)]">
-
-            <Image
-
-              src={page.heroImage.src}
-
-              alt={page.heroImage.alt}
-
-              width={1200}
-
-              height={900}
-
-              sizes="(max-width: 768px) 100vw, 50vw"
-
-              className="h-auto w-full object-cover object-top"
-
-              priority
-
-            />
-
-          </div>
+          <MarketingHeroImage image={page.heroImage} priority />
 
         </div>
 
