@@ -1,11 +1,12 @@
 import { CampaignListPanel } from "@/components/campaigns/campaign-list-panel";
 import { CampaignBuilderPage } from "@/components/pages/stitch/CampaignBuilderPage";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { Suspense } from "react";
 
 export default function CampaignsPage() {
   return (
     <div className="luxury-page space-y-0">
-      <div className="mx-auto max-w-[1400px] px-8 pt-2 sm:pt-4">
+      <div className={DASHBOARD_PAGE_BODY}>
         <CampaignListPanel />
       </div>
       <div id="campaign-builder">
