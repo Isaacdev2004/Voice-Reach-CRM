@@ -1,7 +1,10 @@
 "use client";
 
 import { Icon } from "@/components/ui/icon";
-import type { DashboardPageHeroConfig } from "@/lib/dashboard/page-heroes";
+import {
+  isPropertyFinderDashboardPath,
+  type DashboardPageHeroConfig,
+} from "@/lib/dashboard/page-heroes";
 import { cn } from "@/lib/cn";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
@@ -94,12 +97,16 @@ function HeroImagePanel({
   );
 }
 
-export function DashboardPageHero({ config, className }: DashboardPageHeroProps) {
+export function DashboardPageHero({ config, className, pathname }: DashboardPageHeroProps) {
   const { user } = useUser();
   const hour = new Date().getHours();
   const greeting = timeGreeting(hour);
   const firstName =
     user?.firstName?.trim() || user?.fullName?.trim()?.split(/\s+/)[0] || "";
+
+  if (isPropertyFinderDashboardPath(pathname)) {
+    return null;
+  }
 
   let eyebrow = config.eyebrow;
   let title = config.title;
@@ -134,25 +141,26 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
 
   return (
     <section
+      data-dashboard-split-hero
       className={cn(
         "block w-full overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card",
         className,
       )}
     >
       <div className="grid w-full grid-cols-1 lg:grid-cols-2 lg:items-stretch">
-        <div className="relative z-[2] flex flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-10">
+        <div className="dashboard-hero-copy relative z-[2] flex w-full min-w-0 flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:min-w-[min(100%,320px)] lg:px-12 lg:py-10">
           {!faithCopy ? (
             <>
-              <p className="break-normal text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
+              <p className="whitespace-normal text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
                 {eyebrow}
               </p>
-              <h1 className="mt-2 break-normal font-serif text-[26px] font-semibold leading-[1.15] text-ink sm:text-[34px] lg:text-[36px]">
+              <h1 className="mt-2 whitespace-normal font-serif text-[26px] font-semibold leading-[1.15] text-ink sm:text-[34px] lg:text-[36px]">
                 {title}
               </h1>
             </>
           ) : (
             <>
-              <blockquote className="break-normal font-serif text-[22px] font-medium leading-[1.35] text-ink sm:text-[26px] lg:text-[28px]">
+              <blockquote className="whitespace-normal font-serif text-[22px] font-medium leading-[1.35] text-ink sm:text-[26px] lg:text-[28px]">
                 &ldquo;{config.quote}&rdquo;
               </blockquote>
               {config.attribution ? (
@@ -170,17 +178,17 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
           )}
 
           {config.subtitle ? (
-            <p className="mt-3 break-normal text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
+            <p className="mt-3 whitespace-normal text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
               {config.subtitle}
             </p>
           ) : null}
           {showScriptInCopy ? (
-            <p className="mt-3 break-normal font-hand text-[20px] leading-snug text-rose-gold-deep sm:text-[22px]">
+            <p className="mt-3 whitespace-normal font-hand text-[20px] leading-snug text-rose-gold-deep sm:text-[22px]">
               {config.scriptAccent}
             </p>
           ) : null}
           {showInlineQuote ? (
-            <blockquote className="mt-3 break-normal border-l-2 border-rose-gold/40 pl-4 text-[14px] italic leading-relaxed text-slate-text">
+            <blockquote className="mt-3 whitespace-normal border-l-2 border-rose-gold/40 pl-4 text-[14px] italic leading-relaxed text-slate-text">
               &ldquo;{config.quote}&rdquo;
               {config.attribution ? (
                 <footer className="mt-2 text-[10px] not-italic font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
@@ -190,7 +198,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
             </blockquote>
           ) : null}
           {config.brandQuote && !config.brandQuoteOnImage ? (
-            <div className="mt-4 break-normal border-t border-outline-variant/15 pt-4">
+            <div className="mt-4 whitespace-normal border-t border-outline-variant/15 pt-4">
               <p className="font-serif text-[14px] italic leading-snug text-ink/85">
                 &ldquo;{config.brandQuote}&rdquo;
               </p>
@@ -234,7 +242,7 @@ export function DashboardPageHero({ config, className }: DashboardPageHeroProps)
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-gold/15 text-rose-gold-deep">
                     <Icon name={f.icon} className="text-[18px]" />
                   </span>
-                  <div className="min-w-0 break-normal">
+                  <div className="min-w-0 whitespace-normal">
                     <p className="text-[13px] font-semibold text-ink">{f.title}</p>
                     <p className="text-[11px] text-taupe">{f.subtitle}</p>
                   </div>

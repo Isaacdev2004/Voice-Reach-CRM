@@ -293,6 +293,17 @@
     overflow-wrap: anywhere;
   }
 
+  /* Property Finder tab — never show the default split dashboard hero */
+  html[data-dashboard-route="properties"] [data-dashboard-split-hero],
+  html[data-dashboard-route="properties"] .dashboard-hero-copy {
+    display: none !important;
+  }
+
+  .property-finder-page {
+    width: 100%;
+    max-width: 100%;
+  }
+
   .luxury-card {
     @apply rounded-[24px] border border-outline-variant/10 bg-ivory;
     box-shadow: 0px 20px 40px -12px rgba(0, 0, 0, 0.08);

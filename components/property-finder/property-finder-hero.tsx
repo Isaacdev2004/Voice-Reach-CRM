@@ -18,7 +18,7 @@ export function PropertyFinderHero({
   onSelectContact,
 }: PropertyFinderHeroProps) {
   return (
-    <section className="property-finder-hero block w-full max-w-full">
+    <section className="property-finder-hero relative block w-full max-w-full">
       <div className="relative w-full overflow-hidden rounded-[28px] border border-outline-variant/10 bg-champagne shadow-card">
         <div className="relative aspect-[16/10] w-full min-h-[280px] sm:aspect-[21/9] sm:min-h-[300px] lg:min-h-[340px]">
           <Image

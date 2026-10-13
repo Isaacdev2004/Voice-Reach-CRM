@@ -12,7 +12,7 @@ import { PropertyFinderRecentContacts } from "@/components/property-finder/prope
 import { Icon } from "@/components/ui/icon";
 import { useContacts } from "@/lib/hooks/use-contacts";
 import { formatUsd } from "@/lib/mortgage/calculate";
-import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
+import { PROPERTY_FINDER_PAGE } from "@/lib/dashboard/layout";
 import { RECENT_CONTACTS_STORAGE_KEY } from "@/lib/property-finder/home-ui";
 import { zillowSearchUrl } from "@/lib/property-finder/zillow";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -188,7 +188,7 @@ export function PropertyFinderPage() {
     : null;
 
   return (
-    <div className={DASHBOARD_PAGE_BODY}>
+    <div className={PROPERTY_FINDER_PAGE}>
       <PropertyFinderHero
         contacts={contacts}
         loading={loading}

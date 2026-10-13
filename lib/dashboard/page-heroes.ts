@@ -110,15 +110,6 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     imageAlt: "Elegant terrace overlooking the sea",
     imageObjectPosition: "68% center",
   },
-  "/dashboard/properties": {
-    ...hero("properties.jpg"),
-    eyebrow: "Property finder",
-    title: "Find the right match",
-    subtitle: "Search listings and send curated property follow-up tied to each contact.",
-    brandQuote: "The right home changes everything.",
-    imageAlt: "Modern luxury home at sunset",
-    imageObjectPosition: "52% center",
-  },
   "/dashboard/campaigns": {
     ...hero("campaigns.jpg"),
     eyebrow: "Campaigns",
@@ -246,7 +237,8 @@ export function normalizeDashboardPath(pathname: string): string {
 }
 
 export function isPropertyFinderDashboardPath(pathname: string): boolean {
-  return normalizeDashboardPath(pathname) === "/dashboard/properties";
+  const p = normalizeDashboardPath(pathname).toLowerCase();
+  return p === "/dashboard/properties";
 }
 
 export function getDashboardHeroForPath(pathname: string): DashboardPageHeroConfig | null {

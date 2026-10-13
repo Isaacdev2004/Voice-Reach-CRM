@@ -17,6 +17,7 @@ import {
 import {
   getDashboardHeroForPath,
   isPropertyFinderDashboardPath,
+  normalizeDashboardPath,
 } from "@/lib/dashboard/page-heroes";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -104,13 +105,26 @@ export function DashboardShell({ children }: DashboardShellProps) {
     showQuickCreate: true,
     fullWidth: true,
   };
-  const pageHero = getDashboardHeroForPath(pathname);
-  const isCalendarRoute = pathname === "/dashboard/calendar";
-  const isPropertyFinderRoute = isPropertyFinderDashboardPath(pathname);
+  const normalizedPath = normalizeDashboardPath(pathname ?? "");
+  const pageHero = getDashboardHeroForPath(normalizedPath);
+  const isCalendarRoute = normalizedPath === "/dashboard/calendar";
+  const isPropertyFinderRoute = isPropertyFinderDashboardPath(normalizedPath);
 
   useEffect(() => {
     setMobileNavOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isPropertyFinderRoute) {
+      root.dataset.dashboardRoute = "properties";
+    } else {
+      delete root.dataset.dashboardRoute;
+    }
+    return () => {
+      delete root.dataset.dashboardRoute;
+    };
+  }, [isPropertyFinderRoute]);
 
   useEffect(() => {
     document.body.style.overflow = mobileNavOpen ? "hidden" : "";
@@ -139,18 +153,23 @@ export function DashboardShell({ children }: DashboardShellProps) {
             />
             <main className={mainClass}>
               <SetupBanner />
-              <div className={DASHBOARD_MAIN_COLUMN}>
-                {isPropertyFinderRoute ? null : (
+              {isPropertyFinderRoute ? (
+                <div className={DASHBOARD_MAIN_COLUMN}>{children}</div>
+              ) : (
+                <div className={DASHBOARD_MAIN_COLUMN}>
                   <div id="dashboard-hero-mount" className={DASHBOARD_HERO_SLOT}>
                     {isCalendarRoute ? (
                       <CalendarPageHero />
                     ) : pageHero ? (
-                      <DashboardPageHero config={pageHero} pathname={pathname} />
+                      <DashboardPageHero
+                        config={pageHero}
+                        pathname={normalizedPath}
+                      />
                     ) : null}
                   </div>
-                )}
-                {children}
-              </div>
+                  {children}
+                </div>
+              )}
             </main>
           </div>
           <AiFloatingButton />

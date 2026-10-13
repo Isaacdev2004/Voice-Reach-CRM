@@ -7,3 +7,7 @@ export const DASHBOARD_HERO_SLOT = "block w-full min-w-0 max-w-full pt-3 sm:pt-5
 /** Page body below shell hero — avoid duplicate max-width / horizontal padding. */
 export const DASHBOARD_PAGE_BODY =
   "luxury-page box-border w-full max-w-full min-w-0 space-y-6 pt-4 sm:pt-5";
+
+/** Property Finder uses its own in-page hero (no shell split hero). */
+export const PROPERTY_FINDER_PAGE =
+  "property-finder-page box-border w-full max-w-full space-y-6 pt-4 sm:pt-5";
