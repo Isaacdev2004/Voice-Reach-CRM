@@ -14,7 +14,10 @@ import {
   DASHBOARD_HERO_SLOT,
   DASHBOARD_MAIN_COLUMN,
 } from "@/lib/dashboard/layout";
-import { getDashboardHeroForPath } from "@/lib/dashboard/page-heroes";
+import {
+  getDashboardHeroForPath,
+  isPropertyFinderDashboardPath,
+} from "@/lib/dashboard/page-heroes";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -103,7 +106,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   };
   const pageHero = getDashboardHeroForPath(pathname);
   const isCalendarRoute = pathname === "/dashboard/calendar";
-  const isPropertyFinderRoute = pathname === "/dashboard/properties";
+  const isPropertyFinderRoute = isPropertyFinderDashboardPath(pathname);
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -137,7 +140,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             <main className={mainClass}>
               <SetupBanner />
               <div className={DASHBOARD_MAIN_COLUMN}>
-                <div className={DASHBOARD_HERO_SLOT}>
+                <div id="dashboard-hero-mount" className={DASHBOARD_HERO_SLOT}>
                   {isCalendarRoute ? (
                     <CalendarPageHero />
                   ) : isPropertyFinderRoute ? null : pageHero ? (

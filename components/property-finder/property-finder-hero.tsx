@@ -18,8 +18,8 @@ export function PropertyFinderHero({
   onSelectContact,
 }: PropertyFinderHeroProps) {
   return (
-    <section className="relative overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card">
-      <div className="relative min-h-[280px] sm:min-h-[320px] lg:min-h-[360px]">
+    <section className="relative isolate w-full min-w-0 overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card">
+      <div className="relative min-h-[280px] w-full min-w-0 sm:min-h-[320px] lg:min-h-[360px]">
         <Image
           src="/brand/heroes/properties.jpg"
           alt="Modern luxury home at sunset"
@@ -43,20 +43,20 @@ export function PropertyFinderHero({
           </p>
         </div>
 
-        <div className="relative z-[2] flex h-full min-h-[280px] flex-col justify-between px-6 py-8 sm:min-h-[320px] sm:px-10 sm:py-10 lg:min-h-[360px] lg:px-12">
-          <div className="max-w-xl">
+        <div className="relative z-[2] flex h-full min-h-[280px] w-full min-w-0 flex-col justify-between px-6 py-8 sm:min-h-[320px] sm:px-10 sm:py-10 lg:min-h-[360px] lg:px-12">
+          <div className="min-w-0 max-w-xl">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
               Property finder
             </p>
             <h1 className="mt-2 font-serif text-[28px] font-semibold leading-[1.12] text-ink sm:text-[36px] lg:text-[40px]">
               Find the right match
             </h1>
-            <p className="mt-3 max-w-md text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
+            <p className="mt-3 min-w-0 max-w-md text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
               Search listings and send curated property follow-up tied to each contact.
             </p>
           </div>
 
-          <div className="mt-8 max-w-3xl">
+          <div className="relative z-30 mt-8 w-full min-w-0 max-w-3xl">
             <PropertyFinderClientBar
               contacts={contacts}
               loading={loading}

@@ -239,11 +239,22 @@ export const CALENDAR_HERO_VARIANTS: Record<
   },
 };
 
+export function normalizeDashboardPath(pathname: string): string {
+  if (!pathname) return "/dashboard";
+  const trimmed = pathname.replace(/\/+$/, "") || "/dashboard";
+  return trimmed;
+}
+
+export function isPropertyFinderDashboardPath(pathname: string): boolean {
+  return normalizeDashboardPath(pathname) === "/dashboard/properties";
+}
+
 export function getDashboardHeroForPath(pathname: string): DashboardPageHeroConfig | null {
   if (!pathname.startsWith("/dashboard")) return null;
   if (pathname === "/dashboard/calendar") return null;
+  if (isPropertyFinderDashboardPath(pathname)) return null;
   if (pathname !== "/dashboard" && /\/dashboard\/[^/]+\/[^/]+/.test(pathname)) {
     return null;
   }
-  return DASHBOARD_PAGE_HEROES[pathname] ?? null;
+  return DASHBOARD_PAGE_HEROES[normalizeDashboardPath(pathname)] ?? null;
 }

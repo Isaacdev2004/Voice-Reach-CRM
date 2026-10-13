@@ -110,7 +110,7 @@ export function PropertyFinderClientBar({
 
       {open ? (
         <ul
-          className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 max-h-[320px] overflow-y-auto rounded-2xl border border-outline-variant/20 bg-ivory py-1 shadow-card"
+          className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(280px,45vh)] overflow-y-auto rounded-2xl border border-outline-variant/20 bg-ivory py-1 shadow-card"
           role="listbox"
         >
           {filtered.length === 0 ? (
