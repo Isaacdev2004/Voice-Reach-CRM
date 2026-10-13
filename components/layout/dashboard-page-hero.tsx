@@ -49,8 +49,7 @@ function HeroImagePanel({
         alt={config.imageAlt}
         fill
         priority
-        unoptimized={!isPhoto}
-        quality={isPhoto ? 92 : undefined}
+        unoptimized
         sizes="(max-width: 1024px) 100vw, 700px"
         className="object-cover"
         style={{
