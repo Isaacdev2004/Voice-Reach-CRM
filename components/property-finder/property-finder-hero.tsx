@@ -19,54 +19,62 @@ export function PropertyFinderHero({
   onSelectContact,
 }: PropertyFinderHeroProps) {
   return (
-    <section className="property-finder-hero relative block w-full max-w-full">
-      <div className="relative w-full overflow-hidden rounded-[28px] border border-outline-variant/10 bg-champagne shadow-card">
-        <div className="relative aspect-[16/10] w-full min-h-[280px] sm:aspect-[21/9] sm:min-h-[300px] lg:min-h-[340px]">
-          <Image
-            src={PROPERTY_FINDER_HERO_IMAGE}
-            alt="Modern luxury home at sunset"
-            fill
-            priority
-            unoptimized
-            sizes="(max-width: 1400px) 100vw, 1400px"
-            className="object-cover"
-            style={{ objectPosition: "55% center" }}
-          />
-          <div
-            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-cream/95 via-cream/50 to-cream/10 sm:from-cream/88 sm:via-cream/40 sm:to-transparent"
-            aria-hidden
-          />
-          <div className="pointer-events-none absolute right-4 top-4 z-[2] hidden max-w-[240px] text-right sm:block sm:right-8 sm:top-8">
-            <p className="font-serif text-[13px] italic leading-snug text-ink/90 sm:text-[14px]">
-              &ldquo;The right home changes everything.&rdquo;
+    <section className="property-finder-hero w-full max-w-full">
+      <div className="overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card">
+        <div className="grid w-full grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:items-stretch">
+          <div className="property-finder-hero-copy flex min-w-0 flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
+              Property finder
             </p>
-            <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
-              MyARI
+            <h1 className="mt-2 font-serif text-[28px] font-semibold leading-[1.12] text-ink sm:text-[34px] lg:text-[38px]">
+              Find the right match
+            </h1>
+            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
+              Search listings and send curated property follow-up tied to each contact.
             </p>
-          </div>
-
-          <div className="absolute inset-0 z-[2] flex w-full flex-col justify-between p-6 sm:p-10 lg:p-12">
-            <div className="w-full max-w-xl">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
-                Property finder
+            <div className="mt-4 border-t border-outline-variant/15 pt-4 md:hidden">
+              <p className="font-serif text-[13px] italic leading-snug text-ink/90">
+                &ldquo;The right home changes everything.&rdquo;
               </p>
-              <h1 className="mt-2 font-serif text-[28px] font-semibold leading-[1.12] text-ink sm:text-[36px] lg:text-[40px]">
-                Find the right match
-              </h1>
-              <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
-                Search listings and send curated property follow-up tied to each contact.
+              <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
+                MyARI
               </p>
             </div>
+          </div>
 
-            <div className="relative z-30 mt-6 w-full max-w-3xl sm:mt-8">
-              <PropertyFinderClientBar
-                contacts={contacts}
-                loading={loading}
-                value={selectedId}
-                onChange={onSelectContact}
-              />
+          <div className="relative min-h-[220px] w-full min-w-0 sm:min-h-[260px] md:min-h-[300px] lg:min-h-[340px]">
+            <Image
+              src={PROPERTY_FINDER_HERO_IMAGE}
+              alt="Modern luxury home at sunset"
+              fill
+              priority
+              unoptimized
+              sizes="(max-width: 768px) 100vw, 55vw"
+              className="object-cover"
+              style={{ objectPosition: "55% center" }}
+            />
+            <div
+              className="pointer-events-none absolute inset-0 hidden bg-gradient-to-l from-transparent via-transparent to-cream/20 md:block"
+              aria-hidden
+            />
+            <div className="pointer-events-none absolute right-4 top-4 z-[2] hidden max-w-[220px] text-right md:block lg:right-8 lg:top-8">
+              <p className="font-serif text-[13px] italic leading-snug text-ivory drop-shadow-sm sm:text-[14px]">
+                &ldquo;The right home changes everything.&rdquo;
+              </p>
+              <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-ivory/95 drop-shadow-sm">
+                MyARI
+              </p>
             </div>
           </div>
+        </div>
+
+        <div className="border-t border-outline-variant/10 bg-ivory px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
+          <PropertyFinderClientBar
+            contacts={contacts}
+            loading={loading}
+            value={selectedId}
+            onChange={onSelectContact}
+          />
         </div>
       </div>
     </section>

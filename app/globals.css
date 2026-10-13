@@ -278,14 +278,23 @@
     @apply min-h-full bg-cream;
   }
 
-  /* Property Finder hero — prevent crushed copy / icon ligature stacking */
-  .property-finder-hero h1,
-  .property-finder-hero p,
-  .property-finder-hero button,
-  .property-finder-hero input {
+  /* Property Finder — copy lives on cream panel, not over a narrow image strip */
+  .property-finder-hero-copy {
+    width: 100%;
+    min-width: 0;
+  }
+
+  @media (min-width: 768px) {
+    .property-finder-hero-copy {
+      min-width: 280px;
+    }
+  }
+
+  .property-finder-hero-copy h1,
+  .property-finder-hero-copy p {
     white-space: normal;
     word-break: normal;
-    overflow-wrap: normal;
+    overflow-wrap: break-word;
   }
 
   .property-finder-hero input::placeholder {

@@ -10,4 +10,4 @@ export const DASHBOARD_PAGE_BODY =
 
 /** Property Finder uses its own in-page hero (no shell split hero). */
 export const PROPERTY_FINDER_PAGE =
-  "property-finder-page box-border w-full max-w-full space-y-6 pt-4 sm:pt-5";
+  "property-finder-page box-border w-full max-w-full space-y-6 overflow-x-hidden pt-4 sm:pt-5";
