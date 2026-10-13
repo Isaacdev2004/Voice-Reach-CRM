@@ -278,6 +278,21 @@
     @apply min-h-full bg-cream;
   }
 
+  /* Property Finder hero — prevent crushed copy / icon ligature stacking */
+  .property-finder-hero h1,
+  .property-finder-hero p,
+  .property-finder-hero button,
+  .property-finder-hero input {
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+
+  .property-finder-hero input::placeholder {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
   .luxury-card {
     @apply rounded-[24px] border border-outline-variant/10 bg-ivory;
     box-shadow: 0px 20px 40px -12px rgba(0, 0, 0, 0.08);

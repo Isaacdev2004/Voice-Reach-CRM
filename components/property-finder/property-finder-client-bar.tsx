@@ -67,17 +67,17 @@ export function PropertyFinderClientBar({
   };
 
   return (
-    <div ref={rootRef} className="relative z-10">
-      <div className="flex flex-col gap-0 overflow-hidden rounded-2xl bg-ivory shadow-card sm:flex-row sm:items-stretch">
+    <div ref={rootRef} className="relative w-full max-w-full">
+      <div className="flex w-full flex-col overflow-hidden rounded-2xl bg-ivory shadow-card sm:flex-row sm:items-stretch">
         <button
           type="button"
           onClick={() => !loading && setOpen((o) => !o)}
           disabled={loading}
-          className="flex min-w-0 flex-1 items-center justify-between gap-3 border-b border-outline-variant/15 px-4 py-3.5 text-left sm:max-w-[220px] sm:border-b-0 sm:border-r sm:py-4"
+          className="flex w-full shrink-0 items-center justify-between gap-3 border-b border-outline-variant/15 px-4 py-3.5 text-left sm:w-[240px] sm:border-b-0 sm:border-r sm:py-4"
           aria-expanded={open}
         >
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-taupe">
+          <div className="min-w-0 flex-1">
+            <p className="whitespace-normal text-[11px] font-semibold uppercase tracking-[0.12em] text-taupe">
               Select a client
             </p>
             <p className={cn("truncate text-[14px] font-medium", selected ? "text-ink" : "text-taupe")}>
@@ -88,10 +88,16 @@ export function PropertyFinderClientBar({
                   : "Choose client"}
             </p>
           </div>
-          <Icon name={open ? "expand_less" : "expand_more"} className="shrink-0 text-taupe" />
+          <Icon
+            name={open ? "expand_less" : "expand_more"}
+            className="shrink-0 text-[22px] text-taupe"
+          />
         </button>
-        <div className="relative flex flex-1 items-center px-4 py-3 sm:py-0">
-          <Icon name="search" className="pointer-events-none absolute left-7 text-[20px] text-taupe sm:left-6" />
+        <div className="relative flex min-w-0 flex-1 items-center px-4 py-3 sm:py-0">
+          <Icon
+            name="search"
+            className="pointer-events-none absolute left-6 shrink-0 text-[20px] text-taupe"
+          />
           <input
             ref={searchRef}
             type="search"
@@ -102,7 +108,7 @@ export function PropertyFinderClientBar({
             }}
             onFocus={() => !loading && setOpen(true)}
             placeholder="Search a client by name, email, or phone…"
-            className="h-11 w-full bg-transparent pl-10 pr-3 text-[14px] text-ink outline-none placeholder:text-taupe/80"
+            className="h-11 w-full min-w-0 bg-transparent pl-10 pr-3 text-[14px] text-ink outline-none placeholder:text-taupe/80"
             autoComplete="off"
           />
         </div>

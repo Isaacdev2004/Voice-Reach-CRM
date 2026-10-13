@@ -2,7 +2,7 @@
 export const DASHBOARD_MAIN_COLUMN =
   "mx-auto box-border w-full max-w-[1400px] px-3 pb-8 sm:px-6 lg:px-8";
 
-export const DASHBOARD_HERO_SLOT = "pt-3 sm:pt-5";
+export const DASHBOARD_HERO_SLOT = "block w-full min-w-0 max-w-full pt-3 sm:pt-5";
 
 /** Page body below shell hero — avoid duplicate max-width / horizontal padding. */
 export const DASHBOARD_PAGE_BODY =

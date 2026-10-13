@@ -7,7 +7,7 @@ import {
   PropertyFinderBottomRow,
   type SuggestedStep,
 } from "@/components/property-finder/property-finder-bottom-row";
-import { PropertyFinderHeroPortal } from "@/components/property-finder/property-finder-hero-portal";
+import { PropertyFinderHero } from "@/components/property-finder/property-finder-hero";
 import { PropertyFinderRecentContacts } from "@/components/property-finder/property-finder-recent-contacts";
 import { Icon } from "@/components/ui/icon";
 import { useContacts } from "@/lib/hooks/use-contacts";
@@ -188,15 +188,14 @@ export function PropertyFinderPage() {
     : null;
 
   return (
-    <>
-      <PropertyFinderHeroPortal
+    <div className={DASHBOARD_PAGE_BODY}>
+      <PropertyFinderHero
         contacts={contacts}
         loading={loading}
         selectedId={selectedId}
         onSelectContact={pickContact}
       />
 
-      <div className={DASHBOARD_PAGE_BODY}>
       <PropertyFinderRecentContacts
         contacts={contacts}
         recentIds={recentIds}
@@ -321,7 +320,6 @@ export function PropertyFinderPage() {
           </LuxuryCard>
         )}
       </div>
-      </div>
-    </>
+    </div>
   );
 }

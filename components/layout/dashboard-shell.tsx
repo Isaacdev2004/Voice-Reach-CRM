@@ -140,13 +140,15 @@ export function DashboardShell({ children }: DashboardShellProps) {
             <main className={mainClass}>
               <SetupBanner />
               <div className={DASHBOARD_MAIN_COLUMN}>
-                <div id="dashboard-hero-mount" className={DASHBOARD_HERO_SLOT}>
-                  {isCalendarRoute ? (
-                    <CalendarPageHero />
-                  ) : isPropertyFinderRoute ? null : pageHero ? (
-                    <DashboardPageHero config={pageHero} pathname={pathname} />
-                  ) : null}
-                </div>
+                {isPropertyFinderRoute ? null : (
+                  <div id="dashboard-hero-mount" className={DASHBOARD_HERO_SLOT}>
+                    {isCalendarRoute ? (
+                      <CalendarPageHero />
+                    ) : pageHero ? (
+                      <DashboardPageHero config={pageHero} pathname={pathname} />
+                    ) : null}
+                  </div>
+                )}
                 {children}
               </div>
             </main>
