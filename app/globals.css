@@ -281,12 +281,13 @@
   /* Property Finder — copy lives on cream panel, not over a narrow image strip */
   .property-finder-hero-copy {
     width: 100%;
-    min-width: 0;
+    min-width: 100%;
+    max-width: 100%;
   }
 
   @media (min-width: 768px) {
     .property-finder-hero-copy {
-      min-width: 280px;
+      min-width: 17.5rem;
     }
   }
 
@@ -294,7 +295,8 @@
   .property-finder-hero-copy p {
     white-space: normal;
     word-break: normal;
-    overflow-wrap: break-word;
+    overflow-wrap: normal;
+    hyphens: manual;
   }
 
   .property-finder-hero input::placeholder {

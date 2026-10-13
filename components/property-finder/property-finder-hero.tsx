@@ -21,15 +21,15 @@ export function PropertyFinderHero({
   return (
     <section className="property-finder-hero w-full max-w-full">
       <div className="overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card">
-        <div className="grid w-full grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:items-stretch">
-          <div className="property-finder-hero-copy flex min-w-0 flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
+        <div className="grid w-full grid-cols-1 md:grid-cols-[minmax(17.5rem,1fr)_minmax(0,1.15fr)] md:items-stretch">
+          <div className="property-finder-hero-copy flex w-full flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:min-w-[min(100%,20rem)] lg:px-12 lg:py-12">
+            <p className="whitespace-normal text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
               Property finder
             </p>
-            <h1 className="mt-2 font-serif text-[28px] font-semibold leading-[1.12] text-ink sm:text-[34px] lg:text-[38px]">
+            <h1 className="mt-2 whitespace-normal font-serif text-[28px] font-semibold leading-[1.12] text-ink sm:text-[34px] lg:text-[38px]">
               Find the right match
             </h1>
-            <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
+            <p className="mt-3 max-w-xl whitespace-normal text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
               Search listings and send curated property follow-up tied to each contact.
             </p>
             <div className="mt-4 border-t border-outline-variant/15 pt-4 md:hidden">
