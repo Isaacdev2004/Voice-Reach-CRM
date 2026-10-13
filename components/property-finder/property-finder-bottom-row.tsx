@@ -78,7 +78,7 @@ export function PropertyFinderBottomRow({ steps, onSelectContact }: PropertyFind
               <h3 className="mt-2 font-serif text-[24px] font-semibold leading-snug text-ivory sm:text-[26px]">
                 Turn insights into opportunities
               </h3>
-              <p className="mt-3 max-w-md text-[14px] leading-relaxed text-ivory/90">
+              <p className="mt-3 max-w-[var(--container-md)] text-[14px] leading-relaxed text-ivory/90">
                 Pair listing alerts with personalized follow-ups so every client hears from you at
                 the right moment.
               </p>

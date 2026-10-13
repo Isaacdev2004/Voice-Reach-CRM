@@ -29,7 +29,7 @@ export function PropertyFinderHero({
             <h1 className="mt-2 whitespace-normal font-serif text-[28px] font-semibold leading-[1.12] text-ink sm:text-[34px] lg:text-[38px]">
               Find the right match
             </h1>
-            <p className="mt-3 max-w-xl whitespace-normal text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
+            <p className="property-finder-hero-description mt-3 whitespace-normal text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
               Search listings and send curated property follow-up tied to each contact.
             </p>
             <div className="mt-4 border-t border-outline-variant/15 pt-4 md:hidden">

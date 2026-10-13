@@ -299,6 +299,14 @@
     hyphens: manual;
   }
 
+  /* max-w-xl uses --spacing-xl (48px) in this theme — use container width for body copy */
+  .property-finder-hero-description {
+    display: block;
+    width: 100%;
+    max-width: var(--container-xl);
+    align-self: stretch;
+  }
+
   .property-finder-hero input::placeholder {
     white-space: normal;
     overflow-wrap: anywhere;
