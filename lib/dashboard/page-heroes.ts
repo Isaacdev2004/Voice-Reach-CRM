@@ -1,3 +1,5 @@
+import { VOICE_SCRIPTS_HERO_IMAGE } from "@/lib/voice-scripts/assets";
+
 export type DashboardPageHeroAction = {
   label: string;
   href: string;
@@ -45,6 +47,7 @@ export type DashboardPageHeroConfig = {
 
 /** Matches resized client art in `public/brand/heroes/` (Oct 2026). */
 const BANNER_2172 = { w: 2172, h: 724 } as const;
+const PHOTO_1024 = { w: 1024, h: 576, layout: "photo" as const };
 
 /** One filename per sidebar tab — lifestyle photos only (never full UI mockups). Property Finder hero: `lib/property-finder/assets.ts`. */
 const HERO_FILES: Record<
@@ -61,6 +64,7 @@ const HERO_FILES: Record<
   "notes.jpg": BANNER_2172,
   "tasks.jpg": BANNER_2172,
   "voice-scripts.jpg": BANNER_2172,
+  "voice-scripts-hero.png": PHOTO_1024,
   "activity.jpg": BANNER_2172,
   "analytics.jpg": BANNER_2172,
   "settings.jpg": BANNER_2172,
@@ -158,15 +162,16 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     imageObjectPosition: "32% center",
   },
   "/dashboard/voice-scripts": {
-    ...hero("voice-scripts.jpg"),
+    ...hero("voice-scripts-hero.png"),
+    image: VOICE_SCRIPTS_HERO_IMAGE,
     eyebrow: "Voice script studio",
     title: "Voice Scripts Library",
     subtitle:
       "Create, manage, and organize your voice scripts. Turn conversations into opportunities.",
     scriptAccent: "Every conversation can open a door.",
     scriptAccentOnImage: true,
-    imageAlt: "Open water and horizon for voice outreach",
-    imageObjectPosition: "78% center",
+    imageAlt: "Professional microphone on a sunlit desk by the coast",
+    imageObjectPosition: "52% center",
   },
   "/dashboard/activity": {
     ...hero("activity.jpg"),

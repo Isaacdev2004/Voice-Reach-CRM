@@ -12,6 +12,8 @@ Place the client **MyARI** wordmark as a **transparent PNG** at `public/brand/my
 
 **Critical — Property Finder:** Do **not** put a full-page UI screenshot in `public/brand/heroes/properties.jpg` or `properties-hero.png`. That looks like a “template background” behind the live app. Use real estate photos only (`lib/property-finder/assets.ts`). Full mockups for reference belong in `public/brand/marketing/property-finder-ui-reference.jpg`.
 
+**Voice Scripts:** Hero uses lifestyle photography via `lib/voice-scripts/assets.ts` (`voice-scripts-hero.png`), not the legacy `voice-scripts.jpg` banner strip.
+
 **Hero image specs (client-ready):**
 
 | Layout | Use when | Recommended size |
