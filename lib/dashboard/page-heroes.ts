@@ -116,8 +116,8 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     title: "Find the right match",
     subtitle: "Search listings and send curated property follow-up tied to each contact.",
     brandQuote: "The right home changes everything.",
-    imageAlt: "Coastal landscape for property search",
-    imageObjectPosition: "42% center",
+    imageAlt: "Modern luxury home at sunset",
+    imageObjectPosition: "52% center",
   },
   "/dashboard/campaigns": {
     ...hero("campaigns.jpg"),

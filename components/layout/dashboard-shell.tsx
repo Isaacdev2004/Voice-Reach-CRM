@@ -87,7 +87,7 @@ const headerConfig: Record<
     fullWidth: true,
   },
   "/dashboard/properties": {
-    searchPlaceholder: "Search clients for property finder...",
+    searchPlaceholder: "Search clients, properties, or campaigns...",
     showQuickCreate: true,
     fullWidth: true,
   },
@@ -103,6 +103,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   };
   const pageHero = getDashboardHeroForPath(pathname);
   const isCalendarRoute = pathname === "/dashboard/calendar";
+  const isPropertyFinderRoute = pathname === "/dashboard/properties";
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -139,7 +140,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 <div className={DASHBOARD_HERO_SLOT}>
                   {isCalendarRoute ? (
                     <CalendarPageHero />
-                  ) : pageHero ? (
+                  ) : isPropertyFinderRoute ? null : pageHero ? (
                     <DashboardPageHero config={pageHero} pathname={pathname} />
                   ) : null}
                 </div>
