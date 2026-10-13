@@ -8,7 +8,9 @@ Place the client **MyARI** wordmark as a **transparent PNG** at `public/brand/my
 
 **Public marketing site** heroes use UI mockup PNGs in `public/brand/marketing/` and legacy `public/brand/hero-*.png` — configured in `lib/marketing/hero-images.ts`. Do not reuse dashboard JPG strips on the public site.
 
-**In-app dashboard** tab heroes use lifestyle JPGs in `public/brand/heroes/` — **one file per sidebar tab** (see `HERO_FILES` in `lib/dashboard/page-heroes.ts`). Optional drops: `public-calendar.png`, `public-tasks.png` in `marketing/` when you add calendar/tasks mockups for feature pages.
+**In-app dashboard** tab heroes use **lifestyle photography only** in `public/brand/heroes/` — **one file per sidebar tab** (see `HERO_FILES` in `lib/dashboard/page-heroes.ts`). Optional drops: `public-calendar.png`, `public-tasks.png` in `marketing/` when you add calendar/tasks mockups for feature pages.
+
+**Critical — Property Finder:** Do **not** put a full-page UI screenshot in `public/brand/heroes/properties.jpg` or `properties-hero.png`. That looks like a “template background” behind the live app. Use real estate photos only (`lib/property-finder/assets.ts`). Full mockups for reference belong in `public/brand/marketing/property-finder-ui-reference.jpg`.
 
 **Hero image specs (client-ready):**
 

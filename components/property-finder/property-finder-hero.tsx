@@ -1,6 +1,7 @@
 "use client";
 
 import { PropertyFinderClientBar } from "@/components/property-finder/property-finder-client-bar";
+import { PROPERTY_FINDER_HERO_IMAGE } from "@/lib/property-finder/assets";
 import type { ApiContact } from "@/lib/hooks/use-contacts";
 import Image from "next/image";
 
@@ -22,14 +23,14 @@ export function PropertyFinderHero({
       <div className="relative w-full overflow-hidden rounded-[28px] border border-outline-variant/10 bg-champagne shadow-card">
         <div className="relative aspect-[16/10] w-full min-h-[280px] sm:aspect-[21/9] sm:min-h-[300px] lg:min-h-[340px]">
           <Image
-            src="/brand/heroes/properties.jpg"
+            src={PROPERTY_FINDER_HERO_IMAGE}
             alt="Modern luxury home at sunset"
             fill
             priority
-            quality={92}
+            unoptimized
             sizes="(max-width: 1400px) 100vw, 1400px"
             className="object-cover"
-            style={{ objectPosition: "52% center" }}
+            style={{ objectPosition: "55% center" }}
           />
           <div
             className="pointer-events-none absolute inset-0 bg-gradient-to-r from-cream/95 via-cream/50 to-cream/10 sm:from-cream/88 sm:via-cream/40 sm:to-transparent"

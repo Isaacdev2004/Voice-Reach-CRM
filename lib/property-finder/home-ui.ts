@@ -1,3 +1,5 @@
+import { PROPERTY_FINDER_LISTING_CARD_IMAGE } from "@/lib/property-finder/assets";
+
 export type PropertyFinderActionCard = {
   id: string;
   title: string;
@@ -12,7 +14,7 @@ export const PROPERTY_FINDER_ACTION_CARDS: PropertyFinderActionCard[] = [
     id: "search",
     title: "Search Listings",
     description: "Run a tailored search and share links with your client.",
-    image: "/brand/heroes/properties.jpg",
+    image: PROPERTY_FINDER_LISTING_CARD_IMAGE,
     href: "#client-workspace",
     imageAlt: "Suburban home exterior",
   },

@@ -46,7 +46,7 @@ export type DashboardPageHeroConfig = {
 /** Matches resized client art in `public/brand/heroes/` (Oct 2026). */
 const BANNER_2172 = { w: 2172, h: 724 } as const;
 
-/** One filename per sidebar tab — replace JPGs independently under `public/brand/heroes/`. */
+/** One filename per sidebar tab — lifestyle photos only (never full UI mockups). Property Finder hero: `lib/property-finder/assets.ts`. */
 const HERO_FILES: Record<
   string,
   { w: number; h: number; layout?: HeroImageLayout }
