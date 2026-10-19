@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   const settingsUrl = `${base}/dashboard/settings?tab=workspace&calendar=connected`;
 
   try {
-    await requireUserId();
+    const authedOwnerId = await requireUserId();
     const url = new URL(request.url);
     const code = url.searchParams.get("code");
     const state = url.searchParams.get("state");
@@ -41,6 +41,9 @@ export async function GET(request: Request) {
     const [ownerId, nonce] = stored.split(":");
     if (!ownerId || nonce !== state) {
       return errorRedirect(base, "session_mismatch");
+    }
+    if (ownerId !== authedOwnerId) {
+      return errorRedirect(base, "account_mismatch");
     }
 
     const tokens = await exchangeGoogleCode(code);

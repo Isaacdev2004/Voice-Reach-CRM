@@ -1,8 +1,14 @@
 import { apiOk, withApiHandler } from "@/lib/api-response";
 import { writeAuditLog } from "@/lib/audit";
+import { phoneLast10IlikePattern } from "@/lib/contacts/phone-match";
 import { recordEngagementEvent } from "@/lib/engagement/record";
 import { evaluateTriggers } from "@/lib/automations/engine";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { isDuplicateProviderWebhook } from "@/lib/webhooks/replay-guard";
+import {
+  twilioWebhookPublicUrl,
+  validateTwilioSignature,
+} from "@/lib/webhooks/twilio-signature";
 import { NextResponse } from "next/server";
 
 function digits(phone: string) {
@@ -34,18 +40,45 @@ function normalizeVariants(from: string): string[] {
  */
 export const POST = withApiHandler(async (request) => {
   const contentType = request.headers.get("content-type") ?? "";
+  const bodyText = await request.text();
   let raw: Record<string, string> = {};
   if (contentType.includes("application/json")) {
-    raw = (await request.json().catch(() => ({}))) as Record<string, string>;
+    try {
+      raw = JSON.parse(bodyText) as Record<string, string>;
+    } catch {
+      raw = {};
+    }
   } else {
-    const text = await request.text();
-    raw = Object.fromEntries(new URLSearchParams(text)) as Record<string, string>;
+    raw = Object.fromEntries(new URLSearchParams(bodyText)) as Record<string, string>;
+  }
+
+  const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
+  const signature = request.headers.get("x-twilio-signature") ?? "";
+  if (authToken) {
+    const valid = validateTwilioSignature(
+      authToken,
+      signature,
+      twilioWebhookPublicUrl(request),
+      raw,
+    );
+    if (!valid) {
+      return new NextResponse("Invalid Twilio signature", { status: 403 });
+    }
+  } else if (process.env.NODE_ENV === "production") {
+    return new NextResponse("Twilio webhook auth not configured", { status: 503 });
   }
 
   const from = String(raw.From ?? raw.from ?? "");
   const body = String(raw.Body ?? raw.body ?? "").trim();
   const messageSid = String(raw.MessageSid ?? raw.SmsSid ?? "");
   const keyword = body.toUpperCase().split(/\s+/)[0] ?? "";
+
+  if (messageSid && (await isDuplicateProviderWebhook("twilio", messageSid))) {
+    return new NextResponse("<Response></Response>", {
+      status: 200,
+      headers: { "Content-Type": "text/xml" },
+    });
+  }
 
   try {
     await supabaseAdmin.from("provider_webhooks").insert({
@@ -68,19 +101,28 @@ export const POST = withApiHandler(async (request) => {
 
   const variants = normalizeVariants(from);
   const last10 = digits(from).slice(-10);
+  const phonePattern = phoneLast10IlikePattern(from);
 
-  // Prefer digit suffix match - stored phones may include spaces/dashes/+1
-  const { data: pool } = await supabaseAdmin
-    .from("contacts")
-    .select("id, owner_id, phone, dnc, opt_out_requested")
-    .limit(2000);
+  let matched: {
+    id: string;
+    owner_id: string;
+    phone: string | null;
+    dnc: boolean | null;
+    opt_out_requested: boolean | null;
+  }[] = [];
 
-  const matched = (pool ?? []).filter((c) => {
-    const p = digits(c.phone ?? "");
-    if (!p) return false;
-    if (last10 && p.endsWith(last10)) return true;
-    return variants.some((v) => p === digits(v) || p.endsWith(digits(v).slice(-10)));
-  });
+  if (phonePattern) {
+    const { data: rows } = await supabaseAdmin
+      .from("contacts")
+      .select("id, owner_id, phone, dnc, opt_out_requested")
+      .ilike("phone", phonePattern);
+
+    matched = (rows ?? []).filter((c) => {
+      const p = digits(c.phone ?? "");
+      if (!p || last10.length < 10) return false;
+      return p.endsWith(last10) || variants.some((v) => p === digits(v));
+    });
+  }
 
   const isStop = ["STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "END", "QUIT"].includes(keyword);
   const isHelp = keyword === "HELP" || keyword === "INFO";

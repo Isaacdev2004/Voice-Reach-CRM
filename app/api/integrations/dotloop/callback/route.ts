@@ -1,3 +1,4 @@
+import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import {
   appBaseUrl,
@@ -18,6 +19,7 @@ export async function GET(request: Request) {
   const base = appBaseUrl();
 
   try {
+    const authedOwnerId = await requireUserId();
     const url = new URL(request.url);
     const code = url.searchParams.get("code");
     const state = url.searchParams.get("state");
@@ -33,6 +35,7 @@ export async function GET(request: Request) {
 
     const [ownerId, nonce] = stored.split(":");
     if (!ownerId || nonce !== state) return errorRedirect(base, "session_mismatch");
+    if (ownerId !== authedOwnerId) return errorRedirect(base, "account_mismatch");
 
     const tokens = await exchangeDotloopCode(code);
     const accountLabel = await fetchDotloopAccountLabel(tokens.access_token);

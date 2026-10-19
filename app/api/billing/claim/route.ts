@@ -1,9 +1,9 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
-import { applyBillingPlan } from "@/lib/billing/settings-store";
-import { linkStripeCustomerFromSession } from "@/lib/billing/payg-usage";
-import { planById, type PlanId } from "@/lib/billing/plans";
+import { claimCheckoutSessionForOwner } from "@/lib/billing/claim-checkout-session";
+import { planById } from "@/lib/billing/plans";
 import { getStripe, isStripeConfigured } from "@/lib/stripe/config";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 const BodySchema = z.object({
@@ -18,51 +18,31 @@ export const POST = withApiHandler(async (request) => {
 
   const ownerId = await requireUserId();
   const { sessionId } = BodySchema.parse(await request.json());
-  const stripe = getStripe();
 
-  const session = await stripe.checkout.sessions.retrieve(sessionId, {
-    expand: ["subscription"],
-  });
-  if (session.status !== "complete") {
-    return apiError("This checkout session is not complete yet.", {
-      status: 400,
-      code: "unpaid_session",
-    });
+  let clerkEmail: string | null = null;
+  const { userId } = await auth();
+  if (userId) {
+    try {
+      const client = await clerkClient();
+      const user = await client.users.getUser(userId);
+      clerkEmail = user.emailAddresses[0]?.emailAddress ?? null;
+    } catch {
+      /* optional */
+    }
   }
 
-  const planId = (session.metadata?.planId ?? "") as PlanId;
-  if (!planById(planId)) {
-    return apiError("Checkout session is missing a valid plan.", { status: 400 });
+  const result = await claimCheckoutSessionForOwner(ownerId, sessionId, { clerkEmail });
+  if (!result.ok) {
+    return apiError(result.message, { status: result.status, code: result.code });
   }
 
-  // Link subscription metadata to this owner for future webhooks
-  if (typeof session.subscription === "string") {
-    await stripe.subscriptions.update(session.subscription, {
-      metadata: { ownerId, planId },
-    });
-  }
-  if (typeof session.customer === "string") {
-    await stripe.customers.update(session.customer, {
-      metadata: { ownerId, planId },
-    });
-    await linkStripeCustomerFromSession(ownerId, session.customer);
-  }
-
-  let subscriptionStatus: "trialing" | "active" = "active";
-  const subscription = session.subscription;
-  if (subscription && typeof subscription === "object" && "status" in subscription) {
-    subscriptionStatus = subscription.status === "trialing" ? "trialing" : "active";
-  }
-
-  await applyBillingPlan(ownerId, planId, { subscriptionStatus });
-
-  const plan = planById(planId)!;
+  const plan = planById(result.planId)!;
 
   return apiOk({
-    planId,
+    planId: result.planId,
     planName: plan.name,
     planPrice: plan.price,
-    trialing: subscriptionStatus === "trialing",
+    trialing: result.subscriptionStatus === "trialing",
     message: `You're on ${plan.name}.`,
   });
 });

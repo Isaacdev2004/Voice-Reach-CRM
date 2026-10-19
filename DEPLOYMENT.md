@@ -45,6 +45,7 @@ After replacing files, update width/height in `HERO_FILES` inside `lib/dashboard
 | `TWILIO_ACCOUNT_SID` | SMS |
 | `TWILIO_AUTH_TOKEN` | SMS |
 | `TWILIO_FROM_NUMBER` | SMS-enabled number |
+| `VOICE_WEBHOOK_SECRET` | Protect `/api/webhooks/voice` in production (`?token=` on dispo URL) |
 | `RESEND_API_KEY` | Email |
 | `RESEND_FROM_EMAIL` | e.g. `MyARI Team <noreply@myari.io>` (verified domain) |
 | `ALLOW_LIVE_OUTBOUND` | Must be `true` for real SMS / RVM / email (master kill switch) |

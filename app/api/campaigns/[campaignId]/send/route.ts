@@ -74,8 +74,38 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
 
   const results: { recipientId: string; contactId: string; status: string; issues?: string[] }[] = [];
 
+  const sentStatuses = new Set(["sent", "mock_sent", "queued", "delivered"]);
+
   for (const recipient of recipients || []) {
     const contact = recipient.contacts;
+
+    if (sentStatuses.has(recipient.delivery_status)) {
+      results.push({
+        recipientId: recipient.id,
+        contactId: contact.id,
+        status: "skipped",
+      });
+      continue;
+    }
+
+    const { data: locked } = await supabaseAdmin
+      .from("campaign_recipients")
+      .update({ delivery_status: "queued", updated_at: new Date().toISOString() })
+      .eq("id", recipient.id)
+      .eq("owner_id", ownerId)
+      .in("delivery_status", ["not_sent", "failed"])
+      .select("id")
+      .maybeSingle();
+
+    if (!locked) {
+      results.push({
+        recipientId: recipient.id,
+        contactId: contact.id,
+        status: "skipped",
+      });
+      continue;
+    }
+
     const check = evaluateEligibility(contact);
 
     if (!check.eligible) {

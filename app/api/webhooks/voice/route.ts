@@ -2,9 +2,15 @@ import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 import { getAdapter } from "@/lib/providers/registry";
 import { recordEngagementEvent } from "@/lib/engagement/record";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { isDuplicateProviderWebhook } from "@/lib/webhooks/replay-guard";
+import { verifyVoiceWebhookRequest } from "@/lib/webhooks/voice-webhook-auth";
 import { NextResponse } from "next/server";
 
 async function handle(request: Request): Promise<NextResponse> {
+  if (!verifyVoiceWebhookRequest(request)) {
+    return apiError("Unauthorized webhook", { status: 401, code: "webhook_unauthorized" });
+  }
+
   const url = new URL(request.url);
   const providerId = url.searchParams.get("provider") ?? "mock";
   const adapter = getAdapter(providerId);
@@ -18,9 +24,16 @@ async function handle(request: Request): Promise<NextResponse> {
     raw = Object.fromEntries(new URLSearchParams(text));
   }
 
+  const externalId =
+    (raw.id as string) ?? (raw.MessageSid as string) ?? (raw.session_id as string) ?? null;
+
+  if (await isDuplicateProviderWebhook(adapter.id, externalId)) {
+    return apiSuccess({ provider: adapter.id, eventType: "duplicate_ignored" });
+  }
+
   await supabaseAdmin.from("provider_webhooks").insert({
     provider: adapter.id,
-    external_id: (raw.id as string) ?? (raw.MessageSid as string) ?? null,
+    external_id: externalId,
     event_type: (raw.event_type as string) ?? (raw.status as string) ?? null,
     raw,
     processed: false,
