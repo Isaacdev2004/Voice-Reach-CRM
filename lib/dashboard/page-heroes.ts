@@ -41,6 +41,10 @@ export type DashboardPageHeroConfig = {
   scriptAccentOnImage?: boolean;
   /** MyARI quote card on the photo (Dashboard home). */
   brandQuoteOnImage?: boolean;
+  /** Full-width quote strip under the hero (Contacts). */
+  brandQuoteFooter?: boolean;
+  /** Tailwind grid cols override for split hero, e.g. lg:grid-cols-[1.1fr_0.9fr] */
+  heroGridClass?: string;
   /** Large faith / editorial quote as the main left column (Calendar inspiration). */
   editorialQuoteOnCopy?: boolean;
 };
@@ -111,8 +115,10 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     title: "Relationships that open doors",
     subtitle: "Every contact, conversation, consent record, and next step in one place.",
     brandQuote: "People first. Always.",
+    brandQuoteFooter: true,
+    heroGridClass: "lg:grid-cols-[1.12fr_0.88fr]",
     imageAlt: "Elegant terrace overlooking the sea",
-    imageObjectPosition: "68% center",
+    imageObjectPosition: "58% center",
   },
   "/dashboard/campaigns": {
     ...hero("campaigns.jpg"),

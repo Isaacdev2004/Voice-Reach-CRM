@@ -146,8 +146,13 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
         className,
       )}
     >
-      <div className="grid w-full grid-cols-1 lg:grid-cols-2 lg:items-stretch">
-        <div className="dashboard-hero-copy relative z-[2] flex w-full min-w-0 flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:min-w-[min(100%,320px)] lg:px-12 lg:py-10">
+      <div
+        className={cn(
+          "grid w-full grid-cols-1 lg:grid-cols-2 lg:items-stretch",
+          config.heroGridClass,
+        )}
+      >
+        <div className="dashboard-hero-copy relative z-[2] flex w-full min-w-0 flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:min-w-[min(100%,320px)] lg:px-14 lg:py-10">
           {!faithCopy ? (
             <>
               <p className="whitespace-normal text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
@@ -196,7 +201,7 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
               ) : null}
             </blockquote>
           ) : null}
-          {config.brandQuote && !config.brandQuoteOnImage ? (
+          {config.brandQuote && !config.brandQuoteOnImage && !config.brandQuoteFooter ? (
             <div className="mt-4 whitespace-normal border-t border-outline-variant/15 pt-4">
               <p className="font-serif text-[14px] italic leading-snug text-ink/85">
                 &ldquo;{config.brandQuote}&rdquo;
@@ -253,6 +258,17 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
 
         <HeroImagePanel config={config} isPhoto={isPhoto} />
       </div>
+
+      {config.brandQuote && config.brandQuoteFooter ? (
+        <div className="flex flex-col items-start justify-between gap-2 border-t border-outline-variant/10 bg-cream/90 px-6 py-4 sm:flex-row sm:items-center sm:px-10 lg:px-12">
+          <p className="font-serif text-[17px] italic leading-snug text-ink sm:text-[18px]">
+            &ldquo;{config.brandQuote}&rdquo;
+          </p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rose-gold-deep">
+            MyARI
+          </p>
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -27,6 +27,12 @@ import { DATABASE_SETUP_HINT } from "@/lib/supabase-errors";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+type ContactSort = "name-asc" | "name-desc" | "recent";
+
+function contactSortKey(c: ApiContact): string {
+  return `${c.first_name} ${c.last_name ?? ""}`.trim().toLowerCase();
+}
+
 function consentStatus(contact: ApiContact): "valid" | "pending" | "blocked" | "review" {
   if (contact.dnc) return "blocked";
   const status = contact.consent_records?.[0]?.status;
@@ -56,6 +62,7 @@ export function ContactManagementPage() {
     CONTACT_SEGMENT_TABS.some((t) => t.id === initialSegment) ? initialSegment : "all",
   );
   const [category, setCategory] = useState(initialCategory);
+  const [sort, setSort] = useState<ContactSort>("name-asc");
   const [customCategories, setCustomCategories] = useState<string[]>([
     ...DEFAULT_CONTACT_CATEGORIES,
   ]);
@@ -66,6 +73,21 @@ export function ContactManagementPage() {
     category,
   );
   const rows: ApiContact[] = contacts.length > 0 ? contacts : FALLBACK_ROWS;
+  const sortedRows = useMemo(() => {
+    const list = [...rows];
+    if (sort === "name-asc") {
+      list.sort((a, b) => contactSortKey(a).localeCompare(contactSortKey(b)));
+    } else if (sort === "name-desc") {
+      list.sort((a, b) => contactSortKey(b).localeCompare(contactSortKey(a)));
+    } else {
+      list.sort((a, b) => {
+        const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return tb - ta;
+      });
+    }
+    return list;
+  }, [rows, sort]);
   const total = meta?.total ?? (contacts.length > 0 ? contacts.length : rows.length);
 
   const selectableRows = useMemo<ApiContact[]>(() => (contacts.length > 0 ? contacts : []), [contacts]);
@@ -339,6 +361,42 @@ export function ContactManagementPage() {
             );
           })}
         </div>
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="text-[12px] font-medium uppercase tracking-wider text-taupe">Sort</span>
+          <button
+            type="button"
+            onClick={() => setSort("name-asc")}
+            className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+              sort === "name-asc"
+                ? "bg-rose-gold-deep text-ivory"
+                : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
+            }`}
+          >
+            A–Z
+          </button>
+          <button
+            type="button"
+            onClick={() => setSort("name-desc")}
+            className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+              sort === "name-desc"
+                ? "bg-rose-gold-deep text-ivory"
+                : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
+            }`}
+          >
+            Z–A
+          </button>
+          <button
+            type="button"
+            onClick={() => setSort("recent")}
+            className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+              sort === "recent"
+                ? "bg-rose-gold-deep text-ivory"
+                : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
+            }`}
+          >
+            Newest
+          </button>
+        </div>
       </div>
 
       {category !== "all" ? (
@@ -462,7 +520,26 @@ export function ContactManagementPage() {
                     </th>
                   ) : null}
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
-                    Name
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 hover:text-rose-gold-deep"
+                      onClick={() =>
+                        setSort((s) => (s === "name-asc" ? "name-desc" : "name-asc"))
+                      }
+                      title="Sort by name"
+                    >
+                      Name
+                      <Icon
+                        name={
+                          sort === "name-desc"
+                            ? "arrow_downward"
+                            : sort === "name-asc"
+                              ? "arrow_upward"
+                              : "swap_vert"
+                        }
+                        className="text-[16px]"
+                      />
+                    </button>
                   </th>
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
                     Phone
@@ -480,7 +557,7 @@ export function ContactManagementPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/15">
-                {rows.map((contact) => (
+                {sortedRows.map((contact) => (
                   <tr key={contact.id} className="transition-colors hover:bg-cream/50">
                     {contacts.length > 0 ? (
                       <td className="px-4 py-4 align-middle">
