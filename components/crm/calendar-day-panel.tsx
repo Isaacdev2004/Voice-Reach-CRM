@@ -120,10 +120,10 @@ export function CalendarDayPanel({
       </div>
 
       {events.length === 0 ? (
-        <div className="py-8 text-center">
+        <div className="w-full py-8 text-center">
           <Icon name="calendar_month" className="mx-auto text-[40px] text-taupe/80" />
           <p className="mt-4 font-medium text-ink">Nothing scheduled yet</p>
-          <p className="mx-auto mt-2 max-w-xs text-[14px] leading-relaxed text-slate-text">
+          <p className="mx-auto mt-2 w-full max-w-md text-[14px] leading-relaxed text-slate-text">
             Your day is open. Add an appointment, callback, or reminder to make the most of it.
           </p>
           <button

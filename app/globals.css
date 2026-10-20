@@ -94,6 +94,19 @@
   --container-6xl: 72rem;
   --container-7xl: 80rem;
 
+  /* max-w-* must not use --spacing-* (xs=8px). Standard readable line lengths: */
+  --max-width-xs: 20rem;
+  --max-width-sm: var(--container-sm);
+  --max-width-md: var(--container-md);
+  --max-width-lg: var(--container-lg);
+  --max-width-xl: var(--container-xl);
+  --max-width-2xl: var(--container-2xl);
+  --max-width-3xl: var(--container-3xl);
+  --max-width-4xl: var(--container-4xl);
+  --max-width-5xl: var(--container-5xl);
+  --max-width-6xl: var(--container-6xl);
+  --max-width-7xl: var(--container-7xl);
+
   --text-caption: 12px;
   --text-caption--line-height: 1.4;
   --text-label-md: 14px;
