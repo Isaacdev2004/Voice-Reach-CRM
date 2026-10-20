@@ -1,4 +1,5 @@
 import { calculateMortgage, type MortgageResult } from "./calculate";
+import type { MortgageEscrowInputs } from "./config";
 
 export type ScenarioId = "30-fixed" | "15-fixed" | "arm-51";
 
@@ -21,11 +22,11 @@ export function buildRateSnapshot(freddie30: number, freddie15: number): RateSna
 export function scenarioMeta(id: ScenarioId, rates: RateSnapshot) {
   switch (id) {
     case "15-fixed":
-      return { label: "15-year fixed", termYears: 15, rate: rates.rate15, popular: false };
+      return { label: "15-year fixed", termYears: 15, rate: rates.rate15 };
     case "arm-51":
-      return { label: "5/1 ARM", termYears: 30, rate: rates.arm51, popular: false };
+      return { label: "5/1 ARM", termYears: 30, rate: rates.arm51 };
     default:
-      return { label: "30-year fixed", termYears: 30, rate: rates.rate30, popular: true };
+      return { label: "30-year fixed", termYears: 30, rate: rates.rate30 };
   }
 }
 
@@ -34,17 +35,19 @@ export function scenarioResult(
   rates: RateSnapshot,
   homePrice: number,
   downPayment: number,
+  escrow: MortgageEscrowInputs = { annualTax: 0, annualInsurance: 0, monthlyHoa: 0 },
 ): MortgageResult & { rate: number; termYears: number; label: string } {
   const meta = scenarioMeta(id, rates);
+  const downPct = homePrice > 0 ? (downPayment / homePrice) * 100 : 0;
   const result = calculateMortgage({
     homePrice,
     downPayment,
     interestRate: meta.rate,
     termYears: meta.termYears,
-    annualTax: 0,
-    annualInsurance: 0,
-    monthlyHoa: 0,
-    includePmi: false,
+    annualTax: escrow.annualTax,
+    annualInsurance: escrow.annualInsurance,
+    monthlyHoa: escrow.monthlyHoa,
+    includePmi: downPct < 20,
   });
   return { ...result, rate: meta.rate, termYears: meta.termYears, label: meta.label };
 }

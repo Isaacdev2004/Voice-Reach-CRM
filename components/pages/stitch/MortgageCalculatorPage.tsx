@@ -8,6 +8,11 @@ import { cn } from "@/lib/cn";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { calculateMortgage, formatUsd } from "@/lib/mortgage/calculate";
 import {
+  getMortgagePartnerLabel,
+  getMortgagePartnerUrl,
+  MORTGAGE_RESOURCE_LINKS,
+} from "@/lib/mortgage/config";
+import {
   buildRateSnapshot,
   firstMonthSplit,
   scenarioMeta,
@@ -95,8 +100,13 @@ export function MortgageCalculatorPage() {
   const [interestRateText, setInterestRateText] = useState("7.40");
   const [termYearsText, setTermYearsText] = useState("30");
   const [selectedScenario, setSelectedScenario] = useState<ScenarioId>("30-fixed");
+  const [annualTaxText, setAnnualTaxText] = useState("10,200");
+  const [annualInsuranceText, setAnnualInsuranceText] = useState("2,400");
+  const [monthlyHoaText, setMonthlyHoaText] = useState("0");
 
   const [rates, setRates] = useState<MortgageRates | null>(null);
+  const partnerUrl = getMortgagePartnerUrl();
+  const partnerLabel = getMortgagePartnerLabel();
   const [ratesError, setRatesError] = useState<string | null>(null);
   const [loadingRates, setLoadingRates] = useState(false);
 
@@ -139,6 +149,14 @@ export function MortgageCalculatorPage() {
     [rates, interestRateText],
   );
 
+  const annualTax = parseMoney(annualTaxText);
+  const annualInsurance = parseMoney(annualInsuranceText);
+  const monthlyHoa = parseMoney(monthlyHoaText);
+  const escrow = useMemo(
+    () => ({ annualTax, annualInsurance, monthlyHoa }),
+    [annualTax, annualInsurance, monthlyHoa],
+  );
+
   const result = useMemo(
     () =>
       calculateMortgage({
@@ -146,12 +164,12 @@ export function MortgageCalculatorPage() {
         downPayment,
         interestRate,
         termYears,
-        annualTax: 0,
-        annualInsurance: 0,
-        monthlyHoa: 0,
-        includePmi: false,
+        annualTax,
+        annualInsurance,
+        monthlyHoa,
+        includePmi: downPct < 20,
       }),
-    [homePrice, downPayment, interestRate, termYears],
+    [homePrice, downPayment, interestRate, termYears, annualTax, annualInsurance, monthlyHoa, downPct],
   );
 
   const monthOne = useMemo(
@@ -291,6 +309,59 @@ export function MortgageCalculatorPage() {
                 </div>
               </label>
             </div>
+            <div className="mt-6 border-t border-outline-variant/10 pt-5">
+              <h3 className="font-serif text-[18px] font-semibold text-ink">Taxes, insurance & HOA</h3>
+              <p className="mt-1 text-[13px] text-slate-text">
+                Optional — included in your total monthly estimate below.
+              </p>
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <label className="block">
+                  <span className="mb-2 block text-[13px] font-medium text-taupe">Property tax (annual)</span>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                      $
+                    </span>
+                    <input
+                      inputMode="numeric"
+                      className={cn(modalInputClass, "pl-7")}
+                      value={annualTaxText}
+                      onChange={(e) => setAnnualTaxText(e.target.value.replace(/[^0-9,]/g, ""))}
+                      onBlur={() => setAnnualTaxText(formatMoneyInput(annualTax))}
+                    />
+                  </div>
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-[13px] font-medium text-taupe">Home insurance (annual)</span>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                      $
+                    </span>
+                    <input
+                      inputMode="numeric"
+                      className={cn(modalInputClass, "pl-7")}
+                      value={annualInsuranceText}
+                      onChange={(e) => setAnnualInsuranceText(e.target.value.replace(/[^0-9,]/g, ""))}
+                      onBlur={() => setAnnualInsuranceText(formatMoneyInput(annualInsurance))}
+                    />
+                  </div>
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-[13px] font-medium text-taupe">HOA (monthly)</span>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                      $
+                    </span>
+                    <input
+                      inputMode="numeric"
+                      className={cn(modalInputClass, "pl-7")}
+                      value={monthlyHoaText}
+                      onChange={(e) => setMonthlyHoaText(e.target.value.replace(/[^0-9,]/g, ""))}
+                      onBlur={() => setMonthlyHoaText(formatMoneyInput(monthlyHoa))}
+                    />
+                  </div>
+                </label>
+              </div>
+            </div>
           </LuxuryCard>
 
           <LuxuryCard padding="lg">
@@ -300,32 +371,33 @@ export function MortgageCalculatorPage() {
             </p>
             <ul className="grid gap-3 lg:grid-cols-3">
               {scenarioIds.map((id) => {
-                const s = scenarioResult(id, rateSnapshot, homePrice, downPayment);
-                const meta = scenarioMeta(id, rateSnapshot);
+                const s = scenarioResult(id, rateSnapshot, homePrice, downPayment, escrow);
                 const active = selectedScenario === id;
+                const hasEscrow =
+                  escrow.annualTax > 0 || escrow.annualInsurance > 0 || escrow.monthlyHoa > 0;
                 return (
                   <li key={id}>
                     <button
                       type="button"
                       onClick={() => applyScenario(id)}
                       className={cn(
-                        "relative flex h-full w-full flex-col rounded-2xl border p-4 text-left transition-shadow",
+                        "flex h-full w-full flex-col rounded-2xl border p-4 text-left transition-shadow",
                         active
                           ? "border-rose-gold/50 bg-rose-gold/5 shadow-card"
                           : "border-outline-variant/15 bg-cream/30 hover:border-rose-gold/25",
                       )}
                     >
-                      {meta.popular ? (
-                        <span className="absolute -top-2.5 right-3 rounded-full bg-rose-gold px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ivory">
-                          Popular choice
-                        </span>
-                      ) : null}
                       <p className="font-medium text-ink">{s.label}</p>
                       <p className="mt-2 text-[12px] text-taupe">Rate {s.rate.toFixed(2)}%</p>
                       <p className="mt-3 font-serif text-[22px] font-semibold text-rose-gold-deep">
-                        {formatUsd(s.monthlyPrincipalInterest)}
+                        {formatUsd(hasEscrow ? s.monthlyTotal : s.monthlyPrincipalInterest)}
                         <span className="text-[12px] font-normal text-taupe"> / mo</span>
                       </p>
+                      {hasEscrow ? (
+                        <p className="text-[11px] text-taupe">
+                          P&amp;I {formatUsd(s.monthlyPrincipalInterest)}
+                        </p>
+                      ) : null}
                       <p className="mt-2 text-[11px] text-slate-text">
                         Interest {formatUsd(s.totalInterest)}
                       </p>
@@ -384,13 +456,60 @@ export function MortgageCalculatorPage() {
               </ul>
             )}
           </LuxuryCard>
+
+          <LuxuryCard padding="lg">
+            <h2 className="font-serif text-[22px] font-semibold text-ink">Mortgage reading & updates</h2>
+            <p className="mt-1 mb-4 text-[13px] text-slate-text">
+              Market commentary and buyer education — opens in a new tab.
+            </p>
+            <ul className="space-y-3">
+              {MORTGAGE_RESOURCE_LINKS.map((item) => {
+                const external = item.href.startsWith("http");
+                const className =
+                  "group flex items-start gap-3 rounded-2xl border border-outline-variant/12 bg-champagne/20 px-4 py-3 transition-colors hover:border-rose-gold/30 hover:bg-champagne/40";
+                const inner = (
+                  <>
+                    <Icon
+                      name="open_in_new"
+                      className="mt-0.5 shrink-0 text-[18px] text-rose-gold-deep"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-[14px] font-medium text-ink group-hover:text-rose-gold-deep">
+                        {item.title}
+                      </span>
+                      <span className="mt-0.5 block text-[12px] leading-relaxed text-slate-text">
+                        {item.description}
+                      </span>
+                    </span>
+                  </>
+                );
+                return (
+                  <li key={item.href}>
+                    {external ? (
+                      <a href={item.href} target="_blank" rel="noopener noreferrer" className={className}>
+                        {inner}
+                      </a>
+                    ) : (
+                      <Link href={item.href} className={className}>
+                        {inner}
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </LuxuryCard>
         </div>
 
         <div className="space-y-6 xl:col-span-5">
           <LuxuryCard padding="lg" className="bg-gradient-to-br from-[#f4e6dc] to-ivory">
             <p className="text-[13px] font-medium text-taupe">Estimated monthly payment</p>
             <p className="mt-1 font-serif text-[44px] font-semibold leading-none text-rose-gold-deep sm:text-[48px]">
-              {formatUsd(result.monthlyPrincipalInterest)}
+              {formatUsd(result.monthlyTotal)}
+            </p>
+            <p className="mt-2 text-[12px] text-taupe">
+              Principal &amp; interest {formatUsd(result.monthlyPrincipalInterest)}
+              {result.monthlyPmi > 0 ? ` · PMI ${formatUsd(result.monthlyPmi)}` : ""}
             </p>
             <p className="mt-2 flex items-center gap-1 text-[12px] font-medium text-emerald-muted">
               <Icon name="trending_down" className="text-[16px]" />
@@ -419,17 +538,27 @@ export function MortgageCalculatorPage() {
                 <span>Interest (month 1)</span>
                 <span className="font-medium text-ink">{formatUsd(monthOne.interest)}</span>
               </div>
-              <div className="flex justify-between text-taupe">
+              <div className="flex justify-between">
                 <span>Property taxes</span>
-                <span>Add in closing estimate</span>
+                <span className="font-medium text-ink">{formatUsd(result.monthlyTax)} / mo</span>
               </div>
-              <div className="flex justify-between text-taupe">
+              <div className="flex justify-between">
                 <span>Home insurance</span>
-                <span>Add in closing estimate</span>
+                <span className="font-medium text-ink">{formatUsd(result.monthlyInsurance)} / mo</span>
               </div>
-              <div className="flex justify-between text-taupe">
+              <div className="flex justify-between">
                 <span>HOA</span>
-                <span>Varies by community</span>
+                <span className="font-medium text-ink">{formatUsd(result.monthlyHoa)} / mo</span>
+              </div>
+              {result.monthlyPmi > 0 ? (
+                <div className="flex justify-between">
+                  <span>PMI (est.)</span>
+                  <span className="font-medium text-ink">{formatUsd(result.monthlyPmi)} / mo</span>
+                </div>
+              ) : null}
+              <div className="flex justify-between border-t border-outline-variant/10 pt-2 font-medium text-ink">
+                <span>Total monthly</span>
+                <span>{formatUsd(result.monthlyTotal)}</span>
               </div>
             </div>
           </LuxuryCard>
@@ -458,15 +587,25 @@ export function MortgageCalculatorPage() {
               <li>Share estimates and discuss pre-approval timing.</li>
               <li>Connect with your preferred lender or mortgage partner.</li>
             </ol>
-            <Link
-              href="/dashboard/contacts"
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-rose-gold py-3.5 text-[14px] font-medium text-ivory transition-opacity hover:opacity-90"
-            >
-              Talk to a mortgage expert
-              <Icon name="arrow_forward" className="text-[18px]" />
-            </Link>
+            {partnerUrl ? (
+              <a
+                href={partnerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-rose-gold py-3.5 text-[14px] font-medium text-ivory transition-opacity hover:opacity-90"
+              >
+                {partnerLabel}
+                <Icon name="open_in_new" className="text-[18px]" />
+              </a>
+            ) : (
+              <p className="mt-6 rounded-2xl border border-outline-variant/15 bg-cream/50 px-4 py-3 text-[13px] leading-relaxed text-slate-text">
+                Your mortgage originator profile link will appear here once your team adds it in
+                workspace settings.
+              </p>
+            )}
             <p className="mt-3 text-center text-[11px] text-taupe">
-              Estimates only — not a lender quote. Taxes and insurance not included unless you add them.
+              Estimates only — not a lender quote. Adjust taxes, insurance, and HOA above for a fuller
+              monthly picture.
             </p>
           </LuxuryCard>
         </div>

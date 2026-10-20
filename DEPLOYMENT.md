@@ -107,6 +107,13 @@ Create Storage bucket: **`voice-assets`** (private).
 
 **Twilio inbound:** Phone Number → Messaging → “A message comes in” → webhook URL above (HTTP POST). Required for STOP → DNC.
 
+## Mortgage calculator (optional)
+
+| Variable | Notes |
+|---|---|
+| `NEXT_PUBLIC_MORTGAGE_PARTNER_URL` | Full HTTPS URL to your mortgage originator profile, booking page, or application (opens from **Talk to a mortgage expert**) |
+| `NEXT_PUBLIC_MORTGAGE_PARTNER_LABEL` | Optional button label (default: `Talk to a mortgage expert`) |
+
 ## Stripe (agent membership)
 
 | Variable | Notes |
