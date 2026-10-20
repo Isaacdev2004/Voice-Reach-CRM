@@ -57,15 +57,16 @@ export function PropertyFinderHero({
               className="pointer-events-none absolute inset-0 hidden bg-gradient-to-l from-transparent via-transparent to-cream/20 md:block"
               aria-hidden
             />
-            <div className="pointer-events-none absolute right-4 top-4 z-[2] hidden max-w-[220px] text-right md:block lg:right-8 lg:top-8">
-              <p className="font-serif text-[13px] italic leading-snug text-ivory drop-shadow-sm sm:text-[14px]">
-                &ldquo;The right home changes everything.&rdquo;
-              </p>
-              <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-ivory/95 drop-shadow-sm">
-                MyARI
-              </p>
-            </div>
           </div>
+        </div>
+
+        <div className="hidden border-t border-outline-variant/10 bg-cream/80 px-6 py-4 sm:px-10 md:flex md:items-center md:justify-between md:gap-6 lg:px-12">
+          <p className="font-serif text-[15px] italic leading-snug text-ink/90 sm:text-[16px]">
+            &ldquo;The right home changes everything.&rdquo;
+          </p>
+          <p className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
+            MyARI
+          </p>
         </div>
 
         <div className="border-t border-outline-variant/10 bg-ivory px-4 py-4 sm:px-6 sm:py-5 lg:px-8">

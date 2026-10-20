@@ -107,8 +107,8 @@ export function PropertyFinderClientBar({
               if (!open) setOpen(true);
             }}
             onFocus={() => !loading && setOpen(true)}
-            placeholder="Search a client by name, email, or phone…"
-            className="h-11 w-full min-w-0 bg-transparent pl-10 pr-3 text-[14px] text-ink outline-none placeholder:text-taupe/80"
+            placeholder="Search by name, email, or phone…"
+            className="h-11 w-full min-w-0 bg-transparent pl-11 pr-3 text-[14px] text-ink outline-none placeholder:text-taupe/80 sm:pl-12"
             autoComplete="off"
           />
         </div>

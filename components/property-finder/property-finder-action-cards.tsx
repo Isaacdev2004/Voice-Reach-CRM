@@ -23,14 +23,16 @@ export function PropertyFinderActionCards() {
               sizes="(max-width: 640px) 100vw, 280px"
             />
           </div>
-          <div className="relative flex flex-1 flex-col p-5 pb-6">
+          <div className="flex flex-1 flex-col p-5">
             <h3 className="font-serif text-[18px] font-semibold text-ink">{card.title}</h3>
             <p className="mt-2 flex-1 text-[13px] leading-relaxed text-slate-text">
               {card.description}
             </p>
-            <span className="absolute bottom-5 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-rose-gold-deep text-ivory shadow-sm">
-              <Icon name="arrow_forward" className="text-[18px]" />
-            </span>
+            <div className="mt-4 flex justify-end">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-gold-deep text-ivory shadow-sm transition-transform group-hover:translate-x-0.5">
+                <Icon name="arrow_forward" className="text-[18px]" />
+              </span>
+            </div>
           </div>
         </Link>
       ))}

@@ -34,6 +34,11 @@ export function PropertyFinderBottomRow({ steps, onSelectContact }: PropertyFind
             View all →
           </Link>
         </div>
+        {steps.length === 0 ? (
+          <p className="text-[14px] text-slate-text">
+            No open tasks yet. Add follow-ups in Tasks and they will show here.
+          </p>
+        ) : (
         <ul className="divide-y divide-outline-variant/10">
           {steps.map((step) => (
             <li key={step.id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
@@ -58,6 +63,7 @@ export function PropertyFinderBottomRow({ steps, onSelectContact }: PropertyFind
             </li>
           ))}
         </ul>
+        )}
       </LuxuryCard>
 
       <div className="lg:col-span-5">

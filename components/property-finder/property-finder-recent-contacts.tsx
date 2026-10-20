@@ -24,6 +24,28 @@ function initials(c: ApiContact) {
   return (a + b).toUpperCase() || "?";
 }
 
+function contactLabelSort(a: ApiContact, b: ApiContact) {
+  return contactLabel(a).localeCompare(contactLabel(b));
+}
+
+function buildQuickPickList(
+  contacts: ApiContact[],
+  recentIds: string[],
+  selectedId: string,
+): ApiContact[] {
+  const seen = new Set<string>();
+  const out: ApiContact[] = [];
+  const add = (c: ApiContact | undefined) => {
+    if (!c || seen.has(c.id)) return;
+    seen.add(c.id);
+    out.push(c);
+  };
+  if (selectedId) add(contacts.find((c) => c.id === selectedId));
+  for (const id of recentIds) add(contacts.find((c) => c.id === id));
+  for (const c of [...contacts].sort(contactLabelSort)) add(c);
+  return out.slice(0, 8);
+}
+
 type PropertyFinderRecentContactsProps = {
   contacts: ApiContact[];
   recentIds: string[];
@@ -37,21 +59,21 @@ export function PropertyFinderRecentContacts({
   selectedId,
   onSelect,
 }: PropertyFinderRecentContactsProps) {
-  const recent = recentIds
-    .map((id) => contacts.find((c) => c.id === id))
-    .filter(Boolean) as ApiContact[];
-
-  const display =
-    recent.length > 0
-      ? recent.slice(0, 5)
-      : contacts.slice(0, 5);
+  const recentSet = new Set(recentIds);
+  const display = buildQuickPickList(contacts, recentIds, selectedId);
 
   if (display.length === 0) return null;
 
   return (
     <section>
       <div className="mb-4 flex items-center justify-between gap-2">
-        <h2 className="font-serif text-[22px] font-semibold text-ink">Recently opened contacts</h2>
+        <div>
+          <h2 className="font-serif text-[22px] font-semibold text-ink">Quick pick clients</h2>
+          <p className="mt-1 text-[13px] text-slate-text">
+            Everyone stays visible here. &ldquo;Opened here&rdquo; means you selected them on Property
+            Finder — not live client activity.
+          </p>
+        </div>
         <Link
           href="/dashboard/contacts"
           className="text-[13px] font-medium text-rose-gold-deep hover:underline"
@@ -91,7 +113,11 @@ export function PropertyFinderRecentContacts({
               </div>
               <p className="mt-3 truncate text-[15px] font-semibold text-ink">{contactLabel(c)}</p>
               <p className="text-[12px] text-taupe">{roleLabel(c)}</p>
-              <p className="mt-2 text-[11px] text-slate-text">Active recently</p>
+              {recentSet.has(c.id) ? (
+                <p className="mt-2 text-[11px] font-medium text-rose-gold-deep">Opened here</p>
+              ) : (
+                <p className="mt-2 text-[11px] text-taupe">In your contacts</p>
+              )}
             </div>
           );
         })}

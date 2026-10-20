@@ -9,6 +9,7 @@ import {
 } from "@/components/property-finder/property-finder-bottom-row";
 import { PropertyFinderHero } from "@/components/property-finder/property-finder-hero";
 import { PropertyFinderRecentContacts } from "@/components/property-finder/property-finder-recent-contacts";
+import { PropertyFinderSavedSearches } from "@/components/property-finder/property-finder-saved-searches";
 import { Icon } from "@/components/ui/icon";
 import { useContacts } from "@/lib/hooks/use-contacts";
 import { formatUsd } from "@/lib/mortgage/calculate";
@@ -54,27 +55,6 @@ function formatStepWhen(iso?: string | null) {
   return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 }
 
-const FALLBACK_STEPS: SuggestedStep[] = [
-  {
-    id: "demo-1",
-    contactName: "Sarah Mitchell",
-    task: "Send new listings in her preferred area",
-    when: "Today, 10:00 AM",
-  },
-  {
-    id: "demo-2",
-    contactName: "James Carter",
-    task: "Schedule a showing for saved search",
-    when: "Today, 2:00 PM",
-  },
-  {
-    id: "demo-3",
-    contactName: "Maria Lopez",
-    task: "Follow up on mortgage pre-approval",
-    when: "Tomorrow",
-  },
-];
-
 export function PropertyFinderPage() {
   const { contacts, loading, refresh } = useContacts();
   const [selectedId, setSelectedId] = useState("");
@@ -84,7 +64,7 @@ export function PropertyFinderPage() {
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [steps, setSteps] = useState<SuggestedStep[]>(FALLBACK_STEPS);
+  const [steps, setSteps] = useState<SuggestedStep[]>([]);
 
   useEffect(() => {
     try {
@@ -125,7 +105,7 @@ export function PropertyFinderPage() {
           }),
         );
       } catch {
-        /* keep demo steps */
+        /* leave empty */
       }
     })();
   }, [contacts]);
@@ -143,6 +123,16 @@ export function PropertyFinderPage() {
       if (id) setRecentIds(pushRecentContact(id));
     },
     [contacts],
+  );
+
+  const pickContactAndOpenWorkspace = useCallback(
+    (id: string) => {
+      pickContact(id);
+      window.requestAnimationFrame(() => {
+        document.getElementById("client-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    },
+    [pickContact],
   );
 
   const budgetNumber = Number(budget.replace(/,/g, "")) || null;
@@ -204,6 +194,12 @@ export function PropertyFinderPage() {
       />
 
       <PropertyFinderActionCards />
+
+      <PropertyFinderSavedSearches
+        contacts={contacts}
+        selectedId={selectedId}
+        onSelect={pickContactAndOpenWorkspace}
+      />
 
       <PropertyFinderBottomRow steps={steps} onSelectContact={pickContact} />
 
