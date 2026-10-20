@@ -51,8 +51,7 @@ export function SeoLandingPageHero({ page }: SeoLandingPageHeroProps) {
           </HeroEntrance>
           <HeroEntrance delayMs={320}>
             <p className="mt-6 text-[14px] text-slate-text">
-              {SITE_OFFER.trialDays}-day free trial · {SITE_OFFER.cardRequiredNote} ·{" "}
-              {SITE_OFFER.whiteGlove.shortLine}
+              {SITE_OFFER.trialDays}-day free trial · {SITE_OFFER.whiteGlove.shortLine}
             </p>
           </HeroEntrance>
         </div>

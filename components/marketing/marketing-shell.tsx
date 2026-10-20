@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { AriLogo } from "@/components/brand/ari-logo";
+import { PlaybookCtaLink } from "@/components/landing/playbook-cta-link";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { PageViewTracker } from "@/components/marketing/page-view-tracker";
 import { BRAND_DOMAIN, BRAND_NAME, BRAND_URL } from "@/lib/brand";
@@ -57,7 +58,11 @@ export function MarketingShell({ children, variant = "default" }: MarketingShell
             ) : null}
           </div>
 
-          <div className="flex shrink-0 items-center gap-3 md:gap-4">
+          <div className="flex shrink-0 items-center gap-2 md:gap-3">
+            <PlaybookCtaLink
+              location="nav"
+              className="hidden !border-0 !bg-transparent !px-2 !py-2 !text-[13px] font-medium text-ink/75 hover:!bg-transparent hover:text-rose-gold-deep lg:inline-flex"
+            />
             <Link
               href="/sign-in"
               className="hidden text-[14px] font-medium text-ink/75 hover:text-ink sm:block"

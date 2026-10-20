@@ -28,6 +28,7 @@ export const MARKETING_FOOTER_FEATURES = [
 ] as const;
 
 export const MARKETING_FOOTER_RESOURCES = [
+  { href: "/playbook", label: "Free follow-up playbook" },
   { href: "/resources", label: "Resource hub" },
   { href: "/resources/ultimate-real-estate-lead-follow-up-guide", label: "Lead follow-up guide" },
   { href: "/resources/best-crm-features-for-real-estate-agents", label: "Best CRM features" },

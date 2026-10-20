@@ -60,8 +60,12 @@ function CheckoutInner() {
       </p>
       <h1 className="mt-2 font-serif text-[36px] font-semibold text-ink">Choose your plan</h1>
       <p className="mt-2 text-[15px] text-slate-text">
-        {SITE_OFFER.cardRequiredNote}. Start your {SITE_OFFER.trialDays}-day free trial, then create
-        your account. {SITE_OFFER.whiteGlove.shortLine}.
+        Start your {SITE_OFFER.trialDays}-day free trial, then create your account.{" "}
+        {SITE_OFFER.whiteGlove.shortLine}. Not ready?{" "}
+        <Link href={SITE_OFFER.playbook.path} className="font-medium text-rose-gold-deep hover:underline">
+          Get the free playbook
+        </Link>
+        .
       </p>
 
       {canceled ? (
@@ -121,7 +125,7 @@ function CheckoutInner() {
           {loading ? "Opening Stripe…" : `Start ${FOUNDING_100.trialDays}-day free trial`}
         </button>
         <p className="mt-3 text-center text-[12px] text-taupe">
-          Card required · No charge until trial ends · Then create your login (step 2).
+          No charge until trial ends · Then create your login (step 2).
         </p>
         <p className="mt-2 text-center text-[12px] text-taupe">
           Trial includes {FOUNDING_100.trialUsageCaps.sms} SMS,{" "}

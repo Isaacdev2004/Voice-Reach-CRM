@@ -154,7 +154,7 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
       },
       {
         q: "Is there a free trial?",
-        a: `Yes - ${trialDays} days free. ${SITE_OFFER.cardRequiredNote}. You won't be charged until the trial ends.`,
+        a: `Yes - ${trialDays} days free. You won't be charged until the trial ends.`,
       },
     ],
     relatedPages: SHARED_RELATED.filter((p) => p.href !== "/real-estate-crm"),

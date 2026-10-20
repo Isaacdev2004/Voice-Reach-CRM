@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LandingPageHero } from "@/components/landing/landing-page-hero";
 import { DemoVideo } from "@/components/landing/demo-video";
+import { LandingAlternatives } from "@/components/landing/landing-alternatives";
 import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFeaturesBar } from "@/components/landing/landing-features-bar";
 import { LandingFinalCta } from "@/components/landing/landing-final-cta";
@@ -88,6 +89,9 @@ export function LandingPage() {
       </Reveal>
       <Reveal delayMs={60}>
         <LandingReactivation />
+      </Reveal>
+      <Reveal>
+        <LandingAlternatives />
       </Reveal>
       <Reveal>
         <LandingPricing />

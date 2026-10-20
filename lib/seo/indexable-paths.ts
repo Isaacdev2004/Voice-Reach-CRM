@@ -9,6 +9,7 @@ const CORE_MARKETING_PATHS = [
   "/lead-reactivation",
   "/crm-for-small-business",
   "/pricing",
+  "/playbook",
   "/contact",
   "/resources",
   "/features",

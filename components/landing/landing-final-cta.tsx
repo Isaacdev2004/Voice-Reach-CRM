@@ -1,14 +1,11 @@
 import Image from "next/image";
+import { PlaybookCtaLink } from "@/components/landing/playbook-cta-link";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { primaryTrialCta, SITE_OFFER, trialSupportLine } from "@/lib/marketing/site-offer";
 
 const LIFESTYLE_IMAGE = "/brand/final-cta-lifestyle.png";
 
-const TRIAL_DETAILS = [
-  SITE_OFFER.cardRequiredNote,
-  "No charge until trial ends",
-  "Cancel anytime",
-] as const;
+const TRIAL_DETAILS = ["No charge until trial ends", "Cancel anytime", "Month-to-month billing"] as const;
 
 export function LandingFinalCta() {
   return (
@@ -29,12 +26,15 @@ export function LandingFinalCta() {
                 : null}
             </p>
             <div className="mt-6 flex w-full flex-col gap-4 md:mt-8 md:gap-8">
-              <StartFreeButton
-                location="final-cta"
-                label={primaryTrialCta()}
-                showArrow
-                className="w-full !px-10 !py-4 !text-[15px] sm:w-auto sm:!px-12"
-              />
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <StartFreeButton
+                  location="final-cta"
+                  label={primaryTrialCta()}
+                  showArrow
+                  className="w-full !px-10 !py-4 !text-[15px] sm:w-auto sm:!px-12"
+                />
+                <PlaybookCtaLink location="final-cta" className="w-full sm:w-auto" />
+              </div>
               <div className="flex w-full flex-col gap-2.5 sm:gap-3 md:gap-5">
                 {TRIAL_DETAILS.map((line) => (
                   <p

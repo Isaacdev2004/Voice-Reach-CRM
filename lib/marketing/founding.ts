@@ -11,8 +11,14 @@ export const FOUNDING_100 = {
     rvm: 5,
     email: 50,
   },
+  /** Standard list prices shown struck-through when founding pricing is active */
+  listPrices: {
+    starter: 79,
+    growth: 149,
+    pro: 325,
+  },
   perks: [
-    "14-day free trial - card on file, no charge until trial ends",
+    "14-day free trial — no charge until trial ends",
     "Founding-member pricing while seats last",
     "Priority feedback channel to the founding team",
     "White-glove setup is included on every plan - not Founding-exclusive",

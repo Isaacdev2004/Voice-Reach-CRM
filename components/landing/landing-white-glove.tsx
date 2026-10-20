@@ -43,7 +43,7 @@ export function LandingWhiteGlove() {
           <ol className="mt-5 space-y-4 text-[15px] leading-relaxed text-slate-text">
             <li>
               <span className="font-semibold text-ink">1.</span> Start your {SITE_OFFER.trialDays}
-              -day trial ({SITE_OFFER.cardRequiredNote.toLowerCase()})
+              -day trial (no charge until it ends)
             </li>
             <li>
               <span className="font-semibold text-ink">2.</span> {SITE_OFFER.whiteGlove.contactWindow}

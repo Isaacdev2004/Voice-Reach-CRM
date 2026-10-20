@@ -13,13 +13,18 @@ async function handle(request: Request) {
   const envSecret = process.env.CAMPAIGN_RUNNER_SECRET;
   const authHeader = request.headers.get("authorization");
   const vercelCronHeader = request.headers.get("x-vercel-cron") === "1";
-  const vercelCron =
-    Boolean(process.env.CRON_SECRET?.trim()) &&
-    authHeader === `Bearer ${process.env.CRON_SECRET!.trim()}`;
+  const cronSecretEnv = process.env.CRON_SECRET?.trim() ?? "";
+  const bearerOk =
+    Boolean(cronSecretEnv) && authHeader === `Bearer ${cronSecretEnv}`;
+  const vercelCron = vercelCronHeader && bearerOk;
 
-  if (vercelCronHeader && !process.env.CRON_SECRET?.trim()) {
+  if (vercelCronHeader && !cronSecretEnv) {
     console.warn(
       "[campaigns/runner] Vercel cron invoked but CRON_SECRET is not set — set CRON_SECRET in Vercel env so cron can authenticate.",
+    );
+  } else if (vercelCronHeader && cronSecretEnv && !bearerOk) {
+    console.warn(
+      "[campaigns/runner] Vercel cron request missing or invalid Authorization Bearer CRON_SECRET.",
     );
   }
 

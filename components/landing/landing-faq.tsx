@@ -4,14 +4,29 @@ import { FOUNDING_100 } from "@/lib/marketing/founding";
 import { SITE_OFFER } from "@/lib/marketing/site-offer";
 import { useState } from "react";
 
-const FAQ_ITEMS = [
+const KEY_OBJECTIONS = [
+  {
+    q: "What integrations do you support?",
+    a: `Google Calendar and Dotloop (transactions). Messaging via Twilio SMS, email delivery, and Slybroadcast ringless voicemail. Import via CSV and onboarding-assisted migration.`,
+  },
+  {
+    q: "Does ARI help with outreach compliance?",
+    a: `${SITE_OFFER.compliance.shortNote} You stay in control of who gets contacted and when.`,
+  },
+  {
+    q: "What if I exceed my SMS or RVM limits?",
+    a: "Starter uses pay-as-you-go messaging. Growth and Pro include monthly allotments with transparent overage rates. Team plans get volume pricing — contact us for a quote.",
+  },
+] as const;
+
+const MORE_FAQ = [
   {
     q: "How long does setup take?",
     a: "Most agents are live within 24–48 hours. We include white-glove setup on every plan - we import your leads, configure follow-up, and walk you through the dashboard.",
   },
   {
     q: "Is there a free trial?",
-    a: `Yes - ${SITE_OFFER.trialDays} days free on every plan. ${SITE_OFFER.cardRequiredNote}. Trial includes ${FOUNDING_100.trialUsageCaps.sms} SMS, ${FOUNDING_100.trialUsageCaps.rvm} voicemails, and ${FOUNDING_100.trialUsageCaps.email} emails so you can test safely.`,
+    a: `Yes — ${SITE_OFFER.trialDays} days free on every plan. No charge until the trial ends. Trial includes ${FOUNDING_100.trialUsageCaps.sms} SMS, ${FOUNDING_100.trialUsageCaps.rvm} voicemails, and ${FOUNDING_100.trialUsageCaps.email} emails so you can test safely.`,
   },
   {
     q: "Can I import my existing leads?",
@@ -24,18 +39,6 @@ const FAQ_ITEMS = [
   {
     q: "Can I cancel anytime?",
     a: "Absolutely. ARI is month-to-month with no long-term contract. Cancel from your account settings - your data exports anytime.",
-  },
-  {
-    q: "What integrations do you support?",
-    a: `Google Calendar and Dotloop (transactions). Messaging via Twilio SMS, email delivery, and Slybroadcast ringless voicemail. Import via CSV and onboarding-assisted migration.`,
-  },
-  {
-    q: "Does ARI help with outreach compliance?",
-    a: `${SITE_OFFER.compliance.shortNote} You stay in control of who gets contacted and when.`,
-  },
-  {
-    q: "What if I exceed my SMS or RVM limits?",
-    a: "Starter uses pay-as-you-go messaging. Growth and Pro include monthly allotments with transparent overage rates. Team plans get volume pricing - contact us for a quote.",
   },
 ];
 
@@ -54,8 +57,27 @@ export function LandingFaq() {
         <h2 className="mt-2 text-center font-serif text-[28px] font-semibold text-ink md:mt-3 md:text-[36px] lg:text-[40px]">
           Common questions
         </h2>
-        <ul className="mt-6 space-y-3 md:mt-10">
-          {FAQ_ITEMS.map((item, i) => {
+
+        <div className="mt-8 space-y-4 md:mt-10">
+          <p className="text-[12px] font-bold uppercase tracking-widest text-taupe">Top objections</p>
+          <ul className="space-y-4">
+            {KEY_OBJECTIONS.map((item) => (
+              <li
+                key={item.q}
+                className="rounded-2xl border border-outline-variant/15 bg-ivory px-5 py-4"
+              >
+                <p className="text-[15px] font-semibold text-ink">{item.q}</p>
+                <p className="mt-2 text-[14px] leading-relaxed text-slate-text">{item.a}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="mt-8 text-[12px] font-bold uppercase tracking-widest text-taupe md:mt-10">
+          More questions
+        </p>
+        <ul className="mt-3 space-y-3">
+          {MORE_FAQ.map((item, i) => {
             const isOpen = open === i;
             return (
               <li

@@ -28,7 +28,7 @@ export default function PricingPage() {
             Plans built for agents who follow up
           </h1>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px] lg:text-[18px]">
-            Start with a {SITE_OFFER.trialDays}-day free trial. {SITE_OFFER.cardRequiredNote}.{" "}
+            Start with a {SITE_OFFER.trialDays}-day free trial.{" "}
             {SITE_OFFER.whiteGlove.shortLine}.{" "}
             {SITE_OFFER.founding.active ? SITE_OFFER.founding.memberBenefit : "Month-to-month billing."}
           </p>

@@ -3,8 +3,16 @@ import { FOUNDING_100, trialDaysFromEnv } from "./founding";
 /** Single source of truth for trial, onboarding, integrations, and qualified marketing claims. */
 export const SITE_OFFER = {
   trialDays: trialDaysFromEnv(),
-  cardRequired: true,
-  cardRequiredNote: "Card required · no charge until trial ends",
+  /** Stripe may still collect a card at checkout; we do not surface "card required" on marketing. */
+  cardRequired: false,
+  cardRequiredNote: "",
+  playbook: {
+    path: "/playbook",
+    title: "The Agent Follow-Up Playbook",
+    subtitle: "Scripts, cadences, and a simple system to re-engage cold leads — free.",
+    cta: "Download free playbook",
+    secondaryCta: "Get the free playbook",
+  },
   primaryPromise: "Every lead gets a next step.",
   hero: {
     eyebrow: "Real Estate CRM + Automated Follow-Up",
@@ -92,7 +100,7 @@ export function primaryTrialCta() {
 }
 
 export function trialDisclosureLine() {
-  return `${SITE_OFFER.trialDays} days free · Card required · No charge until trial ends · ${SITE_OFFER.whiteGlove.shortLine}`;
+  return `${SITE_OFFER.trialDays}-day free trial · No charge until trial ends · ${SITE_OFFER.whiteGlove.shortLine}`;
 }
 
 /** @deprecated Prefer primaryTrialCta() for marketing CTAs. */

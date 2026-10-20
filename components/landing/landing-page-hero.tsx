@@ -3,6 +3,7 @@
 import { MarketingHeroImage } from "@/components/marketing/marketing-hero-image";
 import { MarketingHeroBackdrop } from "@/components/marketing/marketing-hero-backdrop";
 import { HeroEntrance } from "@/components/marketing/motion-reveal";
+import { PlaybookCtaLink } from "@/components/landing/playbook-cta-link";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { Icon } from "@/components/ui/icon";
 import { HERO_IMAGES } from "@/lib/marketing/hero-images";
@@ -41,6 +42,7 @@ export function LandingPageHero() {
                 showArrow
                 className="luxury-pressable !px-10 !py-3.5 !text-[14px] md:!px-12 md:!py-4 md:!text-[15px]"
               />
+              <PlaybookCtaLink location="hero" className="!px-5 !py-3.5 md:!text-[15px]" />
               <a
                 href="#demo"
                 className="luxury-hover inline-flex items-center gap-2 rounded-full border border-outline-variant/25 bg-ivory/80 px-5 py-3.5 text-[15px] font-semibold text-ink transition-colors hover:border-rose-gold/40 hover:bg-ivory md:text-[16px]"

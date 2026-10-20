@@ -142,7 +142,7 @@ export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
             <Link href={page.relatedProductHref} className="font-semibold text-rose-gold-deep hover:underline">
               {page.relatedProductLabel}
             </Link>{" "}
-            works with a {SITE_OFFER.trialDays}-day free trial. {SITE_OFFER.cardRequiredNote}.
+            works with a {SITE_OFFER.trialDays}-day free trial. No charge until the trial ends.
           </p>
           <p className="mt-2 text-[14px] text-taupe">{trialSupportLine()}</p>
           {COMPLIANCE_FEATURE_SLUGS.has(page.slug) ? (

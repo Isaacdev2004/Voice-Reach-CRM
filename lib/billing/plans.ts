@@ -17,6 +17,8 @@ export type PlanOption = {
   featured?: boolean;
   /** Optional line under price on pricing cards */
   positioningLine?: string;
+  /** Outcome-first headline on pricing cards (above plan name) */
+  outcomeHeadline?: string;
   cta: string;
   features: string[];
   smsOverage: number;
@@ -56,6 +58,7 @@ export const PLAN_OPTIONS: PlanOption[] = [
   {
     id: "starter",
     name: "Starter",
+    outcomeHeadline: "Organize up to 1,000 contacts and send your first nurture emails",
     description: "New / solo agent",
     price: 49,
     contactLimit: 1000,
@@ -82,9 +85,10 @@ export const PLAN_OPTIONS: PlanOption[] = [
   {
     id: "growth",
     name: "Growth",
+    outcomeHeadline: "Reactivate up to 5,000 old leads with SMS, RVM, and multi-step drips",
     description: "Best for active agents",
     /** Shown under price on pricing cards */
-    positioningLine: "Everything most agents need to automate follow-up.",
+    positioningLine: "750 SMS + 250 RVM included every month.",
     price: 99,
     contactLimit: 5000,
     usersIncluded: 1,
@@ -108,6 +112,7 @@ export const PLAN_OPTIONS: PlanOption[] = [
   {
     id: "pro",
     name: "Pro",
+    outcomeHeadline: "Run high-volume follow-up for up to 15,000 contacts and small teams",
     description: "High-volume agent / small team",
     price: 199,
     contactLimit: 15000,

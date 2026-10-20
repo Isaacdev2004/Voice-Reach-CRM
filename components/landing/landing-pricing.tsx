@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CheckCircleIcon } from "@/components/icons/landing-icons";
 import { PLAN_OPTIONS } from "@/lib/billing/plans";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
+import { PlaybookCtaLink } from "@/components/landing/playbook-cta-link";
 import { primaryTrialCta, SITE_OFFER } from "@/lib/marketing/site-offer";
 import { Reveal, RevealStagger } from "@/components/marketing/motion-reveal";
 import { trackMarketingEvent } from "@/lib/marketing/track";
@@ -88,12 +89,19 @@ export function LandingPricing() {
                   </span>
                 ) : null}
 
+                {plan.outcomeHeadline ? (
+                  <p
+                    className={`text-[15px] font-semibold leading-snug ${featured ? "text-ivory" : "text-ink"}`}
+                  >
+                    {plan.outcomeHeadline}
+                  </p>
+                ) : null}
                 <h3
-                  className={`font-serif text-[22px] font-semibold ${featured ? "text-ivory" : "text-ink"}`}
+                  className={`mt-2 font-serif text-[20px] font-semibold ${featured ? "text-ivory/90" : "text-taupe"}`}
                 >
                   {plan.name}
                 </h3>
-                <p className={`mt-1 text-[13px] ${featured ? "text-ivory/80" : "text-taupe"}`}>
+                <p className={`mt-0.5 text-[13px] ${featured ? "text-ivory/75" : "text-taupe"}`}>
                   {plan.description}
                 </p>
                 {plan.positioningLine ? (
@@ -102,7 +110,15 @@ export function LandingPricing() {
                   </p>
                 ) : null}
 
-                <div className={`mt-6 flex items-baseline gap-1 ${featured ? "text-ivory" : "text-ink"}`}>
+                <div className={`mt-6 flex flex-wrap items-baseline gap-2 ${featured ? "text-ivory" : "text-ink"}`}>
+                  {SITE_OFFER.founding.active &&
+                  FOUNDING_100.listPrices[plan.id as keyof typeof FOUNDING_100.listPrices] ? (
+                    <span
+                      className={`font-serif text-[22px] line-through decoration-2 ${featured ? "text-ivory/55" : "text-taupe"}`}
+                    >
+                      ${FOUNDING_100.listPrices[plan.id as keyof typeof FOUNDING_100.listPrices]}
+                    </span>
+                  ) : null}
                   {annual ? (
                     <>
                       <span className="font-serif text-[40px] font-semibold leading-none">
@@ -119,6 +135,11 @@ export function LandingPricing() {
                     </>
                   )}
                 </div>
+                {SITE_OFFER.founding.active ? (
+                  <p className={`mt-1 text-[12px] font-medium ${featured ? "text-sage-light" : "text-rose-gold-deep"}`}>
+                    Founding-member price
+                  </p>
+                ) : null}
                 {annual ? (
                   <p className={`mt-1 text-[12px] ${featured ? "text-ivory/75" : "text-taupe"}`}>
                     ${monthly}/mo billed monthly · ${monthlyEquivalent}/mo billed yearly
@@ -143,6 +164,13 @@ export function LandingPricing() {
                 >
                   {primaryTrialCta()}
                 </Link>
+                <PlaybookCtaLink
+                  location={`pricing-${plan.id}`}
+                  label={SITE_OFFER.playbook.secondaryCta}
+                  className={`mt-3 w-full !border-transparent !bg-transparent !py-2 text-[13px] font-semibold underline-offset-2 hover:underline ${
+                    featured ? "!text-ivory/90" : "!text-rose-gold-deep"
+                  }`}
+                />
 
                 <ul className={`mt-6 flex-1 space-y-2.5 text-[13px] ${featured ? "text-ivory/90" : "text-slate-text"}`}>
                   {plan.features.map((f) => (
