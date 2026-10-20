@@ -41,5 +41,8 @@
     "eslint-config-next": "^16.2.6",
     "tsx": "^4.19.0",
     "typescript": "^5.9.0"
+  },
+  "optionalDependencies": {
+    "utf-8-validate": "^5.0.10"
   }
 }
