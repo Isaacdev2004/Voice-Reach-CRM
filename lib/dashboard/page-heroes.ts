@@ -126,10 +126,10 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     title: "Meaningful outreach. Real relationships.",
     subtitle: "Launch sequences, engage consistently, and open more doors.",
     scriptAccent: "People over numbers. Always.",
-    scriptAccentOnImage: true,
     brandQuote: "Every touchpoint builds trust.",
+    brandQuoteFooter: true,
     imageAlt: "Ocean from above with luxury boat",
-    imageObjectPosition: "22% center",
+    imageObjectPosition: "38% 42%",
   },
   "/dashboard/mortgage": {
     ...hero("mortgage.jpg"),
