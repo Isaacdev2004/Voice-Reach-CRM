@@ -36,14 +36,27 @@ function formatDate(iso: string) {
   }
 }
 
-function demoMetrics(name: string, status: string) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = (hash + name.charCodeAt(i) * (i + 1)) % 997;
-  const steps = 3 + (hash % 5);
-  const contacts = 40 + (hash % 180);
-  const open = status === "draft" ? "—" : `${18 + (hash % 35)}%`;
-  const reply = status === "draft" ? "—" : `${4 + (hash % 12)}%`;
-  return { steps, contacts, open, reply };
+type CampaignMetricRow = {
+  id: string;
+  volume: number;
+  deliveryRate: number;
+};
+
+function metricsForCampaign(
+  campaignId: string,
+  status: string,
+  byId: Map<string, CampaignMetricRow>,
+) {
+  const row = byId.get(campaignId);
+  if (!row || status === "draft") {
+    return { steps: "—", contacts: "—", open: "—", reply: "—" };
+  }
+  return {
+    steps: "—",
+    contacts: row.volume > 0 ? String(row.volume) : "—",
+    open: row.volume > 0 ? `${row.deliveryRate}%` : "—",
+    reply: "—",
+  };
 }
 
 const THUMBS = [
@@ -55,14 +68,27 @@ const THUMBS = [
 
 export function DashboardRecentCampaignsTable() {
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
+  const [metricById, setMetricById] = useState<Map<string, CampaignMetricRow>>(new Map());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     void (async () => {
       try {
-        const res = await fetch("/api/campaigns");
-        const data = await res.json().catch(() => ({}));
+        const [campRes, analyticsRes] = await Promise.all([
+          fetch("/api/campaigns"),
+          fetch("/api/analytics?range=30d"),
+        ]);
+        const data = await campRes.json().catch(() => ({}));
         setCampaigns((data.campaigns ?? []).slice(0, 6));
+
+        const analytics = (await analyticsRes.json().catch(() => ({}))) as {
+          campaignMetrics?: CampaignMetricRow[];
+        };
+        const map = new Map<string, CampaignMetricRow>();
+        for (const m of analytics.campaignMetrics ?? []) {
+          map.set(m.id, m);
+        }
+        setMetricById(map);
       } finally {
         setLoading(false);
       }
@@ -116,7 +142,7 @@ export function DashboardRecentCampaignsTable() {
                 <th className="pb-3 pr-4 font-semibold">Status</th>
                 <th className="pb-3 pr-4 font-semibold">Steps</th>
                 <th className="pb-3 pr-4 font-semibold">Contacts</th>
-                <th className="pb-3 pr-4 font-semibold">Open rate</th>
+                <th className="pb-3 pr-4 font-semibold">Delivery rate</th>
                 <th className="pb-3 pr-4 font-semibold">Reply rate</th>
                 <th className="pb-3 font-semibold">Created</th>
               </tr>
@@ -127,7 +153,7 @@ export function DashboardRecentCampaignsTable() {
                   label: c.status,
                   className: "bg-champagne text-taupe",
                 };
-                const metrics = demoMetrics(c.name, c.status);
+                const metrics = metricsForCampaign(c.id, c.status, metricById);
                 const thumb = THUMBS[idx % THUMBS.length];
                 return (
                   <tr
