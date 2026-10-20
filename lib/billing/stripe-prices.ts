@@ -46,7 +46,7 @@ export function subscriptionItems(planId: PlanId): Stripe.SubscriptionCreatePara
       description: plan.description,
       tax_code: SAAS_TAX_CODE,
     },
-  } as Stripe.SubscriptionCreateParams.Item["price_data"];
+  } as unknown as Stripe.SubscriptionCreateParams.Item["price_data"];
 
   return [{ price_data: priceData }];
 }
