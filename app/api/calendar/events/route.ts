@@ -38,6 +38,8 @@ export const GET = withApiHandler(async (request: Request) => {
 
   const { searchParams } = new URL(request.url);
   const month = searchParams.get("month");
+  const monthsRaw = searchParams.get("months");
+  const monthSpan = monthsRaw === "2" ? 2 : 1;
 
   let timeMin: Date;
   let timeMax: Date;
@@ -45,7 +47,7 @@ export const GET = withApiHandler(async (request: Request) => {
   if (month && /^\d{4}-\d{2}$/.test(month)) {
     const [year, mon] = month.split("-").map(Number);
     timeMin = new Date(year, mon - 1, 1);
-    timeMax = new Date(year, mon, 0, 23, 59, 59, 999);
+    timeMax = new Date(year, mon - 1 + monthSpan, 0, 23, 59, 59, 999);
     timeMin.setDate(timeMin.getDate() - 7);
     timeMax.setDate(timeMax.getDate() + 7);
   } else {

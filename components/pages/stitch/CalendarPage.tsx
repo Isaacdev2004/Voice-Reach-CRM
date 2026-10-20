@@ -89,9 +89,10 @@ export function CalendarPage() {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
       try {
-        const res = await fetch(`/api/calendar/events?month=${monthParam(viewDate)}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `/api/calendar/events?month=${monthParam(viewDate)}&months=2`,
+          { cache: "no-store" },
+        );
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Could not load calendar");
         setConnected(Boolean(data.connected));
@@ -317,7 +318,7 @@ export function CalendarPage() {
         </div>
       ) : null}
 
-      <div className="grid w-full gap-6 xl:grid-cols-12">
+      <div className="grid w-full items-start gap-6 xl:grid-cols-12">
         <LuxuryCard padding="lg" className="w-full min-w-0 xl:col-span-8">
           {loading ? (
             <p className="py-12 text-center text-taupe">Loading calendar…</p>
@@ -388,6 +389,7 @@ export function CalendarPage() {
               onDayClick={handleDayClick}
               viewMode={calendarView}
               onViewModeChange={setCalendarView}
+              monthCount={2}
             />
           )}
         </LuxuryCard>

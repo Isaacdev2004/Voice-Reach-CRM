@@ -23,6 +23,8 @@ type MonthCalendarProps = {
   onDayClick?: (date: Date) => void;
   viewMode?: CalendarViewMode;
   onViewModeChange?: (mode: CalendarViewMode) => void;
+  /** Show two consecutive months in the main grid (fills wide layout). */
+  monthCount?: 1 | 2;
 };
 
 function eventChipClass(source?: CalendarAgendaItem["source"]) {
@@ -65,6 +67,138 @@ function buildMonthGrid(viewDate: Date): Date[] {
   return cells;
 }
 
+function addMonths(date: Date, count: number): Date {
+  const d = new Date(date);
+  d.setDate(1);
+  d.setMonth(d.getMonth() + count);
+  return d;
+}
+
+function monthTitle(date: Date): string {
+  return date.toLocaleString(undefined, { month: "long", year: "numeric" });
+}
+
+function rangeTitle(start: Date, monthCount: number): string {
+  if (monthCount <= 1) return monthTitle(start);
+  const end = addMonths(start, monthCount - 1);
+  if (start.getFullYear() === end.getFullYear()) {
+    const a = start.toLocaleString(undefined, { month: "long" });
+    const b = end.toLocaleString(undefined, { month: "long" });
+    return `${a} – ${b} ${start.getFullYear()}`;
+  }
+  return `${monthTitle(start)} – ${monthTitle(end)}`;
+}
+
+type MonthGridProps = {
+  monthDate: Date;
+  eventsByDay: Map<string, CalendarAgendaItem[]>;
+  selectedDate: Date | null;
+  onSelectDate: (date: Date) => void;
+  onDayClick?: (date: Date) => void;
+  compact?: boolean;
+  showMonthCaption?: boolean;
+};
+
+function MonthGrid({
+  monthDate,
+  eventsByDay,
+  selectedDate,
+  onSelectDate,
+  onDayClick,
+  compact = false,
+  showMonthCaption = false,
+}: MonthGridProps) {
+  const today = new Date();
+  const cells = useMemo(() => buildMonthGrid(monthDate), [monthDate]);
+
+  return (
+    <div className="min-w-0">
+      {showMonthCaption ? (
+        <p className="mb-2 text-center font-serif text-[17px] font-semibold text-ink sm:text-[18px]">
+          {monthTitle(monthDate)}
+        </p>
+      ) : null}
+      <div className="grid w-full grid-cols-7 gap-px overflow-hidden rounded-2xl border border-outline-variant/20 bg-outline-variant/15">
+        {WEEKDAYS.map((day, i) => (
+          <div
+            key={`${day}-${monthDate.getMonth()}-${i}`}
+            className="bg-cream/80 px-0.5 py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-taupe sm:px-2 sm:py-2.5 sm:text-[11px]"
+          >
+            <span className="sm:hidden">{WEEKDAYS_SHORT[i]}</span>
+            <span className="hidden sm:inline">{day}</span>
+          </div>
+        ))}
+
+        {cells.map((day) => {
+          const inMonth = day.getMonth() === monthDate.getMonth();
+          const isToday = sameDay(day, today);
+          const isSelected = selectedDate ? sameDay(day, selectedDate) : false;
+          const dayEvents = eventsByDay.get(dateKey(day)) ?? [];
+
+          return (
+            <button
+              key={day.toISOString()}
+              type="button"
+              onClick={() => {
+                onSelectDate(day);
+                onDayClick?.(day);
+              }}
+              title="Tap to view this day"
+              className={cn(
+                "bg-ivory p-1 text-left transition-colors hover:bg-cream/70",
+                compact
+                  ? "min-h-[48px] sm:min-h-[64px] sm:p-1.5"
+                  : "min-h-[52px] sm:min-h-[88px] sm:p-2 md:min-h-[100px]",
+                !inMonth && "bg-cream/40 text-taupe/60",
+                isSelected && "bg-champagne/70 ring-2 ring-inset ring-rose-gold-deep/40",
+                onDayClick && "cursor-pointer hover:ring-1 hover:ring-inset hover:ring-rose-gold/30",
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-medium sm:h-7 sm:w-7 sm:text-[13px]",
+                  isToday && "bg-sage text-ivory",
+                  !isToday && "text-ink",
+                )}
+              >
+                {day.getDate()}
+              </span>
+              <div className={cn("mt-0.5 hidden space-y-0.5", compact ? "sm:mt-0.5" : "sm:mt-1 sm:block")}>
+                {dayEvents.slice(0, compact ? 1 : 2).map((ev) => (
+                  <p
+                    key={ev.id}
+                    className={cn(
+                      "flex items-center gap-1 truncate rounded-md px-1.5 py-0.5 text-[10px] font-medium sm:text-[11px]",
+                      eventChipClass(ev.source),
+                    )}
+                  >
+                    {ev.source === "task" ? (
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-600" aria-hidden />
+                    ) : null}
+                    <span className="truncate">{ev.title}</span>
+                  </p>
+                ))}
+                {dayEvents.length > (compact ? 1 : 2) ? (
+                  <p className="text-[10px] font-medium text-taupe">
+                    +{dayEvents.length - (compact ? 1 : 2)} more
+                  </p>
+                ) : null}
+              </div>
+              {dayEvents.length > 0 ? (
+                <div className="mt-0.5 flex justify-center gap-0.5 sm:hidden">
+                  {dayEvents.slice(0, 3).map((ev) => (
+                    <span key={ev.id} className="h-1 w-1 rounded-full bg-sage" />
+                  ))}
+                </div>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function MonthCalendar({
   viewDate,
   onViewDateChange,
@@ -74,9 +208,10 @@ export function MonthCalendar({
   onDayClick,
   viewMode = "month",
   onViewModeChange,
+  monthCount = 1,
 }: MonthCalendarProps) {
-  const today = new Date();
-  const cells = useMemo(() => buildMonthGrid(viewDate), [viewDate]);
+  const span = monthCount === 2 ? 2 : 1;
+  const secondMonth = useMemo(() => addMonths(viewDate, 1), [viewDate]);
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, CalendarAgendaItem[]>();
@@ -89,7 +224,7 @@ export function MonthCalendar({
     return map;
   }, [events]);
 
-  const monthLabel = viewDate.toLocaleString(undefined, { month: "long", year: "numeric" });
+  const headerLabel = rangeTitle(viewDate, span);
 
   const prevMonth = () => {
     const d = new Date(viewDate);
@@ -109,9 +244,11 @@ export function MonthCalendar({
     onSelectDate(now);
   };
 
+  const compact = span === 2;
+
   return (
     <div className="w-full min-w-0">
-      <div className="mb-3 flex flex-col gap-3 sm:mb-6 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mb-3 flex flex-col gap-3 sm:mb-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -121,8 +258,8 @@ export function MonthCalendar({
           >
             <Icon name="chevron_left" className="text-[22px]" />
           </button>
-          <h2 className="min-w-[140px] text-center font-serif text-[20px] font-semibold text-ink sm:text-[26px]">
-            {monthLabel}
+          <h2 className="min-w-[160px] text-center font-serif text-[18px] font-semibold text-ink sm:min-w-[200px] sm:text-[24px]">
+            {headerLabel}
           </h2>
           <button
             type="button"
@@ -159,78 +296,36 @@ export function MonthCalendar({
         </div>
       </div>
 
-      <div className="grid w-full grid-cols-7 gap-px overflow-hidden rounded-2xl border border-outline-variant/20 bg-outline-variant/15">
-        {WEEKDAYS.map((day, i) => (
-          <div
-            key={`${day}-${i}`}
-            className="bg-cream/80 px-0.5 py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-taupe sm:px-2 sm:py-3 sm:text-[11px]"
-          >
-            <span className="sm:hidden">{WEEKDAYS_SHORT[i]}</span>
-            <span className="hidden sm:inline">{day}</span>
-          </div>
-        ))}
-
-        {cells.map((day) => {
-          const inMonth = day.getMonth() === viewDate.getMonth();
-          const isToday = sameDay(day, today);
-          const isSelected = selectedDate ? sameDay(day, selectedDate) : false;
-          const dayEvents = eventsByDay.get(dateKey(day)) ?? [];
-
-          return (
-            <button
-              key={day.toISOString()}
-              type="button"
-              onClick={() => {
-                onSelectDate(day);
-                onDayClick?.(day);
-              }}
-              title="Tap to view this day"
-              className={cn(
-                "min-h-[52px] bg-ivory p-1 text-left transition-colors hover:bg-cream/70 sm:min-h-[88px] sm:p-2 md:min-h-[100px]",
-                !inMonth && "bg-cream/40 text-taupe/60",
-                isSelected && "bg-champagne/70 ring-2 ring-inset ring-rose-gold-deep/40",
-                onDayClick && "cursor-pointer hover:ring-1 hover:ring-inset hover:ring-rose-gold/30",
-              )}
-            >
-              <span
-                className={cn(
-                  "inline-flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-medium sm:h-7 sm:w-7 sm:text-[13px]",
-                  isToday && "bg-sage text-ivory",
-                  !isToday && "text-ink",
-                )}
-              >
-                {day.getDate()}
-              </span>
-              <div className="mt-0.5 hidden space-y-0.5 sm:mt-1 sm:block">
-                {dayEvents.slice(0, 2).map((ev) => (
-                  <p
-                    key={ev.id}
-                    className={cn(
-                      "flex items-center gap-1 truncate rounded-md px-1.5 py-0.5 text-[10px] font-medium sm:text-[11px]",
-                      eventChipClass(ev.source),
-                    )}
-                  >
-                    {ev.source === "task" ? (
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-600" aria-hidden />
-                    ) : null}
-                    <span className="truncate">{ev.title}</span>
-                  </p>
-                ))}
-                {dayEvents.length > 2 ? (
-                  <p className="text-[10px] font-medium text-taupe">+{dayEvents.length - 2} more</p>
-                ) : null}
-              </div>
-              {dayEvents.length > 0 ? (
-                <div className="mt-0.5 flex justify-center gap-0.5 sm:hidden">
-                  {dayEvents.slice(0, 3).map((ev) => (
-                    <span key={ev.id} className="h-1 w-1 rounded-full bg-sage" />
-                  ))}
-                </div>
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
+      {span === 2 ? (
+        <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
+          <MonthGrid
+            monthDate={viewDate}
+            eventsByDay={eventsByDay}
+            selectedDate={selectedDate}
+            onSelectDate={onSelectDate}
+            onDayClick={onDayClick}
+            compact
+            showMonthCaption
+          />
+          <MonthGrid
+            monthDate={secondMonth}
+            eventsByDay={eventsByDay}
+            selectedDate={selectedDate}
+            onSelectDate={onSelectDate}
+            onDayClick={onDayClick}
+            compact
+            showMonthCaption
+          />
+        </div>
+      ) : (
+        <MonthGrid
+          monthDate={viewDate}
+          eventsByDay={eventsByDay}
+          selectedDate={selectedDate}
+          onSelectDate={onSelectDate}
+          onDayClick={onDayClick}
+        />
+      )}
     </div>
   );
 }
