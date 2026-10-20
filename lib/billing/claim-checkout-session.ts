@@ -1,7 +1,8 @@
 import { writeAuditLog } from "@/lib/audit";
+import { evaluateCheckoutClaim } from "@/lib/billing/evaluate-checkout-claim";
 import { applyBillingPlan } from "@/lib/billing/settings-store";
 import { linkStripeCustomerFromSession } from "@/lib/billing/payg-usage";
-import { planById, type PlanId } from "@/lib/billing/plans";
+import type { PlanId } from "@/lib/billing/plans";
 import { getStripe } from "@/lib/stripe/config";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import type Stripe from "stripe";
@@ -41,75 +42,38 @@ export async function claimCheckoutSessionForOwner(
     expand: ["subscription"],
   });
 
-  if (session.status !== "complete") {
-    return {
-      ok: false,
-      status: 400,
-      code: "unpaid_session",
-      message: "This checkout session is not complete yet.",
-    };
-  }
-
-  const paid =
-    session.payment_status === "paid" || session.payment_status === "no_payment_required";
-  if (!paid) {
-    return {
-      ok: false,
-      status: 400,
-      code: "unpaid_session",
-      message: "This checkout session has not been paid.",
-    };
-  }
-
-  const planId = (session.metadata?.planId ?? "") as PlanId;
-  if (!planById(planId)) {
-    return {
-      ok: false,
-      status: 400,
-      code: "invalid_plan",
-      message: "Checkout session is missing a valid plan.",
-    };
-  }
-
   const metadataClaimed = session.metadata?.claimedOwnerId?.trim();
   const auditClaimed = await findCheckoutSessionClaimOwner(sessionId);
   const priorOwner = metadataClaimed || auditClaimed;
-
-  if (priorOwner && priorOwner !== ownerId) {
-    return {
-      ok: false,
-      status: 403,
-      code: "session_already_claimed",
-      message: "This checkout session is already linked to another account.",
-    };
-  }
-
   const boundOwner =
     session.client_reference_id?.trim() || session.metadata?.ownerId?.trim() || null;
-
-  if (boundOwner && boundOwner !== ownerId) {
-    return {
-      ok: false,
-      status: 403,
-      code: "session_owner_mismatch",
-      message: "This checkout session belongs to a different account.",
-    };
-  }
-
   const checkoutEmail =
     session.customer_details?.email?.trim().toLowerCase() ||
     session.customer_email?.trim().toLowerCase() ||
     null;
   const clerkEmail = options?.clerkEmail?.trim().toLowerCase() || null;
 
-  if (!boundOwner && !priorOwner && checkoutEmail && clerkEmail && checkoutEmail !== clerkEmail) {
+  const decision = evaluateCheckoutClaim({
+    sessionStatus: session.status ?? "",
+    paymentStatus: session.payment_status ?? "",
+    planId: session.metadata?.planId ?? "",
+    boundOwnerId: boundOwner,
+    claimedOwnerId: priorOwner ?? null,
+    requestingOwnerId: ownerId,
+    checkoutEmail,
+    clerkEmail,
+  });
+
+  if (!decision.ok) {
     return {
       ok: false,
-      status: 403,
-      code: "email_mismatch",
-      message: "Sign in with the email used at checkout to activate this plan.",
+      status: decision.status,
+      code: decision.code,
+      message: decision.message,
     };
   }
+
+  const planId = decision.planId;
 
   if (typeof session.subscription === "string") {
     await stripe.subscriptions.update(session.subscription, {

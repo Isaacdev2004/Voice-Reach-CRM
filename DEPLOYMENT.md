@@ -14,6 +14,10 @@ Place the client **MyARI** wordmark as a **transparent PNG** at `public/brand/my
 
 **Voice Scripts:** Hero uses lifestyle photography via `lib/voice-scripts/assets.ts` (`voice-scripts-hero.png`), not the legacy `voice-scripts.jpg` banner strip.
 
+**Supabase hardening:** After deploy, run SQL in `supabase/migrations/` (phone index + optional `revoke` on tenant tables for `anon`/`authenticated`). See `docs/SECURITY-RLS.md`.
+
+**Codex / CI:** Branch protection and release process — `docs/GITHUB-SETUP.md`, `docs/RELEASE.md`, `docs/STAGING.md`.
+
 **Hero image specs (client-ready):**
 
 | Layout | Use when | Recommended size |

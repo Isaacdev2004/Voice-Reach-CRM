@@ -1,3 +1,7 @@
+import {
+  isLiveOutboundAllowed,
+  liveOutboundBlockedMessage,
+} from "@/lib/billing/live-outbound";
 import { recordEngagementEvent } from "@/lib/engagement/record";
 import { dispatch, pickAdapterForChannel } from "@/lib/providers/registry";
 import type {
@@ -75,6 +79,16 @@ export async function sendToContact(params: {
     params.providerId === "mock"
       ? "mock"
       : pickAdapterForChannel(params.channel, params.providerId).id;
+
+  if (providerId !== "mock" && !isLiveOutboundAllowed()) {
+    return {
+      ok: false,
+      status: "failed",
+      error: liveOutboundBlockedMessage(),
+      skipped: true,
+      skipReason: "live_outbound_paused",
+    };
+  }
 
   const result = await dispatch(request, providerId);
 

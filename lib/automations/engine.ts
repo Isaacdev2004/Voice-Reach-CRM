@@ -177,6 +177,25 @@ async function runAction(
       const { workspace, profile } = await loadWorkspaceSettings(ownerId);
 
       const channel = action.type === "send_email" ? "email" : "sms";
+
+      const { isLiveOutboundAllowed, liveOutboundBlockedMessage } = await import(
+        "@/lib/billing/live-outbound"
+      );
+      if (!isLiveOutboundAllowed()) {
+        await writeAuditLog({
+          ownerId,
+          action: "AUTOMATION_BLOCKED",
+          entityType: "contact",
+          entityId: contactId,
+          metadata: {
+            reason: "live_outbound_paused",
+            error: liveOutboundBlockedMessage(),
+            action: action.type,
+          },
+        });
+        return;
+      }
+
       if (channel === "sms") {
         const { assertCanSendChannel } = await import("@/lib/billing/plan-limits");
         const quota = await assertCanSendChannel(ownerId, "sms");

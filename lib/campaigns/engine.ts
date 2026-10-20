@@ -21,6 +21,10 @@ import {
   emailAttachmentsForSend,
   signAttachmentsForSend,
 } from "@/lib/campaigns/attachments";
+import {
+  claimStepRunForExecution,
+  releaseStepRunToScheduled,
+} from "@/lib/campaigns/step-run-claim";
 import { signVoiceAssetUrl, voiceAssetReady } from "@/lib/voice/signed-audio";
 
 export type CampaignStepType =
@@ -297,6 +301,13 @@ export async function runDueStepRuns(
   }
 
   for (const run of runs ?? []) {
+    const claimed = await claimStepRunForExecution(run.id, run.owner_id);
+    if (!claimed) {
+      executed.push({ runId: run.id, status: "skipped_concurrent" });
+      summary.skipped += 1;
+      continue;
+    }
+
     const step = run.campaign_steps;
     const recipient = run.campaign_recipients;
     const contactRaw = recipient?.contacts;
@@ -325,7 +336,7 @@ export async function runDueStepRuns(
       !launched &&
       !options.bypassLaunchGate
     ) {
-      // Keep the run scheduled - do not skip permanently - just defer until launched.
+      await releaseStepRunToScheduled(run.id, run.owner_id);
       executed.push({ runId: run.id, status: "deferred_not_launched" });
       summary.deferredNotLaunched += 1;
       continue;
@@ -345,10 +356,9 @@ export async function runDueStepRuns(
         quietHoursEnd: workspace.quietHoursEnd,
         timeZone: profile.timezone,
       });
-      await supabaseAdmin
-        .from("campaign_step_runs")
-        .update({ scheduled_at: resumeAt.toISOString() })
-        .eq("id", run.id);
+      await releaseStepRunToScheduled(run.id, run.owner_id, {
+        scheduled_at: resumeAt.toISOString(),
+      });
       executed.push({ runId: run.id, status: "deferred_quiet_hours" });
       summary.deferredQuietHours += 1;
       continue;

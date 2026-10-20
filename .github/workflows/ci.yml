@@ -29,6 +29,9 @@ jobs:
       - name: Security unit checks
         run: npm run test:security
 
+      - name: Unit tests (billing, webhooks, messaging)
+        run: npm run test:unit
+
       - name: Build
         run: npm run build
         env:

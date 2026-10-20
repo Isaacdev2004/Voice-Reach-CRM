@@ -4,6 +4,7 @@ import { phoneLast10IlikePattern } from "@/lib/contacts/phone-match";
 import { recordEngagementEvent } from "@/lib/engagement/record";
 import { evaluateTriggers } from "@/lib/automations/engine";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { isInboundSmsForConfiguredNumber } from "@/lib/webhooks/twilio-inbound-scope";
 import { isDuplicateProviderWebhook } from "@/lib/webhooks/replay-guard";
 import {
   twilioWebhookPublicUrl,
@@ -69,7 +70,15 @@ export const POST = withApiHandler(async (request) => {
   }
 
   const from = String(raw.From ?? raw.from ?? "");
+  const to = String(raw.To ?? raw.to ?? "");
   const body = String(raw.Body ?? raw.body ?? "").trim();
+
+  if (to && !isInboundSmsForConfiguredNumber(to)) {
+    return new NextResponse("<Response></Response>", {
+      status: 200,
+      headers: { "Content-Type": "text/xml" },
+    });
+  }
   const messageSid = String(raw.MessageSid ?? raw.SmsSid ?? "");
   const keyword = body.toUpperCase().split(/\s+/)[0] ?? "";
 

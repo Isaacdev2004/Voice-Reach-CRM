@@ -8,6 +8,10 @@ import {
 } from "@/lib/billing/live-outbound";
 import { evaluateEligibility } from "@/lib/compliance";
 import { recordEngagementEvent } from "@/lib/engagement/record";
+import {
+  claimRecipientForOutboundSend,
+  TERMINAL_DELIVERY_STATUSES,
+} from "@/lib/campaigns/recipient-delivery-lock";
 import { dispatch } from "@/lib/providers/registry";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -74,12 +78,10 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
 
   const results: { recipientId: string; contactId: string; status: string; issues?: string[] }[] = [];
 
-  const sentStatuses = new Set(["sent", "mock_sent", "queued", "delivered"]);
-
   for (const recipient of recipients || []) {
     const contact = recipient.contacts;
 
-    if (sentStatuses.has(recipient.delivery_status)) {
+    if (TERMINAL_DELIVERY_STATUSES.has(recipient.delivery_status)) {
       results.push({
         recipientId: recipient.id,
         contactId: contact.id,
@@ -88,14 +90,7 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
       continue;
     }
 
-    const { data: locked } = await supabaseAdmin
-      .from("campaign_recipients")
-      .update({ delivery_status: "queued", updated_at: new Date().toISOString() })
-      .eq("id", recipient.id)
-      .eq("owner_id", ownerId)
-      .in("delivery_status", ["not_sent", "failed"])
-      .select("id")
-      .maybeSingle();
+    const locked = await claimRecipientForOutboundSend(recipient.id, ownerId);
 
     if (!locked) {
       results.push({
