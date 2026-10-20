@@ -36,20 +36,19 @@ export function subscriptionItems(planId: PlanId): Stripe.SubscriptionCreatePara
   const priceId = stripePriceIdForPlan(planId);
   if (priceId) return [{ price: priceId }];
 
-  return [
-    {
-      price_data: {
-        currency: "usd",
-        unit_amount: plan.price * 100,
-        recurring: { interval: "month" },
-        product_data: {
-          name: `MyARI ${plan.name}`,
-          description: plan.description,
-          tax_code: SAAS_TAX_CODE,
-        },
-      },
+  // Stripe API accepts product_data here; Subscription Item PriceData types omit it.
+  const priceData = {
+    currency: "usd",
+    unit_amount: plan.price * 100,
+    recurring: { interval: "month" as const },
+    product_data: {
+      name: `MyARI ${plan.name}`,
+      description: plan.description,
+      tax_code: SAAS_TAX_CODE,
     },
-  ];
+  } as Stripe.SubscriptionCreateParams.Item["price_data"];
+
+  return [{ price_data: priceData }];
 }
 
 export function isRecoverablePriceError(msg: string) {
