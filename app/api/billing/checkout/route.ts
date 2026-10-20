@@ -62,11 +62,16 @@ export const POST = withApiHandler(async (request) => {
   const base = appBaseUrl();
   const saved = await loadSavedSettings(ownerId);
 
+  const chargeImmediately =
+    saved?.billing.subscriptionStatus === "active" ||
+    saved?.billing.subscriptionStatus === "trialing";
+
   async function run(customer: string) {
     return createSubscriptionSession({
       planId: planId as PlanId,
       customerId: customer,
       ownerId,
+      chargeImmediately,
       successUrl: `${base}/dashboard/settings?tab=billing&checkout=success&plan=${planId}`,
       cancelUrl: `${base}/dashboard/settings?tab=billing&checkout=cancel`,
     });

@@ -32,7 +32,7 @@ export function UpgradePlanModal({
         if (!checkoutLoading) onClose();
       }}
       title="Choose your plan"
-      description="Pick a tier, then pay securely with Stripe. Features unlock only after payment succeeds."
+      description="Pick a tier to start your free trial (no card required). Add payment before the trial ends from Settings → Billing."
       icon="workspace_premium"
       size="xl"
     >
@@ -108,7 +108,7 @@ export function UpgradePlanModal({
                     featured ? "bg-rose-gold" : "bg-ink",
                   )}
                 >
-                  {checkoutLoading ? "Opening Stripe…" : `Pay $${plan.price}/mo`}
+                  {checkoutLoading ? "Please wait…" : `Start ${plan.name} trial`}
                 </button>
               )}
             </div>

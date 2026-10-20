@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { PlanId } from "@/lib/billing/plans";
+import { rememberPendingPlan } from "@/lib/billing/pending-plan";
 import { primaryTrialCta } from "@/lib/marketing/site-offer";
 import { trackMarketingEvent } from "@/lib/marketing/track";
 
@@ -31,10 +32,11 @@ export function StartFreeButton({
 
   return (
     <Link
-      href={`/checkout?plan=${planId}`}
-      onClick={() =>
-        trackMarketingEvent("start_trial_click", { location, label: label.toLowerCase(), plan: planId })
-      }
+      href={`/sign-up?plan=${planId}`}
+      onClick={() => {
+        rememberPendingPlan(planId);
+        trackMarketingEvent("start_trial_click", { location, label: label.toLowerCase(), plan: planId });
+      }}
       className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-8 py-3 text-[14px] font-bold uppercase tracking-wide transition-all active:scale-[0.98] ${styles} ${className}`}
     >
       <span>{label}</span>

@@ -6,6 +6,7 @@ import { CheckCircleIcon } from "@/components/icons/landing-icons";
 import { PLAN_OPTIONS } from "@/lib/billing/plans";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
 import { PlaybookCtaLink } from "@/components/landing/playbook-cta-link";
+import { rememberPendingPlan } from "@/lib/billing/pending-plan";
 import { primaryTrialCta, SITE_OFFER } from "@/lib/marketing/site-offer";
 import { Reveal, RevealStagger } from "@/components/marketing/motion-reveal";
 import { trackMarketingEvent } from "@/lib/marketing/track";
@@ -151,8 +152,9 @@ export function LandingPricing() {
                 )}
 
                 <Link
-                  href={`/checkout?plan=${plan.id}`}
+                  href={`/sign-up?plan=${plan.id}`}
                   onClick={() => {
+                    rememberPendingPlan(plan.id);
                     trackMarketingEvent("pricing_plan_select", { location: "landing-pricing", plan: plan.id });
                     trackMarketingEvent("start_trial_click", { location: "pricing", plan: plan.id });
                   }}

@@ -17,7 +17,7 @@ export const POST = withApiHandler(async () => {
   const customerId = await loadStripeCustomerId(ownerId);
   if (!customerId) {
     return apiError(
-      "No Stripe customer on file yet. Complete a subscription payment first, then you can manage or cancel here.",
+      "No billing profile yet. Start your free trial from Settings, then you can add a card or manage billing here.",
       { status: 400, code: "no_stripe_customer" },
     );
   }

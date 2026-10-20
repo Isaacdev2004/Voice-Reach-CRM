@@ -2,6 +2,7 @@
 
 import { SignUp, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
+import { activatePendingTrialIfNeeded, stashPlanFromQuery } from "@/lib/billing/activate-trial-client";
 import { clearPendingPlan } from "@/lib/billing/pending-plan";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import { AUTH_AFTER_URL } from "@/lib/clerk-env";
@@ -16,7 +17,13 @@ export function ClerkSignUp() {
   const { isLoaded, isSignedIn } = useAuth();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const planParam = searchParams.get("plan");
   const attributionSent = useRef(false);
+  const trialActivated = useRef(false);
+
+  useEffect(() => {
+    stashPlanFromQuery(planParam);
+  }, [planParam]);
 
   // After new sign-up: attach paid session if present
   useEffect(() => {
@@ -53,6 +60,15 @@ export function ClerkSignUp() {
       } catch {
         /* optional */
       }
+    })();
+  }, [sessionId, isSignedIn]);
+
+  // Cardless trial: start Stripe subscription after account exists (legacy checkout sessions still use claim above)
+  useEffect(() => {
+    if (!isSignedIn || sessionId || trialActivated.current) return;
+    void (async () => {
+      const ok = await activatePendingTrialIfNeeded();
+      if (ok) trialActivated.current = true;
     })();
   }, [sessionId, isSignedIn]);
 
@@ -98,8 +114,8 @@ export function ClerkSignUp() {
         </p>
         <h2 className="mt-2 font-serif text-[28px] font-semibold text-ink">Create your account</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
-          Email and password only. We&apos;ll reach out within 24 hours for white-glove setup - lead
-          import, first campaign, and pipeline configuration included.
+          Email and password only — no credit card. Your {FOUNDING_100.trialDays}-day trial starts
+          when you finish signup. We&apos;ll reach out within 24 hours for white-glove setup.
         </p>
       </div>
 

@@ -4,8 +4,10 @@ import { UpgradePlanModal } from "@/components/settings/upgrade-plan-modal";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { type PlanId } from "@/lib/billing/plans";
+import { activatePendingTrialIfNeeded } from "@/lib/billing/activate-trial-client";
 import {
   clearPendingPlan,
+  readPendingPlan,
   rememberPendingPlan,
 } from "@/lib/billing/pending-plan";
 import { handleTrialClaimSuccess } from "@/lib/marketing/trial-tracking";
@@ -56,6 +58,7 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
   const [lastUpgradedAt, setLastUpgradedAt] = useState(0);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const claimAttempted = useRef(false);
+  const trialActivateAttempted = useRef(false);
 
   const billing = settings?.billing ?? DEFAULT_SETTINGS.billing;
   const subscriptionActive =
@@ -78,6 +81,31 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void loadSettings();
   }, [loadSettings]);
+
+  // Cardless trial after sign-up (if sign-up page did not finish activation)
+  useEffect(() => {
+    if (trialActivateAttempted.current) return;
+    if (!readPendingPlan()) return;
+    if (billing.subscriptionStatus === "trialing" || billing.subscriptionStatus === "active") {
+      clearPendingPlan();
+      return;
+    }
+    trialActivateAttempted.current = true;
+    void (async () => {
+      const ok = await activatePendingTrialIfNeeded();
+      if (ok) {
+        const s = await loadSettings();
+        setLastUpgradedAt(Date.now());
+        setToast({
+          message: `Your ${s.billing.planName} trial is active — no card required until the trial ends.`,
+          tone: "success",
+        });
+        window.setTimeout(() => setToast(null), 6000);
+      } else {
+        trialActivateAttempted.current = false;
+      }
+    })();
+  }, [billing.subscriptionStatus, loadSettings]);
 
   // After pay-then-signup: attach Stripe session to this user once
   useEffect(() => {
@@ -127,6 +155,70 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
     setToast(null);
     setCheckoutError(null);
     rememberPendingPlan(planId);
+
+    const status = billing.subscriptionStatus ?? "none";
+
+    if (status === "trialing" && planId === (billing.planId as PlanId)) {
+      try {
+        const res = await fetch("/api/billing/add-payment-method", { method: "POST" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(
+            (data as { error?: string }).error ?? "Could not open payment setup.",
+          );
+        }
+        const url = (data as { url?: string }).url;
+        if (url) window.location.assign(url);
+        else throw new Error("Stripe setup URL missing");
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Setup failed";
+        setCheckoutError(message);
+        setToast({ message, tone: "error" });
+        window.setTimeout(() => setToast(null), 8000);
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
+    if (status === "none" || status === "canceled") {
+      try {
+        const res = await fetch("/api/billing/start-trial", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planId }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error((data as { error?: string }).error ?? "Could not start trial.");
+        }
+        clearPendingPlan();
+        if ((data as { trialing?: boolean }).trialing && data.planId) {
+          handleTrialClaimSuccess({
+            planId: data.planId as string,
+            planPrice: (data as { planPrice?: number }).planPrice ?? 0,
+            trialing: true,
+          });
+        }
+        await loadSettings();
+        setLastUpgradedAt(Date.now());
+        setOpen(false);
+        setToast({
+          message: `Your ${(data as { planName?: string }).planName ?? "plan"} trial is active.`,
+          tone: "success",
+        });
+        window.setTimeout(() => setToast(null), 6000);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Trial start failed";
+        setCheckoutError(message);
+        setToast({ message, tone: "error" });
+        window.setTimeout(() => setToast(null), 8000);
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
     try {
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
@@ -155,7 +247,7 @@ export function UpgradePlanProvider({ children }: { children: ReactNode }) {
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [billing.planId, billing.subscriptionStatus, loadSettings]);
 
   useEffect(() => {
     if (searchParams.get("upgrade") !== "1") return;

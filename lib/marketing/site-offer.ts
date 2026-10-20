@@ -3,7 +3,7 @@ import { FOUNDING_100, trialDaysFromEnv } from "./founding";
 /** Single source of truth for trial, onboarding, integrations, and qualified marketing claims. */
 export const SITE_OFFER = {
   trialDays: trialDaysFromEnv(),
-  /** Stripe may still collect a card at checkout; we do not surface "card required" on marketing. */
+  /** Cardless trial via sign-up; payment method collected after trial (Settings → Billing). */
   cardRequired: false,
   cardRequiredNote: "",
   playbook: {
@@ -100,7 +100,7 @@ export function primaryTrialCta() {
 }
 
 export function trialDisclosureLine() {
-  return `${SITE_OFFER.trialDays}-day free trial · No charge until trial ends · ${SITE_OFFER.whiteGlove.shortLine}`;
+  return `${SITE_OFFER.trialDays}-day free trial · No credit card required · No charge until trial ends · ${SITE_OFFER.whiteGlove.shortLine}`;
 }
 
 /** @deprecated Prefer primaryTrialCta() for marketing CTAs. */

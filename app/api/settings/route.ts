@@ -160,6 +160,20 @@ export const GET = withApiHandler(async () => {
   };
 
   let settings = mergeSettings(base, saved, minutesUsed);
+  if (!saved) {
+    settings = {
+      ...settings,
+      billing: {
+        ...settings.billing,
+        planId: "growth",
+        planName: "Choose a plan",
+        monthlyPrice: 0,
+        voiceMinutesLimit: 0,
+        voiceMinutesUsed: minutesUsed,
+        subscriptionStatus: "none",
+      },
+    };
+  }
   settings = {
     ...settings,
     integrations: await applyLiveIntegrationStatus(ownerId, settings.integrations),

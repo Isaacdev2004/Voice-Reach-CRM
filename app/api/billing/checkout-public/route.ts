@@ -5,8 +5,8 @@ import { appBaseUrl, isStripeConfigured } from "@/lib/stripe/config";
 import { z } from "zod";
 
 /**
- * Public (pre-signup) checkout - pick a plan and pay before creating an account.
- * After payment, Stripe redirects to /sign-up?session_id=...&plan=...
+ * Legacy: Stripe Checkout before sign-up (optional payment method if trial).
+ * Primary funnel uses /sign-up + POST /api/billing/start-trial (no card until trial ends).
  */
 const BodySchema = z.object({
   planId: z.enum(["starter", "growth", "pro"]),

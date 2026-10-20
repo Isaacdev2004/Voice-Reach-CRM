@@ -37,12 +37,20 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   const ownerId = subscription.metadata?.ownerId;
   if (!ownerId) return;
 
-  if (subscription.status === "active" || subscription.status === "trialing") {
+  if (
+    subscription.status === "active" ||
+    subscription.status === "trialing" ||
+    subscription.status === "paused"
+  ) {
     const planId = planFromMetadata(subscription.metadata);
     if (planId) {
-      await applyBillingPlan(ownerId, planId, {
-        subscriptionStatus: subscription.status === "trialing" ? "trialing" : "active",
-      });
+      const subscriptionStatus =
+        subscription.status === "trialing"
+          ? "trialing"
+          : subscription.status === "paused"
+            ? "trialing"
+            : "active";
+      await applyBillingPlan(ownerId, planId, { subscriptionStatus });
     }
     return;
   }

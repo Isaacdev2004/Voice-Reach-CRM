@@ -7,19 +7,17 @@ import { FOUNDING_100 } from "@/lib/marketing/founding";
 import { trackMarketingEvent } from "@/lib/marketing/track";
 import { SITE_OFFER } from "@/lib/marketing/site-offer";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 function CheckoutInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initial = searchParams.get("plan");
-  const canceled = searchParams.get("canceled") === "1";
 
   const [planId, setPlanId] = useState<PlanId>(
     initial && planById(initial) ? (initial as PlanId) : "growth",
   );
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initial && planById(initial)) setPlanId(initial as PlanId);
@@ -27,30 +25,10 @@ function CheckoutInner() {
 
   const selected = planById(planId)!;
 
-  const startPay = async () => {
-    setLoading(true);
-    setError(null);
+  const continueToSignUp = () => {
     rememberPendingPlan(planId);
-    try {
-      const res = await fetch("/api/billing/checkout-public", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(
-          (data as { error?: string }).error ?? "Could not start Stripe checkout",
-        );
-      }
-      const url = (data as { url?: string }).url;
-      if (!url) throw new Error("Stripe checkout URL missing");
-      trackMarketingEvent("checkout_started", { planId, location: "checkout-page" });
-      window.location.assign(url);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Checkout failed");
-      setLoading(false);
-    }
+    trackMarketingEvent("start_trial_click", { planId, location: "checkout-page" });
+    router.push(`/sign-up?plan=${planId}`);
   };
 
   return (
@@ -60,19 +38,13 @@ function CheckoutInner() {
       </p>
       <h1 className="mt-2 font-serif text-[36px] font-semibold text-ink">Choose your plan</h1>
       <p className="mt-2 text-[15px] text-slate-text">
-        Start your {SITE_OFFER.trialDays}-day free trial, then create your account.{" "}
-        {SITE_OFFER.whiteGlove.shortLine}. Not ready?{" "}
+        {SITE_OFFER.trialDays}-day free trial — <strong className="font-semibold text-ink">no credit card</strong>{" "}
+        until the trial ends. Create your account next. {SITE_OFFER.whiteGlove.shortLine}. Not ready?{" "}
         <Link href={SITE_OFFER.playbook.path} className="font-medium text-rose-gold-deep hover:underline">
           Get the free playbook
         </Link>
         .
       </p>
-
-      {canceled ? (
-        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[14px] text-amber-950">
-          Checkout was canceled. Pick a plan below to try again.
-        </p>
-      ) : null}
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {CHECKOUT_PLAN_OPTIONS.map((plan) => (
@@ -90,7 +62,7 @@ function CheckoutInner() {
             <p className="font-serif text-[20px] font-semibold text-ink">{plan.name}</p>
             <p className="mt-1 font-serif text-[28px] text-ink">
               ${plan.price}
-              <span className="text-[14px] font-normal text-taupe">/mo</span>
+              <span className="text-[14px] font-normal text-taupe">/mo after trial</span>
             </p>
             <p className="mt-2 text-[12px] text-taupe">{plan.description}</p>
           </button>
@@ -99,33 +71,26 @@ function CheckoutInner() {
 
       <div className="mt-8 rounded-2xl border border-outline-variant/15 bg-champagne/40 p-6">
         <p className="font-medium text-ink">
-          {selected.name} - ${selected.price}/month beginning after your {SITE_OFFER.trialDays}-day trial
+          {selected.name} — ${selected.price}/month after your {SITE_OFFER.trialDays}-day trial
         </p>
         <p className="mt-2 text-[14px] text-slate-text">
-          After {SITE_OFFER.trialDays} days, your selected plan begins unless you cancel beforehand.
+          We&apos;ll ask for a payment method when your trial ends (or anytime from Settings → Billing).
         </p>
         <ul className="mt-3 space-y-1 text-[13px] text-slate-text">
-          {selected.features.map((f) => (
+          {selected.features.slice(0, 6).map((f) => (
             <li key={f}>· {f}</li>
           ))}
         </ul>
 
-        {error ? (
-          <p className="mt-4 rounded-xl border border-error/20 bg-error/5 px-3 py-2 text-[13px] text-error">
-            {error}
-          </p>
-        ) : null}
-
         <button
           type="button"
-          disabled={loading}
-          onClick={() => void startPay()}
-          className="mt-5 w-full rounded-full bg-rose-gold px-6 py-3.5 text-[15px] font-medium text-ivory disabled:opacity-50"
+          onClick={continueToSignUp}
+          className="mt-5 w-full rounded-full bg-rose-gold px-6 py-3.5 text-[15px] font-medium text-ivory"
         >
-          {loading ? "Opening Stripe…" : `Start ${FOUNDING_100.trialDays}-day free trial`}
+          Continue — create your account
         </button>
         <p className="mt-3 text-center text-[12px] text-taupe">
-          No charge until trial ends · Then create your login (step 2).
+          No card required now · No charge until trial ends
         </p>
         <p className="mt-2 text-center text-[12px] text-taupe">
           Trial includes {FOUNDING_100.trialUsageCaps.sms} SMS,{" "}
@@ -134,15 +99,15 @@ function CheckoutInner() {
         </p>
       </div>
 
-        <p className="mt-8 text-center text-[13px] text-taupe">
-          <Link href="/sign-in" className="font-medium text-rose-gold-deep hover:underline">
-            Sign in
-          </Link>
-          {" · "}
-          <Link href="/" className="hover:underline">
-            Back to home
-          </Link>
-        </p>
+      <p className="mt-8 text-center text-[13px] text-taupe">
+        <Link href="/sign-in" className="font-medium text-rose-gold-deep hover:underline">
+          Sign in
+        </Link>
+        {" · "}
+        <Link href="/" className="hover:underline">
+          Back to home
+        </Link>
+      </p>
     </div>
   );
 }

@@ -1,23 +1,14 @@
-import { stripePriceIdForPlan } from "@/lib/billing/settings-store";
 import { planById, type PlanId } from "@/lib/billing/plans";
+import { checkoutLineItems, isRecoverablePriceError } from "@/lib/billing/stripe-prices";
 import { trialDaysFromEnv } from "@/lib/marketing/founding";
 import { getStripe } from "@/lib/stripe/config";
 import type Stripe from "stripe";
-
-/** SaaS / electronically supplied services - satisfies Stripe Tax + Managed Payments rules */
-const SAAS_TAX_CODE = "txcd_10103001";
 
 export function stripeMessage(err: unknown): string {
   if (err && typeof err === "object" && "message" in err) {
     return String((err as { message: string }).message);
   }
   return err instanceof Error ? err.message : "Stripe checkout failed";
-}
-
-function isRecoverablePriceError(msg: string) {
-  return /No such price|resource_missing|Invalid price|tax code is missing|Managed Payments/i.test(
-    msg,
-  );
 }
 
 export async function createSubscriptionSession(params: {
@@ -27,55 +18,51 @@ export async function createSubscriptionSession(params: {
   ownerId?: string;
   successUrl: string;
   cancelUrl: string;
+  /** When true, charge now (no trial) and collect a payment method. */
+  chargeImmediately?: boolean;
 }) {
   const plan = planById(params.planId);
   if (!plan) throw new Error("Invalid plan");
 
   const stripe = getStripe();
-  const priceId = stripePriceIdForPlan(params.planId);
+  const lineItems = checkoutLineItems(params.planId);
 
   const metadata: Record<string, string> = { planId: params.planId };
   if (params.ownerId) metadata.ownerId = params.ownerId;
 
-  const inlinePriceItem: Stripe.Checkout.SessionCreateParams.LineItem = {
-    quantity: 1,
-    price_data: {
-      currency: "usd",
-      unit_amount: plan.price * 100,
-      recurring: { interval: "month" },
-      product_data: {
-        name: `MyARI ${plan.name}`,
-        description: plan.description,
-        tax_code: SAAS_TAX_CODE,
-      },
-    },
-  };
-
-  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = priceId
-    ? [{ price: priceId, quantity: 1 }]
-    : [inlinePriceItem];
-
   const trialDays = trialDaysFromEnv();
+  const withTrial = !params.chargeImmediately;
+
+  const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
+    metadata,
+    ...(withTrial
+      ? {
+          trial_period_days: trialDays,
+          trial_settings: {
+            end_behavior: { missing_payment_method: "pause" },
+          },
+        }
+      : {}),
+  };
 
   const baseSession: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
-    payment_method_collection: "always",
+    payment_method_collection: withTrial ? "if_required" : "always",
     ...(params.customerId
       ? { customer: params.customerId }
       : params.customerEmail
         ? { customer_email: params.customerEmail }
         : {}),
     ...(params.ownerId ? { client_reference_id: params.ownerId } : {}),
-    subscription_data: {
-      metadata,
-      trial_period_days: trialDays,
+    subscription_data: subscriptionData,
+    metadata: {
+      ...metadata,
+      ...(withTrial ? { trial_days: String(trialDays) } : { charge_immediately: "1" }),
     },
-    metadata: { ...metadata, trial_days: String(trialDays) },
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
     allow_promotion_codes: true,
     billing_address_collection: "auto",
-    // Account has Managed Payments on by default; we sell SaaS as merchant of record.
     managed_payments: { enabled: false },
   };
 
@@ -86,21 +73,38 @@ export async function createSubscriptionSession(params: {
     });
   } catch (err) {
     const msg = stripeMessage(err);
-    // Bad env price IDs or tax-code issues on catalog products → fall back to inline SaaS price
-    if (priceId && isRecoverablePriceError(msg)) {
+    if (isRecoverablePriceError(msg)) {
       return await stripe.checkout.sessions.create({
         ...baseSession,
-        line_items: [inlinePriceItem],
+        line_items: checkoutLineItems(params.planId),
       });
     }
-    // Older Stripe SDK may not accept managed_payments - retry without it but keep tax_code
     if (/managed_payments|unknown parameter/i.test(msg)) {
       const { managed_payments: _mp, ...withoutManaged } = baseSession;
       return await stripe.checkout.sessions.create({
         ...withoutManaged,
-        line_items: [inlinePriceItem],
+        line_items: checkoutLineItems(params.planId),
       });
     }
     throw err;
   }
+}
+
+/** Collect a card on file (e.g. before trial ends) without starting a new subscription. */
+export async function createPaymentMethodSetupSession(params: {
+  customerId: string;
+  ownerId: string;
+  successUrl: string;
+  cancelUrl: string;
+}) {
+  const stripe = getStripe();
+  return stripe.checkout.sessions.create({
+    mode: "setup",
+    customer: params.customerId,
+    client_reference_id: params.ownerId,
+    metadata: { ownerId: params.ownerId, purpose: "add_payment_method" },
+    success_url: params.successUrl,
+    cancel_url: params.cancelUrl,
+    billing_address_collection: "auto",
+  });
 }
