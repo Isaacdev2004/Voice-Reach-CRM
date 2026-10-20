@@ -163,7 +163,12 @@ function MonthGrid({
               >
                 {day.getDate()}
               </span>
-              <div className={cn("mt-0.5 hidden space-y-0.5", compact ? "sm:mt-0.5" : "sm:mt-1 sm:block")}>
+              <div
+                className={cn(
+                  "mt-0.5 hidden space-y-0.5 sm:block",
+                  compact ? "sm:mt-0.5" : "sm:mt-1",
+                )}
+              >
                 {dayEvents.slice(0, compact ? 1 : 2).map((ev) => (
                   <p
                     key={ev.id}
