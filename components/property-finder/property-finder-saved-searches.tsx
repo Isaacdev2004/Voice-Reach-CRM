@@ -57,8 +57,8 @@ export function PropertyFinderSavedSearches({
             {saved.map((c) => {
               const active = c.id === selectedId;
               const area = (c.preferred_area ?? "").trim() || "Any area";
-              const budget =
-                c.budget != null && c.budget > 0 ? ` · up to ${formatUsd(c.budget)}` : "";
+              const b = budgetNumber(c);
+              const budget = b ? ` · up to ${formatUsd(b)}` : "";
               return (
                 <li key={c.id}>
                   <button
