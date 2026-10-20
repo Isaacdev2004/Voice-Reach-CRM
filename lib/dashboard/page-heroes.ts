@@ -137,7 +137,6 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     title: "Mortgage Calculator",
     subtitle: "Estimate monthly payments with today's average rates, refreshed daily.",
     scriptAccent: "Home Opens More",
-    scriptAccentOnImage: true,
     imageAlt: "Insightful planning and rates motif",
     imageObjectPosition: "18% center",
     features: [
@@ -153,7 +152,6 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle:
       "Capture ideas, plan strategy, and keep client context — all in one place.",
     scriptAccent: "Ideas Create Opportunities",
-    scriptAccentOnImage: true,
     imageAlt: "Flowing gold and cream fabric texture",
     imageObjectPosition: "50% center",
   },
@@ -162,7 +160,6 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     eyebrow: "Tasks",
     title: "Follow-ups & to-dos",
     scriptAccent: "Productivity creates space for purpose.",
-    scriptAccentOnImage: true,
     heroLayout: "banner",
     imageAlt: "Desk with laptop and city view at golden hour",
     imageObjectPosition: "32% center",
@@ -175,7 +172,6 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle:
       "Create, manage, and organize your voice scripts. Turn conversations into opportunities.",
     scriptAccent: "Every conversation can open a door.",
-    scriptAccentOnImage: true,
     imageAlt: "Professional microphone on a sunlit desk by the coast",
     imageObjectPosition: "52% center",
   },
