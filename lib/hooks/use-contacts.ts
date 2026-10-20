@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 
 export type ApiContact = {
   id: string;
+  created_at?: string;
   first_name: string;
   last_name?: string | null;
   phone: string;

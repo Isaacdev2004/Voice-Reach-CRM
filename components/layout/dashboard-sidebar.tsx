@@ -39,8 +39,8 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
       >
         <div className="mb-8 flex items-start justify-between px-6">
           <Link href="/dashboard" className="group" onClick={onMobileClose}>
-            <AriLogo height={76} />
-            <p className="mt-2 text-[12px] italic leading-snug text-taupe group-hover:text-rose-gold-deep">
+            <AriLogo height={96} className="max-w-[148px]" />
+            <p className="mt-2.5 text-[13px] italic leading-snug text-taupe group-hover:text-rose-gold-deep">
               {BRAND_TAGLINE}
             </p>
           </Link>
@@ -80,7 +80,9 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
           <p className="text-center text-[11px] text-taupe">
             {billing.subscriptionStatus === "active"
               ? `${billing.planName} · $${billing.monthlyPrice}/mo`
-              : "No active plan"}
+              : billing.subscriptionStatus === "trialing"
+                ? `${billing.planName} · free trial`
+                : "No active plan"}
           </p>
           <button
             type="button"

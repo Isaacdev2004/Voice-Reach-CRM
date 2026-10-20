@@ -254,7 +254,7 @@ export function DashboardHeaderProvider({
         </button>
 
         <form className="flex min-w-[140px] flex-1 items-center sm:min-w-[220px]" onSubmit={handleSearchSubmit}>
-          <div ref={searchRef} className="relative w-full min-w-[200px] max-w-md sm:min-w-[260px]">
+          <div ref={searchRef} className="relative w-full min-w-[200px] max-w-lg sm:min-w-[280px]">
             <Icon
               name="search"
               className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-on-surface-variant sm:left-4"
@@ -265,7 +265,7 @@ export function DashboardHeaderProvider({
               onChange={(e) => handleSearchChange(e.target.value)}
               onFocus={() => setSearchOpen(true)}
               placeholder={searchPlaceholder}
-              className="h-10 w-full rounded-full border-none bg-surface-container-low pl-10 pr-3 text-body-md focus:ring-2 focus:ring-rose-gold/20 sm:pl-12 sm:pr-4"
+              className="h-10 w-full truncate rounded-full border-none bg-surface-container-low pl-10 pr-3 text-body-md placeholder:text-on-surface-variant focus:ring-2 focus:ring-rose-gold/20 sm:pl-12 sm:pr-4"
               aria-label="Search dashboard"
               aria-expanded={searchOpen}
               autoComplete="off"

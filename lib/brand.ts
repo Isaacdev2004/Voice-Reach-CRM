@@ -2,7 +2,8 @@
 export const BRAND_NAME = "MyARI";
 /** Legacy short name (domain, filenames). */
 export const BRAND_NAME_SHORT = "ARI";
-export const BRAND_TAGLINE = "Relationships that open doors";
+/** Matches public marketing (`lib/marketing/site-offer.ts`). */
+export const BRAND_TAGLINE = "Lead follow-up on autopilot.";
 /** Public product domain (custom domain). Deploy URL may still be Vercel until DNS is pointed. */
 export const BRAND_DOMAIN = "myari.io";
 /** Preferred canonical origin - non-www redirects to www on Vercel. */

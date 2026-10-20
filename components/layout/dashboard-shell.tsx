@@ -31,7 +31,7 @@ const headerConfig: Record<
   { searchPlaceholder?: string; showQuickCreate?: boolean; fullWidth?: boolean }
 > = {
   "/dashboard": {
-    searchPlaceholder: "Search contacts, campaigns, or ask MyARI...",
+    searchPlaceholder: "Search contacts or campaigns",
     showQuickCreate: true,
     fullWidth: true,
   },

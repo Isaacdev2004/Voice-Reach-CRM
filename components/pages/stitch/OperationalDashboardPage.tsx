@@ -5,78 +5,104 @@ import { DashboardRecommendedForYou } from "@/components/crm/dashboard-recommend
 import { KpiCard } from "@/components/crm/kpi-card";
 import { MarketingPulse } from "@/components/crm/marketing-pulse";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
+import {
+  campaignsLaunchedThisMonth,
+  contactsAddedThisMonth,
+  countActiveCampaigns,
+  countSentCampaigns,
+  monthOverMonthContactChange,
+  newOpportunitiesThisWeek,
+  type CampaignRow,
+} from "@/lib/dashboard/home-kpis";
 import type { DashboardKpi } from "@/lib/crm/types";
 import { useContacts } from "@/lib/hooks/use-contacts";
 import { useEffect, useMemo, useState } from "react";
 
 export function OperationalDashboardPage() {
   const { contacts, loading, meta } = useContacts();
-  const [campaignCount, setCampaignCount] = useState<number | null>(null);
-  const [activeCampaigns, setActiveCampaigns] = useState<number | null>(null);
+  const [campaigns, setCampaigns] = useState<CampaignRow[] | null>(null);
 
   useEffect(() => {
     void (async () => {
       try {
         const res = await fetch("/api/campaigns");
         const data = await res.json().catch(() => ({}));
-        const list = (data.campaigns ?? []) as { status: string }[];
-        setCampaignCount(list.length);
-        setActiveCampaigns(
-          list.filter((c) => c.status === "sending" || c.status === "sent" || c.status === "queued")
-            .length,
-        );
+        setCampaigns((data.campaigns ?? []) as CampaignRow[]);
       } catch {
-        setCampaignCount(0);
-        setActiveCampaigns(0);
+        setCampaigns([]);
       }
     })();
   }, []);
 
   const total = meta?.total ?? contacts.length;
   const activeLeads = meta?.counts?.activeLead ?? 0;
-  const coldLeads = meta?.counts?.coldLead ?? 0;
-  const opportunities = activeLeads + Math.min(coldLeads, 12);
+  const addedThisMonth = contactsAddedThisMonth(contacts);
+  const sentCount = campaigns ? countSentCampaigns(campaigns) : null;
+  const activeCount = campaigns ? countActiveCampaigns(campaigns) : null;
+  const launchedThisMonth = campaigns ? campaignsLaunchedThisMonth(campaigns) : 0;
+  const newThisWeek = newOpportunitiesThisWeek(contacts, activeLeads);
 
   const kpis: DashboardKpi[] = useMemo(() => {
-    const sentDisplay =
-      campaignCount === null ? "…" : String(Math.max(campaignCount, campaignCount > 0 ? campaignCount : 24));
-    const activeDisplay =
-      activeCampaigns === null
-        ? "…"
-        : `${Math.max(activeCampaigns, activeCampaigns > 0 ? activeCampaigns : 12)} active campaigns`;
+    const contactChange = loading ? undefined : monthOverMonthContactChange(contacts);
+    const monthDetail =
+      loading ? undefined : addedThisMonth === 0 ? "No new contacts this month" : `+${addedThisMonth} this month`;
+
+    const campaignDetail =
+      campaigns === null
+        ? undefined
+        : activeCount === 0
+          ? "No campaigns in progress"
+          : `${activeCount} active ${activeCount === 1 ? "campaign" : "campaigns"}`;
+
+    const campaignChange =
+      campaigns === null
+        ? undefined
+        : launchedThisMonth > 0
+          ? `+${launchedThisMonth} launched this month`
+          : undefined;
+
+    const oppDetail =
+      loading
+        ? undefined
+        : newThisWeek === 0
+          ? `${activeLeads} active in pipeline`
+          : `${newThisWeek} new this week`;
 
     return [
       {
         id: "contacts",
         label: "Total Contacts",
         value: loading ? "…" : total.toLocaleString(),
-        change: loading ? undefined : "+12%",
-        changeTone: "up",
-        detail: loading ? undefined : `+${Math.max(1, Math.round(total * 0.08))} this month`,
+        change: contactChange,
+        changeTone: contactChange?.startsWith("-")
+          ? "down"
+          : contactChange?.startsWith("Flat")
+            ? "neutral"
+            : "up",
+        detail: monthDetail,
         icon: "group",
         tone: "default",
-        spark: "line",
+        spark: contactChange ? "line" : undefined,
       },
       {
         id: "campaigns-sent",
         label: "Campaigns Sent",
-        value: campaignCount === null ? "…" : sentDisplay,
-        change: campaignCount === null ? undefined : "+22%",
+        value: sentCount === null ? "…" : String(sentCount),
+        change: campaignChange,
         changeTone: "up",
-        detail: activeDisplay,
+        detail: campaignDetail,
         icon: "campaign",
         tone: "bronze",
       },
       {
         id: "opportunities",
         label: "Opportunities",
-        value: loading ? "…" : String(opportunities || 18),
-        change: loading ? undefined : "+50%",
-        changeTone: "up",
-        detail: loading ? undefined : "3 new this week",
+        value: loading ? "…" : String(activeLeads),
+        change: undefined,
+        detail: oppDetail,
         icon: "trending_up",
         tone: "sage",
-        spark: "bars",
+        spark: activeLeads > 0 ? "bars" : undefined,
       },
       {
         id: "pipeline",
@@ -90,7 +116,18 @@ export function OperationalDashboardPage() {
         spark: "line",
       },
     ];
-  }, [loading, total, campaignCount, activeCampaigns, opportunities]);
+  }, [
+    loading,
+    total,
+    contacts,
+    campaigns,
+    sentCount,
+    activeCount,
+    launchedThisMonth,
+    addedThisMonth,
+    activeLeads,
+    newThisWeek,
+  ]);
 
   return (
     <div className={DASHBOARD_PAGE_BODY}>
