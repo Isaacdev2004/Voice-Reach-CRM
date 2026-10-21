@@ -5,6 +5,7 @@ type LuxuryCardProps = {
   children: ReactNode;
   className?: string;
   padding?: "none" | "sm" | "md" | "lg";
+  id?: string;
 };
 
 const paddingMap = {
