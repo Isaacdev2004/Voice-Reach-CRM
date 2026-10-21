@@ -31,16 +31,16 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 flex h-screen w-64 max-w-[85vw] flex-col border-r border-outline-variant/10 bg-ivory py-6 shadow-nav transition-transform duration-300 ease-out",
+          "fixed left-0 top-0 z-50 flex h-screen w-64 max-w-[85vw] flex-col border-r border-outline-variant/10 bg-ivory py-5 shadow-nav transition-transform duration-300 ease-out",
           "lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
         aria-hidden={!mobileOpen ? undefined : undefined}
       >
-        <div className="mb-8 flex items-start justify-between px-6">
+        <div className="mb-5 flex items-start justify-between px-6">
           <Link href="/dashboard" className="group" onClick={onMobileClose}>
-            <AriLogo height={96} className="max-w-[148px]" />
-            <p className="mt-2.5 text-[13px] italic leading-snug text-taupe group-hover:text-rose-gold-deep">
+            <AriLogo height={88} className="max-w-[140px]" />
+            <p className="mt-2 text-[12px] italic leading-snug text-taupe group-hover:text-rose-gold-deep">
               {BRAND_TAGLINE}
             </p>
           </Link>
@@ -63,7 +63,7 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                 href={item.href}
                 onClick={onMobileClose}
                 className={cn(
-                  "mx-2 my-1 flex items-center gap-3 rounded-full px-4 py-3 transition-all",
+                  "mx-2 my-0.5 flex items-center gap-2.5 rounded-full px-4 py-2.5 transition-all",
                   active
                     ? "bg-rose-gold-deep text-ivory shadow-sm"
                     : "text-taupe hover:bg-champagne/80",

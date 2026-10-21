@@ -73,7 +73,7 @@ export function DashboardRecommendedForYou() {
   };
 
   return (
-    <LuxuryCard padding="lg" className="flex h-full flex-col">
+    <LuxuryCard padding="md" className="flex h-full flex-col">
       <div className="mb-5 flex items-start justify-between gap-2">
         <div>
           <h2 className="font-serif text-[22px] font-semibold text-ink">Recommended for You</h2>

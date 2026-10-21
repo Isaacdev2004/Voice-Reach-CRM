@@ -33,14 +33,26 @@ function HeroImagePanel({
 }) {
   const scriptOnImage = config.scriptAccentOnImage && config.scriptAccent;
   const brandOnImage = config.brandQuoteOnImage && config.brandQuote;
+  const compact = config.heroDensity === "compact";
+  const subtleBlend = config.imageBlend === "subtle";
 
   return (
     <div
       className={cn(
         "relative w-full overflow-hidden bg-champagne",
         isPhoto
-          ? "aspect-[16/10] sm:aspect-video lg:aspect-auto lg:h-full lg:min-h-[280px]"
-          : "aspect-[2172/724] lg:aspect-auto lg:h-full lg:min-h-[280px]",
+          ? cn(
+              "aspect-[16/10] sm:aspect-[16/9]",
+              compact
+                ? "lg:aspect-auto lg:h-full lg:min-h-[210px]"
+                : "lg:aspect-auto lg:h-full lg:min-h-[280px]",
+            )
+          : cn(
+              "aspect-[2172/724]",
+              compact
+                ? "lg:aspect-auto lg:h-full lg:min-h-[210px]"
+                : "lg:aspect-auto lg:h-full lg:min-h-[280px]",
+            ),
         className,
       )}
     >
@@ -51,13 +63,18 @@ function HeroImagePanel({
         priority
         unoptimized
         sizes="(max-width: 1024px) 100vw, 700px"
-        className="object-cover"
+        className={cn("object-cover", subtleBlend && "saturate-[1.05] contrast-[1.03]")}
         style={{
           objectPosition: config.imageObjectPosition ?? "center center",
         }}
       />
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-[38%] max-w-[320px] bg-gradient-to-r from-cream via-cream/55 to-transparent lg:from-cream lg:via-cream/40"
+        className={cn(
+          "pointer-events-none absolute inset-y-0 left-0 z-[1] bg-gradient-to-r to-transparent",
+          subtleBlend
+            ? "w-[22%] max-w-[200px] from-cream via-cream/20 lg:from-cream lg:via-cream/15"
+            : "w-[38%] max-w-[320px] from-cream via-cream/55 lg:from-cream lg:via-cream/40",
+        )}
         aria-hidden
       />
 
@@ -124,6 +141,7 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
   const isPhoto = config.imageLayout === "photo";
   const isBanner = config.heroLayout === "banner";
   const faithCopy = config.editorialQuoteOnCopy && config.quote;
+  const compactHero = config.heroDensity === "compact";
 
   if (isBanner) {
     return (
@@ -152,13 +170,25 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
           config.heroGridClass,
         )}
       >
-        <div className="dashboard-hero-copy relative z-[2] flex w-full min-w-0 flex-col justify-center bg-cream px-6 py-8 sm:px-10 sm:py-10 lg:min-w-[min(100%,320px)] lg:px-14 lg:py-10">
+        <div
+          className={cn(
+            "dashboard-hero-copy relative z-[2] flex w-full min-w-0 flex-col justify-center bg-cream px-6 sm:px-10 lg:min-w-[min(100%,320px)] lg:px-12",
+            compactHero ? "py-5 sm:py-6 lg:py-7" : "py-8 sm:py-10 lg:py-10 lg:px-14",
+          )}
+        >
           {!faithCopy ? (
             <>
               <p className="whitespace-normal text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep sm:text-[11px]">
                 {eyebrow}
               </p>
-              <h1 className="mt-2 whitespace-normal font-serif text-[26px] font-semibold leading-[1.15] text-ink sm:text-[34px] lg:text-[36px]">
+              <h1
+                className={cn(
+                  "mt-1.5 whitespace-normal font-serif font-semibold leading-[1.15] text-ink sm:mt-2",
+                  compactHero
+                    ? "text-[24px] sm:text-[30px] lg:text-[32px]"
+                    : "text-[26px] sm:text-[34px] lg:text-[36px]",
+                )}
+              >
                 {title}
               </h1>
             </>
@@ -182,7 +212,14 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
           )}
 
           {config.subtitle ? (
-            <p className="mt-3 whitespace-normal text-[15px] leading-relaxed text-slate-text sm:text-[16px]">
+            <p
+              className={cn(
+                "whitespace-normal leading-relaxed text-slate-text",
+                compactHero
+                  ? "mt-2 text-[14px] sm:text-[15px]"
+                  : "mt-3 text-[15px] sm:text-[16px]",
+              )}
+            >
               {config.subtitle}
             </p>
           ) : null}
@@ -213,7 +250,7 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
           ) : null}
 
           {config.actions?.length ? (
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className={cn("flex flex-wrap gap-2.5", compactHero ? "mt-3.5" : "mt-5 gap-3")}>
               {config.actions.map((action) =>
                 action.primary ? (
                   <Link
