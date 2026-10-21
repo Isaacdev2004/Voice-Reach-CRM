@@ -13,6 +13,10 @@ import {
   outputToPlainText,
   stripMarkdownCodeFence,
 } from "../lib/ai/parse-output";
+import {
+  normalizeOutboundContent,
+  shouldBlockRawJsonSend,
+} from "../lib/campaigns/outbound-content";
 
 function testTwilioSignature() {
   const token = "test_auth_token";
@@ -74,6 +78,25 @@ function testPhoneAndInbound() {
   delete process.env.TWILIO_FROM_NUMBER;
 }
 
+function testOutboundContent() {
+  const raw = '```json\n{"subject":"Hi","body":"Hello"}\n```';
+  const email = normalizeOutboundContent("email", raw, "Fallback");
+  assert.equal(email.extractedFromJson, true);
+  assert.equal(email.subject, "Hi");
+  assert.equal(email.body, "Hello");
+  assert.equal(shouldBlockRawJsonSend(email.body, email.subject), false);
+
+  const bad = normalizeOutboundContent(
+    "email",
+    '{"recommendation":"Call them","reason":"x","suggestedChannel":"phone"}',
+    "Title",
+  );
+  assert.equal(shouldBlockRawJsonSend(bad.body, bad.subject), true);
+
+  const sms = normalizeOutboundContent("sms", '{"body":"Quick check-in"}', "");
+  assert.equal(sms.body, "Quick check-in");
+}
+
 function testAiParseOutput() {
   const fenced = stripMarkdownCodeFence(
     '```json\n{"subject":"Hi","body":"Hello there"}\n```',
@@ -121,4 +144,5 @@ testTwilioSignature();
 testCheckoutClaim();
 testPhoneAndInbound();
 testAiParseOutput();
+testOutboundContent();
 console.log("verify-unit: ok");
