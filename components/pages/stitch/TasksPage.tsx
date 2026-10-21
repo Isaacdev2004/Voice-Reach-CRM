@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { StandaloneTaskModal } from "@/components/crm/standalone-task-modal";
@@ -77,35 +76,6 @@ export function TasksPage() {
 
   return (
     <div className={DASHBOARD_PAGE_BODY}>
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="font-serif text-[28px] font-semibold text-ink sm:text-[32px]">
-            Follow-ups &amp; to-dos
-          </h1>
-          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-slate-text">
-            Stay on top of follow-ups, reminders, and client touchpoints — due dates can sync to your
-            calendar when you create a task.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/dashboard/calendar"
-            className="inline-flex items-center gap-2 rounded-full border border-outline-variant/25 bg-ivory px-5 py-2.5 text-[14px] font-medium text-ink hover:bg-champagne"
-          >
-            <Icon name="calendar_today" className="text-[18px] text-rose-gold-deep" />
-            View calendar
-          </Link>
-          <button
-            type="button"
-            onClick={() => setModalOpen(true)}
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory hover:opacity-90"
-          >
-            <Icon name="add" className="text-[18px]" />
-            New task
-          </button>
-        </div>
-      </header>
-
       {error ? (
         <p className="rounded-2xl bg-champagne px-4 py-3 text-[14px] text-taupe">{error}</p>
       ) : null}
@@ -178,7 +148,15 @@ export function TasksPage() {
                 {i > 0 ? <Icon name="expand_more" className="text-[16px]" /> : null}
               </button>
             ))}
-            <div className="ml-auto flex rounded-full border border-outline-variant/20 p-0.5 lg:ml-2">
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-rose-gold px-3 py-1.5 text-[12px] font-medium text-ivory hover:opacity-90 sm:px-4 sm:text-[13px]"
+            >
+              <Icon name="add" className="text-[18px]" />
+              New task
+            </button>
+            <div className="flex rounded-full border border-outline-variant/20 p-0.5 lg:ml-0">
               <button
                 type="button"
                 onClick={() => setViewMode("list")}

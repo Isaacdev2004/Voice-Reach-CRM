@@ -173,10 +173,24 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Tasks",
     title: "Follow-ups & to-dos",
+    subtitle:
+      "Stay on top of follow-ups, reminders, and client touchpoints — due dates can sync to your calendar when you create a task.",
     scriptAccent: "Productivity creates space for purpose.",
-    heroLayout: "banner",
     imageAlt: "Desk with laptop and city view at golden hour",
     imageObjectPosition: "32% center",
+    actions: [
+      {
+        label: "New task",
+        href: "/dashboard/tasks?new=task",
+        icon: "add",
+        primary: true,
+      },
+      {
+        label: "View calendar",
+        href: "/dashboard/calendar",
+        icon: "calendar_today",
+      },
+    ],
   },
   "/dashboard/voice-scripts": {
     ...hero("voice-scripts-hero.png"),
