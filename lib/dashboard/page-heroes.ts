@@ -99,8 +99,6 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     titleMode: "dashboardHome",
     subtitle:
       "Nurture your leads, stay top of mind, and create more opportunities with AI-driven outreach.",
-    brandQuote: "More conversations. More opportunities.",
-    brandQuoteFooter: true,
     heroDensity: "compact",
     imageBlend: "subtle",
     imageAlt: "Luxury pool and property at golden hour",
