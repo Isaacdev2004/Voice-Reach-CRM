@@ -4,6 +4,8 @@ import { Modal, ModalFooterActions } from "@/components/crm/modal";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
 import { useEffect, useState } from "react";
+import { outputToPlainText } from "@/lib/ai/parse-output";
+import { AiResultPanel } from "./ai-result-panel";
 import { useAiAssistant, type AiTaskType } from "./ai-assistant-context";
 
 const TASKS: { id: AiTaskType; label: string; description: string }[] = [
@@ -56,6 +58,7 @@ export function AiAssistantSidebar() {
     setError(null);
     setResult(null);
     const envelope = await safeFetch<{
+      task: AiTaskType;
       output: Record<string, unknown>;
       provider: string;
     }>("/api/ai/generate", {
@@ -72,13 +75,18 @@ export function AiAssistantSidebar() {
       setError(envelope.error);
       return;
     }
-    setResult(envelope.data?.output ?? null);
+    const out = envelope.data?.output;
+    if (!out || typeof out !== "object") {
+      setError("We couldn't generate a suggestion. Please try again.");
+      return;
+    }
+    setResult(out);
   };
 
   const copyOutput = async () => {
     if (!result) return;
     try {
-      await navigator.clipboard.writeText(renderableText(result));
+      await navigator.clipboard.writeText(outputToPlainText(state.task, result));
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -192,41 +200,10 @@ export function AiAssistantSidebar() {
                 {copied ? "Copied!" : "Copy"}
               </button>
             </div>
-            <pre className="whitespace-pre-wrap font-serif text-[14px] leading-relaxed text-ink">
-              {renderableText(result)}
-            </pre>
+            <AiResultPanel task={state.task} output={result} />
           </div>
         ) : null}
       </div>
     </Modal>
   );
-}
-
-function renderableText(output: Record<string, unknown>): string {
-  if (typeof output.subject === "string" || typeof output.body === "string") {
-    const lines: string[] = [];
-    if (typeof output.subject === "string") lines.push(`Subject: ${output.subject}`);
-    if (typeof output.body === "string") lines.push("", output.body);
-    return lines.join("\n");
-  }
-  if (typeof output.script === "string") return output.script;
-  if (Array.isArray(output.bullets)) {
-    return (output.bullets as unknown[]).map((b) => `• ${String(b)}`).join("\n");
-  }
-  if (typeof output.recommendation === "string") {
-    return [
-      `Recommendation: ${output.recommendation}`,
-      output.reason ? `Why: ${output.reason}` : "",
-      output.suggestedChannel ? `Channel: ${output.suggestedChannel}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
-  }
-  if (typeof output.name === "string" && Array.isArray(output.steps)) {
-    const steps = (output.steps as Array<Record<string, unknown>>)
-      .map((s, i) => `${i + 1}. [${s.type ?? "step"}] ${s.title ?? ""} - ${s.dayLabel ?? ""}`)
-      .join("\n");
-    return `${output.name}\n${output.description ?? ""}\n\n${steps}`;
-  }
-  return JSON.stringify(output, null, 2);
 }

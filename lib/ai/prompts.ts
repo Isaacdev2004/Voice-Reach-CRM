@@ -28,6 +28,26 @@ const TONE_DESCRIPTIONS: Record<NonNullable<AiContext["tone"]>, string> = {
   luxury: "elegant, calm, and discreet - fitting luxury real estate",
 };
 
+export function jsonSchemaHintForTask(task: AiTaskType): string {
+  switch (task) {
+    case "email_writer":
+      return '{"subject": string, "body": string}';
+    case "sms_writer":
+      return '{"body": string}';
+    case "voicemail_script":
+      return '{"script": string}';
+    case "note_summary":
+      return '{"bullets": string[]}';
+    case "follow_up":
+    case "next_best_action":
+      return '{"recommendation": string, "reason": string, "suggestedChannel": string}';
+    case "campaign_idea":
+      return '{"name": string, "description": string, "steps": [{type, title, dayLabel, description}]}';
+    default:
+      return "{}";
+  }
+}
+
 export function systemPromptFor(task: AiTaskType): string {
   switch (task) {
     case "email_writer":
