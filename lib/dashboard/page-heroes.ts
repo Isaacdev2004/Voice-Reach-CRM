@@ -47,6 +47,10 @@ export type DashboardPageHeroConfig = {
   heroGridClass?: string;
   /** Large faith / editorial quote as the main left column (Calendar inspiration). */
   editorialQuoteOnCopy?: boolean;
+  /** Shorter hero panel (~20% less vertical space). */
+  heroDensity?: "default" | "compact";
+  /** Narrower/lighter photo fade so the image stays vivid. */
+  imageBlend?: "default" | "subtle";
 };
 
 /** Matches resized client art in `public/brand/heroes/` (Oct 2026). */
@@ -96,9 +100,11 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle:
       "Nurture your leads, stay top of mind, and create more opportunities with AI-driven outreach.",
     brandQuote: "More conversations. More opportunities.",
-    brandQuoteOnImage: true,
-    imageAlt: "Sunlit interior with arched doorway",
-    imageObjectPosition: "50% center",
+    brandQuoteFooter: true,
+    heroDensity: "compact",
+    imageBlend: "subtle",
+    imageAlt: "Luxury pool and property at golden hour",
+    imageObjectPosition: "62% 42%",
     actions: [
       {
         label: "Create a campaign",

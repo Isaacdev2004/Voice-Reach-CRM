@@ -206,7 +206,7 @@ export function MarketingPulse() {
   const insightCard = cards.find((c) => c.badge === "Insight");
 
   return (
-    <LuxuryCard padding="lg" className="h-full">
+    <LuxuryCard padding="md" className="h-full">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-serif text-[26px] font-semibold text-ink">Marketing Pulse</h2>
