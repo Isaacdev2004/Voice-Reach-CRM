@@ -14,11 +14,19 @@ import {
   stripMarkdownCodeFence,
 } from "../lib/ai/parse-output";
 import {
+  normalizeOutboundContent,
+  shouldBlockRawJsonSend,
+} from "../lib/campaigns/outbound-content";
+import {
   buildMarketRatesFromObservations,
   computeWeeklyChange,
   parsePmmsCsv,
   selectPmmsHistory,
 } from "../lib/mortgage/market-rates";
+import {
+  formatPipelineValueDisplay,
+  sumActiveLeadBudgets,
+} from "../lib/dashboard/home-kpis";
 
 function testTwilioSignature() {
   const token = "test_auth_token";
@@ -78,6 +86,25 @@ function testPhoneAndInbound() {
   assert.equal(isInboundSmsForConfiguredNumber("+15559876543"), true);
   assert.equal(isInboundSmsForConfiguredNumber("+15551111111"), false);
   delete process.env.TWILIO_FROM_NUMBER;
+}
+
+function testOutboundContent() {
+  const raw = '```json\n{"subject":"Hi","body":"Hello"}\n```';
+  const email = normalizeOutboundContent("email", raw, "Fallback");
+  assert.equal(email.extractedFromJson, true);
+  assert.equal(email.subject, "Hi");
+  assert.equal(email.body, "Hello");
+  assert.equal(shouldBlockRawJsonSend(email.body, email.subject), false);
+
+  const bad = normalizeOutboundContent(
+    "email",
+    '{"recommendation":"Call them","reason":"x","suggestedChannel":"phone"}',
+    "Title",
+  );
+  assert.equal(shouldBlockRawJsonSend(bad.body, bad.subject), true);
+
+  const sms = normalizeOutboundContent("sms", '{"body":"Quick check-in"}', "");
+  assert.equal(sms.body, "Quick check-in");
 }
 
 function testAiParseOutput() {
@@ -145,9 +172,24 @@ function testMortgageMarketRates() {
   assert.equal(history.length, 3);
 }
 
+function testHomePipelineKpi() {
+  const contacts = [
+    { type: "Active Lead", budget: 500_000 },
+    { type: "Cold Lead", budget: 1_000_000 },
+    { type: "Active Lead", budget: "750000" },
+    { type: "Past Client", budget: 2_000_000 },
+  ] as Parameters<typeof sumActiveLeadBudgets>[0];
+  const sum = sumActiveLeadBudgets(contacts);
+  assert.equal(sum.total, 1_250_000);
+  assert.equal(sum.withBudget, 2);
+  assert.equal(formatPipelineValueDisplay(sum), "$1.3M");
+}
+
 testTwilioSignature();
 testCheckoutClaim();
 testPhoneAndInbound();
 testAiParseOutput();
+testOutboundContent();
 testMortgageMarketRates();
+testHomePipelineKpi();
 console.log("verify-unit: ok");
