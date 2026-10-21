@@ -23,7 +23,7 @@ type MonthCalendarProps = {
   onDayClick?: (date: Date) => void;
   viewMode?: CalendarViewMode;
   onViewModeChange?: (mode: CalendarViewMode) => void;
-  /** Show two consecutive months in the main grid (fills wide layout). */
+  /** Show two consecutive months stacked (current, then next). */
   monthCount?: 1 | 2;
 };
 
@@ -249,8 +249,6 @@ export function MonthCalendar({
     onSelectDate(now);
   };
 
-  const compact = span === 2;
-
   return (
     <div className="w-full min-w-0">
       <div className="mb-3 flex flex-col gap-3 sm:mb-5 lg:flex-row lg:items-center lg:justify-between">
@@ -302,14 +300,13 @@ export function MonthCalendar({
       </div>
 
       {span === 2 ? (
-        <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
+        <div className="flex w-full flex-col gap-6">
           <MonthGrid
             monthDate={viewDate}
             eventsByDay={eventsByDay}
             selectedDate={selectedDate}
             onSelectDate={onSelectDate}
             onDayClick={onDayClick}
-            compact
             showMonthCaption
           />
           <MonthGrid
@@ -318,7 +315,6 @@ export function MonthCalendar({
             selectedDate={selectedDate}
             onSelectDate={onSelectDate}
             onDayClick={onDayClick}
-            compact
             showMonthCaption
           />
         </div>
