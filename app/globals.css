@@ -534,3 +534,21 @@
     "GRAD" 0,
     "opsz" 24;
 }
+
+html {
+  scroll-padding-top: 5.5rem;
+}
+
+@keyframes mortgage-section-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  20% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-rose-gold-deep) 40%, transparent);
+  }
+}
+
+.mortgage-section-highlight .luxury-card {
+  animation: mortgage-section-pulse 2.2s ease-out;
+}

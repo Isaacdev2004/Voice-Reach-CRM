@@ -12,6 +12,7 @@ import {
   getMortgagePartnerUrl,
   MORTGAGE_RESOURCE_LINKS,
 } from "@/lib/mortgage/config";
+import { scrollToMortgageSection } from "@/lib/mortgage/scroll-to-section";
 import {
   buildRateSnapshot,
   firstMonthSplit,
@@ -140,6 +141,14 @@ export function MortgageCalculatorPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- initial fetch only
   }, []);
 
+  useEffect(() => {
+    const hash = window.location.hash.replace(/^#/, "");
+    if (hash.startsWith("mortgage-")) {
+      const t = window.setTimeout(() => scrollToMortgageSection(hash), 120);
+      return () => window.clearTimeout(t);
+    }
+  }, []);
+
   const rateSnapshot = useMemo(
     () =>
       buildRateSnapshot(
@@ -194,10 +203,6 @@ export function MortgageCalculatorPage() {
     setInterestRateText(rateSnapshot.rate30.toFixed(2));
   };
 
-  const scrollToMortgageSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   const rateProducts = [
     { label: "30-year fixed", rate: rateSnapshot.rate30, trend: "0.12%" },
     { label: "15-year fixed", rate: rateSnapshot.rate15, trend: "0.08%" },
@@ -212,39 +217,45 @@ export function MortgageCalculatorPage() {
           title: "You're putting 20% down",
           body: "That typically avoids PMI and strengthens your offer profile.",
           actionLabel: "Review loan inputs",
-          onAction: () => scrollToMortgageSection("mortgage-loan-details"),
+          targetId: "mortgage-loan-details",
         }
       : {
           icon: "info",
           title: "Below 20% down",
           body: "Consider PMI in your monthly budget until you reach 20% equity.",
           actionLabel: "Adjust down payment",
-          onAction: () => scrollToMortgageSection("mortgage-loan-details"),
+          targetId: "mortgage-loan-details",
         },
     {
       icon: "trending_down",
       title: "Rates are easing",
       body: "Today's averages are modestly lower than six months ago — good time to compare scenarios.",
       actionLabel: "View today's rates",
-      onAction: () => scrollToMortgageSection("mortgage-rates"),
+      targetId: "mortgage-rates",
     },
     {
       icon: "schedule",
       title: "Consider a 15-year loan",
       body: "If the higher payment fits your budget, you'll pay less interest over the life of the loan.",
       actionLabel: "Apply 15-year scenario",
-      onAction: () => {
-        applyScenario("15-fixed");
-        scrollToMortgageSection("mortgage-scenarios");
-      },
+      targetId: "mortgage-scenarios",
+      beforeScroll: () => applyScenario("15-fixed"),
     },
   ];
+
+  const runInsightAction = (item: (typeof insights)[number]) => {
+    item.beforeScroll?.();
+    window.requestAnimationFrame(() => {
+      scrollToMortgageSection(item.targetId);
+    });
+  };
 
   return (
     <div className={DASHBOARD_PAGE_BODY}>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <div className="space-y-6 xl:col-span-7">
-          <LuxuryCard padding="lg" id="mortgage-loan-details" className="scroll-mt-24">
+          <div id="mortgage-loan-details" className="scroll-mt-28">
+          <LuxuryCard padding="lg">
             <div className="mb-5 flex items-start justify-between gap-3">
               <div>
                 <h2 className="font-serif text-[22px] font-semibold text-ink">Loan details</h2>
@@ -283,6 +294,7 @@ export function MortgageCalculatorPage() {
                     $
                   </span>
                   <input
+                    id="mortgage-down-payment-input"
                     inputMode="numeric"
                     className={cn(modalInputClass, "pl-7")}
                     value={downPaymentText}
@@ -378,8 +390,10 @@ export function MortgageCalculatorPage() {
               </div>
             </div>
           </LuxuryCard>
+          </div>
 
-          <LuxuryCard padding="lg" id="mortgage-scenarios" className="scroll-mt-24">
+          <div id="mortgage-scenarios" className="scroll-mt-28">
+          <LuxuryCard padding="lg">
             <h2 className="font-serif text-[22px] font-semibold text-ink">Compare loan scenarios</h2>
             <p className="mt-1 mb-4 text-[13px] text-slate-text">
               Tap a scenario to apply its rate and term to your estimate.
@@ -423,8 +437,10 @@ export function MortgageCalculatorPage() {
               })}
             </ul>
           </LuxuryCard>
+          </div>
 
-          <LuxuryCard padding="lg" id="mortgage-rates" className="scroll-mt-24">
+          <div id="mortgage-rates" className="scroll-mt-28">
+          <LuxuryCard padding="lg">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="font-serif text-[22px] font-semibold text-ink">Today&apos;s average rates</h2>
@@ -471,6 +487,7 @@ export function MortgageCalculatorPage() {
               </ul>
             )}
           </LuxuryCard>
+          </div>
 
           <LuxuryCard padding="lg">
             <h2 className="font-serif text-[22px] font-semibold text-ink">Mortgage reading & updates</h2>
@@ -586,9 +603,12 @@ export function MortgageCalculatorPage() {
             <ul className="mt-4 space-y-3">
               {insights.map((item) => (
                 <li key={item.title}>
-                  <button
-                    type="button"
-                    onClick={item.onAction}
+                  <a
+                    href={`#${item.targetId}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      runInsightAction(item);
+                    }}
                     className="group flex w-full items-start gap-3 rounded-2xl border border-outline-variant/12 bg-champagne/20 px-4 py-3 text-left transition-colors hover:border-rose-gold/35 hover:bg-champagne/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-gold-deep"
                   >
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ivory text-rose-gold-deep shadow-sm">
@@ -609,7 +629,7 @@ export function MortgageCalculatorPage() {
                         />
                       </span>
                     </span>
-                  </button>
+                  </a>
                 </li>
               ))}
             </ul>
