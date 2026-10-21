@@ -151,7 +151,11 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
           className,
         )}
       >
-        <HeroImagePanel config={config} isPhoto={isPhoto} className="lg:min-h-[220px]" />
+        <HeroImagePanel
+          config={config}
+          isPhoto={isPhoto}
+          className={compactHero ? "lg:min-h-[180px]" : "lg:min-h-[220px]"}
+        />
       </section>
     );
   }
@@ -194,16 +198,28 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
             </>
           ) : (
             <>
-              <blockquote className="whitespace-normal font-serif text-[22px] font-medium leading-[1.35] text-ink sm:text-[26px] lg:text-[28px]">
+              <blockquote
+                className={cn(
+                  "whitespace-normal font-serif font-medium leading-[1.35] text-ink",
+                  compactHero
+                    ? "text-[20px] sm:text-[22px] lg:text-[24px]"
+                    : "text-[22px] sm:text-[26px] lg:text-[28px]",
+                )}
+              >
                 &ldquo;{config.quote}&rdquo;
               </blockquote>
               {config.attribution ? (
-                <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep">
+                <p
+                  className={cn(
+                    "text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-gold-deep",
+                    compactHero ? "mt-3" : "mt-4",
+                  )}
+                >
                   {config.attribution}
                 </p>
               ) : null}
               <span
-                className="mt-5 inline-flex text-rose-gold-deep"
+                className={cn("inline-flex text-rose-gold-deep", compactHero ? "mt-3.5" : "mt-5")}
                 aria-hidden
               >
                 <Icon name="auto_awesome" className="text-[20px]" />
@@ -224,7 +240,12 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
             </p>
           ) : null}
           {showScriptInCopy ? (
-            <p className="mt-3 whitespace-normal font-hand text-[20px] leading-snug text-rose-gold-deep sm:text-[22px]">
+            <p
+              className={cn(
+                "mt-2.5 whitespace-normal font-hand leading-snug text-rose-gold-deep sm:mt-3",
+                compactHero ? "text-[18px] sm:text-[20px]" : "text-[20px] sm:text-[22px]",
+              )}
+            >
               {config.scriptAccent}
             </p>
           ) : null}
@@ -277,7 +298,12 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
           ) : null}
 
           {config.features?.length ? (
-            <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+            <ul
+              className={cn(
+                "grid gap-2.5 sm:grid-cols-3",
+                compactHero ? "mt-3" : "mt-4 gap-3",
+              )}
+            >
               {config.features.map((f) => (
                 <li key={f.title} className="flex items-start gap-2.5">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-gold/15 text-rose-gold-deep">
@@ -297,11 +323,21 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
       </div>
 
       {config.brandQuote && config.brandQuoteFooter ? (
-        <div className="flex flex-col items-start justify-between gap-2 border-t border-outline-variant/10 bg-cream/90 px-6 py-4 sm:flex-row sm:items-center sm:px-10 lg:px-12">
-          <p className="font-serif text-[17px] italic leading-snug text-ink sm:text-[18px]">
+        <div
+          className={cn(
+            "flex flex-col items-start justify-between gap-1.5 border-t border-outline-variant/10 bg-cream/90 sm:flex-row sm:items-center",
+            compactHero ? "px-6 py-2.5 sm:px-10 lg:px-12" : "px-6 py-4 sm:px-10 lg:px-12",
+          )}
+        >
+          <p
+            className={cn(
+              "font-serif italic leading-snug text-ink",
+              compactHero ? "text-[15px] sm:text-[16px]" : "text-[17px] sm:text-[18px]",
+            )}
+          >
             &ldquo;{config.brandQuote}&rdquo;
           </p>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rose-gold-deep">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-rose-gold-deep sm:text-[11px]">
             MyARI
           </p>
         </div>

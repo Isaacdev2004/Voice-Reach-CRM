@@ -78,6 +78,12 @@ const HERO_FILES: Record<
   "settings.jpg": BANNER_2172,
 };
 
+/** Match Home dashboard: shorter copy column + lighter image fade. */
+const DASHBOARD_HERO_COMPACT: Pick<DashboardPageHeroConfig, "heroDensity" | "imageBlend"> = {
+  heroDensity: "compact",
+  imageBlend: "subtle",
+};
+
 function hero(file: string): Pick<
   DashboardPageHeroConfig,
   "image" | "imageWidth" | "imageHeight" | "imageLayout"
@@ -99,8 +105,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     titleMode: "dashboardHome",
     subtitle:
       "Nurture your leads, stay top of mind, and create more opportunities with AI-driven outreach.",
-    heroDensity: "compact",
-    imageBlend: "subtle",
+    ...DASHBOARD_HERO_COMPACT,
     imageAlt: "Luxury pool and property at golden hour",
     imageObjectPosition: "62% 42%",
     actions: [
@@ -115,6 +120,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   },
   "/dashboard/contacts": {
     ...hero("contacts.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Contacts",
     title: "Relationships that open doors",
     subtitle: "Every contact, conversation, consent record, and next step in one place.",
@@ -126,6 +132,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   },
   "/dashboard/campaigns": {
     ...hero("campaigns.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Campaigns",
     title: "Meaningful outreach. Real relationships.",
     subtitle: "Launch sequences, engage consistently, and open more doors.",
@@ -137,6 +144,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   },
   "/dashboard/mortgage": {
     ...hero("mortgage.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Planning",
     title: "Mortgage Calculator",
     subtitle: "Estimate monthly payments with today's average rates, refreshed daily.",
@@ -151,6 +159,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   },
   "/dashboard/notes": {
     ...hero("notes.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Thinking",
     title: "Notes & Strategy",
     subtitle:
@@ -161,6 +170,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   },
   "/dashboard/tasks": {
     ...hero("tasks.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Tasks",
     title: "Follow-ups & to-dos",
     scriptAccent: "Productivity creates space for purpose.",
@@ -170,6 +180,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   },
   "/dashboard/voice-scripts": {
     ...hero("voice-scripts-hero.png"),
+    ...DASHBOARD_HERO_COMPACT,
     image: VOICE_SCRIPTS_HERO_IMAGE,
     eyebrow: "Voice script studio",
     title: "Voice Scripts Library",
@@ -181,6 +192,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   },
   "/dashboard/activity": {
     ...hero("activity.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Activity",
     title: "Every action moves you forward",
     subtitle:
@@ -191,6 +203,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   },
   "/dashboard/analytics": {
     ...hero("analytics.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Analytics",
     title: "Insight creates opportunity",
     subtitle:
@@ -201,6 +214,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   },
   "/dashboard/settings": {
     ...hero("settings.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Settings",
     title: "Your workspace, your way",
     subtitle: "Profile, billing, integrations, and team access in one place.",
@@ -220,6 +234,7 @@ export const CALENDAR_HERO_VARIANTS: Record<
 > = {
   schedule: {
     ...hero("calendar.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Calendar",
     title: "Your schedule, beautifully organized.",
     titleMode: "calendarGreeting",
@@ -230,6 +245,7 @@ export const CALENDAR_HERO_VARIANTS: Record<
   },
   faith: {
     ...hero("calendar-faith.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Calendar",
     title: "Purpose in Every Plan",
     quote:
