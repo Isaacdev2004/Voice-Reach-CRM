@@ -1,5 +1,10 @@
+import {
+  normalizeAiOutput,
+  parseJsonFromLlm,
+  stripInternalAiFields,
+} from "./parse-output";
 import type { AiContext, AiTaskType } from "./prompts";
-import { systemPromptFor, userPromptFor } from "./prompts";
+import { jsonSchemaHintForTask, systemPromptFor, userPromptFor } from "./prompts";
 
 /**
  * Template generator. Replace the body with OpenAI/Claude when ready:
@@ -38,7 +43,13 @@ async function generateWithClaude(
     body: JSON.stringify({
       model: process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-5",
       max_tokens: 800,
-      system: `${systemPromptFor(task)}\nReturn valid JSON only, no markdown.`,
+      system: [
+        systemPromptFor(task),
+        "Respond with a single JSON object only.",
+        "Do not wrap JSON in markdown code fences.",
+        `Required schema for this task: ${jsonSchemaHintForTask(task)}`,
+        "Never use fields from a different task type (e.g. do not return recommendation/reason when drafting email).",
+      ].join("\n"),
       messages: [{ role: "user", content: userPromptFor(task, ctx, brief) }],
     }),
   });
@@ -54,29 +65,18 @@ async function generateWithClaude(
   const text = json.content?.find((part) => part.type === "text")?.text?.trim();
   if (!text) return null;
 
-  try {
-    return JSON.parse(text) as Record<string, unknown>;
-  } catch {
-    return { body: text, message: text };
-  }
+  const parsed = parseJsonFromLlm(text);
+  if (parsed) return parsed;
+  return null;
 }
 
-export async function generate(task: AiTaskType, ctx: AiContext, brief?: string): Promise<AiResult> {
-  const claudeOutput = await generateWithClaude(task, ctx, brief).catch(() => null);
-  if (claudeOutput) {
-    return {
-      task,
-      output: claudeOutput,
-      generatedAt: new Date().toISOString(),
-      provider: "claude",
-    };
-  }
+function templateOutput(task: AiTaskType, ctx: AiContext, brief?: string): Record<string, unknown> {
 
   const seed = `${task}-${ctx.contactName ?? "client"}-${ctx.tone ?? "warm"}`;
   const name = ctx.contactName?.split(" ")[0] ?? "there";
   const goal = ctx.goal ?? "deepen the relationship";
 
-  const output: Record<string, unknown> = (() => {
+  return (() => {
     switch (task) {
       case "email_writer":
         return {
@@ -158,19 +158,32 @@ export async function generate(task: AiTaskType, ctx: AiContext, brief?: string)
         return { message: "AI infrastructure ready. Connect an LLM provider to enable generation." };
     }
   })();
+}
+
+export async function generate(task: AiTaskType, ctx: AiContext, brief?: string): Promise<AiResult> {
+  const claudeOutput = await generateWithClaude(task, ctx, brief).catch(() => null);
+  if (claudeOutput) {
+    const normalized = normalizeAiOutput(task, claudeOutput, ctx);
+    if (normalized.ok) {
+      return {
+        task,
+        output: normalized.output,
+        generatedAt: new Date().toISOString(),
+        provider: "claude",
+      };
+    }
+  }
+
+  const templated = templateOutput(task, ctx, brief);
+  const normalizedTemplate = normalizeAiOutput(task, templated, ctx);
+  const output = normalizedTemplate.ok
+    ? normalizedTemplate.output
+    : stripInternalAiFields(templated);
 
   return {
     task,
-    output: {
-      ...output,
-      _system: systemPromptFor(task),
-      _userPrompt: userPromptFor(task, ctx, brief),
-    },
+    output,
     generatedAt: new Date().toISOString(),
-    provider: process.env.ANTHROPIC_API_KEY
-      ? "claude (configured)"
-      : process.env.OPENAI_API_KEY
-        ? "openai (configured)"
-        : "template",
+    provider: claudeOutput ? "template (fallback)" : process.env.ANTHROPIC_API_KEY ? "template" : "template",
   };
 }

@@ -7,6 +7,12 @@ import { evaluateCheckoutClaim } from "../lib/billing/evaluate-checkout-claim";
 import { phoneLast10IlikePattern } from "../lib/contacts/phone-match";
 import { isInboundSmsForConfiguredNumber } from "../lib/webhooks/twilio-inbound-scope";
 import { validateTwilioSignature } from "../lib/webhooks/twilio-signature";
+import {
+  normalizeAiOutput,
+  parseJsonFromLlm,
+  outputToPlainText,
+  stripMarkdownCodeFence,
+} from "../lib/ai/parse-output";
 
 function testTwilioSignature() {
   const token = "test_auth_token";
@@ -68,7 +74,51 @@ function testPhoneAndInbound() {
   delete process.env.TWILIO_FROM_NUMBER;
 }
 
+function testAiParseOutput() {
+  const fenced = stripMarkdownCodeFence(
+    '```json\n{"subject":"Hi","body":"Hello there"}\n```',
+  );
+  assert.equal(fenced.includes("subject"), true);
+  const parsed = parseJsonFromLlm(
+    '```json\n{"recommendation":"Call them","reason":"Trust","suggestedChannel":"phone"}\n```',
+  );
+  assert.ok(parsed);
+  assert.equal(parsed!.recommendation, "Call them");
+
+  const emailOk = normalizeAiOutput(
+    "email_writer",
+    { subject: "Let's Find Your Perfect Home", body: "Hi Alex,\n\nChecking in." },
+    {},
+  );
+  assert.equal(emailOk.ok, true);
+  if (emailOk.ok) {
+    assert.equal(emailOk.output.subject, "Let's Find Your Perfect Home");
+  }
+
+  const emailWrong = normalizeAiOutput(
+    "email_writer",
+    {
+      recommendation: "Schedule a showcase",
+      reason: "Luxury",
+      suggestedChannel: "phone",
+    },
+    {},
+  );
+  assert.equal(emailWrong.ok, false);
+
+  const smsOk = normalizeAiOutput("sms_writer", { body: "Quick check-in?" }, {});
+  assert.equal(smsOk.ok, true);
+
+  const plain = outputToPlainText("email_writer", {
+    subject: "Subj",
+    body: "Body text",
+  });
+  assert.match(plain, /Subject: Subj/);
+  assert.match(plain, /Body text/);
+}
+
 testTwilioSignature();
 testCheckoutClaim();
 testPhoneAndInbound();
+testAiParseOutput();
 console.log("verify-unit: ok");
