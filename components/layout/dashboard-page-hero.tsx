@@ -33,8 +33,11 @@ function HeroImagePanel({
 }) {
   const scriptOnImage = config.scriptAccentOnImage && config.scriptAccent;
   const brandOnImage = config.brandQuoteOnImage && config.brandQuote;
-  const compact = config.heroDensity === "compact";
-  const subtleBlend = config.imageBlend === "subtle";
+  const compact = config.heroDensity === "compact" || config.heroDensity === "dense";
+  const dense = config.heroDensity === "dense";
+  const blend = config.imageBlend ?? "default";
+  const vividBlend = blend === "vivid";
+  const subtleBlend = blend === "subtle";
 
   return (
     <div
@@ -42,15 +45,21 @@ function HeroImagePanel({
         "relative w-full overflow-hidden bg-champagne",
         isPhoto
           ? cn(
-              "aspect-[16/10] sm:aspect-[16/9]",
+              dense ? "aspect-[2/1] sm:aspect-[16/9]" : "aspect-[16/10] sm:aspect-[16/9]",
               compact
-                ? "lg:aspect-auto lg:h-full lg:min-h-[210px]"
+                ? cn(
+                    "lg:aspect-auto lg:h-full",
+                    dense ? "lg:min-h-[158px]" : "lg:min-h-[210px]",
+                  )
                 : "lg:aspect-auto lg:h-full lg:min-h-[280px]",
             )
           : cn(
-              "aspect-[2172/724]",
+              dense ? "aspect-[3/1] sm:aspect-[2172/724]" : "aspect-[2172/724]",
               compact
-                ? "lg:aspect-auto lg:h-full lg:min-h-[210px]"
+                ? cn(
+                    "lg:aspect-auto lg:h-full",
+                    dense ? "lg:min-h-[158px]" : "lg:min-h-[210px]",
+                  )
                 : "lg:aspect-auto lg:h-full lg:min-h-[280px]",
             ),
         className,
@@ -63,7 +72,11 @@ function HeroImagePanel({
         priority
         unoptimized
         sizes="(max-width: 1024px) 100vw, 700px"
-        className={cn("object-cover", subtleBlend && "saturate-[1.05] contrast-[1.03]")}
+        className={cn(
+          "object-cover",
+          vividBlend && "saturate-[1.1] contrast-[1.06] brightness-[1.02]",
+          subtleBlend && !vividBlend && "saturate-[1.05] contrast-[1.03]",
+        )}
         style={{
           objectPosition: config.imageObjectPosition ?? "center center",
         }}
@@ -71,9 +84,11 @@ function HeroImagePanel({
       <div
         className={cn(
           "pointer-events-none absolute inset-y-0 left-0 z-[1] bg-gradient-to-r to-transparent",
-          subtleBlend
-            ? "w-[22%] max-w-[200px] from-cream via-cream/20 lg:from-cream lg:via-cream/15"
-            : "w-[38%] max-w-[320px] from-cream via-cream/55 lg:from-cream lg:via-cream/40",
+          vividBlend
+            ? "w-[12%] max-w-[120px] from-cream/90 via-cream/15 to-transparent"
+            : subtleBlend
+              ? "w-[18%] max-w-[168px] from-cream via-cream/15 lg:via-cream/10"
+              : "w-[38%] max-w-[320px] from-cream via-cream/55 lg:from-cream lg:via-cream/40",
         )}
         aria-hidden
       />
@@ -141,7 +156,9 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
   const isPhoto = config.imageLayout === "photo";
   const isBanner = config.heroLayout === "banner";
   const faithCopy = config.editorialQuoteOnCopy && config.quote;
-  const compactHero = config.heroDensity === "compact";
+  const compactHero =
+    config.heroDensity === "compact" || config.heroDensity === "dense";
+  const denseHero = config.heroDensity === "dense";
 
   if (isBanner) {
     return (
@@ -176,8 +193,12 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
       >
         <div
           className={cn(
-            "dashboard-hero-copy relative z-[2] flex w-full min-w-0 flex-col justify-center bg-cream px-6 sm:px-10 lg:min-w-[min(100%,320px)] lg:px-12",
-            compactHero ? "py-5 sm:py-6 lg:py-7" : "py-8 sm:py-10 lg:py-10 lg:px-14",
+            "dashboard-hero-copy relative z-[2] flex w-full min-w-0 flex-col justify-center bg-gradient-to-br from-cream via-cream to-champagne/35 px-6 sm:px-10 lg:min-w-[min(100%,320px)] lg:px-12",
+            denseHero
+              ? "py-3.5 sm:py-4 lg:py-5"
+              : compactHero
+                ? "py-5 sm:py-6 lg:py-7"
+                : "py-8 sm:py-10 lg:py-10 lg:px-14",
           )}
         >
           {!faithCopy ? (
@@ -188,9 +209,11 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
               <h1
                 className={cn(
                   "mt-1.5 whitespace-normal font-serif font-semibold leading-[1.15] text-ink sm:mt-2",
-                  compactHero
-                    ? "text-[24px] sm:text-[30px] lg:text-[32px]"
-                    : "text-[26px] sm:text-[34px] lg:text-[36px]",
+                  denseHero
+                    ? "text-[22px] sm:text-[28px] lg:text-[30px]"
+                    : compactHero
+                      ? "text-[24px] sm:text-[30px] lg:text-[32px]"
+                      : "text-[26px] sm:text-[34px] lg:text-[36px]",
                 )}
               >
                 {title}
@@ -231,9 +254,11 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
             <p
               className={cn(
                 "whitespace-normal leading-relaxed text-slate-text",
-                compactHero
-                  ? "mt-2 text-[14px] sm:text-[15px]"
-                  : "mt-3 text-[15px] sm:text-[16px]",
+                denseHero
+                  ? "mt-1.5 text-[13px] sm:text-[14px]"
+                  : compactHero
+                    ? "mt-2 text-[14px] sm:text-[15px]"
+                    : "mt-3 text-[15px] sm:text-[16px]",
               )}
             >
               {config.subtitle}
@@ -271,13 +296,21 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
           ) : null}
 
           {config.actions?.length ? (
-            <div className={cn("flex flex-wrap gap-2.5", compactHero ? "mt-3.5" : "mt-5 gap-3")}>
+            <div
+              className={cn(
+                "flex flex-wrap gap-2",
+                denseHero ? "mt-2.5" : compactHero ? "mt-3.5" : "mt-5 gap-3",
+              )}
+            >
               {config.actions.map((action) =>
                 action.primary ? (
                   <Link
                     key={action.href}
                     href={action.href}
-                    className="inline-flex items-center gap-2 rounded-full bg-rose-gold-deep px-5 py-2.5 text-[14px] font-medium text-ivory shadow-sm transition-opacity hover:opacity-95"
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-full bg-rose-gold-deep font-medium text-ivory shadow-sm transition-opacity hover:opacity-95",
+                      denseHero ? "px-4 py-2 text-[13px]" : "px-5 py-2.5 text-[14px]",
+                    )}
                   >
                     <Icon name={action.icon} className="text-[18px]" />
                     {action.label}
@@ -287,7 +320,10 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
                   <Link
                     key={action.href}
                     href={action.href}
-                    className="inline-flex items-center gap-2 rounded-full border border-outline-variant/25 bg-ivory px-5 py-2.5 text-[14px] font-medium text-ink transition-colors hover:bg-champagne"
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-full border border-outline-variant/25 bg-ivory font-medium text-ink transition-colors hover:bg-champagne",
+                      denseHero ? "px-4 py-2 text-[13px]" : "px-5 py-2.5 text-[14px]",
+                    )}
                   >
                     <Icon name={action.icon} className="text-[18px] text-rose-gold-deep" />
                     {action.label}
