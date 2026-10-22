@@ -15,7 +15,7 @@ function roleLabel(c: ApiContact) {
     return t.charAt(0).toUpperCase() + t.slice(1);
   }
   if (c.type) return c.type.charAt(0).toUpperCase() + c.type.slice(1);
-  return "Buyer / Seller";
+  return "Contact";
 }
 
 function initials(c: ApiContact) {

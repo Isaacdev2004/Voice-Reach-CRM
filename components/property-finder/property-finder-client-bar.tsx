@@ -3,7 +3,7 @@
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import type { ApiContact } from "@/lib/hooks/use-contacts";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 function contactLabel(c: ApiContact) {
   return `${c.first_name} ${c.last_name ?? ""}`.trim();
@@ -24,6 +24,8 @@ export function PropertyFinderClientBar({
 }: PropertyFinderClientBarProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [activeIndex, setActiveIndex] = useState(0);
+  const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -57,7 +59,9 @@ export function PropertyFinderClientBar({
   }, [open]);
 
   useEffect(() => {
-    if (open) window.setTimeout(() => searchRef.current?.focus(), 0);
+    if (!open) return;
+    const timer = window.setTimeout(() => searchRef.current?.focus(), 0);
+    return () => window.clearTimeout(timer);
   }, [open]);
 
   const pick = (id: string) => {
@@ -67,7 +71,7 @@ export function PropertyFinderClientBar({
   };
 
   return (
-    <div ref={rootRef} className="relative w-full max-w-full">
+    <div ref={rootRef} className="relative w-full max-w-full" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); setOpen(false); } }}>
       <div className="flex w-full flex-col overflow-hidden rounded-2xl bg-ivory shadow-card sm:flex-row sm:items-stretch">
         <button
           type="button"
@@ -75,6 +79,8 @@ export function PropertyFinderClientBar({
           disabled={loading}
           className="flex w-full shrink-0 items-center justify-between gap-3 border-b border-outline-variant/15 px-4 py-3.5 text-left sm:w-[240px] sm:border-b-0 sm:border-r sm:py-4"
           aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-controls={listId}
         >
           <div className="min-w-0 flex-1">
             <p className="whitespace-normal text-[11px] font-semibold uppercase tracking-[0.12em] text-taupe">
@@ -101,9 +107,20 @@ export function PropertyFinderClientBar({
           <input
             ref={searchRef}
             type="search"
+            role="combobox"
+            aria-label="Search clients by name, email or phone"
+            aria-expanded={open}
+            aria-controls={listId}
+            aria-autocomplete="list"
+            aria-activedescendant={open && filtered[activeIndex] ? `${listId}-${filtered[activeIndex].id}` : undefined}
+            onKeyDown={event => {
+              if (event.key === "ArrowDown" || event.key === "ArrowUp") {event.preventDefault();setOpen(true);setActiveIndex(index => filtered.length ? (index + (event.key === "ArrowDown" ? 1 : -1) + filtered.length) % filtered.length : 0);}
+              if (event.key === "Enter" && open && filtered[activeIndex]) {event.preventDefault();pick(filtered[activeIndex].id);}
+            }}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
+              setActiveIndex(0);
               if (!open) setOpen(true);
             }}
             onFocus={() => !loading && setOpen(true)}
@@ -118,20 +135,23 @@ export function PropertyFinderClientBar({
         <ul
           className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(280px,45vh)] overflow-y-auto rounded-2xl border border-outline-variant/20 bg-ivory py-1 shadow-card"
           role="listbox"
+          id={listId}
+          aria-label="Subscriber clients"
         >
           {filtered.length === 0 ? (
             <li className="px-4 py-3 text-[13px] text-taupe">No clients match your search</li>
           ) : (
-            filtered.map((c) => (
-              <li key={c.id}>
+            filtered.map((c,index) => (
+              <li key={c.id} role="presentation">
                 <button
                   type="button"
                   role="option"
+                  id={`${listId}-${c.id}`}
                   aria-selected={c.id === value}
                   onClick={() => pick(c.id)}
                   className={cn(
                     "flex w-full flex-col items-start px-4 py-2.5 text-left hover:bg-champagne",
-                    c.id === value && "bg-rose-gold/10",
+                    c.id === value ? "bg-rose-gold/10" : index === activeIndex ? "bg-champagne/50" : "",
                   )}
                 >
                   <span className="text-[14px] font-medium text-ink">{contactLabel(c)}</span>

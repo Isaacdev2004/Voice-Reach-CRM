@@ -175,7 +175,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               )}
             </main>
           </div>
-          {normalizedPath !== "/dashboard" && normalizedPath !== "/dashboard/contacts" ? <AiFloatingButton /> : null}
+          {normalizedPath !== "/dashboard" && normalizedPath !== "/dashboard/contacts" && !isPropertyFinderRoute ? <AiFloatingButton /> : null}
           <AiAssistantSidebar />
         </DashboardHeaderProvider>
       </AiAssistantProvider>
