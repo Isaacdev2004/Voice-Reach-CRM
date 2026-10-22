@@ -43,11 +43,11 @@ export function isInQuietHours(params: {
 }): boolean {
   const start = parseHm(params.quietHoursStart);
   const end = parseHm(params.quietHoursEnd);
-  if (!start || !end) return false;
+  if (!start || !end) return true;
 
   const tz = params.timeZone || "America/New_York";
   const now = params.now ?? new Date();
-  const z = zonedParts(now, tz);
+  let z;try{z=zonedParts(now,tz);}catch{return true;}
   const current = minutesOfDay(z.hour, z.minute);
   const s = minutesOfDay(start.h, start.m);
   const e = minutesOfDay(end.h, end.m);
@@ -64,30 +64,12 @@ export function nextQuietHoursEnd(params: {
   quietHoursEnd: string;
   timeZone?: string;
 }): Date {
-  const end = parseHm(params.quietHoursEnd) ?? { h: 8, m: 0 };
-  const start = parseHm(params.quietHoursStart) ?? { h: 21, m: 0 };
-  const tz = params.timeZone || "America/New_York";
-  const now = params.now ?? new Date();
-  const z = zonedParts(now, tz);
-  const current = minutesOfDay(z.hour, z.minute);
-  const s = minutesOfDay(start.h, start.m);
-  const e = minutesOfDay(end.h, end.m);
-
-  let minutesUntilEnd: number;
-  if (s < e) {
-    // same-day quiet window
-    minutesUntilEnd = current < e ? e - current : 24 * 60 - current + e;
-  } else {
-    // wraps midnight - end is tomorrow morning if we're past start, or later tonight/morning
-    if (current >= s) {
-      minutesUntilEnd = 24 * 60 - current + e;
-    } else if (current < e) {
-      minutesUntilEnd = e - current;
-    } else {
-      minutesUntilEnd = e + (24 * 60 - current);
-    }
+  if(!parseHm(params.quietHoursStart)||!parseHm(params.quietHoursEnd))throw new Error('Review quiet-hours settings.');
+  const now=params.now??new Date();
+  // Walk real instants, not nominal local minutes: DST nights are not always 24 hours.
+  for(let minutes=0;minutes<=49*60;minutes++){
+    const candidate=new Date(now.getTime()+minutes*60000);
+    if(!isInQuietHours({...params,now:candidate}))return new Date(candidate.getTime()+2*60000);
   }
-
-  // Add a small buffer so we don't immediately re-enter quiet hours due to clock skew
-  return new Date(now.getTime() + (minutesUntilEnd + 2) * 60_000);
+  throw new Error('Review the sending timezone and quiet-hours settings.');
 }

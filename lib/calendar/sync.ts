@@ -1,6 +1,11 @@
+import { loadWorkspaceSettings } from "@/lib/settings/load-workspace";
 import { writeAuditLog } from "@/lib/audit";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { createGoogleCalendarEvent, getGoogleConnection, type Recurrence } from "./google";
+import {
+  createGoogleCalendarEvent,
+  getGoogleConnection,
+  type Recurrence,
+} from "./google";
 
 type ContactLite = {
   id: string;
@@ -11,34 +16,13 @@ type ContactLite = {
 };
 
 function contactName(contact: ContactLite): string {
-  return `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() || "Contact";
+  return (
+    `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() || "Contact"
+  );
 }
 
 async function getUserTimezone(ownerId: string): Promise<string> {
-  const { data } = await supabaseAdmin
-    .from("audit_logs")
-    .select("metadata")
-    .eq("owner_id", ownerId)
-    .eq("action", "SETTINGS_SAVED")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const timezone = (data?.metadata as { profile?: { timezone?: string } } | null)?.profile
-    ?.timezone;
-  return timezone || "America/New_York";
-}
-
-function parseTimeLabel(timeLabel?: string | null): { hour: number; minute: number } {
-  if (!timeLabel) return { hour: 9, minute: 0 };
-  const match = timeLabel.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);
-  if (!match) return { hour: 9, minute: 0 };
-  let hour = Number.parseInt(match[1], 10);
-  const minute = match[2] ? Number.parseInt(match[2], 10) : 0;
-  const meridiem = match[3]?.toUpperCase();
-  if (meridiem === "PM" && hour < 12) hour += 12;
-  if (meridiem === "AM" && hour === 12) hour = 0;
-  return { hour, minute };
+  return (await loadWorkspaceSettings(ownerId)).profile.timezone;
 }
 
 function eventWindowFromStep(options: {
@@ -49,14 +33,9 @@ function eventWindowFromStep(options: {
 }): { start: Date; end: Date } {
   const duration = options.durationMinutes ?? 30;
   const base = options.scheduledAt ? new Date(options.scheduledAt) : new Date();
-  const { hour, minute } = parseTimeLabel(options.timeLabel);
 
+  // The campaign scheduler has already resolved this exact instant in the workspace zone.
   const start = new Date(base);
-  start.setHours(hour, minute, 0, 0);
-  if (start.getTime() < Date.now()) {
-    start.setDate(start.getDate() + 1);
-  }
-
   const end = new Date(start.getTime() + duration * 60_000);
   return { start, end };
 }

@@ -143,7 +143,7 @@ export function performanceSummary(data: LibraryPreview) {
             (r) =>
               r.recipient_id === rec.id &&
               r.step_id === step &&
-              ["sent", "skipped"].includes(r.status),
+              r.status === "sent",
           ),
         ),
       ).length

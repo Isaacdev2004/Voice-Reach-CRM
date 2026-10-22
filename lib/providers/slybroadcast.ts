@@ -1,4 +1,9 @@
-import type { ProviderAdapter, SendRequest, SendResult, WebhookEvent } from "./types";
+import type {
+  ProviderAdapter,
+  SendRequest,
+  SendResult,
+  WebhookEvent,
+} from "./types";
 
 /**
  * Slybroadcast ringless voicemail adapter.
@@ -28,7 +33,11 @@ export const slybroadcastProvider: ProviderAdapter = {
 
   async send(request: SendRequest): Promise<SendResult> {
     if (request.channel !== "voicemail") {
-      return { ok: false, status: "failed", error: "Slybroadcast only supports voicemail" };
+      return {
+        ok: false,
+        status: "failed",
+        error: "Slybroadcast only supports voicemail",
+      };
     }
 
     const username = process.env.SLYBROADCAST_USERNAME;
@@ -39,17 +48,26 @@ export const slybroadcastProvider: ProviderAdapter = {
       return {
         ok: false,
         status: "failed",
-        error: "Slybroadcast credentials not configured (SLYBROADCAST_USERNAME/PASSWORD/CALLER_ID).",
+        error:
+          "Slybroadcast credentials not configured (SLYBROADCAST_USERNAME/PASSWORD/CALLER_ID).",
       };
     }
     if (!request.audioUrl) {
-      return { ok: false, status: "failed", error: "Missing audioUrl for voicemail" };
+      return {
+        ok: false,
+        status: "failed",
+        error: "Missing audioUrl for voicemail",
+      };
     }
 
     const to = digitsOnlyPhone(request.to);
     const from = digitsOnlyPhone(callerId);
     if (to.length < 10) {
-      return { ok: false, status: "failed", error: "Invalid destination phone for Slybroadcast" };
+      return {
+        ok: false,
+        status: "failed",
+        error: "Invalid destination phone for Slybroadcast",
+      };
     }
 
     const body = new URLSearchParams({
@@ -72,7 +90,15 @@ export const slybroadcastProvider: ProviderAdapter = {
       (process.env.APP_BASE_URL
         ? `${process.env.APP_BASE_URL.replace(/\/$/, "")}/api/webhooks/voice?provider=slybroadcast`
         : undefined);
-    if (dispoUrl) body.set("c_dispo_url", dispoUrl);
+    if (dispoUrl) {
+      const callback = new URL(dispoUrl);
+      if (process.env.VOICE_WEBHOOK_SECRET?.trim())
+        callback.searchParams.set(
+          "token",
+          process.env.VOICE_WEBHOOK_SECRET.trim(),
+        );
+      body.set("c_dispo_url", callback.toString());
+    }
 
     try {
       const res = await fetch("https://www.mobile-sphere.com/gateway/vmb.php", {
@@ -96,7 +122,8 @@ export const slybroadcastProvider: ProviderAdapter = {
       return {
         ok: false,
         status: "failed",
-        error: err instanceof Error ? err.message : "Slybroadcast request failed",
+        error:
+          err instanceof Error ? err.message : "Slybroadcast request failed",
       };
     }
   },

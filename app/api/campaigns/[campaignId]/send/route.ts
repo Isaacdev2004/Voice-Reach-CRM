@@ -7,7 +7,6 @@ import {
   liveOutboundBlockedMessage,
 } from "@/lib/billing/live-outbound";
 import { evaluateEligibility } from "@/lib/compliance";
-import { recordEngagementEvent } from "@/lib/engagement/record";
 import {
   claimRecipientForOutboundSend,
   TERMINAL_DELIVERY_STATUSES,
@@ -29,7 +28,9 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     .single();
 
   if (campaignError || !campaign) {
-    return apiError(campaignError?.message || "Campaign not found", { status: 404 });
+    return apiError(campaignError?.message || "Campaign not found", {
+      status: 404,
+    });
   }
 
   if (isLiveCampaignProvider(campaign.provider) && !isLiveOutboundAllowed()) {
@@ -46,7 +47,10 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     );
   }
 
-  if (!campaign.voice_assets?.approved) {
+  if (
+    !campaign.voice_assets?.approved ||
+    campaign.voice_assets.owner_id !== ownerId
+  ) {
     return apiError("Campaign voice asset must be approved before sending.", {
       status: 400,
       code: "voice_asset_not_approved",
@@ -59,7 +63,9 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     .createSignedUrl(campaign.voice_assets.storage_path, 60 * 60);
 
   if (signedError || !signedAudio?.signedUrl) {
-    return apiError(signedError?.message || "Unable to sign audio URL", { status: 500 });
+    return apiError(signedError?.message || "Unable to sign audio URL", {
+      status: 500,
+    });
   }
 
   const { data: recipients, error: recipientsError } = await supabaseAdmin
@@ -68,7 +74,8 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     .eq("campaign_id", campaignId)
     .eq("owner_id", ownerId);
 
-  if (recipientsError) return apiError(recipientsError.message, { status: 500 });
+  if (recipientsError)
+    return apiError(recipientsError.message, { status: 500 });
 
   await supabaseAdmin
     .from("campaigns")
@@ -76,10 +83,16 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     .eq("id", campaignId)
     .eq("owner_id", ownerId);
 
-  const results: { recipientId: string; contactId: string; status: string; issues?: string[] }[] = [];
+  const results: {
+    recipientId: string;
+    contactId: string;
+    status: string;
+    issues?: string[];
+  }[] = [];
 
   for (const recipient of recipients || []) {
     const contact = recipient.contacts;
+    if (!contact || contact.owner_id !== ownerId) continue;
 
     if (TERMINAL_DELIVERY_STATUSES.has(recipient.delivery_status)) {
       results.push({
@@ -124,7 +137,9 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     }
 
     if (campaign.provider !== "mock") {
-      const { assertCanSendChannel } = await import("@/lib/billing/plan-limits");
+      const { assertCanSendChannel } = await import(
+        "@/lib/billing/plan-limits"
+      );
       const quota = await assertCanSendChannel(ownerId, "voicemail");
       if (!quota.ok) {
         results.push({
@@ -144,9 +159,13 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
 
     const providerResult = await dispatch(
       {
+        ownerId,
+        contactId: contact.id,
         channel: "voicemail",
         to: contact.phone,
-        from: process.env.SLYBROADCAST_CALLER_ID ?? process.env.VOICE_PROVIDER_FROM_NUMBER,
+        from:
+          process.env.SLYBROADCAST_CALLER_ID ??
+          process.env.VOICE_PROVIDER_FROM_NUMBER,
         audioUrl: signedAudio.signedUrl,
         campaignId,
         recipientId: recipient.id,
@@ -173,16 +192,10 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
         .eq("id", contact.id)
         .eq("owner_id", ownerId);
 
-      await recordEngagementEvent({
-        ownerId,
-        contactId: contact.id,
-        campaignId,
-        eventType: "delivered",
-        channel: "voicemail",
-        metadata: { provider: campaign.provider, providerMessageId: providerResult.providerMessageId },
-      }).catch(() => undefined);
-
-      if (providerResult.status !== "mock_sent" && campaign.provider !== "mock") {
+      if (
+        providerResult.status !== "mock_sent" &&
+        campaign.provider !== "mock"
+      ) {
         const { billPaygUsage } = await import("@/lib/billing/payg-usage");
         await billPaygUsage({
           ownerId,
@@ -200,8 +213,15 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     });
   }
 
-  const sentCount = results.filter((item) => item.status === "sent" || item.status === "mock_sent" || item.status === "queued").length;
-  const blockedCount = results.filter((item) => item.status === "blocked").length;
+  const sentCount = results.filter(
+    (item) =>
+      item.status === "sent" ||
+      item.status === "mock_sent" ||
+      item.status === "queued",
+  ).length;
+  const blockedCount = results.filter(
+    (item) => item.status === "blocked",
+  ).length;
   const failedCount = results.filter((item) => item.status === "failed").length;
   const finalStatus = failedCount > 0 || blockedCount > 0 ? "partial" : "sent";
 
@@ -219,5 +239,12 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     metadata: { sentCount, blockedCount, failedCount },
   });
 
-  return apiOk({ campaignId, finalStatus, sentCount, blockedCount, failedCount, results });
+  return apiOk({
+    campaignId,
+    finalStatus,
+    sentCount,
+    blockedCount,
+    failedCount,
+    results,
+  });
 });

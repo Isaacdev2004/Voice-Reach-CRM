@@ -2,10 +2,7 @@ import {
   isLiveOutboundAllowed,
   liveOutboundBlockedMessage,
 } from "@/lib/billing/live-outbound";
-import {
-  normalizeOutboundContent,
-  shouldBlockRawJsonSend,
-} from "@/lib/campaigns/outbound-content";
+import { renderMessage } from "@/lib/campaigns/render-message";
 import { recordEngagementEvent } from "@/lib/engagement/record";
 import { dispatch, pickAdapterForChannel } from "@/lib/providers/registry";
 import type {
@@ -26,14 +23,17 @@ export function resolveRecipientAddress(
   contact: ContactForSend,
 ): { address: string | null; error?: string } {
   if (channel === "email") {
-    const email = contact.email?.trim();
-    if (!email || !email.includes("@")) {
+    const email = typeof contact.email === "string" ? contact.email.trim() : "";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return { address: null, error: "Contact has no email address" };
     }
     return { address: email };
   }
-  const phone = contact.phone?.trim();
-  if (!phone) {
+  const phone = typeof contact.phone === "string" ? contact.phone.trim() : "";
+  if (
+    !/^\+?[\d ().-]{10,25}$/.test(phone) ||
+    phone.replace(/\D/g, "").length < 10
+  ) {
     return { address: null, error: "Contact has no phone number" };
   }
   return { address: phone };
@@ -50,60 +50,59 @@ export async function sendToContact(params: {
   audioUrl?: string;
   mediaUrls?: string[];
   emailAttachments?: EmailAttachmentPayload[];
+  idempotencyKey?: string;
   providerId?: string;
   stepId?: string;
   recordEngagement?: boolean;
 }): Promise<SendResult & { skipped?: boolean; skipReason?: string }> {
-  const { address, error: addressError } = resolveRecipientAddress(params.channel, params.contact);
+  const { address, error: addressError } = resolveRecipientAddress(
+    params.channel,
+    params.contact,
+  );
   if (!address) {
-    return { ok: false, status: "failed", error: addressError, skipped: true, skipReason: addressError };
+    return {
+      ok: false,
+      status: "failed",
+      error: addressError,
+      skipped: true,
+      skipReason: addressError,
+    };
   }
 
-  let outboundBody = params.body;
-  let outboundSubject = params.subject;
-  const outboundChannel =
-    params.channel === "email" || params.channel === "sms" || params.channel === "voicemail"
-      ? params.channel
-      : "sms";
-  const rawCopy = (params.body ?? "").trim();
-  const subjectCopy = (params.subject ?? "").trim();
-  const hasTextCopy = Boolean(rawCopy || (outboundChannel === "email" && subjectCopy));
-
-  if (hasTextCopy) {
-    const normalized = normalizeOutboundContent(
-      outboundChannel,
-      rawCopy || subjectCopy,
-      subjectCopy,
-    );
-    outboundBody = normalized.body || params.body;
-    outboundSubject =
-      outboundChannel === "email" ? normalized.subject ?? params.subject : params.subject;
-
-    if (
-      shouldBlockRawJsonSend(
-        outboundBody ?? "",
-        outboundChannel === "email" ? outboundSubject : null,
-      )
-    ) {
-      return {
-        ok: false,
-        status: "failed",
-        error:
-          "Message content looks like raw AI/JSON. Use plain email or SMS copy before sending.",
-        skipped: true,
-        skipReason: "raw_ai_json",
-      };
-    }
-  }
+  const rendered = renderMessage(
+    params.channel === "email"
+      ? "email"
+      : params.channel === "voicemail"
+        ? "voicemail"
+        : "sms",
+    params.body ?? "",
+    params.subject ?? "",
+  );
+  const audioOnly =
+    params.channel === "voicemail" && !!params.audioUrl && !params.body;
+  if (!rendered.ok && !audioOnly)
+    return {
+      ok: false,
+      status: "failed",
+      skipped: true,
+      skipReason: "invalid_message",
+      error: "Review the message preview before sending.",
+    };
+  const outboundBody = rendered.body;
+  const outboundSubject = rendered.subject ?? undefined;
 
   const request: SendRequest = {
+    ownerId: params.ownerId,
+    contactId: params.contact.id,
+    idempotencyKey: params.idempotencyKey,
     channel: params.channel,
     to: address,
     from:
       params.channel === "sms"
         ? process.env.TWILIO_FROM_NUMBER
         : params.channel === "voicemail"
-          ? process.env.SLYBROADCAST_CALLER_ID ?? process.env.VOICE_PROVIDER_FROM_NUMBER
+          ? (process.env.SLYBROADCAST_CALLER_ID ??
+            process.env.VOICE_PROVIDER_FROM_NUMBER)
           : undefined,
     audioUrl: params.audioUrl,
     body: outboundBody,
@@ -133,28 +132,18 @@ export async function sendToContact(params: {
 
   const result = await dispatch(request, providerId);
 
-  if (result.ok && params.recordEngagement !== false) {
+  // Provider acceptance is not proof of delivery. Only authenticated disposition events record delivery.
+  if (!result.ok && params.recordEngagement !== false) {
     await recordEngagementEvent({
       ownerId: params.ownerId,
       contactId: params.contact.id,
-      campaignId: params.campaignId.startsWith("automation") ? undefined : params.campaignId,
-      stepId: params.stepId,
-      eventType: "delivered",
-      channel: params.channel,
-      metadata: {
-        provider: providerId,
-        providerMessageId: result.providerMessageId,
-      },
-    }).catch(() => undefined);
-  } else if (!result.ok && params.recordEngagement !== false) {
-    await recordEngagementEvent({
-      ownerId: params.ownerId,
-      contactId: params.contact.id,
-      campaignId: params.campaignId.startsWith("automation") ? undefined : params.campaignId,
+      campaignId: params.campaignId.startsWith("automation")
+        ? undefined
+        : params.campaignId,
       stepId: params.stepId,
       eventType: "failed",
       channel: params.channel,
-      metadata: { error: result.error, provider: providerId },
+      metadata: { provider: providerId },
     }).catch(() => undefined);
   }
 

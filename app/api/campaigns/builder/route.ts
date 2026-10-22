@@ -1,3 +1,5 @@
+import { previewSequence } from "@/lib/campaigns/sequence-preview";
+import { loadWorkspaceSettings } from "@/lib/settings/load-workspace";
 import { assertAttachmentOwnership } from "@/lib/campaigns/attachment-ownership";
 import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
@@ -14,7 +16,16 @@ import { z } from "zod";
 const StepSchema = z.object({
   id: z.string(),
   order: z.number(),
-  type: z.enum(["voicemail", "sms", "email", "avatar_video", "task", "callback", "wait", "retargeting"]),
+  type: z.enum([
+    "voicemail",
+    "sms",
+    "email",
+    "avatar_video",
+    "task",
+    "callback",
+    "wait",
+    "retargeting",
+  ]),
   title: z.string(),
   description: z.string().optional().default(""),
   delayMinutes: z.number().int().nonnegative().optional(),
@@ -72,7 +83,10 @@ async function upsertCampaign(
       .update({
         name: blueprint.name,
         script_id: scriptId,
-        provider: blueprint.provider === "mock" || !blueprint.provider ? "mock" : blueprint.provider,
+        provider:
+          blueprint.provider === "mock" || !blueprint.provider
+            ? "mock"
+            : blueprint.provider,
         status,
         updated_at: new Date().toISOString(),
       })
@@ -91,7 +105,10 @@ async function upsertCampaign(
       owner_id: ownerId,
       name: blueprint.name,
       script_id: scriptId,
-      provider: blueprint.provider === "mock" || !blueprint.provider ? "mock" : blueprint.provider,
+      provider:
+        blueprint.provider === "mock" || !blueprint.provider
+          ? "mock"
+          : blueprint.provider,
       status,
     })
     .select("*")
@@ -101,7 +118,9 @@ async function upsertCampaign(
   return data;
 }
 
-function mapStepsToBlueprint(steps: z.infer<typeof StepSchema>[]): CampaignBlueprintStep[] {
+function mapStepsToBlueprint(
+  steps: z.infer<typeof StepSchema>[],
+): CampaignBlueprintStep[] {
   return steps.map((step) => {
     const conditions: Record<string, unknown> = {};
     if (step.voiceAssetId) conditions.voiceAssetId = step.voiceAssetId;
@@ -109,7 +128,7 @@ function mapStepsToBlueprint(steps: z.infer<typeof StepSchema>[]): CampaignBluep
     return {
       id: step.id,
       order: step.order,
-      type: (step.type === "retargeting" ? "email" : step.type) as CampaignBlueprintStep["type"],
+      type: step.type as CampaignBlueprintStep["type"],
       title: step.title,
       description: step.description,
       delayMinutes: step.delayMinutes ?? guessDelay(step),
@@ -131,10 +150,93 @@ function guessDelay(step: { dayLabel?: string }): number {
 export const POST = withApiHandler(async (request: Request) => {
   const ownerId = await requireUserId();
   const body = BodySchema.parse(await request.json());
+  if (body.campaignId) {
+    const { data: original, error } = await supabaseAdmin
+      .from("campaigns")
+      .select("id,status")
+      .eq("owner_id", ownerId)
+      .eq("id", body.campaignId)
+      .maybeSingle();
+    if (error || !original)
+      return apiError("Campaign not found.", { status: 404 });
+    const history = await supabaseAdmin
+      .from("campaign_step_runs")
+      .select("id")
+      .eq("owner_id", ownerId)
+      .eq("campaign_id", body.campaignId)
+      .limit(1);
+    if (history.error)
+      return apiError("Unable to verify campaign revision history.", {
+        status: 503,
+      });
+    if (original.status !== "draft" || history.data?.length)
+      return apiError(
+        "Create a draft revision before editing a queued or active campaign.",
+        { status: 409, code: "revision_required" },
+      );
+  }
+  const orders = body.campaign.steps.map((s) => s.order);
+  if (
+    new Set(orders).size !== orders.length ||
+    orders.some((order, i) => order !== i + 1)
+  )
+    return apiError("Sequence steps must have consecutive unique order.", {
+      status: 400,
+    });
+  if (body.action === "activate") {
+    const { workspace, profile } = await loadWorkspaceSettings(ownerId, {
+      outbound: true,
+    });
+    const preview = previewSequence(
+      mapStepsToBlueprint(body.campaign.steps).map((s) => ({
+        id: s.id,
+        step_order: s.order,
+        type: s.type,
+        title: s.title,
+        description: s.description,
+        delay_minutes: s.delayMinutes,
+        time_label: s.timeLabel,
+      })),
+      {
+        contact: {
+          first_name: "Preview",
+          preferred_area: "your area",
+          property_address: "the property",
+        },
+        agentName: workspace.defaultSenderName || profile.fullName,
+        agentPhone: profile.phone,
+        brokerage: workspace.name,
+        timezone: profile.timezone,
+      },
+    );
+    if (preview.some((s) => !s.ok))
+      return apiError(
+        "Review every message, supported channel, sender signature and send time before activation.",
+        { status: 400, code: "campaign_not_ready" },
+      );
+  }
   for (const step of body.campaign.steps) {
+    if (step.voiceAssetId) {
+      const { data: voice, error } = await supabaseAdmin
+        .from("voice_assets")
+        .select("id,approved")
+        .eq("owner_id", ownerId)
+        .eq("id", step.voiceAssetId)
+        .maybeSingle();
+      if (error || !voice?.approved)
+        return apiError(
+          "Choose an approved recording from your own workspace.",
+          { status: 403 },
+        );
+    }
     for (const attachment of step.attachments ?? []) {
-      try { assertAttachmentOwnership(ownerId, attachment.storagePath); }
-      catch { return apiError("Attachment does not belong to this account.", { status: 403 }); }
+      try {
+        assertAttachmentOwnership(ownerId, attachment.storagePath);
+      } catch {
+        return apiError("Attachment does not belong to this account.", {
+          status: 403,
+        });
+      }
     }
   }
   const {
@@ -147,15 +249,28 @@ export const POST = withApiHandler(async (request: Request) => {
   } = body;
 
   if (action === "template") {
-    const record = await upsertCampaign(ownerId, blueprint, "draft", existingId);
-    await persistSteps(ownerId, record.id, mapStepsToBlueprint(blueprint.steps));
+    const record = await upsertCampaign(
+      ownerId,
+      blueprint,
+      "draft",
+      existingId,
+    );
+    await persistSteps(
+      ownerId,
+      record.id,
+      mapStepsToBlueprint(blueprint.steps),
+    );
 
     await writeAuditLog({
       ownerId,
       action: "CAMPAIGN_TEMPLATE_SAVED",
       entityType: "campaign",
       entityId: record.id,
-      metadata: { blueprint, audience: blueprint.audience, stepCount: blueprint.steps.length },
+      metadata: {
+        blueprint,
+        audience: blueprint.audience,
+        stepCount: blueprint.steps.length,
+      },
     });
 
     return apiSuccess({
@@ -165,7 +280,11 @@ export const POST = withApiHandler(async (request: Request) => {
     });
   }
 
-  if (!enrollAllEligible && !category?.trim() && (!contactIds || contactIds.length === 0)) {
+  if (
+    !enrollAllEligible &&
+    !category?.trim() &&
+    (!contactIds || contactIds.length === 0)
+  ) {
     return apiError(
       "Select at least one contact, a category, or choose all eligible contacts before activating.",
       {
@@ -198,11 +317,14 @@ export const POST = withApiHandler(async (request: Request) => {
   });
 
   if (enrollment.enrolled === 0) {
-    return apiError("Campaign queued, but no eligible contacts to enroll. Add contacts with consent.", {
-      status: 200,
-      code: "no_eligible_contacts",
-      details: { campaignId: record.id, enrollment, schedule },
-    });
+    return apiError(
+      "Campaign queued, but no eligible contacts to enroll. Add contacts with consent.",
+      {
+        status: 200,
+        code: "no_eligible_contacts",
+        details: { campaignId: record.id, enrollment, schedule },
+      },
+    );
   }
 
   return apiSuccess({

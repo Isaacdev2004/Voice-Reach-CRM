@@ -1,5 +1,8 @@
 import { contactMatchesCategory } from "@/lib/contacts/categories";
 import { evaluateEligibility } from "@/lib/compliance";
+import { scheduledAtForStep } from "./scheduling";
+import { loadWorkspaceSettings } from "@/lib/settings/load-workspace";
+import { ownedConsentRecords } from "@/lib/contacts/owned-consent";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export type EnrollResult = {
@@ -10,31 +13,23 @@ export type EnrollResult = {
   recipientIds: string[];
 };
 
-/** Write a Yes consent record so a contact can be enrolled for a dry-run / test. */
-export async function documentTestConsent(ownerId: string, contactIds: string[]) {
-  if (!contactIds.length) return;
-  const today = new Date().toISOString().slice(0, 10);
-  const rows = contactIds.map((contactId) => ({
-    owner_id: ownerId,
-    contact_id: contactId,
-    status: "Yes",
-    consent_date: today,
-    source: "Campaign test run",
-    proof_reference: "Owner-initiated test enrollment",
-    notes: "Auto-documented for campaign sequence testing",
-  }));
-  const { error } = await supabaseAdmin.from("consent_records").insert(rows);
-  if (error) throw new Error(error.message);
-}
-
 export async function enrollContacts(
   ownerId: string,
   campaignId: string,
-  options?: { contactIds?: string[]; category?: string; documentTestConsent?: boolean },
+  options?: { contactIds?: string[]; category?: string },
 ): Promise<EnrollResult> {
+  const { data: ownedCampaign, error: campaignError } = await supabaseAdmin
+    .from("campaigns")
+    .select("id")
+    .eq("owner_id", ownerId)
+    .eq("id", campaignId)
+    .maybeSingle();
+  if (campaignError || !ownedCampaign) throw Error("Campaign not found.");
   let query = supabaseAdmin
     .from("contacts")
-    .select("id, phone, dnc, opt_out_requested, category, type, consent_records(*)")
+    .select(
+      "id, phone, dnc, opt_out_requested, category, type, consent_records(*)",
+    )
     .eq("owner_id", ownerId);
 
   if (options?.contactIds?.length) {
@@ -48,25 +43,6 @@ export async function enrollContacts(
   const scopedContacts = categoryFilter
     ? (contacts ?? []).filter((c) => contactMatchesCategory(c, categoryFilter))
     : (contacts ?? []);
-
-  if (options?.documentTestConsent && options.contactIds?.length) {
-    const needingConsent = scopedContacts
-      .filter((c) => !evaluateEligibility(c).eligible)
-      .map((c) => c.id as string);
-    if (needingConsent.length) {
-      await documentTestConsent(ownerId, needingConsent);
-      const { data: refreshed, error: refreshError } = await supabaseAdmin
-        .from("contacts")
-        .select("id, phone, dnc, opt_out_requested, category, type, consent_records(*)")
-        .eq("owner_id", ownerId)
-        .in("id", options.contactIds);
-      if (refreshError) throw new Error(refreshError.message);
-      const refreshedScoped = categoryFilter
-        ? (refreshed ?? []).filter((c) => contactMatchesCategory(c, categoryFilter))
-        : (refreshed ?? []);
-      return enrollEligible(ownerId, campaignId, refreshedScoped, options.contactIds.length);
-    }
-  }
 
   const requested =
     options?.contactIds?.length ??
@@ -88,11 +64,25 @@ async function enrollEligible(
       source?: string | null;
       proof_reference?: string | null;
       created_at?: string | null;
+      owner_id?: string;
+      contact_id?: string;
     }>;
   }>,
   requested: number | null,
 ): Promise<EnrollResult> {
-  const eligible = contacts.filter((c) => evaluateEligibility(c).eligible).map((c) => c.id);
+  const eligible = contacts
+    .filter(
+      (c) =>
+        evaluateEligibility({
+          ...c,
+          consent_records: ownedConsentRecords(
+            c.consent_records ?? [],
+            ownerId,
+            c.id,
+          ),
+        }).eligible,
+    )
+    .map((c) => c.id);
 
   if (eligible.length === 0) {
     return {
@@ -108,6 +98,7 @@ async function enrollEligible(
     .from("campaign_recipients")
     .select("contact_id")
     .eq("campaign_id", campaignId)
+    .eq("owner_id", ownerId)
     .in("contact_id", eligible);
 
   const already = new Set((existing ?? []).map((r) => r.contact_id as string));
@@ -155,21 +146,24 @@ async function insertStepRunsDeduped(
 ) {
   if (!rows.length) return { scheduled: 0 };
 
-  const recipientIds = [...new Set(rows.map((row) => String(row.recipient_id)))];
+  const recipientIds = [
+    ...new Set(rows.map((row) => String(row.recipient_id))),
+  ];
   const stepIds = [...new Set(rows.map((row) => String(row.step_id)))];
 
   const { data: existing, error: existingError } = await supabaseAdmin
     .from("campaign_step_runs")
     .select("recipient_id, step_id")
     .eq("campaign_id", campaignId)
+    .eq("owner_id", ownerId)
     .in("recipient_id", recipientIds)
-    .in("step_id", stepIds)
-    .in("status", ["scheduled", "running"]);
-
+    .in("step_id", stepIds);
   if (existingError) throw new Error(existingError.message);
 
   const seen = new Set(
-    (existing ?? []).map((row) => `${row.recipient_id as string}:${row.step_id as string}`),
+    (existing ?? []).map(
+      (row) => `${row.recipient_id as string}:${row.step_id as string}`,
+    ),
   );
   const freshRows = rows.filter((row) => {
     const key = `${String(row.recipient_id)}:${String(row.step_id)}`;
@@ -178,7 +172,10 @@ async function insertStepRunsDeduped(
 
   if (!freshRows.length) return { scheduled: 0 };
 
-  const { error } = await supabaseAdmin.from("campaign_step_runs").insert(freshRows);
+  const { error } = await supabaseAdmin
+    .from("campaign_step_runs")
+    .insert(freshRows);
+  if (error?.code === "23505") return { scheduled: 0 };
   if (error) throw new Error(error.message);
 
   return { scheduled: freshRows.length };
@@ -187,9 +184,13 @@ async function insertStepRunsDeduped(
 function buildStepRunRows(
   ownerId: string,
   campaignId: string,
-  steps: Array<{ id: string; delay_minutes?: number | null }>,
-  recipients: Array<{ id: string }>,
-  options?: { accelerated?: boolean },
+  steps: Array<{
+    id: string;
+    delay_minutes?: number | null;
+    time_label?: string | null;
+  }>,
+  recipients: Array<{ id: string; created_at?: string }>,
+  options?: { accelerated?: boolean; timeZone?: string },
 ) {
   const baseTime = Date.now();
   const rows: Record<string, unknown>[] = [];
@@ -199,7 +200,11 @@ function buildStepRunRows(
       // delay_minutes is offset from enrollment (Day N → (N-1)*24h), not delta from prior step.
       const scheduledMs = options?.accelerated
         ? baseTime - (steps.length - index) * 1_000
-        : baseTime + (step.delay_minutes ?? 0) * 60_000;
+        : scheduledAtForStep(
+            step,
+            recipient.created_at ?? new Date(baseTime),
+            options?.timeZone ?? "America/New_York",
+          ).getTime();
       rows.push({
         owner_id: ownerId,
         campaign_id: campaignId,
@@ -219,58 +224,77 @@ export async function scheduleStepRunsForRecipients(
   ownerId: string,
   campaignId: string,
   recipientIds: string[],
-  options?: { accelerated?: boolean },
+  options?: { accelerated?: boolean; timeZone?: string },
 ) {
   if (!recipientIds.length) return { scheduled: 0 };
 
-  const [{ data: steps }, { data: recipients }] = await Promise.all([
+  const [stepsResult, recipientsResult] = await Promise.all([
     supabaseAdmin
       .from("campaign_steps")
       .select("*")
       .eq("campaign_id", campaignId)
+      .eq("owner_id", ownerId)
       .order("step_order", { ascending: true }),
     supabaseAdmin
       .from("campaign_recipients")
-      .select("id, eligibility_status")
+      .select("id, eligibility_status, created_at")
       .eq("campaign_id", campaignId)
+      .eq("owner_id", ownerId)
       .in("id", recipientIds)
       .eq("eligibility_status", "eligible"),
   ]);
 
+  if (stepsResult.error || recipientsResult.error)
+    throw new Error("Unable to verify campaign scheduling data.");
+  const steps = stepsResult.data,
+    recipients = recipientsResult.data;
   if (!steps?.length || !recipients?.length) return { scheduled: 0 };
 
-  const rows = buildStepRunRows(ownerId, campaignId, steps, recipients, options);
+  const { profile } = await loadWorkspaceSettings(ownerId);
+  const rows = buildStepRunRows(ownerId, campaignId, steps, recipients, {
+    ...options,
+    timeZone: profile.timezone,
+  });
   return insertStepRunsDeduped(ownerId, campaignId, rows);
 }
 
 /** Drop pending step runs and rebuild from current steps (used on Launch). */
-export async function rebuildScheduledStepRuns(ownerId: string, campaignId: string) {
-  await supabaseAdmin
-    .from("campaign_step_runs")
-    .delete()
-    .eq("campaign_id", campaignId)
-    .eq("owner_id", ownerId)
-    .eq("status", "scheduled");
+export async function rebuildScheduledStepRuns(
+  ownerId: string,
+  campaignId: string,
+) {
   return ensureStepRunsForCampaign(ownerId, campaignId);
 }
 
 /** Schedule any missing step runs for enrolled recipients (used on explicit launch). */
-export async function ensureStepRunsForCampaign(ownerId: string, campaignId: string) {
-  const [{ data: steps }, { data: recipients }] = await Promise.all([
+export async function ensureStepRunsForCampaign(
+  ownerId: string,
+  campaignId: string,
+) {
+  const [stepsResult, recipientsResult] = await Promise.all([
     supabaseAdmin
       .from("campaign_steps")
       .select("*")
       .eq("campaign_id", campaignId)
+      .eq("owner_id", ownerId)
       .order("step_order", { ascending: true }),
     supabaseAdmin
       .from("campaign_recipients")
-      .select("id, eligibility_status")
+      .select("id, eligibility_status, created_at")
       .eq("campaign_id", campaignId)
+      .eq("owner_id", ownerId)
       .eq("eligibility_status", "eligible"),
   ]);
 
+  if (stepsResult.error || recipientsResult.error)
+    throw new Error("Unable to verify campaign scheduling data.");
+  const steps = stepsResult.data,
+    recipients = recipientsResult.data;
   if (!steps?.length || !recipients?.length) return { scheduled: 0 };
 
-  const rows = buildStepRunRows(ownerId, campaignId, steps, recipients);
+  const { profile } = await loadWorkspaceSettings(ownerId);
+  const rows = buildStepRunRows(ownerId, campaignId, steps, recipients, {
+    timeZone: profile.timezone,
+  });
   return insertStepRunsDeduped(ownerId, campaignId, rows);
 }

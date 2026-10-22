@@ -1,9 +1,18 @@
 "use client";
+import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CampaignListPanel } from "./campaign-list-panel";
 import { CampaignBuilderPage } from "@/components/pages/stitch/CampaignBuilderPage";
 export function CampaignsWorkspacePage() {
+  const { user, isLoaded } = useUser();
+  return isLoaded && user ? (
+    <CampaignsOwnerWorkspace key={user.id} />
+  ) : (
+    <p role="status">Loading campaign workspace…</p>
+  );
+}
+function CampaignsOwnerWorkspace() {
   const search = useSearchParams();
   const [open, setOpen] = useState(false);
   useEffect(() => {

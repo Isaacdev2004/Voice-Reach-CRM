@@ -120,7 +120,11 @@ async function runAction(
         action: "AUTOMATION_NOTIFY",
         entityType: "notification",
         entityId: null,
-        metadata: { message: action.config.message ?? "Automation triggered", contactId, ...metadata },
+        metadata: {
+          message: action.config.message ?? "Automation triggered",
+          contactId,
+          ...metadata,
+        },
       });
       return;
 
@@ -163,24 +167,30 @@ async function runAction(
           action: "AUTOMATION_BLOCKED",
           entityType: "contact",
           entityId: contactId,
-          metadata: { reason: contact.opt_out_requested ? "opt_out" : "DNC", action: action.type },
+          metadata: {
+            reason: contact.opt_out_requested ? "opt_out" : "DNC",
+            action: action.type,
+          },
         });
         return;
       }
 
-      const { loadWorkspaceSettings } = await import("@/lib/settings/load-workspace");
+      const { loadWorkspaceSettings } = await import(
+        "@/lib/settings/load-workspace"
+      );
       const {
         applyMergeFields,
         findUnresolvedMergeFields,
         splitEmailSubjectBody,
       } = await import("@/lib/campaigns/merge-fields");
-      const { workspace, profile } = await loadWorkspaceSettings(ownerId);
+      const { workspace, profile } = await loadWorkspaceSettings(ownerId, {
+        outbound: true,
+      });
 
       const channel = action.type === "send_email" ? "email" : "sms";
 
-      const { isLiveOutboundAllowed, liveOutboundBlockedMessage } = await import(
-        "@/lib/billing/live-outbound"
-      );
+      const { isLiveOutboundAllowed, liveOutboundBlockedMessage } =
+        await import("@/lib/billing/live-outbound");
       if (!isLiveOutboundAllowed()) {
         await writeAuditLog({
           ownerId,
@@ -197,7 +207,9 @@ async function runAction(
       }
 
       if (channel === "sms") {
-        const { assertCanSendChannel } = await import("@/lib/billing/plan-limits");
+        const { assertCanSendChannel } = await import(
+          "@/lib/billing/plan-limits"
+        );
         const quota = await assertCanSendChannel(ownerId, "sms");
         if (!quota.ok) {
           await writeAuditLog({
@@ -205,7 +217,11 @@ async function runAction(
             action: "AUTOMATION_BLOCKED",
             entityType: "contact",
             entityId: contactId,
-            metadata: { reason: quota.code, error: quota.error, action: action.type },
+            metadata: {
+              reason: quota.code,
+              error: quota.error,
+              action: action.type,
+            },
           });
           return;
         }
@@ -224,9 +240,12 @@ async function runAction(
         marketArea: contact.preferred_area || undefined,
         city: contact.preferred_area || undefined,
       });
-      const emailParts = channel === "email" ? splitEmailSubjectBody(merged) : null;
+      const emailParts =
+        channel === "email" ? splitEmailSubjectBody(merged) : null;
       const body = emailParts?.body ?? merged;
-      const subject = emailParts?.subject ?? String(action.config.subject ?? "Message from your agent");
+      const subject =
+        emailParts?.subject ??
+        String(action.config.subject ?? "Message from your agent");
       const unresolved = findUnresolvedMergeFields(`${subject}\n${body}`);
       if (unresolved.length) {
         await writeAuditLog({
@@ -286,7 +305,9 @@ async function runAction(
       const campaignId = String(action.config.campaignId ?? "");
       if (!campaignId || !contactId) return;
       const { enrollContacts } = await import("@/lib/campaigns/enroll");
-      const enrollment = await enrollContacts(ownerId, campaignId, { contactIds: [contactId] });
+      const enrollment = await enrollContacts(ownerId, campaignId, {
+        contactIds: [contactId],
+      });
       if (enrollment.recipientIds.length) {
         const { data: campaign } = await supabaseAdmin
           .from("campaigns")
@@ -299,7 +320,8 @@ async function runAction(
         await supabaseAdmin
           .from("contacts")
           .update({
-            sequence_active: campaign?.script_id ?? campaign?.name ?? campaignId,
+            sequence_active:
+              campaign?.script_id ?? campaign?.name ?? campaignId,
             sequence_step: 0,
             sequence_started_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),

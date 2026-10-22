@@ -1,8 +1,14 @@
+import { authorizeLiveOutbound } from "./send-authorization";
 import { mockProvider } from "./mock";
 import { resendProvider } from "./resend";
 import { slybroadcastProvider } from "./slybroadcast";
 import { twilioProvider } from "./twilio";
-import type { ProviderAdapter, ProviderChannel, SendRequest, SendResult } from "./types";
+import type {
+  ProviderAdapter,
+  ProviderChannel,
+  SendRequest,
+  SendResult,
+} from "./types";
 
 const ADAPTERS: ProviderAdapter[] = [
   mockProvider,
@@ -28,7 +34,9 @@ function hasTwilioEnv() {
 }
 
 function hasResendEnv() {
-  return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.RESEND_FROM_EMAIL?.trim());
+  return Boolean(
+    process.env.RESEND_API_KEY?.trim() && process.env.RESEND_FROM_EMAIL?.trim(),
+  );
 }
 
 export function listAdapters() {
@@ -78,7 +86,8 @@ export function pickAdapterForChannel(
   if (channel === "voicemail") {
     const id = preferred ?? process.env.VOICE_PROVIDER ?? "slybroadcast";
     if (id === "mock") return mockProvider;
-    if (id === "slybroadcast" && hasSlybroadcastEnv()) return slybroadcastProvider;
+    if (id === "slybroadcast" && hasSlybroadcastEnv())
+      return slybroadcastProvider;
     if (id === "twilio" && hasTwilioEnv()) return twilioProvider;
     if (hasSlybroadcastEnv()) return slybroadcastProvider;
     return mockProvider;
@@ -89,10 +98,30 @@ export function pickAdapterForChannel(
   return mockProvider;
 }
 
-export async function dispatch(request: SendRequest, providerId?: string): Promise<SendResult> {
+export async function dispatch(
+  request: SendRequest,
+  providerId?: string,
+): Promise<SendResult> {
   const adapter = providerId
     ? getAdapter(providerId)
     : pickAdapterForChannel(request.channel);
+  if (providerId && providerId !== "mock" && adapter.id === "mock")
+    return {
+      ok: false,
+      status: "blocked",
+      error: "The requested delivery provider is not configured.",
+    };
+  if (!adapter.channels.includes(request.channel))
+    return {
+      ok: false,
+      status: "blocked",
+      error: "This provider does not support the selected channel.",
+    };
+  if (adapter.id !== "mock") {
+    const issues = await authorizeLiveOutbound(request);
+    if (issues.length)
+      return { ok: false, status: "blocked", error: issues.join(" ") };
+  }
   try {
     return await adapter.send(request);
   } catch (err) {

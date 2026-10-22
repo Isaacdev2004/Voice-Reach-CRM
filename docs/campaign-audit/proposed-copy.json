@@ -1,0 +1,671 @@
+[
+  {
+    "templateKey": "cold-lead-reengage",
+    "sourceId": "tpl-cold-lead-reengage",
+    "approvalRequired": true,
+    "originalUnchanged": true,
+    "campaign": {
+      "name": "Cold Lead Re-engagement — review draft",
+      "description": "Proposed revision. Review targeting, sender identity, consent and integrations before use.",
+      "audience": "Cold / inactive buyers (14+ days quiet)",
+      "durationDays": 21,
+      "goals": [],
+      "steps": [
+        {
+          "id": "review-1",
+          "order": 1,
+          "type": "email",
+          "title": "Market update / saved-search digest",
+          "description": "Subject: A fresh look at your home search\n\nHi [FirstName],\n\nWould an updated look at homes in {{area}} be useful? Tell me what has changed in your timing or priorities, and I can help you decide on a practical next step.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 1",
+          "timeLabel": "9:00 AM"
+        },
+        {
+          "id": "review-2",
+          "order": 2,
+          "type": "sms",
+          "title": "Casual search-status SMS",
+          "description": "Hi [FirstName], [Agent] here. Are you still considering a move in [City], or has your timing changed? Either answer helps me tailor the follow-up. Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "11:00 AM"
+        },
+        {
+          "id": "review-3",
+          "order": 3,
+          "type": "voicemail",
+          "title": "Low-pressure availability VM",
+          "description": "Hi [FirstName], this is [Agent] with [Brokerage]. I’m available if you would like to revisit your real estate plans or talk through the market in [City]. No pressure—please reach out whenever the timing suits you.",
+          "dayLabel": "Day 7",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-4",
+          "order": 4,
+          "type": "email",
+          "title": "Opt-down / should I stop?",
+          "description": "Subject: Would you like me to keep in touch?\n\nHi [FirstName],\n\nI want these updates to be useful. Would you prefer an occasional market note, a pause, or a different kind of help? You can contact me directly with your preference.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 14",
+          "timeLabel": "9:00 AM"
+        },
+        {
+          "id": "review-5",
+          "order": 5,
+          "type": "callback",
+          "title": "Move to nurture cadence",
+          "description": "Review this contact’s response and preferences. If appropriate and authorized, propose a nurture plan for agent approval; do not change lifecycle stages or enroll another sequence automatically.",
+          "dayLabel": "Day 21",
+          "timeLabel": "9:00 AM"
+        }
+      ]
+    }
+  },
+  {
+    "templateKey": "speed-to-lead",
+    "sourceId": "tpl-speed-to-lead",
+    "approvalRequired": true,
+    "originalUnchanged": true,
+    "campaign": {
+      "name": "Speed-to-Lead Quick Response — review draft",
+      "description": "Proposed revision. Review targeting, sender identity, consent and integrations before use.",
+      "audience": "Brand-new buyer leads (form, IDX, portal, lead ads)",
+      "durationDays": 5,
+      "goals": [],
+      "steps": [
+        {
+          "id": "review-1",
+          "order": 1,
+          "type": "sms",
+          "title": "First SMS (<60s)",
+          "description": "Hi [FirstName], this is [Agent] with [Brokerage]. Thanks for getting in touch. What would be most helpful right now—property details, search guidance, or a quick conversation? Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate"
+        },
+        {
+          "id": "review-2",
+          "order": 2,
+          "type": "email",
+          "title": "First email (<2 min)",
+          "description": "Subject: How can I help with your search?\n\nHi [FirstName],\n\nThank you for reaching out. What are your priorities for {{area}}? Share your preferred timing and must-haves, and I can help you identify a useful next step.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate +2m"
+        },
+        {
+          "id": "review-3",
+          "order": 3,
+          "type": "callback",
+          "title": "Agent call task",
+          "description": "Review the inquiry, confirm the actual property and source, and arrange a personal follow-up. Do not claim a call or listing review has already happened.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate +5m"
+        },
+        {
+          "id": "review-4",
+          "order": 4,
+          "type": "email",
+          "title": "Day 1 comps follow-up (no reply)",
+          "description": "Subject: A quick follow-up on your search\n\nHi [FirstName],\n\nI wanted to make sure you have a way to reach me. Would you like help comparing properties, refining your criteria, or planning a tour? I’m happy to work at your pace.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 2",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-5",
+          "order": 5,
+          "type": "sms",
+          "title": "Day 3 new-listing nudge",
+          "description": "Hi {{first_name}}, {{agent_name}} here. Has anything changed in your search priorities for {{area}}? I’m available if you would like help with the next step. Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "11:00 AM"
+        },
+        {
+          "id": "review-6",
+          "order": 6,
+          "type": "sms",
+          "title": "Day 5 breakup text",
+          "description": "Hi [FirstName], I’ll give you some space for now. If you would like help with your real estate plans later, you’re welcome to reach out. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 5",
+          "timeLabel": "10:00 AM"
+        }
+      ]
+    }
+  },
+  {
+    "templateKey": "listing-alert-drip",
+    "sourceId": "tpl-listing-alert-drip",
+    "approvalRequired": true,
+    "originalUnchanged": true,
+    "campaign": {
+      "name": "Listing Alert Drip — review draft",
+      "description": "Proposed revision. Review targeting, sender identity, consent and integrations before use.",
+      "audience": "Active buyers with a search criteria / saved search",
+      "durationDays": 60,
+      "goals": [],
+      "steps": [
+        {
+          "id": "review-1",
+          "order": 1,
+          "type": "email",
+          "title": "Weekly matching homes digest",
+          "description": "Subject: Keeping your property search focused\n\nHi [FirstName],\n\nAre your location, budget, and must-haves still the same? Let me know what matters most, and I can help you review suitable properties without filling your inbox with irrelevant options.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 1",
+          "timeLabel": "9:00 AM"
+        },
+        {
+          "id": "review-2",
+          "order": 2,
+          "type": "sms",
+          "title": "High-match alert SMS",
+          "description": "Hi [FirstName], would a fresh look at properties that fit your priorities be useful? Let me know whether you prefer details by message or a quick conversation. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-3",
+          "order": 3,
+          "type": "sms",
+          "title": "Price-drop style nudge",
+          "description": "Hi [FirstName], are there any homes you would like me to check on? Send an address or tell me what has changed in your search. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 14",
+          "timeLabel": "11:00 AM"
+        },
+        {
+          "id": "review-4",
+          "order": 4,
+          "type": "email",
+          "title": "Monthly check-in",
+          "description": "Subject: Has your home search changed?\n\nHi [FirstName],\n\nWould you like to adjust your preferred neighborhoods, budget, or timing? A brief reply will help me keep future recommendations relevant.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 30",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-5",
+          "order": 5,
+          "type": "sms",
+          "title": "60-day re-engage",
+          "description": "Hi [FirstName], would you like occasional search updates, or would you prefer a pause? You can let me know what works best. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 60",
+          "timeLabel": "10:00 AM"
+        }
+      ]
+    }
+  },
+  {
+    "templateKey": "long-term-buyer-nurture",
+    "sourceId": "tpl-long-term-buyer-nurture",
+    "approvalRequired": true,
+    "originalUnchanged": true,
+    "campaign": {
+      "name": "Long-term Buyer Nurture — review draft",
+      "description": "Proposed revision. Review targeting, sender identity, consent and integrations before use.",
+      "audience": "Cold / long-term buyers (6+ month timeline)",
+      "durationDays": 180,
+      "goals": [],
+      "steps": [
+        {
+          "id": "review-1",
+          "order": 1,
+          "type": "email",
+          "title": "Market education",
+          "description": "Subject: Planning a move at your pace\n\nHi [FirstName],\n\nA little preparation can make a future move easier. What would be useful to explore first: neighborhoods, a realistic timeline, or the steps involved in buying?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 1",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-2",
+          "order": 2,
+          "type": "email",
+          "title": "Neighborhood spotlight",
+          "description": "Subject: Which neighborhoods are on your list?\n\nHi [FirstName],\n\nIf you are comparing areas, tell me what matters most in your day-to-day life. I can help you find reliable information and questions to consider without assuming one neighborhood is right for you.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 14",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-3",
+          "order": 3,
+          "type": "sms",
+          "title": "Quarterly soft SMS",
+          "description": "Hi [FirstName], is a move still part of your longer-term plans? I can keep in touch occasionally or give you space—whichever is more useful. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 30",
+          "timeLabel": "11:00 AM"
+        },
+        {
+          "id": "review-4",
+          "order": 4,
+          "type": "email",
+          "title": "Financing / timing tip",
+          "description": "Subject: A simple way to prepare for a future move\n\nHi [FirstName],\n\nEven with a longer timeline, listing your must-haves and understanding financing options can bring clarity. Would a short preparation checklist help?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 45",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-5",
+          "order": 5,
+          "type": "email",
+          "title": "Inventory / opportunity note",
+          "description": "Subject: Keeping your options in view\n\nHi [FirstName],\n\nHave your priorities or timing changed? I can help you review options when you are ready, without rushing a decision.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 90",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-6",
+          "order": 6,
+          "type": "sms",
+          "title": "90-day re-engage gate",
+          "description": "Hi [FirstName], how is your planning going? Let me know if you would like help, a later follow-up, or a pause. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 90",
+          "timeLabel": "2:00 PM"
+        },
+        {
+          "id": "review-7",
+          "order": 7,
+          "type": "email",
+          "title": "6-month relationship note",
+          "description": "Subject: Here when you are ready\n\nHi [FirstName],\n\nI’m happy to be a resource whenever your next move comes into focus. You can reach out with a market question, a property you are considering, or a change in plans.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 180",
+          "timeLabel": "10:00 AM"
+        }
+      ]
+    }
+  },
+  {
+    "templateKey": "engaged-no-tour",
+    "sourceId": "tpl-engaged-no-tour",
+    "approvalRequired": true,
+    "originalUnchanged": true,
+    "campaign": {
+      "name": "Engaged - No Tour Yet — review draft",
+      "description": "Proposed revision. Review targeting, sender identity, consent and integrations before use.",
+      "audience": "Engaged buyers (score ≥5) with zero tours",
+      "durationDays": 14,
+      "goals": [],
+      "steps": [
+        {
+          "id": "review-1",
+          "order": 1,
+          "type": "sms",
+          "title": "Personal listing reference",
+          "description": "Hi [FirstName], would a brief conversation or a tour help you narrow your search? Let me know what would feel useful at this stage. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate"
+        },
+        {
+          "id": "review-2",
+          "order": 2,
+          "type": "email",
+          "title": "Video / virtual tour offer",
+          "description": "Subject: Would a walkthrough help?\n\nHi [FirstName],\n\nIf you would rather explore a home remotely before arranging an in-person visit, I can help check what walkthrough options are available for a property you choose.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-3",
+          "order": 3,
+          "type": "email",
+          "title": "What to know before touring",
+          "description": "Subject: A few questions before your next tour\n\nHi [FirstName],\n\nBefore touring, it helps to be clear about your must-haves, financing questions, and what you want to learn from the visit. Is there anything you would like to talk through first?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 6",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-4",
+          "order": 4,
+          "type": "callback",
+          "title": "10-min call ask",
+          "description": "Review the contact’s actual engagement and reply history. Offer a short conversation if appropriate; do not infer that a specific listing was viewed.",
+          "dayLabel": "Day 8",
+          "timeLabel": "9:00 AM"
+        },
+        {
+          "id": "review-5",
+          "order": 5,
+          "type": "sms",
+          "title": "Route back to cold if silent",
+          "description": "Hi [FirstName], I’ll ease up on follow-ups for now. If you would like to revisit your search, you are welcome to reach out anytime. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 14",
+          "timeLabel": "10:00 AM"
+        }
+      ]
+    }
+  },
+  {
+    "templateKey": "post-tour-follow-up",
+    "sourceId": "tpl-post-tour-follow-up",
+    "approvalRequired": true,
+    "originalUnchanged": true,
+    "campaign": {
+      "name": "Post-Tour Follow-up & Offer Push — review draft",
+      "description": "Proposed revision. Review targeting, sender identity, consent and integrations before use.",
+      "audience": "Buyers who completed at least one tour",
+      "durationDays": 7,
+      "goals": [],
+      "steps": [
+        {
+          "id": "review-1",
+          "order": 1,
+          "type": "sms",
+          "title": "Same-day thank-you + reaction",
+          "description": "Hi [FirstName], what stood out to you about [PropertyAddress]? Your thoughts on what worked—and what didn’t—will help me plan the next step with you. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Same day"
+        },
+        {
+          "id": "review-2",
+          "order": 2,
+          "type": "email",
+          "title": "Comp analysis - priced right?",
+          "description": "Subject: Your thoughts after the tour\n\nHi [FirstName],\n\nWhat questions would you like to explore about {{property_address}}? We can review available information together before you decide whether it is worth pursuing.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 2",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-3",
+          "order": 3,
+          "type": "sms",
+          "title": "Offer strategy nudge",
+          "description": "Hi [FirstName], would it help to talk through [PropertyAddress] or compare it with other options? There is no need to rush a decision. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "2:00 PM"
+        },
+        {
+          "id": "review-4",
+          "order": 4,
+          "type": "email",
+          "title": "Activity / competing-offer alert",
+          "description": "Subject: Considering your next step\n\nHi [FirstName],\n\nIf you are still thinking about {{property_address}}, I can help you check current information and discuss your options. Any availability or offer activity should be verified before you act.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 4",
+          "timeLabel": "4:00 PM"
+        },
+        {
+          "id": "review-5",
+          "order": 5,
+          "type": "sms",
+          "title": "Objection isolator",
+          "description": "Hi [FirstName], was there anything about [PropertyAddress] that didn’t fit your priorities? Your feedback will help me refine the next search. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 5",
+          "timeLabel": "11:00 AM"
+        },
+        {
+          "id": "review-6",
+          "order": 6,
+          "type": "callback",
+          "title": "Agent personal follow-up",
+          "description": "Review tour feedback and current listing information. Agree on the next step personally; do not move the contact to another campaign without authorization.",
+          "dayLabel": "Day 7",
+          "timeLabel": "9:00 AM"
+        }
+      ]
+    }
+  },
+  {
+    "templateKey": "luxury-seller-follow-up",
+    "sourceId": "tpl-luxury-seller-follow-up",
+    "approvalRequired": true,
+    "originalUnchanged": true,
+    "campaign": {
+      "name": "Luxury Seller – Automated Follow Up — review draft",
+      "description": "Proposed revision. Review targeting, sender identity, consent and integrations before use.",
+      "audience": "Luxury Home Sellers",
+      "durationDays": 10,
+      "goals": [],
+      "steps": [
+        {
+          "id": "review-1",
+          "order": 1,
+          "type": "voicemail",
+          "title": "Ringless Voicemail",
+          "description": "Hi [FirstName], this is [Agent] with [Brokerage]. I’m available if you would like to discuss your selling plans, questions about the process, or what a thoughtful next step might look like. Please reach out whenever it suits you.",
+          "dayLabel": "Day 1",
+          "timeLabel": "9:00 AM"
+        },
+        {
+          "id": "review-2",
+          "order": 2,
+          "type": "callback",
+          "title": "Personalized Video Message",
+          "description": "Prepare a personal video invitation only if an approved video workflow exists. Otherwise create an internal follow-up task; do not mark a video as delivered.",
+          "dayLabel": "Day 2",
+          "timeLabel": "11:00 AM"
+        },
+        {
+          "id": "review-3",
+          "order": 3,
+          "type": "email",
+          "title": "Email",
+          "description": "Subject: A thoughtful next step for your selling plans\n\nHi [FirstName],\n\nWhat would help you feel clearer about a possible sale: understanding the process, discussing timing, or arranging a property review? I’m happy to start with your questions.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 3",
+          "timeLabel": "1:00 PM"
+        },
+        {
+          "id": "review-4",
+          "order": 4,
+          "type": "sms",
+          "title": "Text Message",
+          "description": "Hi [FirstName], would a short conversation about your selling plans be useful? I’m happy to work around your priorities and timing. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 5",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-5",
+          "order": 5,
+          "type": "callback",
+          "title": "Social Media Retargeting",
+          "description": "Review authorized marketing options with the agent. No social retargeting integration is configured; do not send this instruction to a contact.",
+          "dayLabel": "Day 7",
+          "timeLabel": "9:00 AM"
+        },
+        {
+          "id": "review-6",
+          "order": 6,
+          "type": "callback",
+          "title": "Callback Alert",
+          "description": "Arrange a personal follow-up if the contact wants to discuss selling. Check current consent, reply history, and preferences first.",
+          "dayLabel": "Day 10",
+          "timeLabel": "9:00 AM"
+        }
+      ]
+    }
+  },
+  {
+    "templateKey": "seller-valuation-follow-up",
+    "sourceId": "tpl-seller-valuation",
+    "approvalRequired": true,
+    "originalUnchanged": true,
+    "campaign": {
+      "name": "Seller Home Valuation Follow-up — review draft",
+      "description": "Proposed revision. Review targeting, sender identity, consent and integrations before use.",
+      "audience": "Sellers who requested a CMA / AVM / valuation",
+      "durationDays": 14,
+      "goals": [],
+      "steps": [
+        {
+          "id": "review-1",
+          "order": 1,
+          "type": "email",
+          "title": "CMA delivery",
+          "description": "Subject: Would a home-value review be useful?\n\nHi [FirstName],\n\nIf you are weighing a sale, I can help arrange a review of your property and relevant local information. Would you prefer to start with a short conversation about your goals?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 1",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-2",
+          "order": 2,
+          "type": "sms",
+          "title": "Day 1 SMS",
+          "description": "Hi [FirstName], would you like to discuss a home-value review or ask a question about selling? Let me know what would be helpful. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "2:00 PM"
+        },
+        {
+          "id": "review-3",
+          "order": 3,
+          "type": "email",
+          "title": "Market stats",
+          "description": "Subject: Questions about the local selling market?\n\nHi [FirstName],\n\nWhich questions are most important to you—pricing, preparation, or timing? I can help gather relevant, current information rather than make assumptions about your property.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-4",
+          "order": 4,
+          "type": "email",
+          "title": "Video / personal note",
+          "description": "Subject: Your plans come first\n\nHi [FirstName],\n\nThere is no need to decide on a sale before you have the information you need. I’m available to discuss your options or explain the next steps whenever you are ready.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 7",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-5",
+          "order": 5,
+          "type": "sms",
+          "title": "Breakup",
+          "description": "Hi [FirstName], I’ll pause these follow-ups for now. If you want to revisit your selling plans later, you’re welcome to reach out. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 14",
+          "timeLabel": "10:00 AM"
+        }
+      ]
+    }
+  },
+  {
+    "templateKey": "open-house-follow-up",
+    "sourceId": "tpl-open-house",
+    "approvalRequired": true,
+    "originalUnchanged": true,
+    "campaign": {
+      "name": "Open House Follow-up — review draft",
+      "description": "Proposed revision. Review targeting, sender identity, consent and integrations before use.",
+      "audience": "Open house sign-ins",
+      "durationDays": 7,
+      "goals": [],
+      "steps": [
+        {
+          "id": "review-1",
+          "order": 1,
+          "type": "sms",
+          "title": "Same-day SMS",
+          "description": "Hi [FirstName], thank you for visiting. What did you think of the home? I’m happy to help with a question or discuss a possible next step. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Same day"
+        },
+        {
+          "id": "review-2",
+          "order": 2,
+          "type": "email",
+          "title": "Photo / details email",
+          "description": "Subject: Following up after your visit\n\nHi [FirstName],\n\nWas there anything you wanted to revisit or ask about the home? I can help check the details that matter most to you.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 2",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-3",
+          "order": 3,
+          "type": "email",
+          "title": "Similar homes",
+          "description": "Subject: Refining your next property search\n\nHi [FirstName],\n\nIf the home wasn’t quite right, what would you like to change in the next search? Share a few priorities, and I can help you consider suitable options.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-4",
+          "order": 4,
+          "type": "callback",
+          "title": "Call task",
+          "description": "Review verified visit feedback and ask whether a personal follow-up would be useful. Confirm the correct property and event date before referring to them.",
+          "dayLabel": "Day 7",
+          "timeLabel": "9:00 AM"
+        }
+      ]
+    }
+  },
+  {
+    "templateKey": "past-client-anniversary",
+    "sourceId": "tpl-past-client",
+    "approvalRequired": true,
+    "originalUnchanged": true,
+    "campaign": {
+      "name": "Past Client Anniversary & Referral — review draft",
+      "description": "Proposed revision. Review targeting, sender identity, consent and integrations before use.",
+      "audience": "Past clients (closed transactions)",
+      "durationDays": 365,
+      "goals": [],
+      "steps": [
+        {
+          "id": "review-1",
+          "order": 1,
+          "type": "email",
+          "title": "7-day thank you",
+          "description": "Subject: Here for your next chapter\n\nHi [FirstName],\n\nIt was a pleasure working with you. If a homeownership question comes up, I’m happy to point you toward useful information or discuss a future real estate need.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 7",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-2",
+          "order": 2,
+          "type": "sms",
+          "title": "90-day check-in",
+          "description": "Hi [FirstName], how are things going with your home? If a real estate question comes up, I’m happy to help. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 90",
+          "timeLabel": "11:00 AM"
+        },
+        {
+          "id": "review-3",
+          "order": 3,
+          "type": "email",
+          "title": "Equity / market update",
+          "description": "Subject: A resource for your homeownership questions\n\nHi [FirstName],\n\nWould an updated look at local real estate information be useful? Let me know what you would like to understand, and I can help you find relevant, current details.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 180",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-4",
+          "order": 4,
+          "type": "email",
+          "title": "Anniversary + soft referral",
+          "description": "Subject: Keeping in touch\n\nHi [FirstName],\n\nI hope homeownership is treating you well. I’m here if you have a real estate question, and I would be happy to help someone you choose to introduce. Thank you for staying in touch.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 365",
+          "timeLabel": "10:00 AM"
+        }
+      ]
+    }
+  },
+  {
+    "templateKey": "pre-approval-push",
+    "sourceId": "tpl-pre-approval",
+    "approvalRequired": true,
+    "originalUnchanged": true,
+    "campaign": {
+      "name": "Pre-approval Push — review draft",
+      "description": "Proposed revision. Review targeting, sender identity, consent and integrations before use.",
+      "audience": "Buyers with intent, not yet pre-approved",
+      "durationDays": 7,
+      "goals": [],
+      "steps": [
+        {
+          "id": "review-1",
+          "order": 1,
+          "type": "email",
+          "title": "Lender intro",
+          "description": "Subject: A useful step before a serious home search\n\nHi [FirstName],\n\nUnderstanding financing options can help you plan a comfortable budget. If you would like, I can help you identify questions to discuss with a licensed lender. Would that be useful?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 1",
+          "timeLabel": "10:00 AM"
+        },
+        {
+          "id": "review-2",
+          "order": 2,
+          "type": "sms",
+          "title": "Why it matters",
+          "description": "Hi [FirstName], would a conversation with a licensed lender help clarify your budget and financing options? I can help with an introduction if you would like one. —[Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "11:00 AM"
+        },
+        {
+          "id": "review-3",
+          "order": 3,
+          "type": "email",
+          "title": "Lost-offer story",
+          "description": "Subject: Feeling prepared for the next step\n\nHi [FirstName],\n\nWhen you are ready, having financing questions answered can make evaluating homes less stressful. There is no obligation to move forward before you feel informed.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.",
+          "dayLabel": "Day 5",
+          "timeLabel": "10:00 AM"
+        }
+      ]
+    }
+  }
+]

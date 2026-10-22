@@ -25,12 +25,28 @@ export type MergeFieldContext = {
 };
 
 /** Tokens agents can use in SMS/email. Supports [FirstName] and {{first_name}}. */
-export const MERGE_FIELD_GUIDE: { token: string; meaning: string; auto: boolean }[] = [
+export const MERGE_FIELD_GUIDE: {
+  token: string;
+  meaning: string;
+  auto: boolean;
+}[] = [
   { token: "{{first_name}}", meaning: "Contact first name", auto: true },
-  { token: "{{property_address}}", meaning: "Home they asked about / toured", auto: true },
+  {
+    token: "{{property_address}}",
+    meaning: "Home they asked about / toured",
+    auto: true,
+  },
   { token: "{{area}}", meaning: "Preferred area / neighborhood", auto: true },
-  { token: "{{agent_name}}", meaning: "Your sender name (Settings)", auto: true },
-  { token: "[AgentPhone]", meaning: "Your phone (Settings → Profile)", auto: true },
+  {
+    token: "{{agent_name}}",
+    meaning: "Your sender name (Settings)",
+    auto: true,
+  },
+  {
+    token: "[AgentPhone]",
+    meaning: "Your phone (Settings → Profile)",
+    auto: true,
+  },
   { token: "[Brokerage]", meaning: "Workspace name", auto: true },
   {
     token: "[Comp1Address]",
@@ -40,14 +56,18 @@ export const MERGE_FIELD_GUIDE: { token: string; meaning: string; auto: boolean 
 ];
 
 function clean(value: string | null | undefined, fallback = ""): string {
-  const v = (value ?? "").trim();
+  const v = typeof value === "string" ? value.trim() : "";
+  if (/^(?:null|undefined|\[object Object\])$/i.test(v)) return fallback;
   return v || fallback;
 }
 
 function money(value: number | string | null | undefined): string {
   if (value === null || value === undefined || value === "") return "";
-  const n = typeof value === "number" ? value : Number(String(value).replace(/[^0-9.]/g, ""));
-  if (!Number.isFinite(n) || n <= 0) return clean(String(value));
+  const n =
+    typeof value === "number"
+      ? value
+      : Number(String(value).replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(n) || n <= 0) return "";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -63,24 +83,30 @@ function normalizeKey(key: string): string {
  * Replace campaign placeholders like [FirstName], [Agent], {{first_name}}.
  * Unknown tokens are left as-is so agents can spot missing data.
  */
-export function applyMergeFields(template: string, ctx: MergeFieldContext): string {
-  if (!template) return template;
+export function applyMergeFields(
+  template: string,
+  ctx: MergeFieldContext,
+): string {
+  if (typeof template !== "string" || !template) return "";
 
-  const first = clean(ctx.contact.first_name, "there");
-  const last = clean(ctx.contact.last_name);
+  const first = clean((ctx.contact ?? {}).first_name, "there");
+  const last = clean((ctx.contact ?? {}).last_name);
   const fullName = clean(`${first} ${last}`.trim(), first);
   const agent = clean(ctx.agentName, "your agent");
-  const brokerage = clean(ctx.brokerage, "ARI");
+  const brokerage = clean(ctx.brokerage, "your real estate team");
   const agentPhone = clean(ctx.agentPhone);
-  const preferredArea = clean(ctx.contact.preferred_area);
+  const preferredArea = clean((ctx.contact ?? {}).preferred_area);
   const property = clean(
-    ctx.contact.property_address,
-    preferredArea ? `a home in ${preferredArea}` : "the home you asked about",
+    (ctx.contact ?? {}).property_address,
+    preferredArea ? `a home in ${preferredArea}` : "your home search",
   );
-  const city = clean(ctx.city, preferredArea || clean(ctx.marketArea, "your area"));
+  const city = clean(
+    ctx.city,
+    preferredArea || clean(ctx.marketArea, "your area"),
+  );
   const market = clean(preferredArea || ctx.marketArea, city);
   const area = preferredArea || market;
-  const budget = money(ctx.contact.budget);
+  const budget = money((ctx.contact ?? {}).budget);
 
   const map: Record<string, string> = {
     FirstName: first,
@@ -103,10 +129,10 @@ export function applyMergeFields(template: string, ctx: MergeFieldContext): stri
     market_area: market,
     area: area,
     Area: area,
-    Phone: clean(ctx.contact.phone),
-    Email: clean(ctx.contact.email),
-    LeadSource: clean(ctx.contact.source, "your inquiry"),
-    lead_source: clean(ctx.contact.source, "your inquiry"),
+    Phone: clean((ctx.contact ?? {}).phone),
+    Email: clean((ctx.contact ?? {}).email),
+    LeadSource: clean((ctx.contact ?? {}).source, "your real estate plans"),
+    lead_source: clean((ctx.contact ?? {}).source, "your real estate plans"),
     PropertyAddress: property,
     property_address: property,
     Neighborhood: area,
@@ -140,7 +166,7 @@ export function applyMergeFields(template: string, ctx: MergeFieldContext): stri
       const found = lookup(key);
       return found !== null ? found : match;
     })
-    .replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (match, key: string) => {
+    .replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (match, key: string) => {
       const found = lookup(key);
       return found !== null ? found : match;
     });
@@ -154,7 +180,7 @@ export function findUnresolvedMergeFields(text: string): string[] {
     const inner = m[1]?.trim();
     if (inner) found.add(`[${inner}]`);
   }
-  for (const m of text.matchAll(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g)) {
+  for (const m of text.matchAll(/\{\{\s*([^{}]+?)\s*\}\}/g)) {
     const inner = m[1]?.trim();
     if (inner) found.add(`{{${inner}}}`);
   }
@@ -162,7 +188,10 @@ export function findUnresolvedMergeFields(text: string): string[] {
 }
 
 /** Pull "Subject: ..." from the first line of an email template body. */
-export function splitEmailSubjectBody(raw: string): { subject: string | null; body: string } {
+export function splitEmailSubjectBody(raw: string): {
+  subject: string | null;
+  body: string;
+} {
   const text = raw.trim();
   const match = text.match(/^Subject:\s*(.+)\s*\n+([\s\S]*)$/i);
   if (!match) return { subject: null, body: text };

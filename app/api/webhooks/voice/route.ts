@@ -8,11 +8,15 @@ import { NextResponse } from "next/server";
 
 async function handle(request: Request): Promise<NextResponse> {
   if (!verifyVoiceWebhookRequest(request)) {
-    return apiError("Unauthorized webhook", { status: 401, code: "webhook_unauthorized" });
+    return apiError("Unauthorized webhook", {
+      status: 401,
+      code: "webhook_unauthorized",
+    });
   }
 
   const url = new URL(request.url);
   const providerId = url.searchParams.get("provider") ?? "mock";
+  if(!["twilio","resend","slybroadcast"].includes(providerId))return apiSuccess({eventType:"unsupported_provider_ignored"});
   const adapter = getAdapter(providerId);
 
   let raw: Record<string, unknown> = {};
@@ -24,29 +28,32 @@ async function handle(request: Request): Promise<NextResponse> {
     raw = Object.fromEntries(new URLSearchParams(text));
   }
 
-  const externalId =
-    (raw.id as string) ?? (raw.MessageSid as string) ?? (raw.session_id as string) ?? null;
-
-  if (await isDuplicateProviderWebhook(adapter.id, externalId)) {
-    return apiSuccess({ provider: adapter.id, eventType: "duplicate_ignored" });
-  }
-
-  await supabaseAdmin.from("provider_webhooks").insert({
-    provider: adapter.id,
-    external_id: externalId,
-    event_type: (raw.event_type as string) ?? (raw.status as string) ?? null,
-    raw,
-    processed: false,
-  });
-
   const event = adapter.parseWebhook?.(raw);
-  if (!event) return apiError("Webhook parser missing", { status: 200, code: "parser_missing" });
+  if (!event || event.eventType === "unknown")
+    return apiSuccess({ provider: adapter.id, eventType: "unknown_ignored" });
+  const externalId = event.externalId ?? null;
+  if (await isDuplicateProviderWebhook(adapter.id, externalId, event.eventType))
+    return apiSuccess({ provider: adapter.id, eventType: "duplicate_ignored" });
+  const logged = await supabaseAdmin
+    .from("provider_webhooks")
+    .insert({
+      provider: adapter.id,
+      external_id: externalId,
+      event_type: event.eventType,
+      raw,
+      processed: false,
+    });
+  if (logged.error?.code === "23505")
+    return apiSuccess({ provider: adapter.id, eventType: "duplicate_ignored" });
+  if (logged.error)
+    return apiError("Webhook logging unavailable.", { status: 503 });
 
   if (event.campaignId && event.recipientId) {
     const { data: recipient } = await supabaseAdmin
       .from("campaign_recipients")
       .select("owner_id, contact_id, campaign_id")
       .eq("id", event.recipientId)
+      .eq("campaign_id", event.campaignId)
       .maybeSingle();
 
     if (recipient) {
@@ -61,16 +68,17 @@ async function handle(request: Request): Promise<NextResponse> {
         ownerId: recipient.owner_id,
         contactId: recipient.contact_id,
         campaignId: recipient.campaign_id,
-        eventType: event.eventType === "unknown" ? "delivered" : event.eventType,
+        eventType: event.eventType,
         channel,
         metadata: { provider: event.provider, raw: event.raw },
       });
 
-      if (event.eventType === "delivered" || event.eventType === "listened") {
+      if (["delivered","listened","failed","blocked"].includes(event.eventType)) {
         await supabaseAdmin
           .from("campaign_recipients")
-          .update({ delivery_status: event.eventType === "listened" ? "delivered" : "sent" })
-          .eq("id", event.recipientId);
+          .update({ delivery_status: event.eventType === "failed" ? "failed" : event.eventType === "blocked" ? "blocked" : "delivered" })
+          .eq("id", event.recipientId)
+          .eq("owner_id", recipient.owner_id);
       }
     }
   }
