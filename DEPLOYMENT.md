@@ -113,6 +113,7 @@ Create Storage bucket: **`voice-assets`** (private).
 |---|---|
 | `NEXT_PUBLIC_MORTGAGE_PARTNER_URL` | Full HTTPS URL to your mortgage originator profile, booking page, or application (opens from **Talk to a mortgage expert**) |
 | `NEXT_PUBLIC_MORTGAGE_PARTNER_LABEL` | Optional button label (default: `Talk to a mortgage expert`) |
+| `MORTGAGE_FANNIE_OUTLOOK_JSON` | Optional server-only JSON for **Fannie Mae Rate Outlook** panel, e.g. `{"rate30Forecast":6.2,"forecastPeriod":"Q4 2026","publicationDate":"2026-09-15"}`. Must be admin-verified forecast data—not live lender rates. PMMS benchmarks load from Freddie Mac’s official CSV without an API key. |
 
 ## Stripe (agent membership)
 

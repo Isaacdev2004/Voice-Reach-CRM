@@ -13,6 +13,12 @@ import {
   outputToPlainText,
   stripMarkdownCodeFence,
 } from "../lib/ai/parse-output";
+import {
+  buildMarketRatesFromObservations,
+  computeWeeklyChange,
+  parsePmmsCsv,
+  selectPmmsHistory,
+} from "../lib/mortgage/market-rates";
 
 function testTwilioSignature() {
   const token = "test_auth_token";
@@ -117,8 +123,31 @@ function testAiParseOutput() {
   assert.match(plain, /Body text/);
 }
 
+function testMortgageMarketRates() {
+  const sample = `date,pmms30,pmms30p,pmms15,pmms15p
+10/1/2026,7.28,,6.6,,
+10/8/2026,7.4,,6.73,,
+10/15/2026,7.4,,6.71,,`;
+  const rows = parsePmmsCsv(sample);
+  assert.equal(rows.length, 3);
+  assert.equal(rows[2]!.rate30, 7.4);
+  assert.equal(rows[2]!.rate15, 6.71);
+  assert.equal(computeWeeklyChange(7.4, 7.4), 0);
+  assert.equal(computeWeeklyChange(7.4, 7.28), 0.12);
+
+  const payload = buildMarketRatesFromObservations(rows, "2026-10-22T00:00:00.000Z", 6);
+  assert.equal(payload.benchmarks.rate30.rate, 7.4);
+  assert.equal(payload.benchmarks.rate30.weeklyChange, 0);
+  assert.equal(payload.benchmarks.rate15.weeklyChange, -0.02);
+  assert.equal(payload.benchmarks.rate30.source, "freddie_mac_pmms");
+
+  const history = selectPmmsHistory(rows, 3);
+  assert.equal(history.length, 3);
+}
+
 testTwilioSignature();
 testCheckoutClaim();
 testPhoneAndInbound();
 testAiParseOutput();
+testMortgageMarketRates();
 console.log("verify-unit: ok");
