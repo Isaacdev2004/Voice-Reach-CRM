@@ -2,10 +2,9 @@
 
 import { notifyContactsChanged } from "@/lib/contacts/change-events";
 import { contactMetricCounts } from "@/lib/contacts/metrics";
-import { filterContactsByQuery } from "@/lib/contacts/schemas";
-import { filterContactsByCategory } from "@/lib/contacts/categories";
-import { filterContactsBySegment } from "@/lib/contacts/lifecycle";
+import { contactLastActivity, contactConsentStatus as consentStatus, filterWorkspaceContacts, sortWorkspaceContacts, readWorkspaceState, type ContactSort } from "@/lib/contacts/workspace";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 import { CompliancePanel } from "@/components/crm/compliance-panel";
 import { ComplianceBadge } from "@/components/crm/compliance-badge";
 import { ContactAvatar } from "@/components/crm/contact-avatar";
@@ -24,11 +23,10 @@ import {
   segmentBadgeLabel,
   type ContactSegment,
 } from "@/lib/contacts/lifecycle";
-import { DEFAULT_CONTACT_CATEGORIES } from "@/lib/contacts/categories";
+import { mergeCategoryLists, DEFAULT_CONTACT_CATEGORIES } from "@/lib/contacts/categories";
 import { ManageCategoriesModal } from "@/components/crm/manage-categories-modal";
 import { ContactMobileList } from "@/components/crm/contact-mobile-list";
 import { RelationshipPulseSection } from "@/components/crm/relationship-pulse-section";
-import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
 import { useContacts, type ApiContact } from "@/lib/hooks/use-contacts";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
@@ -37,7 +35,6 @@ import type { PulseLaneId, RelationshipPulseResult } from "@/lib/contacts/relati
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-type ContactSort = "name-asc" | "name-desc" | "recent";
 
 function contactFilterPill(active: boolean, variant: "category" | "stage" | "sort") {
   return cn(
@@ -50,40 +47,35 @@ function contactFilterPill(active: boolean, variant: "category" | "stage" | "sor
   );
 }
 
-function contactSortKey(c: ApiContact): string {
-  return `${c.first_name} ${c.last_name ?? ""}`.trim().toLowerCase();
-}
-
-function consentStatus(contact: ApiContact): "valid" | "pending" | "blocked" | "review" {
-  if (contact.dnc) return "blocked";
-  const status = contact.consent_records?.[0]?.status;
-  if (status === "Yes") return "valid";
-  if (status === "No") return "blocked";
-  return "pending";
-}
-
 export function ContactManagementPage() {
+  const { user } = useUser();
+  return <ContactManagementWorkspace key={user?.id ?? "signed-out"} />;
+}
+
+function ContactManagementWorkspace() {
   const router = useRouter();
-  const headerQuery = useDashboardSearch();
   const searchParams = useSearchParams();
-  const initialSegment = (searchParams.get("segment") ?? "all") as ContactSegment;
-  const initialCategory = searchParams.get("category") ?? searchParams.get("market") ?? "all";
-  const [segment, setSegment] = useState<ContactSegment>(
-    CONTACT_SEGMENT_TABS.some((t) => t.id === initialSegment) ? initialSegment : "all",
-  );
-  const [category, setCategory] = useState(initialCategory);
-  const [sort, setSort] = useState<ContactSort>("name-asc");
+  const state = readWorkspaceState(searchParams);
+  const { segment, category, sort, search: viewQuery, q: headerQuery, source: sourceFilter, activity: activityFilter, type: typeFilter, compliance: complianceFilter } = state;
+  const updateFilter = (key: string, value: string, replace = false) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value === "all" || !value || (key === "sort" && value === "name-asc")) params.delete(key);
+    else params.set(key, value);
+    if (key === "category") params.delete("market");
+    if (key !== "page") params.delete("page");
+    setSelected({});
+    const url = `/dashboard/contacts${params.size ? `?${params}` : ""}`;
+    if (replace) window.history.replaceState(null, "", url); else router.push(url, { scroll: false });
+  };
+  const setSegment = (value: ContactSegment) => updateFilter("segment", value);
+  const setCategory = (value: string) => updateFilter("category", value);
+  const setSort = (value: ContactSort) => updateFilter("sort", value);
   const [customCategories, setCustomCategories] = useState<string[]>([
     ...DEFAULT_CONTACT_CATEGORIES,
   ]);
   const [manageCatsOpen, setManageCatsOpen] = useState(false);
   const { contacts, loading, error, refresh, meta } = useContacts();
   const rows: ApiContact[] = contacts;
-  const [viewQuery, setViewQuery] = useState("");
-  const [sourceFilter, setSourceFilter] = useState("all");
-  const [activityFilter, setActivityFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [complianceFilter, setComplianceFilter] = useState("all");
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [pulse, setPulse] = useState<RelationshipPulseResult | null>(null);
   const [pulseLoading, setPulseLoading] = useState(true);
@@ -113,40 +105,17 @@ export function ContactManagementPage() {
     return new Set(lane.contacts.map((c) => c.contactId));
   }, [activePulseLane, pulse]);
 
-  const viewRows = useMemo(() => {
-    const scoped = filterContactsByCategory(filterContactsByQuery(rows, headerQuery), category);
-    let list = scoped.filter((contact) =>
-      (activityFilter === "all" || (activityFilter === "none" ? !contact.last_contacted : Boolean(contact.last_contacted) && Date.parse(contact.last_contacted!) >= Date.now() - Number(activityFilter) * 86400000)) &&
-      (sourceFilter === "all" || contact.source === sourceFilter) &&
-      (typeFilter === "all" || contact.type === typeFilter) &&
-      (complianceFilter === "all" || consentStatus(contact) === complianceFilter) &&
-      (!viewQuery.trim() || [contact.first_name, contact.last_name, contact.email, contact.phone, contact.category, contact.source].some(value => value?.toLowerCase().includes(viewQuery.trim().toLowerCase())))
-    );
-    if (pulseFilterIds) {
-      list = list.filter((c) => pulseFilterIds.has(c.id));
-    }
-    return list;
-  }, [rows, headerQuery, category, pulseFilterIds, viewQuery, sourceFilter, typeFilter, complianceFilter, activityFilter]);
+  const viewRows = filterWorkspaceContacts(rows, state).filter(contact => !pulseFilterIds || pulseFilterIds.has(contact.id));
   const viewCounts = contactMetricCounts(viewRows);
-  const sortedRows = useMemo(() => {
-    const list = filterContactsBySegment(viewRows, segment);
-    if (sort === "name-asc") {
-      list.sort((a, b) => contactSortKey(a).localeCompare(contactSortKey(b)));
-    } else if (sort === "name-desc") {
-      list.sort((a, b) => contactSortKey(b).localeCompare(contactSortKey(a)));
-    } else {
-      list.sort((a, b) => {
-        const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return tb - ta;
-      });
-    }
-    return list;
-  }, [viewRows, segment, sort]);
-  const previewContact = sortedRows.find(c => c.id === previewId) ?? sortedRows[0];
+  const sortedRows = sortWorkspaceContacts(viewRows, segment, sort);
+  const pageSize = 25;
+  const pages = Math.max(1, Math.ceil(sortedRows.length / pageSize));
+  const page = Math.min(state.page, pages);
+  const pageRows = sortedRows.slice((page - 1) * pageSize, page * pageSize);
+  const previewContact = pageRows.find(c => c.id === previewId) ?? pageRows[0];
   const total = meta?.total;
 
-  const selectableRows = useMemo<ApiContact[]>(() => sortedRows, [sortedRows]);
+  const selectableRows = pageRows;
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [bulkOpen, setBulkOpen] = useState<null | "consent" | "delete" | "type" | "category">(null);
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
@@ -156,13 +125,13 @@ export function ContactManagementPage() {
   const [bulkConsent, setBulkConsent] = useState({
     consent: "Yes" as "Yes" | "No" | "Unknown",
     consentDate: new Date().toISOString().slice(0, 10),
-    consentSource: "Zillow",
-    proof: "Zillow lead export / documented opt-in",
+    consentSource: "",
+    proof: "",
   });
 
   const selectedIds = useMemo(
-    () => Object.entries(selected).filter(([, v]) => v).map(([id]) => id),
-    [selected],
+    () => sortedRows.filter(contact => selected[contact.id]).map(contact => contact.id),
+    [selected, sortedRows],
   );
   const allSelected = selectableRows.length > 0 && selectableRows.every(contact => selected[contact.id]);
 
@@ -170,16 +139,14 @@ export function ContactManagementPage() {
   const dncCount = rows.filter((c) => c.dnc || consentStatus(c) === "blocked").length;
 
   const toggleAll = () => {
-    if (selectableRows.length === 0) return;
-    if (allSelected) {
-      setSelected({});
-      return;
-    }
-    const next: Record<string, boolean> = {};
-    selectableRows.forEach((c) => {
-      next[c.id] = true;
+    if (!selectableRows.length) return;
+    setSelected(previous => {
+      const next = { ...previous };
+      for (const contact of selectableRows) {
+        if (allSelected) delete next[contact.id]; else next[contact.id] = true;
+      }
+      return next;
     });
-    setSelected(next);
   };
 
   const toggleOne = (id: string) => {
@@ -242,7 +209,8 @@ export function ContactManagementPage() {
   };
 
   const counts = meta?.counts;
-  const categoryTabs = meta?.categories?.length ? meta.categories : customCategories;
+  const categoryTabs = useMemo(() => mergeCategoryLists([...DEFAULT_CONTACT_CATEGORIES, ...(meta?.categories ?? customCategories)]), [meta?.categories, customCategories]);
+  const typeOptions = Array.from(new Set([...CONTACT_TYPE_OPTIONS.map(option => option.value), ...rows.flatMap(contact => contact.type ? [contact.type] : [])]));
 
   const runBulkCategory = async () => {
     if (selectedIds.length === 0) return;
@@ -283,6 +251,7 @@ export function ContactManagementPage() {
       setBulkError(envelope.error);
       return;
     }
+    setSelected({});
     closeBulk();
     notifyContactsChanged();
     void refresh();
@@ -290,10 +259,11 @@ export function ContactManagementPage() {
   };
 
   const openMetric = (stage: ContactSegment) => {
-    setCategory("all"); setSegment(stage); setSourceFilter("all"); setTypeFilter("all");
-    setComplianceFilter("all"); setActivityFilter("all"); setViewQuery(""); setActivePulseLane(null); setSelected({});
-    router.replace(`/dashboard/contacts${stage === "all" ? "" : `?segment=${stage}`}`);
+    setActivePulseLane(null); setSelected({});
+    router.push(`/dashboard/contacts${stage === "all" ? "" : `?segment=${stage}`}`, { scroll: false });
   };
+  const clearAll = () => { setActivePulseLane(null); setSelected({}); router.push("/dashboard/contacts", { scroll: false }); };
+  const filterLabels: Record<string, string> = {category:"Category", type:"Type", segment:"Stage", source:"Source", compliance:"Compliance", activity:"Last Activity", search:"Search", q:"Top-bar search"};
 
   return (
     <div className={DASHBOARD_PAGE_BODY}>
@@ -303,13 +273,15 @@ export function ContactManagementPage() {
         categories={categoryTabs}
         onChanged={(next) => {
           setCustomCategories(next);
+          if (category !== "all" && !next.some(name => name.toLowerCase() === category.toLowerCase())) setCategory("all");
+          notifyContactsChanged();
           void refresh();
           void loadPulse();
         }}
       />
       <BulkConsentModal
         open={bulkOpen === "consent"}
-        onClose={closeBulk}
+        onClose={bulkSubmitting ? () => undefined : closeBulk}
         count={selectedIds.length}
         value={bulkConsent}
         onChange={setBulkConsent}
@@ -319,7 +291,7 @@ export function ContactManagementPage() {
       />
       <BulkDeleteModal
         open={bulkOpen === "delete"}
-        onClose={closeBulk}
+        onClose={bulkSubmitting ? () => undefined : closeBulk}
         count={selectedIds.length}
         onSubmit={() => void runBulkDelete()}
         submitting={bulkSubmitting}
@@ -327,9 +299,10 @@ export function ContactManagementPage() {
       />
       <BulkTypeModal
         open={bulkOpen === "type"}
-        onClose={closeBulk}
+        onClose={bulkSubmitting ? () => undefined : closeBulk}
         count={selectedIds.length}
         value={bulkType}
+        options={typeOptions}
         onChange={setBulkType}
         onSubmit={() => void runBulkType()}
         submitting={bulkSubmitting}
@@ -337,7 +310,7 @@ export function ContactManagementPage() {
       />
       <BulkCategoryModal
         open={bulkOpen === "category"}
-        onClose={closeBulk}
+        onClose={bulkSubmitting ? () => undefined : closeBulk}
         count={selectedIds.length}
         value={bulkCategory}
         options={categoryTabs}
@@ -364,20 +337,27 @@ export function ContactManagementPage() {
               return <button key={tab.id} type="button" aria-pressed={segment === tab.id} onClick={() => setSegment(tab.id)} className={contactFilterPill(segment === tab.id, "stage")}>{tab.id === "all" ? "All Contacts" : tab.id === "cold-lead" ? "Cold Leads" : tab.id === "active-lead" ? "Active Leads" : "Past Clients"}{count !== undefined ? ` (${count})` : ""}</button>;
             })}
           </div>
-          <label className="contacts-view-search"><Icon name="search" className="text-[18px]" /><input aria-label="Search in this view" placeholder="Search in this view…" value={viewQuery} onChange={event => setViewQuery(event.target.value)} /></label>
+          <label className="contacts-view-search"><Icon name="search" className="text-[18px]" /><input aria-label="Search in this view" placeholder="Search in this view…" value={viewQuery} onChange={event => updateFilter("search", event.target.value, true)} /></label>
           <button type="button" className="contacts-filter-toggle" aria-label="Filters" aria-expanded={mobileFiltersOpen} aria-controls="contacts-filter-controls" onClick={() => setMobileFiltersOpen(value => !value)}><Icon name="filter_list" className="text-[18px]" />Filters</button>
         </div>
         <div id="contacts-filter-controls" className={cn("contacts-filter-row", !mobileFiltersOpen && "contacts-filters-collapsed")}>
-          <label>Category<select aria-label="Category" value={category} onChange={event => setCategory(event.target.value)}><option value="all">All categories</option>{categoryTabs.map(name => <option key={name} value={name}>{name}</option>)}</select></label>
-          <label>Type<select aria-label="Type" value={typeFilter} onChange={event => setTypeFilter(event.target.value)}><option value="all">All types</option>{Array.from(new Set([...CONTACT_TYPE_OPTIONS.map(option => option.value), ...rows.flatMap(contact => contact.type ? [contact.type] : [])])).map(type => <option key={type} value={type}>{type}</option>)}</select></label>
+          <label>Category<select aria-label="Category" value={category} onChange={event => setCategory(event.target.value)}><option value="all">All</option>{categoryTabs.map(name => <option key={name} value={name}>{name}</option>)}</select></label>
+          <label>Type<select aria-label="Type" value={typeFilter} onChange={event => updateFilter("type", event.target.value)}><option value="all">All</option>{typeOptions.map(type => <option key={type} value={type}>{type}</option>)}</select></label>
           <label>Stage<select aria-label="Stage" value={segment} onChange={event => setSegment(event.target.value as ContactSegment)}>{CONTACT_SEGMENT_TABS.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}</select></label>
-          <label>Source<select aria-label="Source" value={sourceFilter} onChange={event => setSourceFilter(event.target.value)}><option value="all">All sources</option>{Array.from(new Set(rows.flatMap(contact => contact.source ? [contact.source] : []))).sort().map(source => <option key={source} value={source}>{source}</option>)}</select></label>
-          <label>Compliance<select aria-label="Compliance" value={complianceFilter} onChange={event => setComplianceFilter(event.target.value)}><option value="all">All records</option><option value="valid">Consent Valid</option><option value="pending">Pending Review</option><option value="blocked">Blocked</option></select></label>
-          <label>Last Activity<select aria-label="Last Activity — recorded contact date" value={activityFilter} onChange={event => setActivityFilter(event.target.value)}><option value="all">Any time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="none">Not recorded</option></select></label>
+          <label>Source<select aria-label="Source" value={sourceFilter} onChange={event => updateFilter("source", event.target.value)}><option value="all">All</option>{Array.from(new Set(rows.flatMap(contact => contact.source ? [contact.source] : []))).sort().map(source => <option key={source} value={source}>{source}</option>)}</select></label>
+          <label>Compliance<select aria-label="Compliance" value={complianceFilter} onChange={event => updateFilter("compliance", event.target.value)}><option value="all">All</option><option value="valid">Consent Valid</option><option value="pending">Pending Review</option><option value="blocked">Blocked</option></select></label>
+          <label>Last Activity<select aria-label="Last Activity — recorded outreach or engagement" value={activityFilter} onChange={event => updateFilter("activity", event.target.value)}><option value="all">Any time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="none">Not recorded</option></select></label>
           <label>Sort<select aria-label="Sort" value={sort} onChange={event => setSort(event.target.value as ContactSort)}><option value="name-asc">A–Z</option><option value="name-desc">Z–A</option><option value="recent">Newest</option></select></label>
           <button type="button" className="contacts-manage-categories" aria-label="Manage categories" title="Manage categories" onClick={() => setManageCatsOpen(true)}><span aria-hidden="true"><Icon name="settings" className="text-[17px]" /></span></button>
-          <button type="button" className="contacts-clear" onClick={() => { setCategory("all"); setSegment("all"); setSourceFilter("all"); setTypeFilter("all"); setComplianceFilter("all"); setActivityFilter("all"); setViewQuery(""); setActivePulseLane(null); setSort("name-asc"); }}>Clear all</button>
+          <button type="button" className="contacts-clear" onClick={clearAll}>Clear all</button>
         </div>
+      <div className="flex flex-wrap gap-2 px-4 py-2" aria-label="Active filters">
+        {Object.entries(filterLabels).map(([key, label]) => {
+          const value = searchParams.get(key) || (key === "category" ? searchParams.get("market") : null);
+          return value && value !== "all" ? <button key={key} type="button" className="rounded-full border border-outline-variant/20 px-3 py-1 text-[12px] text-rose-gold-deep" aria-label={`Remove ${label} filter`} onClick={() => updateFilter(key, "all")}>{label}: {value} ×</button> : null;
+        })}
+        {activePulseLane ? <button type="button" onClick={() => setActivePulseLane(null)}>Relationship Pulse: {activePulseLane} ×</button> : null}
+      </div>
       {pulseToast ? (
         <p className="rounded-2xl border border-sage/25 bg-sage-light/40 px-4 py-3 text-[13px] text-emerald-muted">
           {pulseToast}
@@ -477,7 +457,7 @@ export function ContactManagementPage() {
         ) : (
           <>
             <div className="contacts-mobile-rows"><ContactMobileList
-              contacts={sortedRows}
+              contacts={pageRows}
               selected={selected}
               onToggle={toggleOne}
               selectable={contacts.length > 0}
@@ -489,7 +469,7 @@ export function ContactManagementPage() {
                 <tr className="border-b border-outline-variant/20 bg-cream/95 backdrop-blur-sm">
                   {contacts.length > 0 ? (
                     <th scope="col" className="w-12 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-4">
-                      <input type="checkbox" aria-label="Select all contacts in this view" checked={allSelected} onChange={toggleAll} />
+                      <input type="checkbox" aria-label="Select all contacts on this page" checked={allSelected} onChange={toggleAll} />
                     </th>
                   ) : null}
                   <th scope="col" className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
@@ -497,7 +477,7 @@ export function ContactManagementPage() {
                       type="button"
                       className="inline-flex items-center gap-1 hover:text-rose-gold-deep"
                       onClick={() =>
-                        setSort((s) => (s === "name-asc" ? "name-desc" : "name-asc"))
+                        setSort(sort === "name-asc" ? "name-desc" : "name-asc")
                       }
                       title="Sort by name"
                     >
@@ -523,7 +503,7 @@ export function ContactManagementPage() {
                   <th scope="col" className="min-w-[88px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
                     Stage
                   </th>
-                  <th scope="col" className="contacts-activity-col" title="Recorded last-contact date">Last Activity</th>
+                  <th scope="col" className="contacts-activity-col" title="Latest recorded outreach or engagement">Last Activity</th>
                   <th scope="col" className="contacts-tags-col">Tags</th>
                   <th scope="col" className="contacts-compliance-col min-w-[96px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
                     Compliance
@@ -532,7 +512,7 @@ export function ContactManagementPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/12">
-                {sortedRows.map((contact) => (
+                {pageRows.map((contact) => (
                   <tr key={contact.id} data-previewed={previewContact?.id === contact.id} className="transition-colors hover:bg-champagne/35">
                     {contacts.length > 0 ? (
                       <td className="px-3 py-3 align-middle sm:px-4">
@@ -577,7 +557,7 @@ export function ContactManagementPage() {
                             <span
                               className={`inline-flex items-center whitespace-nowrap rounded-lg px-2.5 py-1 text-[12px] font-medium leading-none ${segmentBadgeClass(seg)}`}
                             >
-                              {segmentBadgeLabel(seg)}
+                              {contact.type || "Not recorded"}
                             </span>
                           </div>
                         );
@@ -588,7 +568,7 @@ export function ContactManagementPage() {
                         {segmentBadgeLabel(contactSegment(contact.type))}
                       </span>
                     </td>
-                    <td className="contacts-activity-col">{contact.last_contacted && Number.isFinite(Date.parse(contact.last_contacted)) ? new Date(contact.last_contacted).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : <span className="contacts-unavailable">Not recorded</span>}</td>
+                    <td className="contacts-activity-col">{contactLastActivity(contact) ? new Date(contactLastActivity(contact)!).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : <span className="contacts-unavailable">Not recorded</span>}</td>
                     <td className="contacts-tags-col">{Array.isArray(contact.tags) && contact.tags.some(tag => typeof tag === "string" && tag.trim()) ? contact.tags.filter(tag => typeof tag === "string" && tag.trim()).map(tag => <span key={tag} className="contacts-neutral-tag">{tag}</span>) : <span className="contacts-unavailable" title="No tags supplied by the current contact feed">—</span>}</td>
                     <td className="contacts-compliance-col whitespace-nowrap px-4 py-3 align-middle sm:px-5">
                       <ComplianceBadge status={consentStatus(contact)} compact />
@@ -596,9 +576,11 @@ export function ContactManagementPage() {
                     <td className="whitespace-nowrap px-4 py-3 text-right align-middle sm:px-5">
                       <Link
                         href={`/dashboard/contacts/${contact.id}`}
-                        className="text-[13px] font-medium text-rose-gold-deep hover:underline"
+                        className="contacts-row-profile text-rose-gold-deep"
+                        aria-label={`Open profile for ${contact.first_name} ${contact.last_name ?? ""}`.trim()}
+                        title="Open profile"
                       >
-                        Open profile →
+                        <span aria-hidden="true"><Icon name="open_in_new" className="text-[17px]" /></span>
                       </Link>
                       <button type="button" className="contacts-preview-button" aria-label={`Preview ${contact.first_name} ${contact.last_name ?? ""}`.trim()} aria-pressed={previewContact?.id === contact.id} onClick={() => setPreviewId(contact.id)}><Icon name="visibility" className="text-[17px]" /></button>
                     </td>
@@ -613,7 +595,12 @@ export function ContactManagementPage() {
       </LuxuryCard>
       {previewContact && !loading ? <ContactPreviewPanel key={previewContact.id} contact={previewContact} consent={consentStatus(previewContact)} /> : null}
       </div>
-      <p role="status" className="contacts-view-count">{loading ? "Loading contact totals…" : error ? "Totals unavailable" : `Showing ${sortedRows.length} of ${total} workspace contacts`}</p>
+      {pages > 1 ? <nav aria-label="Contacts pagination" className="flex items-center justify-between gap-3 px-4 py-3">
+        <button type="button" disabled={page <= 1} onClick={() => updateFilter("page", String(page - 1))}>Previous</button>
+        <span>Page {page} of {pages} · {sortedRows.length} matching contacts</span>
+        <button type="button" disabled={page >= pages} onClick={() => updateFilter("page", String(page + 1))}>Next</button>
+      </nav> : null}
+      <p role="status" className="contacts-view-count">{loading ? "Loading contact totals…" : error ? "Totals unavailable" : `Showing ${sortedRows.length ? (page - 1) * pageSize + 1 : 0}–${Math.min(page * pageSize, sortedRows.length)} of ${sortedRows.length} matching contacts · ${total} workspace contacts`}</p>
       {meta ? <p className="contacts-consent-summary">Consent validated: {loading ? "…" : validated} of {rows.length} loaded contacts · Blocked / DNC: {dncCount}</p> : null}
       </div>
       <details className="contacts-pulse-disclosure"><summary>Relationship Pulse <span>Signals, follow-ups, and existing outreach tools</span></summary>
@@ -622,7 +609,7 @@ export function ContactManagementPage() {
         loading={pulseLoading}
         activeLane={activePulseLane}
         onSelectLane={setActivePulseLane}
-        onOpenContact={() => undefined}
+        onOpenContact={(id) => router.push(`/dashboard/contacts/${id}`)}
         onEnrollSuccess={(msg) => {
           setPulseToast(msg);
           window.setTimeout(() => setPulseToast(null), 6000);
@@ -633,7 +620,7 @@ export function ContactManagementPage() {
 
       {headerQuery.trim() && contacts.length > 0 ? (
         <p className="text-[14px] text-taupe">
-          Showing {meta?.filtered ?? rows.length} of {total} contacts matching &quot;{headerQuery}&quot;
+          Showing {sortedRows.length} of {total} contacts matching &quot;{headerQuery}&quot;
         </p>
       ) : null}
 
@@ -715,7 +702,7 @@ function BulkConsentModal(props: {
           </ModalField>
         </div>
         <p className="text-[12px] text-taupe">
-          This records consent in the database so compliance checks allow VM/SMS. If you don’t have explicit opt-in,
+          This records the documented consent status. Sending eligibility is checked separately. If you don’t have explicit opt-in,
           keep consent as Unknown/No.
         </p>
       </div>
@@ -728,12 +715,13 @@ function BulkTypeModal(props: {
   onClose: () => void;
   count: number;
   value: string;
+  options: string[];
   onChange: (next: string) => void;
   onSubmit: () => void;
   submitting: boolean;
   error: string | null;
 }) {
-  const { open, onClose, count, value, onChange, onSubmit, submitting, error } = props;
+  const { open, onClose, count, value, options, onChange, onSubmit, submitting, error } = props;
   return (
     <Modal
       open={open}
@@ -764,9 +752,9 @@ function BulkTypeModal(props: {
             value={value}
             onChange={(e) => onChange(e.target.value)}
           >
-            {CONTACT_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
+            {options.map((type) => (
+              <option key={type} value={type}>
+                {type}
               </option>
             ))}
           </select>

@@ -51,6 +51,8 @@ export function filterContactsByQuery<
     source?: string | null;
     type?: string | null;
     notes?: string | null;
+    category?: string | null;
+    tags?: string[] | null;
   },
 >(contacts: T[], q: string): T[] {
   const term = q.trim().toLowerCase();
@@ -63,6 +65,8 @@ export function filterContactsByQuery<
       c.phone?.includes(q.trim()) ||
       c.source?.toLowerCase().includes(term) ||
       c.type?.toLowerCase().includes(term) ||
+      c.category?.toLowerCase().includes(term) ||
+      c.tags?.some(tag => tag.toLowerCase().includes(term)) ||
       c.notes?.toLowerCase().includes(term)
     );
   });

@@ -12,6 +12,7 @@ export type ApiContact = {
   created_at?: string;
   /** Existing contacts.last_contacted date; not inferred from creation time. */
   last_contacted?: string | null;
+  last_engagement_at?: string | null;
   /** Optional existing feed data; no tags are synthesized when absent. */
   tags?: string[] | null;
   first_name: string;
@@ -27,6 +28,7 @@ export type ApiContact = {
   property_address?: string | null;
   budget?: number | string | null;
   dnc?: boolean;
+  opt_out_requested?: boolean | null;
   market?: "residential" | "commercial" | null;
   consent_records?: {
     status: string;
@@ -111,39 +113,39 @@ export function useContacts(
 }
 
 export function useContact(id: string | undefined) {
-  const [contact, setContact] = useState<ApiContact | null>(null);
-  const [loading, setLoading] = useState(Boolean(id));
-  const [error, setError] = useState<string | null>(null);
-
+  const { user, isLoaded, isSignedIn } = useUser();
+  const ownerId = user?.id;
+  const key = JSON.stringify([ownerId, id]);
+  const [state, setState] = useState<{ key: string; contact: ApiContact | null; loading: boolean; error: string | null }>({ key: "", contact: null, loading: true, error: null });
+  const sequence = useRef(0);
+  const pending = useRef<AbortController | null>(null);
   const refresh = useCallback(async () => {
-    if (!id) return;
-    if (!isUuid(id)) {
-      setContact(null);
-      setLoading(false);
-      setError(null);
+    const attempt = ++sequence.current;
+    pending.current?.abort();
+    if (!isLoaded) return;
+    if (!isSignedIn || !ownerId || !id || !isUuid(id)) {
+      setState({ key, contact: null, loading: false, error: "Contact unavailable. Open a saved contact from your list." });
       return;
     }
-    setLoading(true);
-    setError(null);
+    const controller = new AbortController(); pending.current = controller;
+    setState({ key, contact: null, loading: true, error: null });
     try {
-      const res = await fetch(`/api/contacts/${id}`, { cache: "no-store" });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "Contact not found");
-      }
+      const res = await fetch(`/api/contacts/${id}`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]) });
+      if (!res.ok) throw new Error("Contact unavailable");
       const data = await res.json();
-      setContact(data.contact);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load contact");
-      setContact(null);
-    } finally {
-      setLoading(false);
+      if (data.success !== true || !data.contact || data.contact.id !== id || data.contact.owner_id !== ownerId) throw new Error("Contact unavailable");
+      if (attempt === sequence.current) setState({ key, contact: data.contact, loading: false, error: null });
+    } catch {
+      if (attempt === sequence.current) setState({ key, contact: null, loading: false, error: "Unable to load this contact. It may have been removed or be unavailable to your account." });
     }
-  }, [id]);
-
+  }, [id, ownerId, isLoaded, isSignedIn, key]);
+  const cancel = useCallback(() => { sequence.current++; pending.current?.abort(); }, []);
   useEffect(() => {
     void refresh();
-  }, [refresh]);
-
-  return { contact, loading, error, refresh };
+    const changed = () => { void refresh(); };
+    window.addEventListener(CONTACTS_CHANGED, changed);
+    return () => { cancel(); window.removeEventListener(CONTACTS_CHANGED, changed); };
+  }, [refresh, cancel]);
+  const current = state.key === key && isLoaded;
+  return { contact: current ? state.contact : null, loading: current ? state.loading : true, error: current ? state.error : null, refresh };
 }

@@ -26,6 +26,7 @@ const HEADER_ALIASES: Record<string, keyof ContactImportRow> = {
   consentproof: "proof",
   consent_proof: "proof",
   type: "type",
+  category: "category",
   dnc: "dnc",
   notes: "notes",
 };

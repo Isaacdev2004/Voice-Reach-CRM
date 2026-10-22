@@ -6,6 +6,7 @@ export type ContactImportRow = {
   phone?: string;
   email?: string;
   type?: string;
+  category?: string;
   source?: string;
   consent?: string;
   consentDate?: string;

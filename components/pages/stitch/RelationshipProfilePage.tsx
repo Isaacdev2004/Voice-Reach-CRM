@@ -2,6 +2,8 @@
 
 import { AiLauncherButton } from "@/components/ai/ai-launcher-button";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
+import { contactConsentStatus } from "@/lib/contacts/workspace";
 import { AiSuggestionPanel } from "@/components/crm/ai-suggestion-panel";
 import { ComplianceBadge } from "@/components/crm/compliance-badge";
 import { ContactAvatar } from "@/components/crm/contact-avatar";
@@ -16,8 +18,7 @@ import { Timeline } from "@/components/crm/timeline";
 import { EngagementTimeline } from "@/components/engagement/engagement-timeline";
 import { Icon } from "@/components/ui/icon";
 import { isUuid } from "@/lib/contacts/is-uuid";
-import { contactProfileFromApi, DEMO_CONTACT } from "@/lib/crm/mock-data";
-import type { ContactProfile } from "@/lib/crm/types";
+import { contactProfileFromApi } from "@/lib/crm/mock-data";
 import { useContact } from "@/lib/hooks/use-contacts";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { cn } from "@/lib/cn";
@@ -27,17 +28,12 @@ type RelationshipProfilePageProps = {
   contactId: string;
 };
 
-function profileFromId(contactId: string, apiContact: ReturnType<typeof useContact>["contact"]): ContactProfile {
-  if (apiContact) return contactProfileFromApi(apiContact);
-  if (contactId === DEMO_CONTACT.id) return DEMO_CONTACT;
-  return contactProfileFromApi({
-    id: contactId,
-    first_name: "Contact",
-    last_name: "",
-  });
+export function RelationshipProfilePage({ contactId }: RelationshipProfilePageProps) {
+  const { user } = useUser();
+  return <OwnedRelationshipProfile key={`${user?.id}:${contactId}`} contactId={contactId} />;
 }
 
-export function RelationshipProfilePage({ contactId }: RelationshipProfilePageProps) {
+function OwnedRelationshipProfile({ contactId }: RelationshipProfilePageProps) {
   const { contact: apiContact, loading, error, refresh } = useContact(contactId);
   const [editOpen, setEditOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -61,14 +57,6 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
     const t = window.setTimeout(() => setToast(null), 4500);
     return () => window.clearTimeout(t);
   }, [toast]);
-  const profile = profileFromId(contactId, apiContact);
-  const isDemo = !isUuid(contactId);
-  const consentStatus =
-    apiContact?.consent_records?.[0]?.status === "Yes"
-      ? "valid"
-      : apiContact?.dnc
-        ? "blocked"
-        : "pending";
 
   if (loading) {
     return (
@@ -77,6 +65,15 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
       </div>
     );
   }
+
+  if (error || !apiContact) return <div className={DASHBOARD_PAGE_BODY}>
+    <Link href="/dashboard/contacts">Back to contacts</Link>
+    <p role="alert">{error || "Contact unavailable."}</p>
+    <button type="button" onClick={() => void refresh()}>Retry contact</button>
+  </div>;
+  const profile = contactProfileFromApi(apiContact);
+  const isDemo = false;
+  const consentStatus = contactConsentStatus(apiContact);
 
   return (
     <div className={cn(DASHBOARD_PAGE_BODY, "mx-auto max-w-[1400px] space-y-6 sm:space-y-8")}>
@@ -88,15 +85,6 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
         Back to contacts
       </Link>
 
-      {isDemo ? (
-        <p className="rounded-2xl bg-champagne px-4 py-3 text-[14px] text-taupe">
-          Sample profile for preview.{" "}
-          <Link href="/dashboard/contacts" className="font-medium text-rose-gold-deep hover:underline">
-            Open a real contact
-          </Link>{" "}
-          from your list to save tasks and sync live data.
-        </p>
-      ) : null}
 
       <LuxuryCard padding="lg" className="luxury-gradient-hero">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start">

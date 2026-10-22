@@ -92,6 +92,7 @@ export const POST = withApiHandler(async (request) => {
         phone: normalizePhone(phone),
         email: row.email || null,
         type: row.type || "Cold Lead",
+        ...(row.category?.trim() ? { category: row.category.trim().slice(0, 40) } : {}),
         source: row.source || "CSV import",
         dnc: normalizeBoolean(row.dnc),
         notes: row.notes || null,
