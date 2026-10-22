@@ -63,4 +63,4 @@ w.fetch=async(input,init={})=>{
  return response({success:false,error:'Unstubbed endpoint'},404);
 };
 const profileId=location.pathname.match(/^\/dashboard\/contacts\/([^/]+)$/)?.[1];
-createRoot(document.getElementById('root')).render(<DashboardShell>{profileId?<RelationshipProfilePage contactId={profileId}/>:<ContactManagementPage/>}</DashboardShell>);
+createRoot(document.getElementById('root')).render(<DashboardShell>{profileId?<RelationshipProfilePage contactId={profileId}/>:location.pathname==='/dashboard/contacts'?<ContactManagementPage/>:<p>Other application tab</p>}</DashboardShell>);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useContactViewMemory } from "@/lib/hooks/use-contact-view-memory";
 import { notifyContactsChanged } from "@/lib/contacts/change-events";
 import { contactMetricCounts } from "@/lib/contacts/metrics";
 import { contactLastActivity, contactConsentStatus as consentStatus, filterWorkspaceContacts, sortWorkspaceContacts, readWorkspaceState, type ContactSort } from "@/lib/contacts/workspace";
@@ -49,10 +50,11 @@ function contactFilterPill(active: boolean, variant: "category" | "stage" | "sor
 
 export function ContactManagementPage() {
   const { user } = useUser();
-  return <ContactManagementWorkspace key={user?.id ?? "signed-out"} />;
+  return <ContactManagementWorkspace key={user?.id ?? "signed-out"} ownerId={user?.id} />;
 }
 
-function ContactManagementWorkspace() {
+function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
+  useContactViewMemory(ownerId);
   const router = useRouter();
   const searchParams = useSearchParams();
   const state = readWorkspaceState(searchParams);
