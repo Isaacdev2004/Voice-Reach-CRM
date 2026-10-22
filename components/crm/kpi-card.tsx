@@ -5,10 +5,10 @@ import { KpiSpark } from "./kpi-spark";
 import { LuxuryCard } from "./luxury-card";
 
 const toneStyles = {
-  default: "bg-champagne/60 text-taupe",
-  sage: "bg-sage-light text-emerald-muted",
-  bronze: "bg-bronze-light text-bronze",
-  rose: "bg-rose-gold/15 text-rose-gold-deep",
+  default: "bg-champagne/70 text-taupe",
+  sage: "bg-sage-light/80 text-emerald-muted",
+  bronze: "bg-bronze-light/80 text-bronze",
+  rose: "bg-rose-gold/12 text-rose-gold-deep",
 };
 
 const changeToneStyles = {
@@ -32,49 +32,60 @@ export function KpiCard({
     <LuxuryCard
       padding="sm"
       className={cn(
-        "relative flex flex-col justify-between transition-shadow hover:shadow-nav",
-        compact ? "min-h-[88px] !p-3 sm:!p-3.5" : "min-h-[108px]",
+        "group relative flex h-full min-h-[108px] flex-col transition-[box-shadow,border-color] duration-200 hover:border-outline-variant/20 hover:shadow-[0_12px_32px_-12px_rgba(26,22,18,0.1)] motion-reduce:transition-none",
+        compact && "!p-4",
       )}
     >
       <div className="flex items-start justify-between gap-2">
+        <p
+          className={cn(
+            "font-medium uppercase tracking-[0.12em] text-taupe",
+            compact ? "text-[10px] sm:text-[11px]" : "text-[11px]",
+          )}
+        >
+          {label}
+        </p>
         <div
           className={cn(
-            "flex items-center justify-center rounded-xl",
+            "flex shrink-0 items-center justify-center rounded-lg",
             compact ? "h-8 w-8" : "h-9 w-9",
             toneStyles[tone],
           )}
         >
-          <Icon name={icon} className={compact ? "text-[18px]" : "text-[20px]"} />
+          <Icon name={icon} className={compact ? "text-[17px]" : "text-[18px]"} />
         </div>
-        <div className="flex flex-col items-end gap-1">
+      </div>
+
+      <p
+        className={cn(
+          "mt-2 font-semibold tabular-nums leading-none tracking-tight text-ink",
+          compact ? "text-[24px] sm:text-[26px]" : "text-[28px] sm:text-[30px]",
+        )}
+      >
+        {value}
+      </p>
+
+      <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+        <div className="min-w-0">
+          {detail ? (
+            <p className={cn("leading-snug text-slate-text", compact ? "text-[11px]" : "text-[12px]")}>
+              {detail}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-0.5">
           {change ? (
             <span
               className={cn(
-                "text-[12px] font-semibold tabular-nums",
+                "text-[11px] font-semibold tabular-nums",
                 changeToneStyles[changeTone],
               )}
             >
               {change}
             </span>
           ) : null}
-          {spark ? <KpiSpark variant={spark} /> : null}
+          {spark ? <KpiSpark variant={spark} className="opacity-80" /> : null}
         </div>
-      </div>
-      <div className={compact ? "mt-1.5" : "mt-2.5"}>
-        <p className={cn("text-taupe", compact ? "text-[12px]" : "text-[13px]")}>{label}</p>
-        <p
-          className={cn(
-            "font-serif font-semibold leading-tight text-ink",
-            compact ? "text-[21px] sm:text-[22px]" : "text-[24px] sm:text-[26px]",
-          )}
-        >
-          {value}
-        </p>
-        {detail ? (
-          <p className={cn("text-slate-text", compact ? "mt-0 text-[10px]" : "mt-0.5 text-[11px]")}>
-            {detail}
-          </p>
-        ) : null}
       </div>
     </LuxuryCard>
   );

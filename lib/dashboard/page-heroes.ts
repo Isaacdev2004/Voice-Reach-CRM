@@ -105,9 +105,10 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     subtitle:
       "Your priorities, progress, and opportunities—all in one clear view.",
     heroDensity: "dense",
-    imageBlend: "vivid",
+    heroGridClass: "lg:grid-cols-[1.08fr_0.92fr]",
+    imageBlend: "subtle",
     imageAlt: "Luxury pool and property at golden hour",
-    imageObjectPosition: "62% 42%",
+    imageObjectPosition: "58% 40%",
     actions: [
       {
         label: "Create a campaign",

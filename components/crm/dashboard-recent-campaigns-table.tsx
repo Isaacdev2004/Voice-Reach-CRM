@@ -96,11 +96,11 @@ export function DashboardRecentCampaignsTable() {
   }, []);
 
   return (
-    <LuxuryCard padding="lg">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <LuxuryCard padding="md" className="!p-5 sm:!p-6">
+      <div className="mb-5 flex flex-col gap-3 border-b border-outline-variant/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="font-serif text-[22px] font-semibold text-ink sm:text-[26px]">Recent Campaigns</h2>
-          <p className="mt-1 text-[14px] text-slate-text">
+          <h2 className="font-serif text-[22px] font-semibold text-ink sm:text-[24px]">Recent Campaigns</h2>
+          <p className="mt-1 text-[13px] text-slate-text">
             Delivery, opens, and replies across your latest sequences
           </p>
         </div>

@@ -49,7 +49,7 @@ function HeroImagePanel({
               compact
                 ? cn(
                     "lg:aspect-auto lg:h-full",
-                    dense ? "lg:min-h-[158px]" : "lg:min-h-[210px]",
+                    dense ? "lg:min-h-[128px]" : "lg:min-h-[190px]",
                   )
                 : "lg:aspect-auto lg:h-full lg:min-h-[280px]",
             )
@@ -58,7 +58,7 @@ function HeroImagePanel({
               compact
                 ? cn(
                     "lg:aspect-auto lg:h-full",
-                    dense ? "lg:min-h-[158px]" : "lg:min-h-[210px]",
+                    dense ? "lg:min-h-[128px]" : "lg:min-h-[190px]",
                   )
                 : "lg:aspect-auto lg:h-full lg:min-h-[280px]",
             ),
@@ -164,14 +164,14 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
     return (
       <section
         className={cn(
-          "block w-full overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card",
+          "block w-full overflow-hidden rounded-[20px] border border-outline-variant/12 bg-ivory shadow-[0_8px_32px_-12px_rgba(26,22,18,0.08)]",
           className,
         )}
       >
         <HeroImagePanel
           config={config}
           isPhoto={isPhoto}
-          className={compactHero ? "lg:min-h-[180px]" : "lg:min-h-[220px]"}
+          className={compactHero ? "lg:min-h-[160px]" : "lg:min-h-[200px]"}
         />
       </section>
     );
@@ -181,7 +181,7 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
     <section
       data-dashboard-split-hero
       className={cn(
-        "block w-full overflow-hidden rounded-[28px] border border-outline-variant/10 bg-ivory shadow-card",
+        "block w-full overflow-hidden rounded-[20px] border border-outline-variant/12 bg-ivory shadow-[0_8px_32px_-12px_rgba(26,22,18,0.08)]",
         className,
       )}
     >
@@ -193,12 +193,12 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
       >
         <div
           className={cn(
-            "dashboard-hero-copy relative z-[2] flex w-full min-w-0 flex-col justify-center bg-gradient-to-br from-cream via-cream to-champagne/35 px-6 sm:px-10 lg:min-w-[min(100%,320px)] lg:px-12",
+            "dashboard-hero-copy relative z-[2] flex w-full min-w-0 flex-col justify-center bg-gradient-to-br from-cream via-cream to-champagne/30 px-5 sm:px-8 lg:min-w-[min(100%,320px)] lg:px-10",
             denseHero
-              ? "py-3.5 sm:py-4 lg:py-5"
+              ? "py-3 sm:py-3.5 lg:py-4"
               : compactHero
-                ? "py-5 sm:py-6 lg:py-7"
-                : "py-8 sm:py-10 lg:py-10 lg:px-14",
+                ? "py-4 sm:py-5 lg:py-6"
+                : "py-7 sm:py-8 lg:py-9 lg:px-12",
           )}
         >
           {!faithCopy ? (
@@ -210,10 +210,10 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
                 className={cn(
                   "mt-1.5 whitespace-normal font-serif font-semibold leading-[1.15] text-ink sm:mt-2",
                   denseHero
-                    ? "text-[22px] sm:text-[28px] lg:text-[30px]"
+                    ? "text-[21px] sm:text-[26px] lg:text-[28px]"
                     : compactHero
-                      ? "text-[24px] sm:text-[30px] lg:text-[32px]"
-                      : "text-[26px] sm:text-[34px] lg:text-[36px]",
+                      ? "text-[23px] sm:text-[28px] lg:text-[30px]"
+                      : "text-[25px] sm:text-[32px] lg:text-[34px]",
                 )}
               >
                 {title}
@@ -308,7 +308,7 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
                     key={action.href}
                     href={action.href}
                     className={cn(
-                      "inline-flex items-center gap-2 rounded-full bg-rose-gold-deep font-medium text-ivory shadow-sm transition-opacity hover:opacity-95",
+                      "inline-flex items-center gap-2 rounded-full bg-rose-gold-deep font-medium text-ivory shadow-sm transition-all hover:opacity-95 active:scale-[0.98] motion-reduce:active:scale-100",
                       denseHero ? "px-4 py-2 text-[13px]" : "px-5 py-2.5 text-[14px]",
                     )}
                   >
@@ -321,7 +321,7 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
                     key={action.href}
                     href={action.href}
                     className={cn(
-                      "inline-flex items-center gap-2 rounded-full border border-outline-variant/25 bg-ivory font-medium text-ink transition-colors hover:bg-champagne",
+                      "inline-flex items-center gap-2 rounded-full border border-outline-variant/20 bg-transparent font-medium text-taupe transition-colors hover:border-outline-variant/35 hover:bg-champagne/50 hover:text-ink",
                       denseHero ? "px-4 py-2 text-[13px]" : "px-5 py-2.5 text-[14px]",
                     )}
                   >

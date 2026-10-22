@@ -146,13 +146,13 @@ export function OperationalDashboardPage() {
 
   return (
     <div className={DASHBOARD_PAGE_BODY}>
-      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-stretch xl:grid-cols-4">
         {kpis.map((kpi) => (
           <KpiCard key={kpi.id} {...kpi} compact />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12 xl:gap-6">
         <div className="xl:col-span-8">
           <MarketingPulse />
         </div>

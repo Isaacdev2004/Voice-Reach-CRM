@@ -55,7 +55,7 @@ const MONTH_TRENDS: (PulseCard & { href: string; meta?: string })[] = [
 
 function PulseBadge({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex rounded-full bg-[#f4e6dc] px-3 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-rose-gold-deep">
+    <span className="inline-flex rounded-md bg-champagne/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep">
       {children}
     </span>
   );
@@ -73,7 +73,7 @@ function PulseTile({
   children: ReactNode;
 }) {
   const styles = cn(
-    "rounded-2xl border border-outline-variant/12 transition-shadow hover:shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-gold/50",
+    "flex h-full min-h-[140px] flex-col rounded-xl border border-outline-variant/12 bg-ivory p-4 transition-[box-shadow,border-color] duration-200 hover:border-outline-variant/20 hover:shadow-[0_8px_24px_-12px_rgba(26,22,18,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-gold/40 motion-reduce:transition-none",
     className,
   );
   if (href) {
@@ -97,14 +97,14 @@ function DeliveryDonut({ percent }: { percent: number }) {
   const p = Math.min(100, Math.max(0, percent));
   return (
     <div
-      className="relative mx-auto h-[88px] w-[88px] shrink-0 rounded-full"
+      className="relative h-[72px] w-[72px] shrink-0 rounded-full"
       style={{
         background: `conic-gradient(var(--color-emerald-muted, #5c8a6a) ${p * 3.6}deg, #e8e0d8 ${p * 3.6}deg)`,
       }}
       aria-hidden
     >
       <div className="absolute inset-[10px] flex flex-col items-center justify-center rounded-full bg-ivory">
-        <span className="font-serif text-[22px] font-semibold text-ink">
+        <span className="text-[20px] font-semibold tabular-nums text-ink">
           {p > 0 ? `${Math.round(p)}%` : "—"}
         </span>
       </div>
@@ -206,34 +206,36 @@ export function MarketingPulse() {
   const insightCard = cards.find((c) => c.badge === "Insight");
 
   return (
-    <LuxuryCard padding="md" className="h-full">
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+    <LuxuryCard padding="md" className="h-full !p-5 sm:!p-6">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-outline-variant/10 pb-4">
         <div>
-          <h2 className="font-serif text-[26px] font-semibold text-ink">Marketing Pulse</h2>
-          <p className="mt-1 text-[14px] text-slate-text">
-            Key trends and opportunities across your outreach
+          <h2 className="font-serif text-[22px] font-semibold leading-tight text-ink sm:text-[24px]">
+            Marketing Pulse
+          </h2>
+          <p className="mt-1 text-[13px] leading-relaxed text-slate-text">
+            Trends, performance, and curated insights for your outreach
           </p>
         </div>
         <Link
           href="/dashboard/analytics?range=30d"
-          className="flex items-center gap-2 rounded-full border border-outline-variant/20 bg-cream/40 px-3 py-1.5 text-[12px] font-medium text-taupe transition-colors hover:border-rose-gold/30 hover:text-rose-gold-deep"
+          className="flex items-center gap-1.5 rounded-full border border-outline-variant/15 bg-cream/60 px-3 py-1.5 text-[11px] font-medium text-taupe transition-colors hover:border-rose-gold/25 hover:text-rose-gold-deep"
         >
-          <Icon name="calendar_today" className="text-[16px] text-rose-gold-deep" />
+          <Icon name="calendar_today" className="text-[15px] text-rose-gold-deep" />
           {rangeLabel}
         </Link>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <PulseTile href={trendCard?.href} className="bg-champagne/25 p-5">
+      <div className="grid auto-rows-fr gap-3 sm:grid-cols-2">
+        <PulseTile href={trendCard?.href} className="bg-cream/40">
           {trendCard ? (
             <>
               <PulseBadge>{trendCard.badge}</PulseBadge>
-              <p className="mt-3 text-[16px] font-semibold leading-snug text-ink">{trendCard.headline}</p>
+              <p className="mt-2.5 text-[15px] font-semibold leading-snug text-ink">{trendCard.headline}</p>
               {trendCard.body ? (
-                <p className="mt-2 text-[13px] leading-relaxed text-slate-text">{trendCard.body}</p>
+                <p className="mt-1.5 flex-1 text-[12px] leading-relaxed text-slate-text">{trendCard.body}</p>
               ) : null}
               {trendCard.meta ? (
-                <p className="mt-3 text-[13px] font-medium text-rose-gold-deep">{trendCard.meta}</p>
+                <p className="mt-auto pt-2 text-[12px] font-medium text-rose-gold-deep">{trendCard.meta}</p>
               ) : null}
             </>
           ) : (
@@ -241,19 +243,19 @@ export function MarketingPulse() {
           )}
         </PulseTile>
 
-        <PulseTile href={perfCard?.href} className="bg-ivory p-5">
+        <PulseTile href={perfCard?.href}>
           {perfCard ? (
             <>
               <PulseBadge>{perfCard.badge}</PulseBadge>
-              <div className="mt-3 flex items-center gap-4">
+              <div className="mt-2.5 flex flex-1 items-center gap-3">
                 <DeliveryDonut percent={hasLiveAnalytics ? deliveryRate : 0} />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-semibold text-ink">{perfCard.headline}</p>
+                  <p className="text-[14px] font-semibold text-ink">{perfCard.headline}</p>
                   <p className="mt-1 text-[12px] leading-relaxed text-slate-text line-clamp-3">
                     {perfCard.body}
                   </p>
                   {perfCard.meta ? (
-                    <p className="mt-2 text-[12px] font-medium text-rose-gold-deep">{perfCard.meta}</p>
+                    <p className="mt-1.5 text-[12px] font-medium text-rose-gold-deep">{perfCard.meta}</p>
                   ) : null}
                 </div>
               </div>
@@ -261,34 +263,39 @@ export function MarketingPulse() {
           ) : null}
         </PulseTile>
 
-        <PulseTile href={responseLift.href} className="relative min-h-[140px] overflow-hidden sm:col-span-1">
+        <PulseTile
+          href={responseLift.href}
+          className="relative min-h-[152px] overflow-hidden border-0 p-0 sm:min-h-[140px]"
+        >
           <Image
             src="/brand/heroes/properties.jpg"
             alt=""
             fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, 320px"
+            className="object-cover object-[50%_35%]"
+            sizes="(max-width: 640px) 100vw, 360px"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/20 to-transparent" />
-          <div className="absolute bottom-4 left-4 right-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-ivory/80">
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/25 to-ink/5" />
+          <div className="relative flex h-full flex-col justify-end p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ivory/75">
               Response lift
             </p>
-            <p className="font-serif text-[28px] font-semibold text-ivory">{responseLift.headline}</p>
-            <p className="text-[12px] text-ivory/85">{responseLift.subline}</p>
-            <p className="mt-2 text-[12px] font-medium text-ivory/90">View analytics →</p>
+            <p className="mt-0.5 text-[26px] font-semibold tabular-nums leading-none text-ivory">
+              {responseLift.headline}
+            </p>
+            <p className="mt-1 text-[11px] leading-snug text-ivory/85">{responseLift.subline}</p>
+            <p className="mt-2 text-[11px] font-medium text-ivory/90">View analytics →</p>
           </div>
         </PulseTile>
 
         {insightCard ? (
-          <PulseTile href={insightCard.href} newTab className="bg-cream/50 p-5">
+          <PulseTile href={insightCard.href} newTab className="bg-champagne/25">
             <PulseBadge>{insightCard.badge}</PulseBadge>
-            <p className="mt-3 text-[16px] font-semibold text-ink">{insightCard.headline}</p>
-            <p className="mt-2 text-[13px] leading-relaxed text-slate-text line-clamp-3">
+            <p className="mt-2.5 text-[15px] font-semibold leading-snug text-ink">{insightCard.headline}</p>
+            <p className="mt-1.5 flex-1 text-[12px] leading-relaxed text-slate-text line-clamp-4">
               {insightCard.body}
             </p>
             {insightCard.meta ? (
-              <p className="mt-3 text-[13px] font-medium text-rose-gold-deep">{insightCard.meta}</p>
+              <p className="mt-auto pt-2 text-[12px] font-medium text-rose-gold-deep">{insightCard.meta}</p>
             ) : null}
           </PulseTile>
         ) : null}
