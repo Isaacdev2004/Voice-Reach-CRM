@@ -152,7 +152,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               mobileOpen={mobileNavOpen}
               onMobileClose={() => setMobileNavOpen(false)}
             />
-            <main className={mainClass}>
+            <main className={`${mainClass} dashboard-main`}>
               <SetupBanner />
               {isPropertyFinderRoute ? (
                 <div className={DASHBOARD_MAIN_COLUMN}>{children}</div>
@@ -175,7 +175,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               )}
             </main>
           </div>
-          <AiFloatingButton />
+          {normalizedPath !== "/dashboard" ? <AiFloatingButton /> : null}
           <AiAssistantSidebar />
         </DashboardHeaderProvider>
       </AiAssistantProvider>

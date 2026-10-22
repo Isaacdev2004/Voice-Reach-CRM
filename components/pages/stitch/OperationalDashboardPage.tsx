@@ -144,7 +144,7 @@ export function OperationalDashboardPage() {
 
   return (
     <div className={DASHBOARD_PAGE_BODY}>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-stretch xl:grid-cols-4">
+      <div className="dashboard-kpi-grid grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-stretch xl:grid-cols-4">
         {kpis.map((kpi) => (
           kpi.id === "opportunities" ? (
             <Link key={kpi.id} href="/dashboard/contacts" className="dashboard-opportunity-link" aria-label="Opportunities — view Contacts">
@@ -154,11 +154,11 @@ export function OperationalDashboardPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12 xl:items-stretch xl:gap-4">
-        <div className="xl:col-span-8">
+      <div className="dashboard-editorial-grid">
+        <div className="dashboard-pulse-column">
           <MarketingPulse />
         </div>
-        <div className="xl:col-span-4">
+        <div className="dashboard-recommendations-column">
           <DashboardRecommendedForYou />
         </div>
       </div>

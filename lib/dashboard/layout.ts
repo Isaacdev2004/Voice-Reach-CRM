@@ -9,7 +9,7 @@ export const DASHBOARD_PAGE_BODY =
   "luxury-page box-border w-full max-w-full min-w-0 space-y-4 pt-1 sm:space-y-4 sm:pt-2";
 
 /** Home dashboard section rhythm (8px grid: 16px gaps, shared headers). */
-export const DASHBOARD_SECTION_CARD = "dashboard-luxury-section !p-4 sm:!p-5";
+export const DASHBOARD_SECTION_CARD = "dashboard-luxury-section";
 
 export const DASHBOARD_SECTION_HEADER =
   "mb-4 flex flex-wrap items-start justify-between gap-3";

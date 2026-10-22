@@ -1,5 +1,6 @@
 "use client";
 
+import { AiLauncherButton } from "@/components/ai/ai-launcher-button";
 import { AddCalendarEventModal } from "@/components/crm/add-calendar-event-modal";
 import { AddContactModal } from "@/components/crm/add-contact-modal";
 import { ImportCsvModal } from "@/components/crm/import-csv-modal";
@@ -243,7 +244,7 @@ export function DashboardHeaderProvider({
 
   return (
     <DashboardHeaderContext.Provider value={headerActions}>
-      <header className="dashboard-topbar fixed top-0 left-0 right-0 z-40 flex h-[3.75rem] min-w-0 items-center gap-1.5 border-b border-outline-variant/12 bg-ivory/90 px-3 shadow-[0_1px_0_rgba(26,22,18,0.04)] backdrop-blur-md max-md:gap-1 sm:gap-2.5 sm:px-4 lg:left-64 lg:h-16 lg:gap-4 lg:px-margin-desktop">
+      <header data-dashboard-home={pathname === "/dashboard" ? "" : undefined} className="dashboard-topbar fixed top-0 left-0 right-0 z-40 flex h-[3.75rem] min-w-0 items-center gap-1.5 border-b border-outline-variant/12 bg-ivory/90 px-3 shadow-[0_1px_0_rgba(26,22,18,0.04)] backdrop-blur-md max-md:gap-1 sm:gap-2.5 sm:px-4 lg:left-64 lg:h-16 lg:gap-4 lg:px-margin-desktop">
         <button
           type="button"
           onClick={onMenuClick}
@@ -254,7 +255,7 @@ export function DashboardHeaderProvider({
         </button>
 
         <form className="flex min-w-0 flex-1 items-center md:min-w-[220px]" onSubmit={handleSearchSubmit}>
-          <div ref={searchRef} className="relative w-full min-w-0 max-w-lg md:min-w-[200px] lg:min-w-[280px]">
+          <div ref={searchRef} className="dashboard-search-field relative w-full min-w-0 max-w-lg md:min-w-[200px] lg:min-w-[280px]">
             <Icon
               name="search"
               className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-on-surface-variant sm:left-4"
@@ -267,11 +268,14 @@ export function DashboardHeaderProvider({
               placeholder={searchPlaceholder}
               className="h-9 w-full min-w-0 truncate rounded-full border border-outline-variant/12 bg-cream/80 pl-9 pr-2 text-[14px] text-ink placeholder:text-taupe/80 focus:border-rose-gold/35 focus:ring-2 focus:ring-rose-gold/15 max-md:placeholder:text-[13px] sm:h-10 sm:pl-12 sm:pr-4"
               aria-label="Search dashboard"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls="dashboard-search-results"
               aria-expanded={searchOpen}
               autoComplete="off"
             />
             {searchOpen && (query.trim() || contactHits.length > 0) ? (
-              <div className="absolute left-0 top-[calc(100%+8px)] z-[100] max-h-[360px] w-[min(100vw-2rem,22rem)] min-w-[min(100%,18rem)] overflow-y-auto overflow-x-hidden rounded-2xl border border-outline-variant/20 bg-ivory py-2 shadow-card">
+              <div id="dashboard-search-results" className="absolute left-0 top-[calc(100%+8px)] z-[100] max-h-[360px] w-[min(100vw-2rem,22rem)] min-w-[min(100%,18rem)] overflow-y-auto overflow-x-hidden rounded-2xl border border-outline-variant/20 bg-ivory py-2 shadow-card">
                 {searching ? (
                   <p className="px-4 py-3 text-[13px] text-taupe">Searching…</p>
                 ) : null}
@@ -332,14 +336,16 @@ export function DashboardHeaderProvider({
           </div>
         </form>
 
-        <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+        <div className="dashboard-header-actions flex shrink-0 items-center gap-1 sm:gap-3">
+          {pathname === "/dashboard" ? <AiLauncherButton className="dashboard-ai-nav" /> : null}
           {showQuickCreate ? (
             <>
               <button
                 type="button"
                 onClick={() => setQuickCreateOpen(true)}
-                className="hidden h-10 items-center rounded-full bg-rose-gold px-5 text-[13px] font-semibold text-ivory shadow-sm transition-all hover:opacity-95 sm:inline-flex"
+                className="dashboard-quick-create hidden h-10 items-center rounded-full bg-rose-gold px-5 text-[13px] font-semibold text-ivory shadow-sm transition-all hover:opacity-95 sm:inline-flex"
               >
+                <span aria-hidden="true"><Icon name="add" className="text-[18px]" /></span>
                 Quick Create
               </button>
               <button
@@ -429,9 +435,10 @@ export function DashboardHeaderProvider({
               onClick={() => setProfileOpen((o) => !o)}
               className="flex items-center gap-1.5 rounded-full p-0.5 transition-colors hover:bg-surface-container-low sm:gap-2 sm:py-1 sm:pl-1 sm:pr-2"
               aria-label="Account menu"
+              data-dashboard-profile
               aria-expanded={profileOpen}
             >
-              <div className="hidden text-right sm:block">
+              <div className="dashboard-profile-copy hidden text-right sm:block">
                 <p className="text-label-md font-bold text-ink">{displayName}</p>
                 <p className="text-caption text-slate-text">Account</p>
               </div>

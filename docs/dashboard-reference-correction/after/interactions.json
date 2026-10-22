@@ -1,0 +1,76 @@
+[
+  {
+    "width": 1451,
+    "copy": true,
+    "links": true,
+    "metrics": true,
+    "image": true,
+    "emptyEngagement": true,
+    "overflow": false,
+    "pageErrors": []
+  },
+  {
+    "width": 1440,
+    "copy": true,
+    "links": true,
+    "metrics": true,
+    "image": true,
+    "emptyEngagement": true,
+    "overflow": false,
+    "pageErrors": []
+  },
+  {
+    "width": 1920,
+    "copy": true,
+    "links": true,
+    "metrics": true,
+    "image": true,
+    "emptyEngagement": true,
+    "overflow": false,
+    "pageErrors": []
+  },
+  {
+    "width": 768,
+    "copy": true,
+    "links": true,
+    "metrics": true,
+    "image": true,
+    "emptyEngagement": true,
+    "overflow": false,
+    "pageErrors": []
+  },
+  {
+    "width": 390,
+    "copy": true,
+    "links": true,
+    "metrics": true,
+    "image": true,
+    "emptyEngagement": true,
+    "overflow": false,
+    "pageErrors": []
+  },
+  {
+    "aiLauncher": "top navigation opens existing assistant without covering campaign actions"
+  },
+  {
+    "quickCreate": "opens"
+  },
+  {
+    "upgrade": "opens"
+  },
+  {
+    "notifications": "opens"
+  },
+  {
+    "recommendation": "existing template action preserved; fixture blocks write"
+  },
+  {
+    "accountMenu": "opens"
+  },
+  {
+    "measuredEngagement": "real numeric metric only"
+  },
+  {
+    "emptyData": "zero counts, unavailable budgets, neutral chart and campaign empty state"
+  }
+]

@@ -1,3 +1,4 @@
+import { engagementDisplay } from "../lib/dashboard/engagement-display";
 import { verifiedUsageCount } from "../lib/billing/usage-count";
 import assert from "node:assert/strict";
 import { evaluateCheckoutClaim } from "../lib/billing/evaluate-checkout-claim";
@@ -54,5 +55,18 @@ assert.equal(verifiedUsageCount(0, null), 0);
 assert.equal(verifiedUsageCount(50, null), 50);
 assert.throws(() => verifiedUsageCount(null, null));
 assert.throws(() => verifiedUsageCount(0, { message: "database unavailable" }));
+
+// The analytics API intentionally returns explanatory text when engagement is unavailable.
+// That text must never become a numeric badge over a property photograph.
+assert.equal(engagementDisplay(snapshot.kpis.find(k => k.id === "conversion"), true), null);
+assert.equal(engagementDisplay({ value: "Unavailable", change: "No engagement measurements" }, true), null);
+assert.equal(engagementDisplay({ value: "25%", change: "+5%" }, false), null);
+assert.equal(engagementDisplay(undefined, true), null);
+assert.equal(engagementDisplay({ value: "NaN%", change: "+5%" }, true), null);
+assert.equal(engagementDisplay({ value: "101%" }, true), null);
+assert.equal(engagementDisplay({ value: "-1%" }, true), null);
+assert.deepEqual(engagementDisplay({ value: "0%", change: "No prior period" }, true), { headline: "0%", subline: "Engagement rate" });
+assert.deepEqual(engagementDisplay({ value: "25%", change: "+5 %" }, true), { headline: "+5%", subline: "Engagement change vs prior 30 days" });
+assert.deepEqual(engagementDisplay({ value: "25%", change: "No engagement measurements" }, true), { headline: "25%", subline: "Engagement rate" });
 
 console.log("verify-regressions: ok");

@@ -103,16 +103,16 @@ export function DashboardRecommendedForYou() {
               onClick={() => void createFromTemplate(tpl.templateKey)}
               className="dashboard-recommendation group flex w-full items-center gap-3 rounded-xl p-1.5 text-left transition-colors hover:bg-cream/70 disabled:opacity-60"
             >
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-outline-variant/10 bg-champagne">
+              <div className="dashboard-recommendation-photo relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-outline-variant/10 bg-champagne">
                 <Image
                   src={thumb}
                   alt=""
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transform-none"
-                  sizes="56px"
+                  sizes="64px"
                 />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="dashboard-recommendation-copy min-w-0 flex-1">
                 <p className="line-clamp-2 text-[14px] font-medium leading-snug text-ink group-hover:text-rose-gold-deep">
                   {tpl.name}
                 </p>
@@ -122,7 +122,7 @@ export function DashboardRecommendedForYou() {
               </div>
               <span
                 className={cn(
-                  "hidden shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:inline-flex",
+                  "dashboard-recommendation-badge hidden shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:inline-flex",
                   tag.className,
                 )}
               >

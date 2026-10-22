@@ -9,7 +9,7 @@ export function DashboardLuxuryHero() {
   return (
     <section className="dashboard-luxury-hero" aria-labelledby="dashboard-heading">
       <div className="dashboard-luxury-hero-photo">
-        <Image src="/brand/heroes/dashboard-interior.jpg" alt="Sunlit luxury living room with natural textures and sea views"
+        <Image src={config.image} alt="Sunlit luxury living room with natural textures and sea views"
           fill priority sizes="(max-width: 767px) 100vw, 65vw" className="object-cover" />
       </div>
       <div className="dashboard-luxury-hero-copy">
