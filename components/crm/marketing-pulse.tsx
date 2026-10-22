@@ -11,6 +11,7 @@ import {
   DASHBOARD_SECTION_SUBTITLE,
   DASHBOARD_SECTION_TITLE,
 } from "@/lib/dashboard/layout";
+import { engagementDisplay } from "@/lib/dashboard/engagement-display";
 import { getRotatingResourceArticle } from "@/lib/seo/resource-articles";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -20,12 +21,6 @@ type PulseCard = {
   body: string;
   href?: string;
   meta?: string;
-};
-
-type ResponseLift = {
-  headline: string;
-  subline: string;
-  href: string;
 };
 
 const MONTH_TRENDS: (PulseCard & { href: string; meta?: string })[] = [
@@ -61,7 +56,7 @@ const MONTH_TRENDS: (PulseCard & { href: string; meta?: string })[] = [
 
 function PulseBadge({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex rounded-md bg-champagne/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep">
+    <span className="inline-flex rounded-full bg-champagne/90 px-3 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-rose-gold-deep">
       {children}
     </span>
   );
@@ -79,7 +74,7 @@ function PulseTile({
   children: ReactNode;
 }) {
   const styles = cn(
-    "flex h-full min-h-[140px] flex-col rounded-xl border border-outline-variant/12 bg-ivory p-4 transition-[box-shadow,border-color] duration-200 hover:border-outline-variant/20 hover:shadow-[0_8px_24px_-12px_rgba(26,22,18,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-gold/40 motion-reduce:transition-none",
+    "dashboard-pulse-tile flex h-full min-h-[140px] flex-col rounded-xl border border-outline-variant/12 bg-ivory p-4 transition-[box-shadow,border-color] duration-200 hover:border-outline-variant/20 hover:shadow-[0_8px_24px_-12px_rgba(26,22,18,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-gold/40 motion-reduce:transition-none",
     className,
   );
   if (href) {
@@ -99,19 +94,19 @@ function PulseTile({
   return <div className={styles}>{children}</div>;
 }
 
-function DeliveryDonut({ percent }: { percent: number }) {
-  const p = Math.min(100, Math.max(0, percent));
+function DeliveryDonut({ percent }: { percent: number | null }) {
+  const p = Math.min(100, Math.max(0, percent ?? 0));
   return (
     <div
-      className="relative h-[72px] w-[72px] shrink-0 rounded-full"
+      className="dashboard-delivery-ring relative h-[72px] w-[72px] shrink-0 rounded-full"
       style={{
-        background: `conic-gradient(var(--color-emerald-muted, #5c8a6a) ${p * 3.6}deg, #e8e0d8 ${p * 3.6}deg)`,
+        background: `conic-gradient(#b38c69 ${p * 3.6}deg, #e8e0d8 ${p * 3.6}deg)`,
       }}
       aria-hidden
     >
       <div className="absolute inset-[10px] flex flex-col items-center justify-center rounded-full bg-ivory">
         <span className="text-[20px] font-semibold tabular-nums text-ink">
-          {p > 0 ? `${Math.round(p)}%` : "—"}
+          {percent !== null ? `${Math.round(p)}%` : "—"}
         </span>
       </div>
     </div>
@@ -120,19 +115,16 @@ function DeliveryDonut({ percent }: { percent: number }) {
 
 function parsePercentValue(raw: string | undefined): number | null {
   if (!raw) return null;
-  const n = parseFloat(raw.replace(/%/g, "").trim());
-  return Number.isNaN(n) ? null : n;
+  if (!/^\d+(?:\.\d+)?\s*%$/.test(raw.trim())) return null;
+  const n = Number(raw.replace(/%/g, "").trim());
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? n : null;
 }
 
 export function MarketingPulse() {
   const [cards, setCards] = useState<PulseCard[]>([]);
-  const [deliveryRate, setDeliveryRate] = useState(0);
+  const [deliveryRate, setDeliveryRate] = useState<number | null>(null);
   const [rangeLabel, setRangeLabel] = useState("Last 30 days");
-  const [responseLift, setResponseLift] = useState<ResponseLift>({
-    headline: "—",
-    subline: "Engagement vs prior 30 days",
-    href: "/dashboard/analytics",
-  });
+  const [responseLift, setResponseLift] = useState<ReturnType<typeof engagementDisplay>>(null);
   const [hasLiveAnalytics, setHasLiveAnalytics] = useState(false);
 
   useEffect(() => {
@@ -148,7 +140,7 @@ export function MarketingPulse() {
         href: "/dashboard/campaigns#campaign-builder",
         meta: "Create a campaign →",
       };
-      let rate = 0;
+      let rate: number | null = null;
 
       try {
         const analyticsRes = await fetch("/api/analytics?range=30d");
@@ -163,9 +155,9 @@ export function MarketingPulse() {
 
         const kpis = analytics.kpis ?? [];
         const deliveryKpi = kpis.find((k) => k.id === "delivery" || /delivery/i.test(k.label ?? ""));
-        if (deliveryKpi?.value) {
-          const num = parsePercentValue(deliveryKpi.value);
-          if (num !== null) rate = num;
+        const measuredDelivery = parsePercentValue(deliveryKpi?.value);
+        if (analyticsRes.ok && analytics.fromLiveData && deliveryKpi && measuredDelivery !== null) {
+          rate = measuredDelivery;
           performance = {
             badge: "Performance",
             headline: deliveryKpi.label ?? "Delivery success rate",
@@ -176,18 +168,7 @@ export function MarketingPulse() {
         }
 
         const engagementKpi = kpis.find((k) => k.id === "conversion" || /engagement rate/i.test(k.label ?? ""));
-        if (engagementKpi) {
-          const change = engagementKpi.change?.trim();
-          const showChange =
-            change && change !== "-" && change !== "—" && !/^[\s-]+$/.test(change);
-          setResponseLift({
-            headline: showChange ? change.replace(/\s+/g, "") : engagementKpi.value ?? "—",
-            subline: showChange
-              ? "Engagement change vs prior 30 days"
-              : (engagementKpi.label ?? "Engagement rate"),
-            href: "/dashboard/analytics?range=30d",
-          });
-        }
+        setResponseLift(engagementDisplay(engagementKpi, analyticsRes.ok && Boolean(analytics.fromLiveData)));
       } catch {
         // keep defaults
       }
@@ -215,7 +196,7 @@ export function MarketingPulse() {
     <LuxuryCard padding="md" className={cn("h-full", DASHBOARD_SECTION_CARD)}>
       <div className={DASHBOARD_SECTION_HEADER}>
         <div>
-          <h2 className={DASHBOARD_SECTION_TITLE}>Marketing Pulse</h2>
+          <h2 className={cn(DASHBOARD_SECTION_TITLE, "dashboard-section-heading")}><Icon name="trending_up" />Marketing Pulse</h2>
           <p className={DASHBOARD_SECTION_SUBTITLE}>
             Trends, performance, and curated insights for your outreach
           </p>
@@ -229,8 +210,9 @@ export function MarketingPulse() {
         </Link>
       </div>
 
-      <div className="grid auto-rows-fr gap-3 sm:grid-cols-2">
-        <PulseTile href={trendCard?.href} className="bg-cream/40">
+      <div className="dashboard-pulse-composition">
+        <PulseTile href={trendCard?.href} className="dashboard-pulse-trend">
+          <div className="dashboard-pulse-trend-copy">
           {trendCard ? (
             <>
               <PulseBadge>{trendCard.badge}</PulseBadge>
@@ -245,65 +227,50 @@ export function MarketingPulse() {
           ) : (
             <p className="text-taupe">Loading…</p>
           )}
-        </PulseTile>
-
-        <PulseTile href={perfCard?.href}>
-          {perfCard ? (
-            <>
-              <PulseBadge>{perfCard.badge}</PulseBadge>
-              <div className="mt-2.5 flex flex-1 items-center gap-3">
-                <DeliveryDonut percent={hasLiveAnalytics ? deliveryRate : 0} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-[14px] font-semibold text-ink">{perfCard.headline}</p>
-                  <p className="mt-1 text-[12px] leading-relaxed text-slate-text line-clamp-3">
-                    {perfCard.body}
-                  </p>
-                  {perfCard.meta ? (
-                    <p className="mt-1.5 text-[12px] font-medium text-rose-gold-deep">{perfCard.meta}</p>
-                  ) : null}
-                </div>
+          </div>
+          <div className="dashboard-pulse-trend-photo">
+            <Image src="/brand/heroes/properties.jpg" alt="Sunlit luxury residence surrounded by greenery" fill className="object-cover" sizes="(max-width: 767px) 100vw, 400px" />
+            {responseLift ? (
+              <div className="dashboard-pulse-response">
+                <strong>{responseLift.headline}</strong>
+                <p>{responseLift.subline}</p>
               </div>
-            </>
-          ) : null}
-        </PulseTile>
-
-        <PulseTile
-          href={responseLift.href}
-          className="relative min-h-[152px] overflow-hidden border-0 p-0 sm:min-h-[140px]"
-        >
-          <Image
-            src="/brand/heroes/properties.jpg"
-            alt=""
-            fill
-            className="object-cover object-[50%_35%]"
-            sizes="(max-width: 640px) 100vw, 360px"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/25 to-ink/5" />
-          <div className="relative flex h-full flex-col justify-end p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ivory/75">
-              Response lift
-            </p>
-            <p className="mt-0.5 text-[26px] font-semibold tabular-nums leading-none text-ivory">
-              {responseLift.headline}
-            </p>
-            <p className="mt-1 text-[11px] leading-snug text-ivory/85">{responseLift.subline}</p>
-            <p className="mt-2 text-[11px] font-medium text-ivory/90">View analytics →</p>
+            ) : null}
           </div>
         </PulseTile>
 
+        <PulseTile href={perfCard?.href} className="dashboard-performance-tile">
+          <div className="dashboard-performance-copy">
+            <PulseBadge>Performance</PulseBadge>
+            <h3>{perfCard?.headline ?? "Delivery success rate"}</h3>
+            <p className="dashboard-performance-number">{hasLiveAnalytics && deliveryRate !== null ? `${Math.round(deliveryRate)}%` : "—"}</p>
+            <p className="dashboard-performance-context">{deliveryRate === null ? "Your delivery story starts with your first campaign." : "Last 30 days · measured delivery"}</p>
+            {perfCard?.meta ? <p className="dashboard-editorial-link">{perfCard.meta}</p> : null}
+          </div>
+          <DeliveryDonut percent={hasLiveAnalytics ? deliveryRate : null} />
+        </PulseTile>
+
         {insightCard ? (
-          <PulseTile href={insightCard.href} newTab className="bg-champagne/25">
-            <PulseBadge>{insightCard.badge}</PulseBadge>
-            <p className="mt-2.5 text-[15px] font-semibold leading-snug text-ink">{insightCard.headline}</p>
-            <p className="mt-1.5 flex-1 text-[12px] leading-relaxed text-slate-text line-clamp-4">
-              {insightCard.body}
-            </p>
-            {insightCard.meta ? (
-              <p className="mt-auto pt-2 text-[12px] font-medium text-rose-gold-deep">{insightCard.meta}</p>
-            ) : null}
+          <PulseTile href={insightCard.href} newTab className="dashboard-insight-tile">
+            <span className="dashboard-insight-icon" aria-hidden="true"><Icon name="menu_book" /></span>
+            <div>
+              <PulseBadge>Insight</PulseBadge>
+              <h3>{insightCard.headline}</h3>
+              <p className="dashboard-insight-description">{insightCard.body}</p>
+              {insightCard.meta ? <p className="dashboard-editorial-link">{insightCard.meta}</p> : null}
+            </div>
+            <span className="dashboard-insight-arrow" aria-hidden="true"><Icon name="arrow_forward" /></span>
           </PulseTile>
         ) : null}
+
       </div>
+      {cards.length > 0 && !responseLift ? (
+        <Link href="/dashboard/analytics?range=30d" className="dashboard-engagement-empty">
+          <span className="dashboard-engagement-empty-icon" aria-hidden="true"><Icon name="insights" /></span>
+          <span><strong>Your next conversation starts the story.</strong><span>Engagement insights will appear as activity is measured.</span></span>
+          <span className="dashboard-engagement-empty-action">Explore analytics <span aria-hidden="true">→</span></span>
+        </Link>
+      ) : null}
     </LuxuryCard>
   );
 }

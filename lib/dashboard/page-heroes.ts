@@ -63,6 +63,7 @@ const HERO_FILES: Record<
   { w: number; h: number; layout?: HeroImageLayout }
 > = {
   "dashboard.jpg": BANNER_2172,
+  "dashboard-interior.jpg": { w: 1536, h: 1024, layout: "photo" },
   "contacts.jpg": BANNER_2172,
   "properties.jpg": BANNER_2172,
   "campaigns.jpg": BANNER_2172,
@@ -99,15 +100,15 @@ function hero(file: string): Pick<
 
 export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   "/dashboard": {
-    ...hero("dashboard.jpg"),
+    ...hero("dashboard-interior.jpg"),
     eyebrow: "Dashboard",
     title: "Your business. Beautifully in motion.",
     subtitle:
       "Your priorities, progress, and opportunities—all in one clear view.",
-    heroDensity: "dense",
+    heroDensity: "default",
     heroGridClass: "lg:grid-cols-[1.08fr_0.92fr]",
     imageBlend: "subtle",
-    imageAlt: "Luxury pool and property at golden hour",
+    imageAlt: "Sunlit luxury living room with cream furnishings and architectural details",
     imageObjectPosition: "58% 40%",
     actions: [
       {

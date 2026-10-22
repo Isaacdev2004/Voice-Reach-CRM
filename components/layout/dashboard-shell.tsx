@@ -6,6 +6,7 @@ import { AiFloatingButton } from "@/components/ai/ai-launcher-button";
 import { UpgradePlanProvider } from "@/components/billing/upgrade-plan-provider";
 import { StartTrialTracker } from "@/components/marketing/start-trial-tracker";
 import { CalendarPageHero } from "@/components/calendar/calendar-page-hero";
+import { DashboardLuxuryHero } from "@/components/crm/dashboard-luxury-hero";
 import { DashboardPageHero } from "@/components/layout/dashboard-page-hero";
 import { SetupBanner } from "@/components/layout/setup-banner";
 import { DashboardHeaderProvider } from "@/components/layout/dashboard-header-provider";
@@ -146,19 +147,21 @@ export function DashboardShell({ children }: DashboardShellProps) {
           showQuickCreate={config.showQuickCreate ?? true}
           onMenuClick={() => setMobileNavOpen(true)}
         >
-          <div className="min-h-screen bg-cream text-on-surface">
+          <div className={normalizedPath === "/dashboard" ? "dashboard-luxury min-h-screen bg-cream text-on-surface" : "min-h-screen bg-cream text-on-surface"}>
             <DashboardSidebar
               mobileOpen={mobileNavOpen}
               onMobileClose={() => setMobileNavOpen(false)}
             />
-            <main className={mainClass}>
+            <main className={`${mainClass} dashboard-main`}>
               <SetupBanner />
               {isPropertyFinderRoute ? (
                 <div className={DASHBOARD_MAIN_COLUMN}>{children}</div>
               ) : (
                 <div className={DASHBOARD_MAIN_COLUMN}>
                   <div id="dashboard-hero-mount" className={DASHBOARD_HERO_SLOT}>
-                    {isCalendarRoute ? (
+                    {normalizedPath === "/dashboard" ? (
+                      <DashboardLuxuryHero />
+                    ) : isCalendarRoute ? (
                       <CalendarPageHero />
                     ) : pageHero ? (
                       <DashboardPageHero
@@ -172,7 +175,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               )}
             </main>
           </div>
-          <AiFloatingButton />
+          {normalizedPath !== "/dashboard" ? <AiFloatingButton /> : null}
           <AiAssistantSidebar />
         </DashboardHeaderProvider>
       </AiAssistantProvider>

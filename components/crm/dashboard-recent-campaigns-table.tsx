@@ -24,10 +24,10 @@ type CampaignRow = {
 const STATUS_LABEL: Record<string, { label: string; className: string }> = {
   draft: { label: "Draft", className: "bg-champagne text-taupe" },
   queued: { label: "Queued", className: "bg-bronze-light text-bronze" },
-  sending: { label: "Active", className: "bg-sage-light text-emerald-muted" },
-  sent: { label: "Active", className: "bg-sage-light text-emerald-muted" },
-  partial: { label: "Testing", className: "bg-bronze-light/80 text-bronze" },
-  failed: { label: "Paused", className: "bg-error/10 text-error" },
+  sending: { label: "Sending", className: "bg-sage-light text-emerald-muted" },
+  sent: { label: "Sent", className: "bg-sage-light text-emerald-muted" },
+  partial: { label: "Partial", className: "bg-bronze-light/80 text-bronze" },
+  failed: { label: "Failed", className: "bg-error/10 text-error" },
 };
 
 function formatDate(iso: string) {
@@ -66,7 +66,7 @@ function metricsForCampaign(
 }
 
 const THUMBS = [
-  "/brand/heroes/campaigns.jpg",
+  "/brand/heroes/dashboard-interior.jpg",
   "/brand/heroes/contacts.jpg",
   "/brand/heroes/properties.jpg",
   "/brand/heroes/tasks.jpg",
@@ -88,10 +88,10 @@ export function DashboardRecentCampaignsTable() {
         setCampaigns((data.campaigns ?? []).slice(0, 6));
 
         const analytics = (await analyticsRes.json().catch(() => ({}))) as {
-          campaignMetrics?: CampaignMetricRow[];
+          campaigns?: CampaignMetricRow[];
         };
         const map = new Map<string, CampaignMetricRow>();
-        for (const m of analytics.campaignMetrics ?? []) {
+        for (const m of analytics.campaigns ?? []) {
           map.set(m.id, m);
         }
         setMetricById(map);
@@ -105,21 +105,21 @@ export function DashboardRecentCampaignsTable() {
     <LuxuryCard padding="md" className={DASHBOARD_SECTION_CARD}>
       <div className={cn(DASHBOARD_SECTION_HEADER, "sm:items-end")}>
         <div>
-          <h2 className={DASHBOARD_SECTION_TITLE}>Recent Campaigns</h2>
+          <h2 className={cn(DASHBOARD_SECTION_TITLE, "dashboard-section-heading")}><Icon name="campaign" />Recent Campaigns</h2>
           <p className={DASHBOARD_SECTION_SUBTITLE}>
-            Delivery, opens, and replies across your latest sequences
+            Track performance and pick up where you left off.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/dashboard/campaigns"
-            className="text-[14px] font-medium text-rose-gold-deep hover:underline"
+            className="text-[12px] font-medium text-rose-gold-deep hover:underline"
           >
             View all campaigns
           </Link>
           <Link
             href="/dashboard/campaigns?new=1#campaign-builder"
-            className="inline-flex items-center gap-1.5 rounded-full bg-rose-gold px-5 py-2.5 text-[13px] font-medium text-ivory transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-1.5 rounded-full bg-rose-gold-deep px-5 py-2.5 text-[13px] font-medium text-ivory transition-opacity hover:opacity-90"
           >
             <Icon name="add" className="text-[18px]" />
             New campaign
@@ -134,7 +134,7 @@ export function DashboardRecentCampaignsTable() {
           <p className="text-[14px] text-slate-text">No campaigns yet.</p>
           <Link
             href="/dashboard/campaigns"
-            className="mt-2 inline-block text-[14px] font-medium text-rose-gold-deep hover:underline"
+            className="mt-2 inline-block text-[12px] font-medium text-rose-gold-deep hover:underline"
           >
             Create your first campaign
           </Link>
@@ -174,7 +174,7 @@ export function DashboardRecentCampaignsTable() {
             })}
           </ul>
         <div className="hidden overflow-x-auto -mx-2 px-2 md:block">
-          <table className="w-full min-w-[720px] border-collapse text-left text-[13px]">
+          <table className="dashboard-recent-table w-full min-w-[640px] border-collapse text-left text-[13px]">
             <thead>
               <tr className="border-b border-outline-variant/15 text-[11px] font-semibold uppercase tracking-wider text-taupe">
                 <th className="pb-3 pr-4 font-semibold">Campaign</th>
@@ -197,7 +197,7 @@ export function DashboardRecentCampaignsTable() {
                 return (
                   <tr
                     key={c.id}
-                    className="border-b border-outline-variant/10 last:border-0"
+                    className="border-b border-outline-variant/10 transition-colors last:border-0"
                   >
                     <td className="py-4 pr-4">
                       <Link
@@ -207,7 +207,7 @@ export function DashboardRecentCampaignsTable() {
                         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-champagne">
                           <Image src={thumb} alt="" fill className="object-cover" sizes="40px" />
                         </div>
-                        <span className="max-w-[200px] truncate">{c.name}</span>
+                        <span className="min-w-0 truncate">{c.name}</span>
                       </Link>
                     </td>
                     <td className="py-4 pr-4">

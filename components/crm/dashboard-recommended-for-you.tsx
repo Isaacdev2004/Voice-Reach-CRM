@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LuxuryCard } from "@/components/crm/luxury-card";
+import { Icon } from "@/components/ui/icon";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
 import {
@@ -46,9 +47,9 @@ const TAG_BY_KEY: Record<
 
 const THUMB_BY_KEY: Record<(typeof DASHBOARD_RECOMMENDED_KEYS)[number], string> = {
   "cold-lead-reengage": "/brand/heroes/contacts.jpg",
-  "long-term-buyer-nurture": "/brand/heroes/dashboard.jpg",
+  "long-term-buyer-nurture": "/brand/heroes/dashboard-interior.jpg",
   "listing-alert-drip": "/brand/heroes/properties.jpg",
-  "past-client-anniversary": "/brand/heroes/campaigns.jpg",
+  "past-client-anniversary": "/brand/heroes/properties.jpg",
 };
 
 export function DashboardRecommendedForYou() {
@@ -82,7 +83,7 @@ export function DashboardRecommendedForYou() {
     <LuxuryCard padding="md" className={cn("flex h-full flex-col", DASHBOARD_SECTION_CARD)}>
       <div className={DASHBOARD_SECTION_HEADER}>
         <div>
-          <h2 className={DASHBOARD_SECTION_TITLE}>Recommended for You</h2>
+          <h2 className={cn(DASHBOARD_SECTION_TITLE, "dashboard-section-heading")}><Icon name="auto_awesome" />Recommended for You</h2>
           <p className={DASHBOARD_SECTION_SUBTITLE}>Playbooks tuned to your pipeline</p>
         </div>
         <Link
@@ -95,14 +96,14 @@ export function DashboardRecommendedForYou() {
 
       <ul className="flex flex-1 flex-col divide-y divide-outline-variant/10">
         {items.map(({ tpl, tag, thumb }) => (
-          <li key={tpl.templateKey} className="first:pt-0 last:pb-0 py-3">
+          <li key={tpl.templateKey} className="first:pt-0 last:pb-0 py-1.5">
             <button
               type="button"
               disabled={creatingKey === tpl.templateKey}
               onClick={() => void createFromTemplate(tpl.templateKey)}
-              className="group flex w-full items-center gap-3 rounded-xl p-1.5 text-left transition-colors hover:bg-cream/70 disabled:opacity-60"
+              className="dashboard-recommendation group flex w-full items-center gap-3 rounded-xl p-1.5 text-left transition-colors hover:bg-cream/70 disabled:opacity-60"
             >
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-outline-variant/10 bg-champagne">
+              <div className="dashboard-recommendation-photo relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-outline-variant/10 bg-champagne">
                 <Image
                   src={thumb}
                   alt=""
@@ -111,7 +112,7 @@ export function DashboardRecommendedForYou() {
                   sizes="64px"
                 />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="dashboard-recommendation-copy min-w-0 flex-1">
                 <p className="line-clamp-2 text-[14px] font-medium leading-snug text-ink group-hover:text-rose-gold-deep">
                   {tpl.name}
                 </p>
@@ -121,12 +122,13 @@ export function DashboardRecommendedForYou() {
               </div>
               <span
                 className={cn(
-                  "hidden shrink-0 rounded-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:inline-flex",
+                  "dashboard-recommendation-badge hidden shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:inline-flex",
                   tag.className,
                 )}
               >
                 {tag.label}
               </span>
+              <Icon name="chevron_right" className="shrink-0 text-[18px] text-taupe" />
             </button>
           </li>
         ))}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { DashboardRecentCampaignsTable } from "@/components/crm/dashboard-recent-campaigns-table";
 import { DashboardRecommendedForYou } from "@/components/crm/dashboard-recommended-for-you";
 import { KpiCard } from "@/components/crm/kpi-card";
@@ -88,7 +89,6 @@ export function OperationalDashboardPage() {
         detail: monthDetail,
         icon: "group",
         tone: "default",
-        spark: contactChange ? "line" : undefined,
       },
       {
         id: "campaigns-sent",
@@ -106,13 +106,12 @@ export function OperationalDashboardPage() {
         value: loading ? "…" : String(activeLeads),
         change: undefined,
         detail: oppDetail,
-        icon: "trending_up",
+        icon: "real_estate_agent",
         tone: "sage",
-        spark: activeLeads > 0 ? "bars" : undefined,
       },
       {
         id: "pipeline",
-        label: "Active lead budgets",
+        label: "Active Lead Budgets",
         value:
           loading || pipelineBudgets === null
             ? "…"
@@ -127,7 +126,6 @@ export function OperationalDashboardPage() {
               : `${pipelineBudgets.withBudget} of ${pipelineBudgets.activeLeadCount} active with budget on file`,
         icon: "payments",
         tone: "rose",
-        spark: pipelineBudgets && pipelineBudgets.withBudget > 0 ? "line" : undefined,
       },
     ];
   }, [
@@ -146,17 +144,21 @@ export function OperationalDashboardPage() {
 
   return (
     <div className={DASHBOARD_PAGE_BODY}>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-stretch xl:grid-cols-4">
+      <div className="dashboard-kpi-grid grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-stretch xl:grid-cols-4">
         {kpis.map((kpi) => (
-          <KpiCard key={kpi.id} {...kpi} compact />
+          kpi.id === "opportunities" ? (
+            <Link key={kpi.id} href="/dashboard/contacts" className="dashboard-opportunity-link" aria-label="Opportunities — view Contacts">
+              <KpiCard {...kpi} compact luxury />
+            </Link>
+          ) : <KpiCard key={kpi.id} {...kpi} compact luxury />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12 xl:items-start xl:gap-6">
-        <div className="xl:col-span-8">
+      <div className="dashboard-editorial-grid">
+        <div className="dashboard-pulse-column">
           <MarketingPulse />
         </div>
-        <div className="xl:col-span-4">
+        <div className="dashboard-recommendations-column">
           <DashboardRecommendedForYou />
         </div>
       </div>

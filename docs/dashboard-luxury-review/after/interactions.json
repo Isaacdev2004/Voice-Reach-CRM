@@ -1,0 +1,53 @@
+[
+  {
+    "width": 1440,
+    "copy": true,
+    "links": true,
+    "metrics": true,
+    "image": true,
+    "overflow": false,
+    "pageErrors": []
+  },
+  {
+    "width": 1920,
+    "copy": true,
+    "links": true,
+    "metrics": true,
+    "image": true,
+    "overflow": false,
+    "pageErrors": []
+  },
+  {
+    "width": 768,
+    "copy": true,
+    "links": true,
+    "metrics": true,
+    "image": true,
+    "overflow": false,
+    "pageErrors": []
+  },
+  {
+    "width": 390,
+    "copy": true,
+    "links": true,
+    "metrics": true,
+    "image": true,
+    "overflow": false,
+    "pageErrors": []
+  },
+  {
+    "quickCreate": "opens"
+  },
+  {
+    "upgrade": "opens"
+  },
+  {
+    "notifications": "opens"
+  },
+  {
+    "recommendation": "existing template action preserved; fixture blocks write"
+  },
+  {
+    "emptyData": "zero counts, unavailable budgets, neutral chart and campaign empty state"
+  }
+]
