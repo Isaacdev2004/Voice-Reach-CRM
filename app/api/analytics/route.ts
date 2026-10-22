@@ -14,7 +14,8 @@ export const GET = withApiHandler(async (request) => {
   const { searchParams } = new URL(request.url);
   const { range } = QuerySchema.parse({ range: searchParams.get("range") ?? "30d" });
 
-  const [contactsRes, campaignsRes, recipientsRes, engagementRes] = await Promise.all([
+  const [contactsRes, campaignsRes, recipientsRes, engagementRes, stepRunsRes] =
+    await Promise.all([
     supabaseAdmin
       .from("contacts")
       .select("id, dnc, consent_records(status)")
@@ -32,21 +33,31 @@ export const GET = withApiHandler(async (request) => {
       .limit(5000),
     supabaseAdmin
       .from("engagement_events")
-      .select("event_type, score, occurred_at")
+      .select("event_type, channel, score, occurred_at")
       .eq("owner_id", ownerId)
       .order("occurred_at", { ascending: false })
       .limit(2000),
+    supabaseAdmin
+      .from("campaign_step_runs")
+      .select("status, executed_at, campaign_steps(type)")
+      .eq("owner_id", ownerId)
+      .eq("status", "sent")
+      .order("executed_at", { ascending: false })
+      .limit(5000),
   ]);
 
   if (contactsRes.error) return apiError(contactsRes.error.message, { status: 500 });
   if (campaignsRes.error) return apiError(campaignsRes.error.message, { status: 500 });
   if (recipientsRes.error) return apiError(recipientsRes.error.message, { status: 500 });
+  if (stepRunsRes.error) return apiError(stepRunsRes.error.message, { status: 500 });
 
   const snapshot = buildAnalyticsSnapshot({
     range: range as AnalyticsRange,
     contacts: contactsRes.data ?? [],
     campaigns: campaignsRes.data ?? [],
     recipients: recipientsRes.data ?? [],
+    engagementEvents: engagementRes.data ?? [],
+    stepRuns: stepRunsRes.data ?? [],
   });
 
   const engagement = engagementRes.data ?? [];

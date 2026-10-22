@@ -32,6 +32,30 @@ type RecipientRow = {
   created_at: string;
 };
 
+type EngagementRow = {
+  event_type: string;
+  channel: string | null;
+  score: number | null;
+  occurred_at: string;
+};
+
+type StepRunRow = {
+  status: string;
+  executed_at: string | null;
+  campaign_steps: { type: string } | { type: string }[] | null;
+};
+
+const ENGAGEMENT_SIGNAL_TYPES = new Set([
+  "listened",
+  "clicked",
+  "opened",
+  "replied",
+  "callback",
+  "task_completed",
+]);
+
+const HIGH_INTENT_TYPES = new Set(["replied", "callback", "task_completed"]);
+
 const RANGE_LABELS: Record<AnalyticsRange, string> = {
   "7d": "Last 7 days",
   "30d": "Last 30 days",
@@ -120,13 +144,32 @@ function dayLabels(count: number): string[] {
   return labels;
 }
 
+function stepTypeFromRun(run: StepRunRow): string | null {
+  const raw = run.campaign_steps;
+  if (!raw) return null;
+  const step = Array.isArray(raw) ? raw[0] : raw;
+  return step?.type ?? null;
+}
+
+const CHANNEL_STEP_MAP: Record<string, { id: string; channel: string; icon: string }> = {
+  voicemail: { id: "vm", channel: "Ringless voicemail", icon: "voicemail" },
+  sms: { id: "sms", channel: "SMS", icon: "sms" },
+  email: { id: "email", channel: "Email", icon: "mail" },
+  avatar_video: { id: "video", channel: "Avatar video", icon: "videocam" },
+  video: { id: "video", channel: "Avatar video", icon: "videocam" },
+};
+
 export function buildAnalyticsSnapshot(params: {
   range: AnalyticsRange;
   contacts: ContactRow[];
   campaigns: CampaignRow[];
   recipients: RecipientRow[];
+  engagementEvents?: EngagementRow[];
+  stepRuns?: StepRunRow[];
 }): AnalyticsSnapshot {
   const { range, contacts, campaigns, recipients } = params;
+  const engagementEvents = params.engagementEvents ?? [];
+  const stepRuns = params.stepRuns ?? [];
   const start = rangeStart(range);
   const prevStart = previousRangeStart(range);
   const periodEnd = start ? new Date() : null;
@@ -162,17 +205,28 @@ export function buildAnalyticsSnapshot(params: {
       ? (prevSuccess.length / prevAttempted.length) * 100
       : deliveryRate;
 
+  const engagementInPeriod = engagementEvents.filter((e) =>
+    inRange(e.occurred_at, start, periodEnd ?? undefined),
+  );
+  const engagementPrev = engagementEvents.filter((e) =>
+    start && prevStart ? inRange(e.occurred_at, prevStart, start) : false,
+  );
+
+  const engagementSignals = engagementInPeriod.filter((e) =>
+    ENGAGEMENT_SIGNAL_TYPES.has(e.event_type),
+  ).length;
+  const engagementSignalsPrev = engagementPrev.filter((e) =>
+    ENGAGEMENT_SIGNAL_TYPES.has(e.event_type),
+  ).length;
+
   const engagementRate =
-    contacts.length > 0
-      ? (success.length / Math.max(contacts.length, 1)) * 100
-      : 0;
-  const prevEngagement =
-    inPrevious.length > 0 && contacts.length > 0
-      ? (prevSuccess.length / contacts.length) * 100
-      : engagementRate;
+    success.length > 0 ? (engagementSignals / success.length) * 100 : 0;
+  const prevEngagementRate =
+    prevSuccess.length > 0 ? (engagementSignalsPrev / prevSuccess.length) * 100 : 0;
 
   const consent = consentScore(contacts);
   const latency = Math.max(320, 680 - Math.min(success.length, 400));
+  const prevLatency = Math.max(320, 680 - Math.min(prevSuccess.length, 400));
 
   const kpis: AnalyticsKpi[] = [
     {
@@ -188,8 +242,11 @@ export function buildAnalyticsSnapshot(params: {
       id: "response",
       label: "Avg. provider latency",
       value: `${latency}ms`,
-      change: formatDelta(latency, latency + 120, "ms"),
-      changeTone: "up",
+      change:
+        prevAttempted.length > 0 && attempted.length > 0
+          ? formatDelta(latency, prevLatency, "ms")
+          : "—",
+      changeTone: latency <= prevLatency ? "up" : "down",
       icon: "timer",
       tone: "bronze",
     },
@@ -197,8 +254,11 @@ export function buildAnalyticsSnapshot(params: {
       id: "conversion",
       label: "Engagement rate",
       value: formatPercent(Math.min(engagementRate, 100)),
-      change: formatDelta(engagementRate, prevEngagement),
-      changeTone: engagementRate >= prevEngagement ? "up" : "down",
+      change:
+        prevSuccess.length > 0 && success.length > 0
+          ? formatDelta(engagementRate, prevEngagementRate)
+          : "—",
+      changeTone: engagementRate >= prevEngagementRate ? "up" : "down",
       icon: "trending_up",
       tone: "rose",
     },
@@ -263,10 +323,12 @@ export function buildAnalyticsSnapshot(params: {
     }))
     .sort((a, b) => b.count - a.count);
 
-  const totalOutreach = recipients.length || inPeriod.length;
-  const connected = recipients.filter((r) => isSuccessStatus(r.delivery_status)).length;
-  const engagement = Math.round(connected * 0.41);
-  const converted = Math.round(engagement * 0.46);
+  const totalOutreach = attempted.length;
+  const connected = success.length;
+  const engagement = engagementSignals;
+  const converted = engagementInPeriod.filter(
+    (e) => HIGH_INTENT_TYPES.has(e.event_type) || (e.score ?? 0) >= 50,
+  ).length;
 
   const funnel: FunnelStage[] = [
     {
@@ -316,18 +378,38 @@ export function buildAnalyticsSnapshot(params: {
 
   campaignMetrics.sort((a, b) => b.volume - a.volume);
 
-  const vm = Math.max(success.length, 1);
-  const rawChannels = [
-    { id: "vm", channel: "Ringless voicemail", icon: "voicemail", sent: vm },
-    { id: "email", channel: "Email", icon: "mail", sent: Math.round(vm * 0.55) },
-    { id: "sms", channel: "SMS", icon: "sms", sent: Math.round(vm * 0.35) },
-    { id: "video", channel: "Avatar video", icon: "videocam", sent: Math.round(vm * 0.2) },
-  ];
-  const channelTotal = rawChannels.reduce((s, x) => s + x.sent, 0) || 1;
-  const channels: ChannelMetric[] = rawChannels.map((ch) => ({
-    ...ch,
-    rate: Math.round((ch.sent / channelTotal) * 100),
-  }));
+  const channelCounts = new Map<string, number>();
+  for (const run of stepRuns) {
+    if (run.status !== "sent" || !run.executed_at) continue;
+    if (!inRange(run.executed_at, start, periodEnd ?? undefined)) continue;
+    const stepType = stepTypeFromRun(run);
+    if (!stepType || !(stepType in CHANNEL_STEP_MAP)) continue;
+    const meta = CHANNEL_STEP_MAP[stepType]!;
+    channelCounts.set(meta.id, (channelCounts.get(meta.id) ?? 0) + 1);
+  }
+
+  if (channelCounts.size === 0) {
+    for (const e of engagementInPeriod) {
+      const ch = e.channel;
+      if (!ch || !(ch in CHANNEL_STEP_MAP)) continue;
+      const meta = CHANNEL_STEP_MAP[ch]!;
+      channelCounts.set(meta.id, (channelCounts.get(meta.id) ?? 0) + 1);
+    }
+  }
+
+  const channelTotal = [...channelCounts.values()].reduce((a, b) => a + b, 0);
+  const channels: ChannelMetric[] = [...channelCounts.entries()]
+    .map(([id, sent]) => {
+      const meta = Object.values(CHANNEL_STEP_MAP).find((m) => m.id === id)!;
+      return {
+        id,
+        channel: meta.channel,
+        icon: meta.icon,
+        sent,
+        rate: channelTotal > 0 ? Math.round((sent / channelTotal) * 100) : 0,
+      };
+    })
+    .sort((a, b) => b.sent - a.sent);
 
   return {
     range,
@@ -336,9 +418,9 @@ export function buildAnalyticsSnapshot(params: {
     fromLiveData: true,
     kpis,
     trends,
-    providers: providers.length ? providers : SEED_ANALYTICS.providers,
+    providers: providers.length ? providers : [],
     funnel,
-    campaigns: campaignMetrics.length ? campaignMetrics : SEED_ANALYTICS.campaigns,
+    campaigns: campaignMetrics,
     channels,
     totals: {
       outreach: totalOutreach,

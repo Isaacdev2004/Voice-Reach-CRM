@@ -8,6 +8,15 @@ type ChannelBreakdownProps = {
 };
 
 export function ChannelBreakdown({ channels }: ChannelBreakdownProps) {
+  if (channels.length === 0) {
+    return (
+      <p className="text-[13px] leading-relaxed text-slate-text">
+        No outbound sends recorded for this period. Channel mix appears after campaign steps are
+        delivered.
+      </p>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {channels.map((ch) => (

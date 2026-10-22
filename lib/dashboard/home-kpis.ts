@@ -1,3 +1,4 @@
+import { contactSegment } from "@/lib/contacts/lifecycle";
 import type { ApiContact } from "@/lib/hooks/use-contacts";
 
 export type CampaignRow = {
@@ -70,6 +71,43 @@ export function campaignsLaunchedThisMonth(campaigns: CampaignRow[]): number {
     if (!c.created_at) return false;
     return new Date(c.created_at) >= start;
   }).length;
+}
+
+function parseContactBudget(raw: ApiContact["budget"]): number | null {
+  if (raw == null || raw === "") return null;
+  const n = typeof raw === "number" ? raw : Number(String(raw).replace(/,/g, ""));
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return n;
+}
+
+export type ActiveLeadBudgetSummary = {
+  total: number;
+  withBudget: number;
+  activeLeadCount: number;
+};
+
+/** Sum buyer budgets on file for active-lead contacts only (not a closed pipeline forecast). */
+export function sumActiveLeadBudgets(contacts: ApiContact[]): ActiveLeadBudgetSummary {
+  let total = 0;
+  let withBudget = 0;
+  let activeLeadCount = 0;
+  for (const c of contacts) {
+    if (contactSegment(c.type) !== "active-lead") continue;
+    activeLeadCount += 1;
+    const budget = parseContactBudget(c.budget);
+    if (budget === null) continue;
+    withBudget += 1;
+    total += budget;
+  }
+  return { total, withBudget, activeLeadCount };
+}
+
+export function formatPipelineValueDisplay(summary: ActiveLeadBudgetSummary): string {
+  if (summary.withBudget === 0) return "—";
+  const n = summary.total;
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (n >= 1_000) return `$${Math.round(n / 1_000)}K`;
+  return `$${Math.round(n).toLocaleString("en-US")}`;
 }
 
 export function newOpportunitiesThisWeek(contacts: ApiContact[], activeLeadCount: number): number {
