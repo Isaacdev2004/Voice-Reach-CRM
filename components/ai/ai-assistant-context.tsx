@@ -49,7 +49,10 @@ export function AiAssistantProvider({ children }: { children: ReactNode }) {
   });
 
   const openAssistant = useCallback((params: Partial<AiAssistantState>) => {
-    setState((prev) => ({ ...prev, ...params, open: true }));
+    setState({
+      open: true, task: params.task ?? "follow_up",
+      context: params.context ?? { tone: "luxury" }, brief: params.brief ?? "",
+    });
   }, []);
 
   const closeAssistant = useCallback(() => {

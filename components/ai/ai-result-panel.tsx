@@ -1,13 +1,16 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { CampaignIdeaActions } from "@/components/ai/campaign-idea-actions";
+import { modalInputClass } from "@/components/crm/modal";
+import { normalizeAiOutput } from "@/lib/ai/parse-output";
 import type { AiTaskType } from "./ai-assistant-context";
 
 type AiResultPanelProps = {
   task: AiTaskType;
   output: Record<string, unknown>;
   contactId?: string;
+  onChange?: (output: Record<string, unknown>) => void;
 };
 
 function FieldLabel({ children }: { children: ReactNode }) {
@@ -16,30 +19,38 @@ function FieldLabel({ children }: { children: ReactNode }) {
   );
 }
 
-export function AiResultPanel({ task, output, contactId }: AiResultPanelProps) {
+export function AiResultPanel({ task, output, contactId, onChange }: AiResultPanelProps) {
+  const subjectId = useId();
+  const bodyId = useId();
+  const checked = normalizeAiOutput(task, output, {});
+  const editingText = Boolean(onChange) && (task === "email_writer" || task === "sms_writer") &&
+    typeof output.body === "string" && (task !== "email_writer" || typeof output.subject === "string");
+  if (!checked.ok && !editingText) return <p role="alert" className="text-[14px] text-slate-text">We couldn&apos;t display a complete result. Please generate again.</p>;
+  output = checked.ok ? checked.output : output;
   switch (task) {
     case "email_writer":
       return (
         <div className="space-y-4">
           <div>
-            <FieldLabel>Subject</FieldLabel>
-            <p className="mt-1.5 font-medium text-ink">{String(output.subject ?? "")}</p>
+            <label htmlFor={subjectId} className="text-[11px] font-semibold uppercase tracking-[0.16em] text-taupe">Subject</label>
+            <input id={subjectId} className={`${modalInputClass} mt-1.5`} value={String(output.subject)} maxLength={180}
+              readOnly={!onChange} onChange={(event) => onChange?.({ ...output, subject: event.target.value })} />
           </div>
           <div>
-            <FieldLabel>Email draft</FieldLabel>
-            <p className="mt-1.5 whitespace-pre-wrap font-serif text-[14px] leading-relaxed text-ink">
-              {String(output.body ?? "")}
-            </p>
+            <label htmlFor={bodyId} className="text-[11px] font-semibold uppercase tracking-[0.16em] text-taupe">Email draft</label>
+            <textarea id={bodyId} className={`${modalInputClass} mt-1.5 !h-auto py-3 text-[14px] leading-relaxed`}
+              value={String(output.body)} rows={10} maxLength={12000} readOnly={!onChange}
+              onChange={(event) => onChange?.({ ...output, body: event.target.value })} />
           </div>
         </div>
       );
     case "sms_writer":
       return (
         <div>
-          <FieldLabel>SMS draft</FieldLabel>
-          <p className="mt-1.5 whitespace-pre-wrap text-[14px] leading-relaxed text-ink">
-            {String(output.body ?? "")}
-          </p>
+          <label htmlFor={bodyId} className="text-[11px] font-semibold uppercase tracking-[0.16em] text-taupe">SMS draft</label>
+          <textarea id={bodyId} className={`${modalInputClass} mt-1.5 !h-auto py-3 text-[14px] leading-relaxed`}
+            value={String(output.body)} rows={4} maxLength={320} readOnly={!onChange}
+            onChange={(event) => onChange?.({ ...output, body: event.target.value })} />
         </div>
       );
     case "voicemail_script":

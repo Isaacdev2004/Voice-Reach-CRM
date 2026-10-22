@@ -1,7 +1,4 @@
-/**
- * AI prompt scaffolds. Connect to OpenAI/Claude/ElevenLabs/Tavus/HeyGen later
- * by replacing the body of generate() in lib/ai/generate.ts.
- */
+/** Task-specific draft instructions; validated response contracts live in parse-output.ts. */
 
 export type AiTaskType =
   | "email_writer"
@@ -55,7 +52,7 @@ export function jsonSchemaHintForTask(task: AiTaskType): string {
 export function systemPromptFor(task: AiTaskType): string {
   switch (task) {
     case "email_writer":
-      return "You are ARI AI, drafting a high-touch follow-up email for a luxury CRM. Keep subject lines short. Avoid generic openers.";
+      return "You are ARI AI, drafting a high-touch follow-up email for a luxury CRM. Return a complete ready-to-edit email, with a short subject, personalized greeting, substantive body, relevant next step and professional sign-off. Never return a recommendation in place of the email.";
     case "sms_writer":
       return "You are ARI AI, drafting a short SMS message (<= 320 characters). Sound human, never spammy.";
     case "voicemail_script":
@@ -83,6 +80,7 @@ export function userPromptFor(task: AiTaskType, ctx: AiContext, brief?: string):
     ctx.contactNotes ? `Notes: ${ctx.contactNotes}` : null,
     ctx.campaignName ? `Campaign: ${ctx.campaignName}` : null,
     ctx.goal ? `Goal: ${ctx.goal}` : null,
+    ctx.language ? `Language: ${ctx.language}` : null,
     brief ? `Brief: ${brief}` : null,
   ].filter(Boolean) as string[];
 
