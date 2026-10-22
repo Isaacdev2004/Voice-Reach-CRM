@@ -1,3 +1,4 @@
+import { PROPERTY_PREFERENCE_FIELDS } from "@/lib/property-finder/preferences";
 import { ownedConsentRecords } from "@/lib/contacts/owned-consent";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
@@ -102,6 +103,12 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     updates.property_address = body.propertyAddress?.trim() || null;
   if (body.budget !== undefined) updates.budget = body.budget;
   if (body.leadType !== undefined) updates.lead_type = body.leadType;
+  if (body.propertyPreferences) {
+    for (const field of PROPERTY_PREFERENCE_FIELDS) {
+      const value = body.propertyPreferences[field.key];
+      if (value !== undefined) updates[field.column] = typeof value === "string" ? value.trim() || null : value;
+    }
+  }
 
   const { error: updateError } = await supabaseAdmin
     .from("contacts")
@@ -110,6 +117,7 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     .eq("id", id);
 
   if (updateError) {
+    if (body.propertyPreferences && ["42703","PGRST204"].includes(updateError.code)) return apiError("Additional property preferences are not available in this workspace yet. Your changes have not been saved.", {status:503,code:"property_preferences_unavailable"});
     const mapped = apiErrorFromSupabase(updateError);
     if (mapped) return mapped;
     return apiError(updateError.message, { status: 500 });

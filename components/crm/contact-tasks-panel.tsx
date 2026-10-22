@@ -12,6 +12,7 @@ type ContactTasksPanelProps = {
   contactId: string;
   demoTasks?: RelationshipTask[];
   isDemo?: boolean;
+  onChanged?: () => void;
 };
 
 function formatDueDate(iso: string | null): string {
@@ -25,7 +26,7 @@ function formatDueDate(iso: string | null): string {
   });
 }
 
-export function ContactTasksPanel({ contactId, demoTasks = [], isDemo }: ContactTasksPanelProps) {
+export function ContactTasksPanel({ contactId, demoTasks = [], isDemo, onChanged }: ContactTasksPanelProps) {
   const { tasks, loading, error, enabled, createTask, updateTask, deleteTask } =
     useContactTasks(contactId);
   const [modalOpen, setModalOpen] = useState(false);
@@ -61,6 +62,7 @@ export function ContactTasksPanel({ contactId, demoTasks = [], isDemo }: Contact
       }
       setModalOpen(false);
       setEditing(null);
+      onChanged?.();
     } catch (e) {
       setActionError(e instanceof Error ? e.message : "Could not save task");
     } finally {
@@ -71,9 +73,16 @@ export function ContactTasksPanel({ contactId, demoTasks = [], isDemo }: Contact
   const toggleComplete = async (task: ContactTask) => {
     try {
       await updateTask(task.id, { completed: !task.completed });
+      onChanged?.();
     } catch (e) {
       setActionError(e instanceof Error ? e.message : "Could not update task");
     }
+  };
+
+  const removeTask = async (taskId: string) => {
+    setActionError(null);
+    try { await deleteTask(taskId); onChanged?.(); }
+    catch { setActionError("This follow-up could not be deleted. Please retry."); }
   };
 
   return (
@@ -145,7 +154,7 @@ export function ContactTasksPanel({ contactId, demoTasks = [], isDemo }: Contact
                   </div>
                   <button
                     type="button"
-                    onClick={() => void deleteTask(task.id)}
+                    onClick={() => void removeTask(task.id)}
                     className="opacity-0 transition-opacity group-hover:opacity-100 text-taupe hover:text-error"
                     aria-label="Delete task"
                   >

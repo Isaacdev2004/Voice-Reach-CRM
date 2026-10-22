@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PropertyPreferencesSchema } from "@/lib/property-finder/preferences";
 
 export const ConsentSchema = z.enum(["Yes", "No", "Unknown"]);
 
@@ -35,6 +36,7 @@ export const PatchContactSchema = z.object({
   preferredArea: z.string().max(200).optional().nullable(),
   propertyAddress: z.string().max(300).optional().nullable(),
   budget: z.number().nonnegative().optional().nullable(),
+  propertyPreferences: PropertyPreferencesSchema.optional(),
   leadType: z.enum(["buyer", "seller", "investor", "partner"]).optional().nullable(),
   consent: ConsentSchema.optional(),
   consentDate: z.string().optional(),

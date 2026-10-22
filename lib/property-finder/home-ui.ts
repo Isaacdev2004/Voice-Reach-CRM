@@ -28,7 +28,7 @@ export const PROPERTY_FINDER_ACTION_CARDS: PropertyFinderActionCard[] = [
   },
   {
     id: "activity",
-    title: "Activity log",
+    title: "Activity Log",
     description: "CRM events as you send campaigns, update contacts, and use Voice Studio.",
     image: "/brand/heroes/contacts.jpg",
     href: "/dashboard/activity",
