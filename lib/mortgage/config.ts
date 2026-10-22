@@ -26,9 +26,14 @@ export type MortgageResourceLink = {
 /** Mortgage-specific reading & market updates (opens in new tab). */
 export const MORTGAGE_RESOURCE_LINKS: MortgageResourceLink[] = [
   {
-    title: "Freddie Mac research & rate insight",
-    description: "PMMS commentary and housing market research from Freddie Mac.",
-    href: "https://www.freddiemac.com/research",
+    title: "Freddie Mac PMMS (weekly benchmarks)",
+    description: "Official Primary Mortgage Market Survey averages and publication calendar.",
+    href: "https://www.freddiemac.com/pmms",
+  },
+  {
+    title: "Fannie Mae economic & housing forecast",
+    description: "Monthly outlook and research—forecasts, not current lender quotes.",
+    href: "https://www.fanniemae.com/data-and-insights/forecast",
   },
   {
     title: "CFPB — Owning a Home",
