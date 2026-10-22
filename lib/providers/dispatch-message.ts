@@ -2,6 +2,10 @@ import {
   isLiveOutboundAllowed,
   liveOutboundBlockedMessage,
 } from "@/lib/billing/live-outbound";
+import {
+  normalizeOutboundContent,
+  shouldBlockRawJsonSend,
+} from "@/lib/campaigns/outbound-content";
 import { recordEngagementEvent } from "@/lib/engagement/record";
 import { dispatch, pickAdapterForChannel } from "@/lib/providers/registry";
 import type {
@@ -55,6 +59,43 @@ export async function sendToContact(params: {
     return { ok: false, status: "failed", error: addressError, skipped: true, skipReason: addressError };
   }
 
+  let outboundBody = params.body;
+  let outboundSubject = params.subject;
+  const outboundChannel =
+    params.channel === "email" || params.channel === "sms" || params.channel === "voicemail"
+      ? params.channel
+      : "sms";
+  const rawCopy = (params.body ?? "").trim();
+  const subjectCopy = (params.subject ?? "").trim();
+  const hasTextCopy = Boolean(rawCopy || (outboundChannel === "email" && subjectCopy));
+
+  if (hasTextCopy) {
+    const normalized = normalizeOutboundContent(
+      outboundChannel,
+      rawCopy || subjectCopy,
+      subjectCopy,
+    );
+    outboundBody = normalized.body || params.body;
+    outboundSubject =
+      outboundChannel === "email" ? normalized.subject ?? params.subject : params.subject;
+
+    if (
+      shouldBlockRawJsonSend(
+        outboundBody ?? "",
+        outboundChannel === "email" ? outboundSubject : null,
+      )
+    ) {
+      return {
+        ok: false,
+        status: "failed",
+        error:
+          "Message content looks like raw AI/JSON. Use plain email or SMS copy before sending.",
+        skipped: true,
+        skipReason: "raw_ai_json",
+      };
+    }
+  }
+
   const request: SendRequest = {
     channel: params.channel,
     to: address,
@@ -65,8 +106,8 @@ export async function sendToContact(params: {
           ? process.env.SLYBROADCAST_CALLER_ID ?? process.env.VOICE_PROVIDER_FROM_NUMBER
           : undefined,
     audioUrl: params.audioUrl,
-    body: params.body,
-    subject: params.subject,
+    body: outboundBody,
+    subject: outboundSubject,
     mediaUrls: params.mediaUrls,
     emailAttachments: params.emailAttachments,
     campaignId: params.campaignId,

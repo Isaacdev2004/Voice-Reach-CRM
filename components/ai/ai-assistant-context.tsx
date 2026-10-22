@@ -15,6 +15,7 @@ type AiAssistantState = {
   open: boolean;
   task: AiTaskType;
   context: {
+    contactId?: string;
     contactName?: string;
     contactNotes?: string;
     campaignName?: string;

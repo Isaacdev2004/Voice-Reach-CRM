@@ -5,6 +5,7 @@ type LuxuryCardProps = {
   children: ReactNode;
   className?: string;
   padding?: "none" | "sm" | "md" | "lg";
+  id?: string;
 };
 
 const paddingMap = {
@@ -14,9 +15,12 @@ const paddingMap = {
   lg: "p-8",
 };
 
-export function LuxuryCard({ children, className, padding = "md" }: LuxuryCardProps) {
+export function LuxuryCard({ children, className, padding = "md", id }: LuxuryCardProps) {
   return (
-    <div className={cn("luxury-card block w-full min-w-0", paddingMap[padding], className)}>
+    <div
+      id={id}
+      className={cn("luxury-card block w-full min-w-0", paddingMap[padding], className)}
+    >
       {children}
     </div>
   );

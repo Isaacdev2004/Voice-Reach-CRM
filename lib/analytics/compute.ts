@@ -31,6 +31,30 @@ type RecipientRow = {
   created_at: string;
 };
 
+type EngagementRow = {
+  event_type: string;
+  channel: string | null;
+  score: number | null;
+  occurred_at: string;
+};
+
+type StepRunRow = {
+  status: string;
+  executed_at: string | null;
+  campaign_steps: { type: string } | { type: string }[] | null;
+};
+
+const ENGAGEMENT_SIGNAL_TYPES = new Set([
+  "listened",
+  "clicked",
+  "opened",
+  "replied",
+  "callback",
+  "task_completed",
+]);
+
+const HIGH_INTENT_TYPES = new Set(["replied", "callback", "task_completed"]);
+
 const RANGE_LABELS: Record<AnalyticsRange, string> = {
   "7d": "Last 7 days",
   "30d": "Last 30 days",
@@ -112,13 +136,32 @@ function dayLabels(count: number): string[] {
   return labels;
 }
 
+function stepTypeFromRun(run: StepRunRow): string | null {
+  const raw = run.campaign_steps;
+  if (!raw) return null;
+  const step = Array.isArray(raw) ? raw[0] : raw;
+  return step?.type ?? null;
+}
+
+const CHANNEL_STEP_MAP: Record<string, { id: string; channel: string; icon: string }> = {
+  voicemail: { id: "vm", channel: "Ringless voicemail", icon: "voicemail" },
+  sms: { id: "sms", channel: "SMS", icon: "sms" },
+  email: { id: "email", channel: "Email", icon: "mail" },
+  avatar_video: { id: "video", channel: "Avatar video", icon: "videocam" },
+  video: { id: "video", channel: "Avatar video", icon: "videocam" },
+};
+
 export function buildAnalyticsSnapshot(params: {
   range: AnalyticsRange;
   contacts: ContactRow[];
   campaigns: CampaignRow[];
   recipients: RecipientRow[];
+  engagementEvents?: EngagementRow[];
+  stepRuns?: StepRunRow[];
 }): AnalyticsSnapshot {
   const { range, contacts, campaigns, recipients } = params;
+  const engagementEvents = params.engagementEvents ?? [];
+  const stepRuns = params.stepRuns ?? [];
   const start = rangeStart(range);
   const prevStart = previousRangeStart(range);
   const periodEnd = start ? new Date() : null;
@@ -162,9 +205,12 @@ export function buildAnalyticsSnapshot(params: {
     {
       id: "response",
       label: "Avg. provider latency",
-      value: "Unavailable",
-      change: "No latency measurements",
-      changeTone: "up",
+      value: `${latency}ms`,
+      change:
+        prevAttempted.length > 0 && attempted.length > 0
+          ? formatDelta(latency, prevLatency, "ms")
+          : "—",
+      changeTone: latency <= prevLatency ? "up" : "down",
       icon: "timer",
       tone: "bronze",
     },

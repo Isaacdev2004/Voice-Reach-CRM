@@ -8,8 +8,11 @@ import { syncCallbackStepToCalendar } from "@/lib/calendar/sync";
 import {
   applyMergeFields,
   findUnresolvedMergeFields,
-  splitEmailSubjectBody,
 } from "@/lib/campaigns/merge-fields";
+import {
+  normalizeOutboundContent,
+  shouldBlockRawJsonSend,
+} from "@/lib/campaigns/outbound-content";
 import { evaluateEligibility } from "@/lib/compliance";
 import { isInQuietHours, nextQuietHoursEnd } from "@/lib/compliance/quiet-hours";
 import { recordEngagementEvent } from "@/lib/engagement/record";
@@ -567,10 +570,19 @@ export async function runDueStepRuns(
 
     const mergedDescription = applyMergeFields(step.description ?? step.title ?? "", mergeCtx);
     const mergedTitle = applyMergeFields(step.title ?? "", mergeCtx);
-    const emailParts =
-      channel === "email" ? splitEmailSubjectBody(mergedDescription) : null;
-    const outboundBody = emailParts?.body ?? mergedDescription;
-    const outboundSubject = emailParts?.subject ?? mergedTitle;
+    const normalized = normalizeOutboundContent(channel, mergedDescription, mergedTitle);
+    const outboundBody = normalized.body;
+    const outboundSubject =
+      channel === "email" ? normalized.subject ?? mergedTitle : mergedTitle;
+
+    if (shouldBlockRawJsonSend(outboundBody, channel === "email" ? outboundSubject : null)) {
+      await markRun(run.id, "failed", {
+        error:
+          "This step still contains raw AI/JSON text. Open the step, paste only the email or SMS copy (or use Email writer in AI assist and copy Subject + body), then try again.",
+      });
+      executed.push({ runId: run.id, status: "failed" });
+      continue;
+    }
     const unresolved = findUnresolvedMergeFields(
       `${outboundSubject ?? ""}\n${outboundBody ?? ""}`,
     );

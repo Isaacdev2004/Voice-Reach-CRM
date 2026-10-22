@@ -394,42 +394,33 @@ export function NotesStrategyPage() {
         "mx-auto flex min-h-[calc(100vh-8rem)] max-w-[1400px] flex-col gap-4",
       )}
     >
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-[28px] font-semibold text-ink sm:text-[32px]">
-            Notes &amp; Strategy
-          </h1>
-          <p className="mt-1 max-w-2xl text-[14px] text-slate-text">
-            Capture ideas, plan strategy, and keep client context — all in one place.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => startNew(filterTab)}
-          className="inline-flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory"
-        >
-          <Icon name="add" className="text-[18px]" />
-          New note
-        </button>
-      </header>
-
       <div className="flex flex-col gap-3">
-        <div className="flex gap-1 overflow-x-auto pb-1">
-          {NOTES_FILTER_TABS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setFilterTab(item.id)}
-              className={cn(
-                "shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium sm:px-4 sm:text-[13px]",
-                filterTab === item.id
-                  ? "bg-rose-gold text-ivory"
-                  : "bg-champagne/60 text-taupe hover:text-ink",
-              )}
-            >
-              {item.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto pb-1">
+            {NOTES_FILTER_TABS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setFilterTab(item.id)}
+                className={cn(
+                  "shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium sm:px-4 sm:text-[13px]",
+                  filterTab === item.id
+                    ? "bg-rose-gold text-ivory"
+                    : "bg-champagne/60 text-taupe hover:text-ink",
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => startNew(filterTab)}
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory"
+          >
+            <Icon name="add" className="text-[18px]" />
+            New note
+          </button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-[200px] flex-1 max-w-sm">
@@ -486,7 +477,7 @@ export function NotesStrategyPage() {
         </p>
       ) : null}
 
-      <div className="grid min-h-[520px] flex-1 gap-4 overflow-hidden lg:grid-cols-12">
+      <div className="grid min-h-0 flex-1 gap-4 overflow-hidden max-md:min-h-[420px] md:min-h-[520px] lg:grid-cols-12">
         <aside className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-outline-variant/15 bg-ivory lg:col-span-3">
           <div className="flex items-center justify-between border-b border-outline-variant/10 px-4 py-3">
             <h2 className="font-medium text-ink">

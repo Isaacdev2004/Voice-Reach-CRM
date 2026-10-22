@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
+import {
+  DASHBOARD_SECTION_CARD,
+  DASHBOARD_SECTION_HEADER,
+  DASHBOARD_SECTION_SUBTITLE,
+  DASHBOARD_SECTION_TITLE,
+} from "@/lib/dashboard/layout";
 import { PRODUCT_CAMPAIGN_TEMPLATES } from "@/lib/crm/campaign-templates";
 import { useState } from "react";
 
@@ -22,7 +28,7 @@ const TAG_BY_KEY: Record<
 > = {
   "cold-lead-reengage": {
     label: "High impact",
-    className: "bg-rose-gold/15 text-rose-gold-deep",
+    className: "bg-rose-gold/12 text-rose-gold-deep",
   },
   "long-term-buyer-nurture": {
     label: "Build pipeline",
@@ -73,49 +79,49 @@ export function DashboardRecommendedForYou() {
   };
 
   return (
-    <LuxuryCard padding="lg" className="flex h-full flex-col">
-      <div className="mb-5 flex items-start justify-between gap-2">
+    <LuxuryCard padding="md" className={cn("flex h-full flex-col", DASHBOARD_SECTION_CARD)}>
+      <div className={DASHBOARD_SECTION_HEADER}>
         <div>
-          <h2 className="font-serif text-[22px] font-semibold text-ink">Recommended for You</h2>
-          <p className="mt-1 text-[13px] text-slate-text">Playbooks tuned to your pipeline</p>
+          <h2 className={DASHBOARD_SECTION_TITLE}>Recommended for You</h2>
+          <p className={DASHBOARD_SECTION_SUBTITLE}>Playbooks tuned to your pipeline</p>
         </div>
         <Link
           href="/dashboard/campaigns"
-          className="shrink-0 text-[13px] font-medium text-rose-gold-deep hover:underline"
+          className="shrink-0 rounded-full px-2 py-1 text-[12px] font-medium text-rose-gold-deep transition-colors hover:bg-rose-gold/10"
         >
           View all
         </Link>
       </div>
 
-      <ul className="flex flex-1 flex-col gap-4">
+      <ul className="flex flex-1 flex-col divide-y divide-outline-variant/10">
         {items.map(({ tpl, tag, thumb }) => (
-          <li key={tpl.templateKey}>
+          <li key={tpl.templateKey} className="first:pt-0 last:pb-0 py-3">
             <button
               type="button"
               disabled={creatingKey === tpl.templateKey}
               onClick={() => void createFromTemplate(tpl.templateKey)}
-              className="group flex w-full items-center gap-3 rounded-2xl border border-transparent p-1 text-left transition-colors hover:border-outline-variant/20 hover:bg-cream/50 disabled:opacity-60"
+              className="group flex w-full items-center gap-3 rounded-xl p-1.5 text-left transition-colors hover:bg-cream/70 disabled:opacity-60"
             >
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-champagne">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-outline-variant/10 bg-champagne">
                 <Image
                   src={thumb}
                   alt=""
                   fill
-                  className="object-cover"
-                  sizes="56px"
+                  className="object-cover transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transform-none"
+                  sizes="64px"
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-ink group-hover:text-rose-gold-deep">
+                <p className="line-clamp-2 text-[14px] font-medium leading-snug text-ink group-hover:text-rose-gold-deep">
                   {tpl.name}
                 </p>
-                <p className="mt-0.5 text-[12px] text-taupe">
+                <p className="mt-1 text-[11px] tabular-nums text-taupe">
                   {tpl.durationDays} days · {tpl.steps.length} steps
                 </p>
               </div>
               <span
                 className={cn(
-                  "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide",
+                  "hidden shrink-0 rounded-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:inline-flex",
                   tag.className,
                 )}
               >

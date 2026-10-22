@@ -1,6 +1,6 @@
 "use client";
 
-import { MortgageSparkline } from "@/components/mortgage/mortgage-sparkline";
+import { MortgageMarketPanel } from "@/components/mortgage/mortgage-market-panel";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { modalInputClass } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
@@ -12,6 +12,8 @@ import {
   getMortgagePartnerUrl,
   MORTGAGE_RESOURCE_LINKS,
 } from "@/lib/mortgage/config";
+import { scrollToMortgageSection } from "@/lib/mortgage/scroll-to-section";
+import type { MortgageBenchmark, MortgageMarketRatesPayload } from "@/lib/mortgage/market-rates";
 import {
   buildRateSnapshot,
   firstMonthSplit,
@@ -43,11 +45,6 @@ function parseRate(raw: string): number {
 
 const DEFAULT_HOME = 850_000;
 const DEFAULT_DOWN = 170_000;
-
-type MortgageRates = {
-  freddieMac: { rate30: number; rate15: number };
-  source: string;
-};
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
@@ -104,11 +101,12 @@ export function MortgageCalculatorPage() {
   const [annualInsuranceText, setAnnualInsuranceText] = useState("2,400");
   const [monthlyHoaText, setMonthlyHoaText] = useState("0");
 
-  const [rates, setRates] = useState<MortgageRates | null>(null);
+  const [marketRates, setMarketRates] = useState<MortgageMarketRatesPayload | null>(null);
   const partnerUrl = getMortgagePartnerUrl();
   const partnerLabel = getMortgagePartnerLabel();
   const [ratesError, setRatesError] = useState<string | null>(null);
   const [loadingRates, setLoadingRates] = useState(false);
+  const [historyMonths, setHistoryMonths] = useState<3 | 6 | 12>(6);
 
   const homePrice = parseMoney(homePriceText);
   const downPayment = parseMoney(downPaymentText);
@@ -116,38 +114,53 @@ export function MortgageCalculatorPage() {
   const termYears = Math.max(1, Math.round(parseMoney(termYearsText)) || 30);
   const downPct = homePrice > 0 ? (downPayment / homePrice) * 100 : 0;
 
-  const loadRates = async () => {
+  const loadMarketRates = async (months: 3 | 6 | 12 = historyMonths) => {
     setLoadingRates(true);
     setRatesError(null);
     try {
-      const res = await fetch("/api/mortgage/rates", { cache: "no-store" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Could not load rates");
-      const freddieMac = data.freddieMac ?? { rate30: data.rate30, rate15: data.rate15 };
-      setRates({ freddieMac, source: data.source });
-      if (selectedScenario === "30-fixed" && typeof freddieMac.rate30 === "number") {
-        setInterestRateText(freddieMac.rate30.toFixed(2));
+      const res = await fetch(`/api/mortgage/market-rates?historyMonths=${months}`, {
+        cache: "no-store",
+      });
+      const data = (await res.json()) as MortgageMarketRatesPayload & { error?: string; success?: boolean };
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error ?? "Could not load market rates");
       }
+      setMarketRates(data);
     } catch (e) {
-      setRatesError(e instanceof Error ? e.message : "Could not load rates");
+      setRatesError(e instanceof Error ? e.message : "Current rate unavailable");
+      setMarketRates(null);
     } finally {
       setLoadingRates(false);
     }
   };
 
   useEffect(() => {
-    void loadRates();
+    void loadMarketRates(historyMonths);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- initial fetch only
   }, []);
 
-  const rateSnapshot = useMemo(
-    () =>
-      buildRateSnapshot(
-        rates?.freddieMac.rate30 ?? (parseRate(interestRateText) || 7.4),
-        rates?.freddieMac.rate15 ?? 6.95,
-      ),
-    [rates, interestRateText],
-  );
+  const handleHistoryMonthsChange = (months: 3 | 6 | 12) => {
+    setHistoryMonths(months);
+    void loadMarketRates(months);
+  };
+
+  useEffect(() => {
+    const hash = window.location.hash.replace(/^#/, "");
+    if (hash.startsWith("mortgage-")) {
+      const t = window.setTimeout(() => scrollToMortgageSection(hash), 120);
+      return () => window.clearTimeout(t);
+    }
+  }, []);
+
+  const rateSnapshot = useMemo(() => {
+    const userRate = parseRate(interestRateText);
+    const pmms30 = marketRates?.benchmarks.rate30.rate;
+    const pmms15 = marketRates?.benchmarks.rate15.rate;
+    const rate30 = pmms30 ?? (userRate || 7.4);
+    const rate15 =
+      pmms15 ?? (selectedScenario === "15-fixed" ? userRate || rate30 - 0.69 : Math.max(0.1, rate30 - 0.69));
+    return buildRateSnapshot(rate30, rate15);
+  }, [marketRates, interestRateText, selectedScenario]);
 
   const annualTax = parseMoney(annualTaxText);
   const annualInsurance = parseMoney(annualInsuranceText);
@@ -186,6 +199,29 @@ export function MortgageCalculatorPage() {
     setTermYearsText(String(meta.termYears));
   };
 
+  const applyBenchmarkRate = (benchmark: MortgageBenchmark) => {
+    if (benchmark.rate === null) return;
+    const targetScenario: ScenarioId =
+      benchmark.product === "15-year-fixed" ? "15-fixed" : "30-fixed";
+    const targetTerm = targetScenario === "15-fixed" ? 15 : 30;
+    const termDiffers = Math.round(parseMoney(termYearsText)) !== targetTerm;
+    const scenarioDiffers = selectedScenario !== targetScenario;
+
+    if (termDiffers || scenarioDiffers) {
+      const ok = window.confirm(
+        `Apply the ${benchmark.label} PMMS benchmark (${benchmark.rate.toFixed(2)}%) and switch to a ${targetTerm}-year term? You can still edit the rate manually afterward.`,
+      );
+      setInterestRateText(benchmark.rate.toFixed(2));
+      if (ok) {
+        setSelectedScenario(targetScenario);
+        setTermYearsText(String(targetTerm));
+      }
+      return;
+    }
+
+    setInterestRateText(benchmark.rate.toFixed(2));
+  };
+
   const resetLoan = () => {
     setHomePriceText(formatMoneyInput(DEFAULT_HOME));
     setDownPaymentText(formatMoneyInput(DEFAULT_DOWN));
@@ -194,12 +230,13 @@ export function MortgageCalculatorPage() {
     setInterestRateText(rateSnapshot.rate30.toFixed(2));
   };
 
-  const rateProducts = [
-    { label: "30-year fixed", rate: rateSnapshot.rate30, trend: "0.12%" },
-    { label: "15-year fixed", rate: rateSnapshot.rate15, trend: "0.08%" },
-    { label: "5/1 ARM", rate: rateSnapshot.arm51, trend: "0.05%" },
-    { label: "7/1 ARM", rate: rateSnapshot.arm71, trend: "0.04%" },
-  ];
+  const pmmsTrend = useMemo(() => {
+    const points = marketRates?.history30.points ?? [];
+    if (points.length < 2) return null;
+    const first = points[0]!.rate;
+    const last = points[points.length - 1]!.rate;
+    return { delta: last - first, first, last };
+  }, [marketRates]);
 
   const insights = [
     downPct >= 20
@@ -207,28 +244,74 @@ export function MortgageCalculatorPage() {
           icon: "verified",
           title: "You're putting 20% down",
           body: "That typically avoids PMI and strengthens your offer profile.",
+          actionLabel: "Review loan inputs",
+          targetId: "mortgage-loan-details",
         }
       : {
           icon: "info",
           title: "Below 20% down",
           body: "Consider PMI in your monthly budget until you reach 20% equity.",
+          actionLabel: "Adjust down payment",
+          targetId: "mortgage-loan-details",
         },
-    {
-      icon: "trending_down",
-      title: "Rates are easing",
-      body: "Today's averages are modestly lower than six months ago — good time to compare scenarios.",
-    },
+    pmmsTrend && pmmsTrend.delta < -0.05
+      ? {
+          icon: "trending_down",
+          title: "Benchmarks moved lower",
+          body: `The 30-year PMMS average is ${Math.abs(pmmsTrend.delta).toFixed(2)} pts lower over the selected period — compare scenarios with your buyer.`,
+          actionLabel: "View mortgage market",
+          targetId: "mortgage-market",
+        }
+      : pmmsTrend && pmmsTrend.delta > 0.05
+        ? {
+            icon: "trending_up",
+            title: "Benchmarks moved higher",
+            body: `The 30-year PMMS average rose ${pmmsTrend.delta.toFixed(2)} pts over the selected period — stress-test payments at today's rate.`,
+            actionLabel: "View mortgage market",
+            targetId: "mortgage-market",
+          }
+        : {
+            icon: "insights",
+            title: "Use verified benchmarks",
+            body: "Apply Freddie Mac PMMS averages to your calculator, then adjust for your buyer's profile.",
+            actionLabel: "View mortgage market",
+            targetId: "mortgage-market",
+          },
     {
       icon: "schedule",
       title: "Consider a 15-year loan",
       body: "If the higher payment fits your budget, you'll pay less interest over the life of the loan.",
+      actionLabel: "Apply 15-year scenario",
+      targetId: "mortgage-scenarios",
+      beforeScroll: () => applyScenario("15-fixed"),
     },
   ];
+
+  const runInsightAction = (item: (typeof insights)[number]) => {
+    item.beforeScroll?.();
+    window.requestAnimationFrame(() => {
+      scrollToMortgageSection(item.targetId);
+    });
+  };
 
   return (
     <div className={DASHBOARD_PAGE_BODY}>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <div className="space-y-6 xl:col-span-7">
+          <div id="mortgage-market" className="scroll-mt-28">
+            <MortgageMarketPanel
+              data={marketRates}
+              loading={loadingRates}
+              error={ratesError}
+              onRefresh={() => void loadMarketRates(historyMonths)}
+              onUseRate={applyBenchmarkRate}
+              historyMonths={historyMonths}
+              historyPoints={marketRates?.history30.points ?? []}
+              onHistoryMonthsChange={handleHistoryMonthsChange}
+            />
+          </div>
+
+          <div id="mortgage-loan-details" className="scroll-mt-28">
           <LuxuryCard padding="lg">
             <div className="mb-5 flex items-start justify-between gap-3">
               <div>
@@ -268,6 +351,7 @@ export function MortgageCalculatorPage() {
                     $
                   </span>
                   <input
+                    id="mortgage-down-payment-input"
                     inputMode="numeric"
                     className={cn(modalInputClass, "pl-7")}
                     value={downPaymentText}
@@ -363,7 +447,9 @@ export function MortgageCalculatorPage() {
               </div>
             </div>
           </LuxuryCard>
+          </div>
 
+          <div id="mortgage-scenarios" className="scroll-mt-28">
           <LuxuryCard padding="lg">
             <h2 className="font-serif text-[22px] font-semibold text-ink">Compare loan scenarios</h2>
             <p className="mt-1 mb-4 text-[13px] text-slate-text">
@@ -408,54 +494,7 @@ export function MortgageCalculatorPage() {
               })}
             </ul>
           </LuxuryCard>
-
-          <LuxuryCard padding="lg">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="font-serif text-[22px] font-semibold text-ink">Today&apos;s average rates</h2>
-                <p className="mt-1 text-[13px] text-slate-text">
-                  {rates?.source === "fred" ? "Freddie Mac PMMS & conforming indices" : "Estimated until live feed loads"}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => void loadRates()}
-                className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/25 px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-champagne"
-              >
-                <Icon
-                  name={loadingRates ? "progress_activity" : "refresh"}
-                  className={cn("text-[16px]", loadingRates && "animate-spin")}
-                />
-                Refresh
-              </button>
-            </div>
-            {ratesError && !rates ? (
-              <p className="text-[13px] text-slate-text">{ratesError}</p>
-            ) : (
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {rateProducts.map((product) => (
-                  <li
-                    key={product.label}
-                    className="rounded-2xl border border-outline-variant/12 bg-champagne/25 px-4 py-3"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="text-[12px] font-medium text-taupe">{product.label}</p>
-                        <p className="font-serif text-[26px] font-semibold text-ink">
-                          {product.rate.toFixed(2)}%
-                        </p>
-                      </div>
-                      <MortgageSparkline trend="down" className="text-emerald-muted" />
-                    </div>
-                    <p className="mt-1 flex items-center gap-1 text-[11px] font-medium text-emerald-muted">
-                      <Icon name="arrow_downward" className="text-[14px]" />
-                      {product.trend} vs last week
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </LuxuryCard>
+          </div>
 
           <LuxuryCard padding="lg">
             <h2 className="font-serif text-[22px] font-semibold text-ink">Mortgage reading & updates</h2>
@@ -511,10 +550,21 @@ export function MortgageCalculatorPage() {
               Principal &amp; interest {formatUsd(result.monthlyPrincipalInterest)}
               {result.monthlyPmi > 0 ? ` · PMI ${formatUsd(result.monthlyPmi)}` : ""}
             </p>
-            <p className="mt-2 flex items-center gap-1 text-[12px] font-medium text-emerald-muted">
-              <Icon name="trending_down" className="text-[16px]" />
-              ~12% lower than 6 months ago (market trend)
-            </p>
+            {pmmsTrend ? (
+              <p
+                className={cn(
+                  "mt-2 flex items-center gap-1 text-[12px] font-medium",
+                  pmmsTrend.delta < 0 ? "text-emerald-muted" : pmmsTrend.delta > 0 ? "text-taupe" : "text-slate-text",
+                )}
+              >
+                <Icon
+                  name={pmmsTrend.delta < 0 ? "trending_down" : pmmsTrend.delta > 0 ? "trending_up" : "horizontal_rule"}
+                  className="text-[16px]"
+                />
+                30-yr PMMS {pmmsTrend.delta >= 0 ? "+" : ""}
+                {pmmsTrend.delta.toFixed(2)} pts over {historyMonths} mo (benchmark, not a quote)
+              </p>
+            ) : null}
             <div className="mt-6 rounded-2xl bg-ivory/80 p-4 backdrop-blur-sm">
               <SummaryRow label="Loan amount" value={formatUsd(result.loanAmount)} />
               <SummaryRow label="Down payment" value={`${result.downPaymentPercent.toFixed(0)}%`} />
@@ -565,16 +615,39 @@ export function MortgageCalculatorPage() {
 
           <LuxuryCard padding="lg">
             <h2 className="font-serif text-[20px] font-semibold text-ink">Insights</h2>
-            <ul className="mt-4 space-y-4">
+            <p className="mt-1 text-[13px] text-slate-text">
+              Tap an insight to jump to the matching calculator section.
+            </p>
+            <ul className="mt-4 space-y-3">
               {insights.map((item) => (
-                <li key={item.title} className="flex gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-champagne text-rose-gold-deep">
-                    <Icon name={item.icon} className="text-[18px]" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-ink">{item.title}</p>
-                    <p className="mt-0.5 text-[13px] leading-relaxed text-slate-text">{item.body}</p>
-                  </div>
+                <li key={item.title}>
+                  <a
+                    href={`#${item.targetId}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      runInsightAction(item);
+                    }}
+                    className="group flex w-full items-start gap-3 rounded-2xl border border-outline-variant/12 bg-champagne/20 px-4 py-3 text-left transition-colors hover:border-rose-gold/35 hover:bg-champagne/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-gold-deep"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ivory text-rose-gold-deep shadow-sm">
+                      <Icon name={item.icon} className="text-[18px]" />
+                    </div>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-medium text-ink group-hover:text-rose-gold-deep">
+                        {item.title}
+                      </span>
+                      <span className="mt-0.5 block text-[13px] leading-relaxed text-slate-text">
+                        {item.body}
+                      </span>
+                      <span className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-rose-gold-deep">
+                        {item.actionLabel}
+                        <Icon
+                          name="arrow_forward"
+                          className="text-[16px] transition-transform group-hover:translate-x-0.5"
+                        />
+                      </span>
+                    </span>
+                  </a>
                 </li>
               ))}
             </ul>

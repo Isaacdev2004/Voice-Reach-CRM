@@ -31,30 +31,30 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 flex h-screen w-64 max-w-[85vw] flex-col border-r border-outline-variant/10 bg-ivory py-6 shadow-nav transition-transform duration-300 ease-out",
+          "fixed left-0 top-0 z-50 flex h-screen w-64 max-w-[85vw] flex-col border-r border-outline-variant/10 bg-cream py-4 shadow-[2px_0_24px_-12px_rgba(26,22,18,0.06)] transition-transform duration-300 ease-out lg:py-5",
           "lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
         aria-hidden={!mobileOpen ? undefined : undefined}
       >
-        <div className="mb-8 flex items-start justify-between px-6">
+        <div className="mb-4 flex items-start justify-between px-5 lg:mb-5 lg:px-6">
           <Link href="/dashboard" className="group" onClick={onMobileClose}>
-            <AriLogo height={96} className="max-w-[148px]" />
-            <p className="mt-2.5 text-[13px] italic leading-snug text-taupe group-hover:text-rose-gold-deep">
+            <AriLogo height={72} className="max-w-[128px]" />
+            <p className="mt-1.5 text-[11px] italic leading-snug text-taupe transition-colors group-hover:text-rose-gold-deep">
               {BRAND_TAGLINE}
             </p>
           </Link>
           <button
             type="button"
             onClick={onMobileClose}
-            className="rounded-full p-2 text-taupe hover:bg-champagne lg:hidden"
+            className="rounded-full p-2 text-taupe hover:bg-champagne/80 lg:hidden"
             aria-label="Close menu"
           >
             <Icon name="close" className="text-[22px]" />
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto">
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3">
           {dashboardNav.map((item) => {
             const active = isActiveNav(pathname, item.href);
             return (
@@ -63,21 +63,21 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                 href={item.href}
                 onClick={onMobileClose}
                 className={cn(
-                  "mx-2 my-1 flex items-center gap-3 rounded-full px-4 py-3 transition-all",
+                  "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14px] transition-colors duration-150",
                   active
-                    ? "bg-rose-gold-deep text-ivory shadow-sm"
-                    : "text-taupe hover:bg-champagne/80",
+                    ? "bg-ivory font-medium text-rose-gold-deep ring-1 ring-inset ring-rose-gold/25"
+                    : "text-taupe hover:bg-ivory/60 hover:text-ink",
                 )}
               >
-                <Icon name={item.icon} />
-                <span className="text-label-md font-medium">{item.label}</span>
+                <Icon name={item.icon} className="text-[20px] opacity-90" />
+                <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="mt-auto space-y-3 px-4">
-          <p className="text-center text-[11px] text-taupe">
+        <div className="mt-auto space-y-2.5 border-t border-outline-variant/10 px-4 pb-1 pt-4">
+          <p className="text-center text-[11px] leading-snug text-taupe">
             {billing.subscriptionStatus === "active"
               ? `${billing.planName} · $${billing.monthlyPrice}/mo`
               : billing.subscriptionStatus === "trialing"
@@ -90,9 +90,9 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
               openUpgrade();
               onMobileClose?.();
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-rose-gold py-4 text-label-md font-medium text-ivory transition-all hover:opacity-90 active:scale-95"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-gold py-3 text-[13px] font-medium text-ivory transition-all hover:opacity-92 active:scale-[0.98] motion-reduce:active:scale-100"
           >
-            <Icon name="workspace_premium" className="text-[20px]" />
+            <Icon name="workspace_premium" className="text-[18px]" />
             Upgrade plan
           </button>
         </div>

@@ -243,7 +243,7 @@ export function DashboardHeaderProvider({
 
   return (
     <DashboardHeaderContext.Provider value={headerActions}>
-      <header className="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-2 border-b border-outline-variant bg-surface/80 px-4 shadow-sm backdrop-blur-md lg:left-64 lg:gap-4 lg:px-margin-desktop">
+      <header className="fixed top-0 left-0 right-0 z-40 flex h-[3.75rem] min-w-0 items-center gap-1.5 border-b border-outline-variant/12 bg-ivory/90 px-3 shadow-[0_1px_0_rgba(26,22,18,0.04)] backdrop-blur-md max-md:gap-1 sm:gap-2.5 sm:px-4 lg:left-64 lg:h-16 lg:gap-4 lg:px-margin-desktop">
         <button
           type="button"
           onClick={onMenuClick}
@@ -253,8 +253,8 @@ export function DashboardHeaderProvider({
           <Icon name="menu" className="text-[24px]" />
         </button>
 
-        <form className="flex min-w-[140px] flex-1 items-center sm:min-w-[220px]" onSubmit={handleSearchSubmit}>
-          <div ref={searchRef} className="relative w-full min-w-[200px] max-w-lg sm:min-w-[280px]">
+        <form className="flex min-w-0 flex-1 items-center md:min-w-[220px]" onSubmit={handleSearchSubmit}>
+          <div ref={searchRef} className="relative w-full min-w-0 max-w-lg md:min-w-[200px] lg:min-w-[280px]">
             <Icon
               name="search"
               className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-on-surface-variant sm:left-4"
@@ -265,7 +265,7 @@ export function DashboardHeaderProvider({
               onChange={(e) => handleSearchChange(e.target.value)}
               onFocus={() => setSearchOpen(true)}
               placeholder={searchPlaceholder}
-              className="h-10 w-full truncate rounded-full border-none bg-surface-container-low pl-10 pr-3 text-body-md placeholder:text-on-surface-variant focus:ring-2 focus:ring-rose-gold/20 sm:pl-12 sm:pr-4"
+              className="h-9 w-full min-w-0 truncate rounded-full border border-outline-variant/12 bg-cream/80 pl-9 pr-2 text-[14px] text-ink placeholder:text-taupe/80 focus:border-rose-gold/35 focus:ring-2 focus:ring-rose-gold/15 max-md:placeholder:text-[13px] sm:h-10 sm:pl-12 sm:pr-4"
               aria-label="Search dashboard"
               aria-expanded={searchOpen}
               autoComplete="off"
@@ -338,7 +338,7 @@ export function DashboardHeaderProvider({
               <button
                 type="button"
                 onClick={() => setQuickCreateOpen(true)}
-                className="hidden rounded-full bg-rose-gold px-5 py-2 text-label-md font-bold text-ivory transition-all hover:opacity-95 sm:inline-flex"
+                className="hidden h-10 items-center rounded-full bg-rose-gold px-5 text-[13px] font-semibold text-ivory shadow-sm transition-all hover:opacity-95 sm:inline-flex"
               >
                 Quick Create
               </button>

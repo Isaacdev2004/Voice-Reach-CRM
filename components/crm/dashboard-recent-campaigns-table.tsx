@@ -5,6 +5,12 @@ import Link from "next/link";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import {
+  DASHBOARD_SECTION_CARD,
+  DASHBOARD_SECTION_HEADER,
+  DASHBOARD_SECTION_SUBTITLE,
+  DASHBOARD_SECTION_TITLE,
+} from "@/lib/dashboard/layout";
 import { useEffect, useState } from "react";
 
 type CampaignRow = {
@@ -96,11 +102,11 @@ export function DashboardRecentCampaignsTable() {
   }, []);
 
   return (
-    <LuxuryCard padding="lg">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <LuxuryCard padding="md" className={DASHBOARD_SECTION_CARD}>
+      <div className={cn(DASHBOARD_SECTION_HEADER, "sm:items-end")}>
         <div>
-          <h2 className="font-serif text-[26px] font-semibold text-ink">Recent Campaigns</h2>
-          <p className="mt-1 text-[14px] text-slate-text">
+          <h2 className={DASHBOARD_SECTION_TITLE}>Recent Campaigns</h2>
+          <p className={DASHBOARD_SECTION_SUBTITLE}>
             Delivery, opens, and replies across your latest sequences
           </p>
         </div>
@@ -134,7 +140,40 @@ export function DashboardRecentCampaignsTable() {
           </Link>
         </div>
       ) : (
-        <div className="overflow-x-auto -mx-2 px-2">
+        <>
+          <ul className="divide-y divide-outline-variant/10 md:hidden">
+            {campaigns.map((c, idx) => {
+              const status = STATUS_LABEL[c.status] ?? {
+                label: c.status,
+                className: "bg-champagne text-taupe",
+              };
+              const metrics = metricsForCampaign(c.id, c.status, metricById);
+              const thumb = THUMBS[idx % THUMBS.length];
+              return (
+                <li key={c.id}>
+                  <Link
+                    href={`/dashboard/campaigns/${c.id}`}
+                    className="flex items-center gap-3 px-1 py-3.5"
+                  >
+                    <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-champagne">
+                      <Image src={thumb} alt="" fill className="object-cover" sizes="44px" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-ink">{c.name}</p>
+                      <p className="mt-0.5 text-[12px] text-taupe">
+                        {status.label}
+                        {metrics.contacts !== "—" ? ` · ${metrics.contacts} contacts` : ""}
+                        {metrics.open !== "—" ? ` · ${metrics.open} delivery` : ""}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-taupe">{formatDate(c.created_at)}</p>
+                    </div>
+                    <Icon name="chevron_right" className="shrink-0 text-[22px] text-taupe" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        <div className="hidden overflow-x-auto -mx-2 px-2 md:block">
           <table className="w-full min-w-[720px] border-collapse text-left text-[13px]">
             <thead>
               <tr className="border-b border-outline-variant/15 text-[11px] font-semibold uppercase tracking-wider text-taupe">
@@ -192,6 +231,7 @@ export function DashboardRecentCampaignsTable() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </LuxuryCard>
   );

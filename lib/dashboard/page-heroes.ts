@@ -41,12 +41,16 @@ export type DashboardPageHeroConfig = {
   scriptAccentOnImage?: boolean;
   /** MyARI quote card on the photo (Dashboard home). */
   brandQuoteOnImage?: boolean;
-  /** Full-width quote strip under the hero (Contacts). */
+  /** Full-width quote strip under the hero (deprecated — avoid extra slogans). */
   brandQuoteFooter?: boolean;
   /** Tailwind grid cols override for split hero, e.g. lg:grid-cols-[1.1fr_0.9fr] */
   heroGridClass?: string;
   /** Large faith / editorial quote as the main left column (Calendar inspiration). */
   editorialQuoteOnCopy?: boolean;
+  /** Shorter hero panel (`compact` ~15%, `dense` ~25% vs default on desktop). */
+  heroDensity?: "default" | "compact" | "dense";
+  /** Photo edge fade: `vivid` = minimal overlay for sharper hero art (home). */
+  imageBlend?: "default" | "subtle" | "vivid";
 };
 
 /** Matches resized client art in `public/brand/heroes/` (Oct 2026). */
@@ -74,6 +78,12 @@ const HERO_FILES: Record<
   "settings.jpg": BANNER_2172,
 };
 
+/** Match Home dashboard: shorter copy column + lighter image fade. */
+const DASHBOARD_HERO_COMPACT: Pick<DashboardPageHeroConfig, "heroDensity" | "imageBlend"> = {
+  heroDensity: "compact",
+  imageBlend: "subtle",
+};
+
 function hero(file: string): Pick<
   DashboardPageHeroConfig,
   "image" | "imageWidth" | "imageHeight" | "imageLayout"
@@ -90,15 +100,15 @@ function hero(file: string): Pick<
 export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   "/dashboard": {
     ...hero("dashboard.jpg"),
-    eyebrow: "Home",
-    title: "Let's make today exceptional.",
-    titleMode: "dashboardHome",
+    eyebrow: "Dashboard",
+    title: "Your business. Beautifully in motion.",
     subtitle:
-      "Nurture your leads, stay top of mind, and create more opportunities with AI-driven outreach.",
-    brandQuote: "More conversations. More opportunities.",
-    brandQuoteOnImage: true,
-    imageAlt: "Sunlit interior with arched doorway",
-    imageObjectPosition: "50% center",
+      "Your priorities, progress, and opportunities—all in one clear view.",
+    heroDensity: "dense",
+    heroGridClass: "lg:grid-cols-[1.08fr_0.92fr]",
+    imageBlend: "subtle",
+    imageAlt: "Luxury pool and property at golden hour",
+    imageObjectPosition: "58% 40%",
     actions: [
       {
         label: "Create a campaign",
@@ -111,96 +121,106 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
   },
   "/dashboard/contacts": {
     ...hero("contacts.jpg"),
-    eyebrow: "Contacts",
-    title: "Relationships that open doors",
-    subtitle: "Every contact, conversation, consent record, and next step in one place.",
-    brandQuote: "People first. Always.",
-    brandQuoteFooter: true,
+    ...DASHBOARD_HERO_COMPACT,
+    eyebrow: "Your relationships",
+    title: "Every connection holds potential.",
+    subtitle:
+      "Nurture relationships, uncover opportunities, and turn conversations into closings.",
     heroGridClass: "lg:grid-cols-[1.12fr_0.88fr]",
     imageAlt: "Elegant terrace overlooking the sea",
     imageObjectPosition: "58% center",
   },
   "/dashboard/campaigns": {
     ...hero("campaigns.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Campaigns",
-    title: "Meaningful outreach. Real relationships.",
-    subtitle: "Launch sequences, engage consistently, and open more doors.",
-    scriptAccent: "People over numbers. Always.",
-    brandQuote: "Every touchpoint builds trust.",
-    brandQuoteFooter: true,
+    title: "Stay connected. Stay top of mind.",
+    subtitle:
+      "Create thoughtful outreach that turns conversations into opportunities.",
     imageAlt: "Ocean from above with luxury boat",
     imageObjectPosition: "38% 42%",
   },
   "/dashboard/mortgage": {
     ...hero("mortgage.jpg"),
-    eyebrow: "Planning",
-    title: "Mortgage Calculator",
-    subtitle: "Estimate monthly payments with today's average rates, refreshed daily.",
-    scriptAccent: "Home Opens More",
+    ...DASHBOARD_HERO_COMPACT,
+    eyebrow: "Mortgage",
+    title: "Clarity behind every number.",
+    subtitle:
+      "Explore financing scenarios and guide clients with greater confidence.",
     imageAlt: "Insightful planning and rates motif",
     imageObjectPosition: "18% center",
-    features: [
-      { icon: "percent", title: "Live rate data", subtitle: "Updated daily" },
-      { icon: "bar_chart", title: "Compare scenarios", subtitle: "See your options" },
-      { icon: "home", title: "Plan with confidence", subtitle: "Informed decisions" },
-    ],
   },
   "/dashboard/notes": {
     ...hero("notes.jpg"),
-    eyebrow: "Thinking",
-    title: "Notes & Strategy",
+    ...DASHBOARD_HERO_COMPACT,
+    eyebrow: "Notes & strategy",
+    title: "Great outcomes begin with a plan.",
     subtitle:
-      "Capture ideas, plan strategy, and keep client context — all in one place.",
-    scriptAccent: "Ideas Create Opportunities",
+      "Capture insights, organize ideas, and turn strategy into action.",
     imageAlt: "Flowing gold and cream fabric texture",
     imageObjectPosition: "50% center",
   },
   "/dashboard/tasks": {
     ...hero("tasks.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Tasks",
-    title: "Follow-ups & to-dos",
-    scriptAccent: "Productivity creates space for purpose.",
-    heroLayout: "banner",
+    title: "The details drive the deal.",
+    subtitle:
+      "Stay focused on what matters and keep every opportunity moving.",
     imageAlt: "Desk with laptop and city view at golden hour",
     imageObjectPosition: "32% center",
+    actions: [
+      {
+        label: "New task",
+        href: "/dashboard/tasks?new=task",
+        icon: "add",
+        primary: true,
+      },
+      {
+        label: "View calendar",
+        href: "/dashboard/calendar",
+        icon: "calendar_today",
+      },
+    ],
   },
   "/dashboard/voice-scripts": {
     ...hero("voice-scripts-hero.png"),
+    ...DASHBOARD_HERO_COMPACT,
     image: VOICE_SCRIPTS_HERO_IMAGE,
-    eyebrow: "Voice script studio",
-    title: "Voice Scripts Library",
+    eyebrow: "Voice scripts",
+    title: "Find the words that move people.",
     subtitle:
-      "Create, manage, and organize your voice scripts. Turn conversations into opportunities.",
-    scriptAccent: "Every conversation can open a door.",
+      "Confident, natural conversations start with the right approach.",
     imageAlt: "Professional microphone on a sunlit desk by the coast",
     imageObjectPosition: "52% center",
   },
   "/dashboard/activity": {
     ...hero("activity.jpg"),
-    eyebrow: "Activity",
-    title: "Every action moves you forward",
+    ...DASHBOARD_HERO_COMPACT,
+    eyebrow: "Activity logs",
+    title: "Every interaction tells a story.",
     subtitle:
-      "A real-time view of outreach, compliance, and engagement—all in one place.",
-    brandQuote: "Clarity in every log.",
+      "See the conversations, actions, and milestones shaping your business.",
     imageAlt: "Coastal olive branch at golden hour",
     imageObjectPosition: "55% center",
   },
   "/dashboard/analytics": {
     ...hero("analytics.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Analytics",
-    title: "Insight creates opportunity",
+    title: "See the bigger picture.",
     subtitle:
-      "Track delivery, engagement, and campaign performance—then refine what works.",
-    brandQuote: "Data with direction.",
+      "Understand your performance, recognize patterns, and make smarter decisions.",
     imageAlt: "Analytics waves and chart motif",
     imageObjectPosition: "50% center",
   },
   "/dashboard/settings": {
     ...hero("settings.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Settings",
-    title: "Your workspace, your way",
-    subtitle: "Profile, billing, integrations, and team access in one place.",
-    brandQuote: "Built for how you work.",
+    title: "Make MyARI yours.",
+    subtitle:
+      "Personalize your workspace, preferences, and account experience.",
     imageAlt: "Calm workspace configuration mood",
     imageObjectPosition: "28% center",
   },
@@ -216,16 +236,18 @@ export const CALENDAR_HERO_VARIANTS: Record<
 > = {
   schedule: {
     ...hero("calendar.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Calendar",
-    title: "Your schedule, beautifully organized.",
+    title: "Make every moment count.",
     titleMode: "calendarGreeting",
-    subtitle: "Stay on top of your schedule, client meetings, and follow-ups.",
-    brandQuote: "Purpose in every plan.",
+    subtitle:
+      "Keep appointments, follow-ups, and important moments beautifully organized.",
     imageAlt: "Schedule and planning visual",
     imageObjectPosition: "82% center",
   },
   faith: {
     ...hero("calendar-faith.jpg"),
+    ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Calendar",
     title: "Purpose in Every Plan",
     quote:

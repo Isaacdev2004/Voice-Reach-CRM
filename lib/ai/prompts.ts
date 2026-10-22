@@ -10,10 +10,12 @@ export type AiTaskType =
   | "follow_up"
   | "note_summary"
   | "next_best_action"
-  | "campaign_idea";
+  | "campaign_idea"
+  | "relationship_pulse";
 
 export type AiContext = {
   contactName?: string;
+  contactId?: string;
   contactNotes?: string;
   campaignName?: string;
   tone?: "warm" | "professional" | "concise" | "luxury";
@@ -27,6 +29,28 @@ const TONE_DESCRIPTIONS: Record<NonNullable<AiContext["tone"]>, string> = {
   concise: "concise and direct",
   luxury: "elegant, calm, and discreet - fitting luxury real estate",
 };
+
+export function jsonSchemaHintForTask(task: AiTaskType): string {
+  switch (task) {
+    case "email_writer":
+      return '{"subject": string, "body": string}';
+    case "sms_writer":
+      return '{"body": string}';
+    case "voicemail_script":
+      return '{"script": string}';
+    case "note_summary":
+      return '{"bullets": string[]}';
+    case "follow_up":
+    case "next_best_action":
+      return '{"recommendation": string, "reason": string, "suggestedChannel": string}';
+    case "campaign_idea":
+      return '{"name": string, "description": string, "steps": [{type, title, dayLabel, description}]}';
+    case "relationship_pulse":
+      return '{"summary": string}';
+    default:
+      return "{}";
+  }
+}
 
 export function systemPromptFor(task: AiTaskType): string {
   switch (task) {
@@ -44,6 +68,8 @@ export function systemPromptFor(task: AiTaskType): string {
       return "You are ARI AI, suggesting the next best action for an agent based on contact engagement.";
     case "campaign_idea":
       return "You are ARI AI, proposing a multi-touch campaign concept with sample steps.";
+    case "relationship_pulse":
+      return "You are ARI AI Concierge. Given relationship pipeline lanes, write one or two sentences telling the agent who to prioritize today and why. Be specific, calm, and actionable. Do not invent contacts not listed.";
     default:
       return "You are ARI AI, an elegant relationship-marketing copilot.";
   }
@@ -76,6 +102,11 @@ export function userPromptFor(task: AiTaskType, ctx: AiContext, brief?: string):
       return [
         ...lines,
         "Return JSON {name, description, steps: [{type, title, dayLabel, description}]}",
+      ].join("\n");
+    case "relationship_pulse":
+      return [
+        brief ?? "No lane detail provided.",
+        "Return JSON {summary} with at most 280 characters.",
       ].join("\n");
     default:
       return lines.join("\n");

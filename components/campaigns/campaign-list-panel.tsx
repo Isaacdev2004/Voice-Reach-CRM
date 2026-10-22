@@ -262,14 +262,14 @@ export function CampaignListPanel() {
       </header>
 
       <div className="flex flex-col gap-4 border-b border-outline-variant/15 pb-4">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] md:flex-wrap md:overflow-visible md:pb-0">
           {LIBRARY_TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "rounded-full px-4 py-2 text-[13px] font-medium transition-colors",
+                "shrink-0 rounded-full px-4 py-2 text-[13px] font-medium transition-colors md:shrink",
                 activeTab === tab.id
                   ? "bg-rose-gold text-ivory"
                   : "bg-champagne/60 text-taupe hover:bg-champagne",

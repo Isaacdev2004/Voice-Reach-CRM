@@ -13,11 +13,13 @@ const BodySchema = z.object({
     "note_summary",
     "next_best_action",
     "campaign_idea",
+    "relationship_pulse",
   ]),
   brief: z.string().optional(),
   context: z
     .object({
       contactName: z.string().optional(),
+      contactId: z.string().uuid().optional(),
       contactNotes: z.string().optional(),
       campaignName: z.string().optional(),
       tone: z.enum(["warm", "professional", "concise", "luxury"]).optional(),

@@ -12,6 +12,8 @@ import {
   countSentCampaigns,
   monthOverMonthContactChange,
   newOpportunitiesThisWeek,
+  formatPipelineValueDisplay,
+  sumActiveLeadBudgets,
   type CampaignRow,
 } from "@/lib/dashboard/home-kpis";
 import type { DashboardKpi } from "@/lib/crm/types";
@@ -41,6 +43,10 @@ export function OperationalDashboardPage() {
   const activeCount = campaigns ? countActiveCampaigns(campaigns) : null;
   const launchedThisMonth = campaigns ? campaignsLaunchedThisMonth(campaigns) : 0;
   const newThisWeek = newOpportunitiesThisWeek(contacts, activeLeads);
+  const pipelineBudgets = useMemo(
+    () => (loading ? null : sumActiveLeadBudgets(contacts)),
+    [loading, contacts],
+  );
 
   const kpis: DashboardKpi[] = useMemo(() => {
     const contactChange = loading ? undefined : monthOverMonthContactChange(contacts);
@@ -106,14 +112,22 @@ export function OperationalDashboardPage() {
       },
       {
         id: "pipeline",
-        label: "Est. Pipeline Value",
-        value: "$1.2M",
-        change: "+28%",
-        changeTone: "up",
-        detail: "Based on recent leads",
+        label: "Active lead budgets",
+        value:
+          loading || pipelineBudgets === null
+            ? "…"
+            : formatPipelineValueDisplay(pipelineBudgets),
+        change: undefined,
+        changeTone: "neutral",
+        detail:
+          loading || pipelineBudgets === null
+            ? undefined
+            : pipelineBudgets.withBudget === 0
+              ? `${pipelineBudgets.activeLeadCount} active — add budgets on contacts`
+              : `${pipelineBudgets.withBudget} of ${pipelineBudgets.activeLeadCount} active with budget on file`,
         icon: "payments",
         tone: "rose",
-        spark: "line",
+        spark: pipelineBudgets && pipelineBudgets.withBudget > 0 ? "line" : undefined,
       },
     ];
   }, [
@@ -127,17 +141,18 @@ export function OperationalDashboardPage() {
     addedThisMonth,
     activeLeads,
     newThisWeek,
+    pipelineBudgets,
   ]);
 
   return (
     <div className={DASHBOARD_PAGE_BODY}>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-stretch xl:grid-cols-4">
         {kpis.map((kpi) => (
-          <KpiCard key={kpi.id} {...kpi} />
+          <KpiCard key={kpi.id} {...kpi} compact />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12 xl:items-start xl:gap-6">
         <div className="xl:col-span-8">
           <MarketingPulse />
         </div>

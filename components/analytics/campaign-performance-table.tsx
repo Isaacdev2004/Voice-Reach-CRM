@@ -63,7 +63,60 @@ export function CampaignPerformanceTable({
       {filtered.length === 0 ? (
         <p className="py-8 text-center text-[14px] text-taupe">No campaigns match your search.</p>
       ) : (
-        <div className="overflow-x-auto">
+        <>
+          <ul className="space-y-3 md:hidden">
+            {filtered.map((c) => (
+              <li key={c.id}>
+                <Link
+                  href="/dashboard/campaigns"
+                  className="block rounded-2xl border border-outline-variant/15 bg-ivory p-4 transition-colors hover:bg-champagne/30"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium text-ink">{c.name}</p>
+                      <p className="mt-0.5 text-[12px] text-taupe">{c.subtitle}</p>
+                    </div>
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                        statusBadge(c.status),
+                      )}
+                    >
+                      {c.status}
+                    </span>
+                  </div>
+                  <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-[12px]">
+                    <div>
+                      <dt className="text-taupe">Volume</dt>
+                      <dd className="font-medium text-ink">{c.volume.toLocaleString()}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-taupe">Delivered</dt>
+                      <dd className="font-medium text-ink">{c.delivered.toLocaleString()}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-taupe">Delivery</dt>
+                      <dd className="font-medium text-ink">{c.deliveryRate}%</dd>
+                    </div>
+                    <div>
+                      <dt className="text-taupe">ROI</dt>
+                      <dd
+                        className={cn(
+                          "font-semibold",
+                          c.roiTone === "good" && "text-emerald-muted",
+                          c.roiTone === "warn" && "text-error",
+                          c.roiTone === "neutral" && "text-bronze",
+                        )}
+                      >
+                        {c.roi}
+                      </dd>
+                    </div>
+                  </dl>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-outline-variant/15 text-[11px] font-semibold uppercase tracking-wider text-taupe">
@@ -128,6 +181,7 @@ export function CampaignPerformanceTable({
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );
