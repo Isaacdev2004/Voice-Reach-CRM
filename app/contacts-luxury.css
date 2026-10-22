@@ -135,3 +135,8 @@
 .contact-preview dl { gap:10px 8px; }
 
 .contacts-filter-row .contacts-manage-categories { display:grid; place-items:center; width:29px; height:29px; padding:4px; border:1px solid #e9e2d9; border-radius:50%; }
+.contacts-metric-button { text-align:left; border-radius:17px; }
+.contacts-metric-button:hover:not(:disabled) .luxury-card { border-color:#bd9878; }
+.contacts-metric-button:disabled { cursor:default; }
+.contacts-metric-scope,.contacts-view-count { font-size:11px; color:#716960; }
+.contacts-metric-scope { margin-top:8px; }

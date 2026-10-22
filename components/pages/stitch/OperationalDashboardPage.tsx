@@ -11,8 +11,6 @@ import {
   contactsAddedThisMonth,
   countActiveCampaigns,
   countSentCampaigns,
-  monthOverMonthContactChange,
-  newOpportunitiesThisWeek,
   formatPipelineValueDisplay,
   sumActiveLeadBudgets,
   type CampaignRow,
@@ -22,7 +20,7 @@ import { useContacts } from "@/lib/hooks/use-contacts";
 import { useEffect, useMemo, useState } from "react";
 
 export function OperationalDashboardPage() {
-  const { contacts, loading, meta } = useContacts();
+  const { contacts, loading, meta, error } = useContacts();
   const [campaigns, setCampaigns] = useState<CampaignRow[] | null>(null);
 
   useEffect(() => {
@@ -37,22 +35,21 @@ export function OperationalDashboardPage() {
     })();
   }, []);
 
-  const total = meta?.total ?? contacts.length;
+  const total = meta?.total;
   const activeLeads = meta?.counts?.activeLead ?? 0;
   const addedThisMonth = contactsAddedThisMonth(contacts);
   const sentCount = campaigns ? countSentCampaigns(campaigns) : null;
   const activeCount = campaigns ? countActiveCampaigns(campaigns) : null;
   const launchedThisMonth = campaigns ? campaignsLaunchedThisMonth(campaigns) : 0;
-  const newThisWeek = newOpportunitiesThisWeek(contacts, activeLeads);
   const pipelineBudgets = useMemo(
-    () => (loading ? null : sumActiveLeadBudgets(contacts)),
-    [loading, contacts],
+    () => (loading || error ? null : sumActiveLeadBudgets(contacts)),
+    [loading, contacts, error],
   );
 
   const kpis: DashboardKpi[] = useMemo(() => {
-    const contactChange = loading ? undefined : monthOverMonthContactChange(contacts);
+    const contactChange = undefined; // No historical stage/total snapshots are stored.
     const monthDetail =
-      loading ? undefined : addedThisMonth === 0 ? "No new contacts this month" : `+${addedThisMonth} this month`;
+      loading || error ? undefined : `${addedThisMonth} current contacts added this month`;
 
     const campaignDetail =
       campaigns === null
@@ -68,24 +65,15 @@ export function OperationalDashboardPage() {
           ? `+${launchedThisMonth} launched this month`
           : undefined;
 
-    const oppDetail =
-      loading
-        ? undefined
-        : newThisWeek === 0
-          ? `${activeLeads} active in pipeline`
-          : `${newThisWeek} new this week`;
+    const oppDetail = loading || error ? undefined : `${activeLeads} active in pipeline`;
 
     return [
       {
         id: "contacts",
         label: "Total Contacts",
-        value: loading ? "…" : total.toLocaleString(),
+        value: loading ? "…" : total?.toLocaleString() ?? "—",
         change: contactChange,
-        changeTone: contactChange?.startsWith("-")
-          ? "down"
-          : contactChange?.startsWith("Flat")
-            ? "neutral"
-            : "up",
+        changeTone: "neutral",
         detail: monthDetail,
         icon: "group",
         tone: "default",
@@ -103,7 +91,7 @@ export function OperationalDashboardPage() {
       {
         id: "opportunities",
         label: "Opportunities",
-        value: loading ? "…" : String(activeLeads),
+        value: loading ? "…" : error || !meta ? "—" : String(activeLeads),
         change: undefined,
         detail: oppDetail,
         icon: "real_estate_agent",
@@ -113,8 +101,8 @@ export function OperationalDashboardPage() {
         id: "pipeline",
         label: "Active Lead Budgets",
         value:
-          loading || pipelineBudgets === null
-            ? "…"
+          loading ? "…" : pipelineBudgets === null
+            ? "—"
             : formatPipelineValueDisplay(pipelineBudgets),
         change: undefined,
         changeTone: "neutral",
@@ -131,15 +119,15 @@ export function OperationalDashboardPage() {
   }, [
     loading,
     total,
-    contacts,
     campaigns,
     sentCount,
     activeCount,
     launchedThisMonth,
     addedThisMonth,
     activeLeads,
-    newThisWeek,
     pipelineBudgets,
+    error,
+    meta,
   ]);
 
   return (
@@ -147,7 +135,7 @@ export function OperationalDashboardPage() {
       <div className="dashboard-kpi-grid grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-stretch xl:grid-cols-4">
         {kpis.map((kpi) => (
           kpi.id === "opportunities" ? (
-            <Link key={kpi.id} href="/dashboard/contacts" className="dashboard-opportunity-link" aria-label="Opportunities — view Contacts">
+            <Link key={kpi.id} href="/dashboard/contacts?segment=active-lead" className="dashboard-opportunity-link" aria-label="Opportunities — view Contacts">
               <KpiCard {...kpi} compact luxury />
             </Link>
           ) : <KpiCard key={kpi.id} {...kpi} compact luxury />

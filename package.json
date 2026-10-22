@@ -9,8 +9,9 @@
     "start": "next start",
     "lint": "eslint .",
     "smoke": "node scripts/smoke-test.mjs",
+    "test:contacts-metrics": "node --import tsx scripts/contacts-metrics.test.ts",
     "test:security": "node scripts/verify-audit-fixes.mjs",
-    "test:unit": "node --import tsx scripts/verify-unit.ts",
+    "test:unit": "node --import tsx scripts/verify-unit.ts && npm run test:contacts-metrics",
     "test:regressions": "node --import tsx scripts/verify-regressions.ts"
   },
   "dependencies": {

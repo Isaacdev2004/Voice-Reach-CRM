@@ -1,5 +1,10 @@
 "use client";
 
+import { notifyContactsChanged } from "@/lib/contacts/change-events";
+import { contactMetricCounts } from "@/lib/contacts/metrics";
+import { filterContactsByQuery } from "@/lib/contacts/schemas";
+import { filterContactsByCategory } from "@/lib/contacts/categories";
+import { filterContactsBySegment } from "@/lib/contacts/lifecycle";
 import Link from "next/link";
 import { CompliancePanel } from "@/components/crm/compliance-panel";
 import { ComplianceBadge } from "@/components/crm/compliance-badge";
@@ -28,10 +33,9 @@ import { useContacts, type ApiContact } from "@/lib/hooks/use-contacts";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
-import { DATABASE_SETUP_HINT } from "@/lib/supabase-errors";
 import type { PulseLaneId, RelationshipPulseResult } from "@/lib/contacts/relationship-pulse";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 type ContactSort = "name-asc" | "name-desc" | "recent";
 
@@ -59,6 +63,7 @@ function consentStatus(contact: ApiContact): "valid" | "pending" | "blocked" | "
 }
 
 export function ContactManagementPage() {
+  const router = useRouter();
   const headerQuery = useDashboardSearch();
   const searchParams = useSearchParams();
   const initialSegment = (searchParams.get("segment") ?? "all") as ContactSegment;
@@ -72,11 +77,7 @@ export function ContactManagementPage() {
     ...DEFAULT_CONTACT_CATEGORIES,
   ]);
   const [manageCatsOpen, setManageCatsOpen] = useState(false);
-  const { contacts, loading, error, refresh, meta } = useContacts(
-    headerQuery,
-    segment,
-    category,
-  );
+  const { contacts, loading, error, refresh, meta } = useContacts();
   const rows: ApiContact[] = contacts;
   const [viewQuery, setViewQuery] = useState("");
   const [sourceFilter, setSourceFilter] = useState("all");
@@ -112,8 +113,9 @@ export function ContactManagementPage() {
     return new Set(lane.contacts.map((c) => c.contactId));
   }, [activePulseLane, pulse]);
 
-  const sortedRows = useMemo(() => {
-    let list = rows.filter((contact) =>
+  const viewRows = useMemo(() => {
+    const scoped = filterContactsByCategory(filterContactsByQuery(rows, headerQuery), category);
+    let list = scoped.filter((contact) =>
       (activityFilter === "all" || (activityFilter === "none" ? !contact.last_contacted : Boolean(contact.last_contacted) && Date.parse(contact.last_contacted!) >= Date.now() - Number(activityFilter) * 86400000)) &&
       (sourceFilter === "all" || contact.source === sourceFilter) &&
       (typeFilter === "all" || contact.type === typeFilter) &&
@@ -123,6 +125,11 @@ export function ContactManagementPage() {
     if (pulseFilterIds) {
       list = list.filter((c) => pulseFilterIds.has(c.id));
     }
+    return list;
+  }, [rows, headerQuery, category, pulseFilterIds, viewQuery, sourceFilter, typeFilter, complianceFilter, activityFilter]);
+  const viewCounts = contactMetricCounts(viewRows);
+  const sortedRows = useMemo(() => {
+    const list = filterContactsBySegment(viewRows, segment);
     if (sort === "name-asc") {
       list.sort((a, b) => contactSortKey(a).localeCompare(contactSortKey(b)));
     } else if (sort === "name-desc") {
@@ -135,9 +142,9 @@ export function ContactManagementPage() {
       });
     }
     return list;
-  }, [rows, sort, pulseFilterIds, viewQuery, sourceFilter, typeFilter, complianceFilter, activityFilter]);
+  }, [viewRows, segment, sort]);
   const previewContact = sortedRows.find(c => c.id === previewId) ?? sortedRows[0];
-  const total = meta?.total ?? contacts.length;
+  const total = meta?.total;
 
   const selectableRows = useMemo<ApiContact[]>(() => sortedRows, [sortedRows]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -208,6 +215,7 @@ export function ContactManagementPage() {
     }
     setSelected({});
     closeBulk();
+    notifyContactsChanged();
     void refresh();
     void loadPulse();
   };
@@ -228,6 +236,7 @@ export function ContactManagementPage() {
     }
     setSelected({});
     closeBulk();
+    notifyContactsChanged();
     void refresh();
     void loadPulse();
   };
@@ -255,6 +264,7 @@ export function ContactManagementPage() {
     }
     setSelected({});
     closeBulk();
+    notifyContactsChanged();
     void refresh();
     void loadPulse();
   };
@@ -274,8 +284,15 @@ export function ContactManagementPage() {
       return;
     }
     closeBulk();
+    notifyContactsChanged();
     void refresh();
     void loadPulse();
+  };
+
+  const openMetric = (stage: ContactSegment) => {
+    setCategory("all"); setSegment(stage); setSourceFilter("all"); setTypeFilter("all");
+    setComplianceFilter("all"); setActivityFilter("all"); setViewQuery(""); setActivePulseLane(null); setSelected({});
+    router.replace(`/dashboard/contacts${stage === "all" ? "" : `?segment=${stage}`}`);
   };
 
   return (
@@ -332,17 +349,18 @@ export function ContactManagementPage() {
       <ContactsLuxuryHero onRefresh={() => { void refresh(); void loadPulse(); }} />
       <div className="contacts-kpi-grid">
         {[
-          { id: "total", label: "Total Contacts", value: total, icon: "group" },
-          { id: "cold", label: "Cold Leads", value: counts?.coldLead, icon: "handshake" },
-          { id: "active", label: "Active Leads", value: counts?.activeLead, icon: "local_fire_department" },
-          { id: "past", label: "Past Clients", value: counts?.pastClient, icon: "verified_user" },
-        ].map(kpi => <KpiCard key={kpi.id} id={kpi.id} label={kpi.label} value={loading ? "…" : kpi.value?.toLocaleString() ?? "—"} icon={kpi.icon} compact luxury />)}
+          { id: "total", segment: "all" as const, label: "Total Contacts", value: total, icon: "group" },
+          { id: "cold", segment: "cold-lead" as const, label: "Cold Leads", value: counts?.coldLead, icon: "handshake" },
+          { id: "active", segment: "active-lead" as const, label: "Active Leads", value: counts?.activeLead, icon: "local_fire_department" },
+          { id: "past", segment: "past-client" as const, label: "Past Clients", value: counts?.pastClient, icon: "verified_user" },
+        ].map(kpi => <button key={kpi.id} type="button" className="contacts-metric-button" disabled={loading || Boolean(error)} onClick={() => openMetric(kpi.segment)} aria-label={`${kpi.label}: ${loading ? "loading" : kpi.value ?? "unavailable"}. Show all matching contacts`}><KpiCard id={kpi.id} label={kpi.label} value={loading ? "…" : kpi.value?.toLocaleString() ?? "—"} icon={kpi.icon} compact luxury /></button>)}
       </div>
+      <p className="contacts-metric-scope">Summary: all contacts in your workspace. Tabs below reflect the current filters.</p>
       <div className="contacts-workspace">
         <div className="contacts-toolbar">
           <div className="contacts-stage-tabs" aria-label="Contact lifecycle">
             {CONTACT_SEGMENT_TABS.map(tab => {
-              const count = tab.id === "all" ? counts?.all : tab.id === "cold-lead" ? counts?.coldLead : tab.id === "active-lead" ? counts?.activeLead : counts?.pastClient;
+              const count = !meta ? undefined : tab.id === "all" ? viewCounts.all : tab.id === "cold-lead" ? viewCounts.coldLead : tab.id === "active-lead" ? viewCounts.activeLead : viewCounts.pastClient;
               return <button key={tab.id} type="button" aria-pressed={segment === tab.id} onClick={() => setSegment(tab.id)} className={contactFilterPill(segment === tab.id, "stage")}>{tab.id === "all" ? "All Contacts" : tab.id === "cold-lead" ? "Cold Leads" : tab.id === "active-lead" ? "Active Leads" : "Past Clients"}{count !== undefined ? ` (${count})` : ""}</button>;
             })}
           </div>
@@ -381,7 +399,7 @@ export function ContactManagementPage() {
       ) : null}
 
 
-      {selectedIds.length > 0 ? (
+      {selectedIds.length > 0 && !loading && !error ? (
         <div
           className={cn(
             "flex flex-col gap-3 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
@@ -446,9 +464,9 @@ export function ContactManagementPage() {
 
       {error ? (
         <div className="rounded-2xl border border-rose-gold/25 bg-champagne px-4 py-4 text-[14px] text-slate-text">
-          <p className="font-medium text-ink">Database not connected</p>
-          <p className="mt-1">{error}</p>
-          <p className="mt-2 text-[13px] text-taupe">{DATABASE_SETUP_HINT}</p>
+          <p className="font-medium text-ink" role="alert">Contact totals unavailable</p>
+          <p className="mt-1">We couldn&apos;t verify your contact records. Totals are hidden until a complete read succeeds.</p>
+          <button type="button" onClick={() => void refresh()} className="mt-2 text-[13px] font-medium text-rose-gold-deep">Retry contacts</button>
         </div>
       ) : null}
 
@@ -591,11 +609,12 @@ export function ContactManagementPage() {
             </div>
           </>
         )}
-        {!loading && sortedRows.length === 0 ? <div className="contacts-empty"><Icon name="person_search" className="text-[30px]" /><h2>No contacts in this view</h2><p>Try another search or adjust your filters.</p></div> : null}
+        {!loading && !error && sortedRows.length === 0 ? <div className="contacts-empty"><Icon name="person_search" className="text-[30px]" /><h2>No contacts in this view</h2><p>Try another search or adjust your filters.</p></div> : null}
       </LuxuryCard>
       {previewContact && !loading ? <ContactPreviewPanel key={previewContact.id} contact={previewContact} consent={consentStatus(previewContact)} /> : null}
       </div>
-      <p className="contacts-consent-summary">Consent validated: {loading ? "…" : validated} of {rows.length} loaded contacts · Blocked / DNC: {dncCount}</p>
+      <p role="status" className="contacts-view-count">{loading ? "Loading contact totals…" : error ? "Totals unavailable" : `Showing ${sortedRows.length} of ${total} workspace contacts`}</p>
+      {meta ? <p className="contacts-consent-summary">Consent validated: {loading ? "…" : validated} of {rows.length} loaded contacts · Blocked / DNC: {dncCount}</p> : null}
       </div>
       <details className="contacts-pulse-disclosure"><summary>Relationship Pulse <span>Signals, follow-ups, and existing outreach tools</span></summary>
       <RelationshipPulseSection

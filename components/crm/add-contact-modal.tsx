@@ -1,5 +1,7 @@
 "use client";
 
+import { notifyContactsChanged } from "@/lib/contacts/change-events";
+
 import {
   Modal,
   ModalField,
@@ -162,6 +164,7 @@ export function AddContactModal({
 
       const contactId = data.contact?.id as string | undefined;
       reset();
+      notifyContactsChanged();
       onSuccess?.();
       onClose();
       if (openProfileAfterSave && contactId) {
