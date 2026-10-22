@@ -205,12 +205,9 @@ export function buildAnalyticsSnapshot(params: {
     {
       id: "response",
       label: "Avg. provider latency",
-      value: `${latency}ms`,
-      change:
-        prevAttempted.length > 0 && attempted.length > 0
-          ? formatDelta(latency, prevLatency, "ms")
-          : "—",
-      changeTone: latency <= prevLatency ? "up" : "down",
+      value: "Unavailable",
+      change: "No latency measurements",
+      changeTone: "neutral",
       icon: "timer",
       tone: "bronze",
     },
