@@ -1,5 +1,7 @@
 "use client";
 
+import { notifyContactsChanged } from "@/lib/contacts/change-events";
+
 import {
   Modal,
   ModalFooterActions,
@@ -102,7 +104,8 @@ export function ImportCsvModal({ open, onClose, onSuccess }: ImportCsvModalProps
       }
 
       if (imported > 0) {
-        onSuccess?.();
+        notifyContactsChanged();
+      onSuccess?.();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed");

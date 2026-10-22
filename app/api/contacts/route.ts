@@ -1,94 +1,20 @@
+import { readContactSnapshot } from "@/lib/contacts/read-snapshot";
+import { createContactListHandler } from "@/lib/contacts/list-handler";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { evaluateTriggers } from "@/lib/automations/engine";
-import { evaluateEligibility } from "@/lib/compliance";
-import { CreateContactSchema, filterContactsByQuery } from "@/lib/contacts/schemas";
-import {
-  categoriesUsedOnContacts,
-  contactMatchesCategory,
-  filterContactsByCategory,
-  mergeCategoryLists,
-} from "@/lib/contacts/categories";
-import {
-  contactMarket,
-  contactSegment,
-  filterContactsBySegment,
-  type ContactSegment,
-} from "@/lib/contacts/lifecycle";
+import { CreateContactSchema } from "@/lib/contacts/schemas";
 import { loadSavedSettings } from "@/lib/billing/settings-store";
-import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
 import { normalizePhone } from "@/lib/phone";
 import { apiErrorFromSupabase } from "@/lib/supabase-errors";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-export const GET = withApiHandler(async (request) => {
-  const ownerId = await requireUserId();
-  const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q")?.trim() ?? "";
-  const segment = (searchParams.get("segment") ?? "all") as ContactSegment;
-  const category = searchParams.get("category")?.trim() || "all";
-  // Back-compat with older ?market=residential|commercial links
-  const marketParam = searchParams.get("market")?.trim();
-  const categoryFilter =
-    category !== "all"
-      ? category
-      : marketParam && marketParam !== "all"
-        ? marketParam
-        : "all";
-
-  const { data, error } = await supabaseAdmin
-    .from("contacts")
-    .select("*, consent_records(*)")
-    .eq("owner_id", ownerId)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    const mapped = apiErrorFromSupabase(error);
-    if (mapped) return mapped;
-  }
-
-  const saved = await loadSavedSettings(ownerId);
-  const raw = q ? filterContactsByQuery(data ?? [], q) : (data ?? []);
-  const byCategory = filterContactsByCategory(raw, categoryFilter);
-  const segmented = filterContactsBySegment(byCategory, segment);
-  const contacts = segmented.map((contact) => ({
-    ...contact,
-    eligibility: evaluateEligibility(contact),
-    lifecycleSegment: contactSegment(contact.type),
-    market: contactMarket(contact.type),
-  }));
-  const eligibleCount = contacts.filter((c) => c.eligibility.eligible).length;
-  const allRows = data ?? [];
-  const categories = mergeCategoryLists(
-    saved?.contactCategories ?? DEFAULT_SETTINGS.contactCategories,
-    categoriesUsedOnContacts(allRows),
-  );
-  const categoryCounts: Record<string, number> = { all: allRows.length };
-  for (const name of categories) {
-    categoryCounts[name] = allRows.filter((c) => contactMatchesCategory(c, name)).length;
-  }
-
-  return apiOk({
-    contacts,
-    total: allRows.length,
-    filtered: contacts.length,
-    eligibleCount,
-    q,
-    segment,
-    category: categoryFilter,
-    categories,
-    counts: {
-      all: allRows.length,
-      coldLead: filterContactsBySegment(allRows, "cold-lead").length,
-      activeLead: filterContactsBySegment(allRows, "active-lead").length,
-      pastClient: filterContactsBySegment(allRows, "past-client").length,
-      residential: allRows.filter((c) => contactMatchesCategory(c, "Residential")).length,
-      commercial: allRows.filter((c) => contactMatchesCategory(c, "Commercial")).length,
-      byCategory: categoryCounts,
-    },
-  });
-});
+export const GET = withApiHandler(createContactListHandler({
+  requireOwnerId: requireUserId,
+  readContacts: ownerId => readContactSnapshot(supabaseAdmin, ownerId),
+  loadCategories: async ownerId => (await loadSavedSettings(ownerId))?.contactCategories,
+}));
 
 export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
