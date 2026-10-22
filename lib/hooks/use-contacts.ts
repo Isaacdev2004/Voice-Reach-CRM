@@ -8,6 +8,10 @@ import { useCallback, useEffect, useState } from "react";
 export type ApiContact = {
   id: string;
   created_at?: string;
+  /** Existing contacts.last_contacted date; not inferred from creation time. */
+  last_contacted?: string | null;
+  /** Optional existing feed data; no tags are synthesized when absent. */
+  tags?: string[] | null;
   first_name: string;
   last_name?: string | null;
   phone: string;
