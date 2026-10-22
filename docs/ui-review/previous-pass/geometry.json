@@ -1,0 +1,94 @@
+[
+  {
+    "width": 1440,
+    "hero": {
+      "top": 84,
+      "height": 260,
+      "bottom": 344
+    },
+    "kpi": {
+      "top": 364,
+      "height": 170,
+      "bottom": 534
+    },
+    "pulse": {
+      "top": 558,
+      "height": 573,
+      "bottom": 1131
+    },
+    "recommendations": {
+      "top": 558,
+      "height": 573,
+      "bottom": 1131
+    }
+  },
+  {
+    "width": 1920,
+    "hero": {
+      "top": 84,
+      "height": 272,
+      "bottom": 356
+    },
+    "kpi": {
+      "top": 376,
+      "height": 170,
+      "bottom": 546
+    },
+    "pulse": {
+      "top": 570,
+      "height": 573,
+      "bottom": 1143
+    },
+    "recommendations": {
+      "top": 570,
+      "height": 573,
+      "bottom": 1143
+    }
+  },
+  {
+    "width": 768,
+    "hero": {
+      "top": 84,
+      "height": 329,
+      "bottom": 413
+    },
+    "kpi": {
+      "top": 433,
+      "height": 170,
+      "bottom": 603
+    },
+    "pulse": {
+      "top": 813,
+      "height": 594,
+      "bottom": 1407
+    },
+    "recommendations": {
+      "top": 1431,
+      "height": 455,
+      "bottom": 1885
+    }
+  },
+  {
+    "width": 390,
+    "hero": {
+      "top": 76,
+      "height": 465,
+      "bottom": 541
+    },
+    "kpi": {
+      "top": 557,
+      "height": 174,
+      "bottom": 731
+    },
+    "pulse": {
+      "top": 941,
+      "height": 974,
+      "bottom": 1915
+    },
+    "recommendations": {
+      "top": 1939,
+      "height": 431,
+      "bottom": 2370
+    }
+  }
+]

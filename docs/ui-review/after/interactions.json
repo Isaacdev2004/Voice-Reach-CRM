@@ -51,11 +51,21 @@
     {
       "name": "Core text and button palette exceeds WCAG AA 4.5:1",
       "passed": true
+    },
+    {
+      "name": "Reference density: compact hero and KPIs, full Marketing Pulse above desktop fold",
+      "passed": true
     }
   ],
   "contrast": {
     "primary": 5.929106164017506,
+    "primaryGradientLight": 4.81622952741981,
     "secondary": 4.958954616523773,
     "text": 14.989872306789097
+  },
+  "density": {
+    "hero": 202,
+    "kpi": 96,
+    "pulseBottom": 849.296875
   }
 }

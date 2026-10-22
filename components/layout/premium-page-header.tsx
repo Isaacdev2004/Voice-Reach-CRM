@@ -13,14 +13,14 @@ export function PremiumPageHeader({ config, compact = false, children, className
   className?: string;
 }) {
   return (
-    <section className={cn("premium-page-header", compact && "premium-page-header--compact", className)}>
+    <section className={cn("premium-page-header", compact ? "premium-page-header--compact" : "premium-page-header--editorial", className)}>
       <div className="premium-page-header__grid">
         <div className="premium-page-header__copy">
           <p className="premium-eyebrow">{config.eyebrow}</p>
           <h1>{config.title}</h1>
           {config.subtitle ? <p className="premium-page-header__description">{config.subtitle}</p> : null}
           {config.actions?.length ? (
-            <div className="mt-5 flex flex-wrap gap-2.5">
+            <div className="premium-page-header__actions flex flex-wrap gap-2">
               {config.actions.map((action) => (
                 <Link key={action.href} href={action.href} className={action.primary ? "premium-button premium-button--primary" : "premium-button premium-button--secondary"}>
                   <Icon name={action.icon} className="text-[18px]" />

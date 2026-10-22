@@ -10,48 +10,29 @@ const toneStyles = {
   bronze: "bg-bronze-light text-bronze",
   rose: "bg-rose-gold/15 text-rose-gold-deep",
 };
-
 const changeToneStyles = {
-  up: "text-emerald-muted",
-  down: "text-error",
-  neutral: "text-taupe",
+  up: "text-emerald-muted", down: "text-error", neutral: "text-taupe",
 };
 
-export function KpiCard({
-  label,
-  value,
-  change,
-  changeTone = "up",
-  detail,
-  icon,
-  tone = "default",
-  spark,
-}: DashboardKpi) {
+/** Compact horizontal summary; the original values, details and trends are retained. */
+export function KpiCard({ label, value, change, changeTone = "up", detail, icon,
+  tone = "default", spark }: DashboardKpi) {
   return (
-    <LuxuryCard padding="sm" className="premium-kpi relative flex min-h-[132px] flex-col justify-between transition-shadow hover:shadow-nav">
-      <div className="flex items-start justify-between gap-2">
-        <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl", toneStyles[tone])}>
-          <Icon name={icon} className="text-[22px]" />
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          {change ? (
-            <span
-              className={cn(
-                "text-[12px] font-semibold tabular-nums",
-                changeToneStyles[changeTone],
-              )}
-            >
-              {change}
-            </span>
-          ) : null}
+    <LuxuryCard padding="sm" className="premium-kpi">
+      <div className={cn("premium-kpi__icon", toneStyles[tone])}>
+        <Icon name={icon} className="text-[20px]" />
+      </div>
+      <div className="premium-kpi__copy">
+        <p className="premium-kpi__label">{label}</p>
+        <p className="premium-kpi__value">{value}</p>
+        {detail ? <p className="premium-kpi__detail">{detail}</p> : null}
+      </div>
+      {change || spark ? (
+        <div className="premium-kpi__trend">
+          {change ? <span className={cn("text-[11px] font-semibold tabular-nums", changeToneStyles[changeTone])}>{change}</span> : null}
           {spark ? <KpiSpark variant={spark} /> : null}
         </div>
-      </div>
-      <div className="mt-3">
-        <p className="text-label-md text-taupe">{label}</p>
-        <p className="font-sans text-[26px] font-semibold leading-tight tabular-nums text-ink">{value}</p>
-        {detail ? <p className="mt-1 text-[12px] text-slate-text">{detail}</p> : null}
-      </div>
+      ) : null}
     </LuxuryCard>
   );
 }

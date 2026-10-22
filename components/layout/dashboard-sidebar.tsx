@@ -64,13 +64,13 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                 onClick={onMobileClose}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "my-1 flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors",
+                  "my-1 flex min-h-11 items-center gap-3 rounded-full px-3 py-2.5 transition-colors",
                   active
-                    ? "bg-champagne text-ink font-semibold shadow-[inset_3px_0_0_var(--color-rose-gold-deep)]"
+                    ? "premium-navigation__active text-ivory shadow-sm"
                     : "text-taupe hover:bg-champagne/80",
                 )}
               >
-                <Icon name={item.icon} className="w-5 shrink-0 text-[20px] text-rose-gold-deep" />
+                <Icon name={item.icon} className={cn("w-5 shrink-0 text-[20px]", active ? "text-ivory" : "text-rose-gold-deep")} />
                 <span className="text-label-md font-medium">{item.label}</span>
               </Link>
             );

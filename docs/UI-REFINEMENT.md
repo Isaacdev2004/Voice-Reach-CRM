@@ -45,7 +45,7 @@ focus and shared modal styling. Public marketing/authentication pages are not re
 ## Shared components and tokens
 
 - New `PremiumPageHeader`: eyebrow, one headline, one description, optional existing
-  actions, one unobscured image and an optional functional footer slot.
+  actions, one clear image with a narrow copy-edge blend in full desktop headers and an optional functional footer slot.
 - Existing `DashboardPageHero` adapts centralized page configuration to full/compact
   headers. Property Finder uses the same primitive with its client-selector slot.
 - Existing `LuxuryCard` remains the card primitive; workspace styles refine borders,
@@ -69,9 +69,9 @@ branding rather than globally recoloring the site.
 | Bronze | `#805B40` accessible text/button tone; darker than decorative champagne |
 | Espresso / muted text | `#292520` / `#716960` |
 | Borders | `#E9E2D9`; stronger controls `#B5A99C` |
-| Panel / control radius | 20px / 12px |
-| Panel / elevated shadow | restrained warm 12% / 20% opacity |
-| Headline | responsive 30–40px; compact 28–34px |
+| Panel / control radius | 16px / pill (999px) |
+| Panel / elevated shadow | restrained warm 14% / 20% opacity |
+| Headline | responsive 28–34px; compact 28–34px |
 | Workspace spacing | 8 / 16 / 24 / 32px |
 | Transitions | 150ms; reduced motion respected |
 
@@ -83,7 +83,7 @@ branding rather than globally recoloring the site.
   authentication/router/image adapters are stubbed only in the scratch preview.
   No preview writes are allowed. These are not authenticated production screenshots.
 - All final captures: no document horizontal overflow and no uncaught page errors.
-- 13 browser interaction/contrast checks pass: Contacts filter states, name sorting,
+- 14 browser interaction/contrast/density checks pass: Contacts filter states, name sorting,
   selection, dialog form input, keyboard containment/Escape/focus restoration, CSV
   modal, all 12 sidebar links/active states, Settings sections, mobile menu, mobile
   table scrolling/focus, reduced motion and core palette contrast.
@@ -108,8 +108,9 @@ search behavior is unchanged. This reduced the previous lint warning count by on
 - The real Next.js dev server starts, but local dashboard and health requests return
   HTTP 500 with Clerk proxy socket-hang-up / ECONNRESET errors. Authentication has
   not been bypassed or rewritten. Authenticated staging testing remains required.
-- The request referenced a Contacts screenshot but none was attached. The repository's
-  original Contacts UI at `76d988e` was used as the baseline.
+- The initial request referenced a Contacts screenshot but none was attached. The
+  original Contacts UI at `76d988e` was used for that baseline. The later supplied
+  luxury Dashboard comparison now guides the revised layout and density.
 - Existing Contacts fallback records can appear when no records are returned. This
   UI task preserves that behavior; empty state/data accuracy should be reviewed separately.
 - Existing external profile/team avatar URLs can be unavailable in the fixture preview.
@@ -137,3 +138,31 @@ search behavior is unchanged. This reduced the previous lint warning count by on
    fixed Settings save controls. Repeat with reduced motion enabled.
 7. Complete authenticated service checks and human visual approval before any merge
    that could trigger Production. Nothing in this task authorizes production deployment.
+
+## Follow-up: supplied luxury Dashboard reference
+
+The first pass changed more of the visual language than requested. The follow-up
+retains the approved headline copy while bringing the layout closer to the reference:
+rounded bronze active navigation and pill actions, an approximately 22% shorter
+Dashboard hero, sharper existing photography with blending restricted to the copy
+edge, horizontal icon/label/value KPI cards, and tighter panel spacing and padding.
+Serif lining numerals restore the editorial hierarchy in statistics without making
+operational controls harder to read. Recommendation names can wrap instead of
+being truncated. All original data, links, handlers, trends, and details remain.
+
+Measured at 1440×900 in the synthetic preview:
+
+| Element | First UI pass | Reference revision |
+| --- | --- | --- |
+| Dashboard hero height | 260px | 202px |
+| KPI card height | 170px | 96px |
+| Marketing / Recommendations row begins | 558px | 406px |
+| Marketing / Recommendations row ends | 1131px | 849px |
+
+All 56 revised views (14 routes × 4 widths) have no document horizontal overflow or
+uncaught browser errors. All 14 interaction/contrast/density checks pass, including
+an explicit assertion that the full Marketing Pulse panel fits within 900px height.
+The revised primary gradient retains at least 4.82:1 contrast with its light text.
+The 390px Dashboard header is 368px tall versus 465px in the first pass; both actions
+remain available alongside the original image. Staging authentication limits above
+still apply. No new business-logic changes accompany this visual correction.

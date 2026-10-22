@@ -130,18 +130,18 @@ export function OperationalDashboardPage() {
   ]);
 
   return (
-    <div className={DASHBOARD_PAGE_BODY}>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className={`${DASHBOARD_PAGE_BODY} dashboard-overview`}>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {kpis.map((kpi) => (
           <KpiCard key={kpi.id} {...kpi} />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <div className="xl:col-span-8">
+      <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
+        <div className="xl:col-span-8 min-w-0">
           <MarketingPulse />
         </div>
-        <div className="xl:col-span-4">
+        <div className="xl:col-span-4 min-w-0">
           <DashboardRecommendedForYou />
         </div>
       </div>

@@ -7,9 +7,12 @@ are disabled. Application authentication and APIs were not modified. The supplie
 Contacts screenshot was not attached to the request; the checked-in original
 Contacts page was the baseline instead.
 
-Before: commit `76d988e`. After: `ui/myari-premium-refinement`.
+Original Before: commit `76d988e`. Current After: `ui/myari-premium-refinement`,
+revised to follow the supplied luxury Dashboard reference.
 Each pair uses the same fixtures and viewport (height 1,000px, full-page capture).
-The production-setup banner is an existing environment warning, not new UI copy.
+The initial Before screenshots show the existing setup banner because the early
+preview health fixture returned incomplete data. Current captures use an explicit
+healthy synthetic response. Neither set diagnoses the production configuration.
 Some pre-existing external profile avatars are unavailable in this offline preview.
 Screenshots do not certify live integrations, data accuracy, or authentication.
 
@@ -56,11 +59,36 @@ Screenshots do not certify live integrations, data accuracy, or authentication.
 - 56 before views and 56 after views: 14 routes × 4 widths.
 - Final after views have no uncaught page errors or document horizontal overflow.
 - Contact table scrolling stays inside its keyboard-focusable region on mobile.
-- 13 interaction/contrast checks passed; see [results](after/interactions.json).
+- 14 interaction/contrast/density checks passed; see [results](after/interactions.json).
 - All 12 sidebar destinations rendered with one page headline and one active item.
 - The two existing secondary routes (Automations and Partners) were also captured.
-- Core palette contrast: primary button 5.93:1, muted text 4.96:1, body text 14.99:1.
+- Core palette contrast: primary gradient at least 4.82:1, muted text 4.96:1, body text 14.99:1.
   This is a core-token check, not a complete WCAG certification of all legacy content.
 
 See [implementation and staging review](../UI-REFINEMENT.md) for scope, known issues,
 and the required authenticated staging checks.
+
+## Revision against the supplied luxury reference
+
+The first UI pass is preserved below so reviewers can compare the correction.
+Both first-pass and revised captures use the same healthy synthetic environment.
+
+| View | First UI pass (`ce4dd99`) | Revised luxury treatment |
+| --- | --- | --- |
+| Dashboard at 1440px | [First pass](previous-pass/dashboard-1440.png) | [Revised](after/dashboard-1440.png) |
+| Dashboard at 1920px | [First pass](previous-pass/dashboard-1920.png) | [Revised](after/dashboard-1920.png) |
+| Dashboard at 768px | [First pass](previous-pass/dashboard-768.png) | [Revised](after/dashboard-768.png) |
+| Dashboard at 390px | [First pass](previous-pass/dashboard-390.png) | [Revised](after/dashboard-390.png) |
+| Contacts at 1440px | [First pass](previous-pass/contacts-1440.png) | [Revised](after/contacts-1440.png) |
+| Contacts at 1920px | [First pass](previous-pass/contacts-1920.png) | [Revised](after/contacts-1920.png) |
+| Contacts at 768px | [First pass](previous-pass/contacts-768.png) | [Revised](after/contacts-768.png) |
+| Contacts at 390px | [First pass](previous-pass/contacts-390.png) | [Revised](after/contacts-390.png) |
+
+At 1440px / 900px viewport, the Dashboard hero changed from 260px to 202px (22% shorter),
+KPI cards from 170px to 96px (44% shorter), and the full Marketing Pulse and
+Recommendations row now ends at 849px rather than 1131px. Values are fixture-specific
+geometry checks, not fixed-height promises for arbitrary user data.
+
+The revised version retains approved copy and actual data bindings, restores the
+rounded bronze navigation/action treatment, uses a narrow blend only at the photo's
+copy edge, and leaves the main image free of dark or full-image wash overlays.

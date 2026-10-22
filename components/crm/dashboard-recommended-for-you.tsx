@@ -73,8 +73,8 @@ export function DashboardRecommendedForYou() {
   };
 
   return (
-    <LuxuryCard padding="lg" className="flex h-full flex-col">
-      <div className="mb-5 flex items-start justify-between gap-2">
+    <LuxuryCard padding="sm" className="dashboard-recommendations flex h-full flex-col">
+      <div className="mb-3 flex items-start justify-between gap-2">
         <div>
           <h2 className="font-serif text-[22px] font-semibold text-ink">Recommended for You</h2>
           <p className="mt-1 text-[13px] text-slate-text">Playbooks tuned to your pipeline</p>
@@ -87,7 +87,7 @@ export function DashboardRecommendedForYou() {
         </Link>
       </div>
 
-      <ul className="flex flex-1 flex-col gap-4">
+      <ul className="flex flex-1 flex-col gap-2">
         {items.map(({ tpl, tag, thumb }) => (
           <li key={tpl.templateKey}>
             <button
@@ -96,26 +96,26 @@ export function DashboardRecommendedForYou() {
               onClick={() => void createFromTemplate(tpl.templateKey)}
               className="group flex w-full items-center gap-3 rounded-2xl border border-transparent p-1 text-left transition-colors hover:border-outline-variant/20 hover:bg-cream/50 disabled:opacity-60"
             >
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-champagne">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-champagne">
                 <Image
                   src={thumb}
                   alt=""
                   fill
                   className="object-cover"
-                  sizes="56px"
+                  sizes="40px"
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-ink group-hover:text-rose-gold-deep">
+                <p className="text-[13px] font-medium leading-snug text-ink group-hover:text-rose-gold-deep">
                   {tpl.name}
                 </p>
-                <p className="mt-0.5 text-[12px] text-taupe">
+                <p className="mt-0.5 text-[11px] text-taupe">
                   {tpl.durationDays} days · {tpl.steps.length} steps
                 </p>
               </div>
               <span
                 className={cn(
-                  "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide",
+                  "recommendation-tag shrink-0 rounded-full px-2 py-1 text-[9px] font-semibold uppercase tracking-wide",
                   tag.className,
                 )}
               >
