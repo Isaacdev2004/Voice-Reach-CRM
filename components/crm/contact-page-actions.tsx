@@ -25,12 +25,20 @@ export function ContactPageActions({ onRefresh, variant = "header" }: ContactPag
 
   return (
     <>
-      <div className="flex flex-wrap gap-3">
-        <button type="button" className={btnSecondary} onClick={() => setImportOpen(true)}>
+      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:gap-3">
+        <button
+          type="button"
+          className={`${btnSecondary} w-full justify-center sm:w-auto`}
+          onClick={() => setImportOpen(true)}
+        >
           <span className="material-symbols-outlined text-[20px]">upload</span>
           Import CSV
         </button>
-        <button type="button" className={btnPrimary} onClick={() => setAddOpen(true)}>
+        <button
+          type="button"
+          className={`${btnPrimary} order-first w-full justify-center sm:order-none sm:w-auto`}
+          onClick={() => setAddOpen(true)}
+        >
           <span className="material-symbols-outlined text-[20px]">person_add</span>
           Add contact
         </button>

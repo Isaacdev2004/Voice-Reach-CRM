@@ -5,6 +5,7 @@ import { CompliancePanel } from "@/components/crm/compliance-panel";
 import { ComplianceBadge } from "@/components/crm/compliance-badge";
 import { ContactAvatar } from "@/components/crm/contact-avatar";
 import { ContactPageActions } from "@/components/crm/contact-page-actions";
+import { KpiCard } from "@/components/crm/kpi-card";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Modal, ModalField, ModalFooterActions, modalInputClass } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
@@ -22,12 +23,24 @@ import { ManageCategoriesModal } from "@/components/crm/manage-categories-modal"
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
 import { useContacts, type ApiContact } from "@/lib/hooks/use-contacts";
 import { safeFetch } from "@/lib/api-response";
+import { cn } from "@/lib/cn";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { DATABASE_SETUP_HINT } from "@/lib/supabase-errors";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type ContactSort = "name-asc" | "name-desc" | "recent";
+
+function contactFilterPill(active: boolean, variant: "category" | "stage" | "sort") {
+  return cn(
+    "rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors sm:px-3.5 sm:py-2 sm:text-[13px]",
+    active
+      ? variant === "stage"
+        ? "bg-sage text-ivory shadow-sm"
+        : "bg-rose-gold-deep text-ivory shadow-sm"
+      : "border border-outline-variant/20 bg-ivory text-taupe hover:border-rose-gold/30 hover:bg-champagne",
+  );
+}
 
 function contactSortKey(c: ApiContact): string {
   return `${c.first_name} ${c.last_name ?? ""}`.trim().toLowerCase();
@@ -274,130 +287,120 @@ export function ContactManagementPage() {
         submitting={bulkSubmitting}
         error={bulkError}
       />
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
         <ContactPageActions onRefresh={refresh} />
-      </header>
-
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setCategory("all")}
-            className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
-              category === "all"
-                ? "bg-ink text-ivory shadow-sm"
-                : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
-            }`}
-          >
-            All categories
-            {counts?.all !== undefined ? (
-              <span className={`ml-2 ${category === "all" ? "text-ivory/80" : "text-taupe"}`}>
-                ({counts.all})
-              </span>
-            ) : null}
-          </button>
-          {categoryTabs.map((name) => {
-            const active = category.toLowerCase() === name.toLowerCase();
-            const count = counts?.byCategory?.[name] ?? counts?.byCategory?.[name.toLowerCase()];
-            return (
-              <button
-                key={name}
-                type="button"
-                onClick={() => setCategory(name)}
-                className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
-                  active
-                    ? "bg-ink text-ivory shadow-sm"
-                    : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
-                }`}
-              >
-                {name}
-                {count !== undefined ? (
-                  <span className={`ml-2 ${active ? "text-ivory/80" : "text-taupe"}`}>
-                    ({count})
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            onClick={() => setManageCatsOpen(true)}
-            className="inline-flex items-center gap-1 rounded-full border border-dashed border-outline-variant/40 bg-ivory px-4 py-2 text-[13px] font-medium text-rose-gold-deep hover:bg-champagne"
-          >
-            <Icon name="add" className="text-[16px]" />
-            Manage categories
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {CONTACT_SEGMENT_TABS.map((tab) => {
-            const count =
-              tab.id === "all"
-                ? counts?.all
-                : tab.id === "cold-lead"
-                  ? counts?.coldLead
-                  : tab.id === "active-lead"
-                    ? counts?.activeLead
-                    : counts?.pastClient;
-            const active = segment === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setSegment(tab.id)}
-                className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
-                  active
-                    ? "bg-sage text-ivory shadow-sm"
-                    : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
-                }`}
-                title={tab.description}
-              >
-                {tab.label}
-                {count !== undefined ? (
-                  <span className={`ml-2 ${active ? "text-ivory/80" : "text-taupe"}`}>
-                    ({count})
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="text-[12px] font-medium uppercase tracking-wider text-taupe">Sort</span>
-          <button
-            type="button"
-            onClick={() => setSort("name-asc")}
-            className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
-              sort === "name-asc"
-                ? "bg-rose-gold-deep text-ivory"
-                : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
-            }`}
-          >
-            A–Z
-          </button>
-          <button
-            type="button"
-            onClick={() => setSort("name-desc")}
-            className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
-              sort === "name-desc"
-                ? "bg-rose-gold-deep text-ivory"
-                : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
-            }`}
-          >
-            Z–A
-          </button>
-          <button
-            type="button"
-            onClick={() => setSort("recent")}
-            className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
-              sort === "recent"
-                ? "bg-rose-gold-deep text-ivory"
-                : "border border-outline-variant/20 bg-cream text-taupe hover:bg-champagne"
-            }`}
-          >
-            Newest
-          </button>
-        </div>
       </div>
+
+      <LuxuryCard padding="md" className="space-y-4">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-taupe">
+            Category
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setCategory("all")}
+              className={contactFilterPill(category === "all", "category")}
+            >
+              All categories
+              {counts?.all !== undefined ? (
+                <span className={cn("ml-1.5 tabular-nums", category === "all" ? "opacity-90" : "")}>
+                  ({counts.all})
+                </span>
+              ) : null}
+            </button>
+            {categoryTabs.map((name) => {
+              const active = category.toLowerCase() === name.toLowerCase();
+              const count = counts?.byCategory?.[name] ?? counts?.byCategory?.[name.toLowerCase()];
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setCategory(name)}
+                  className={contactFilterPill(active, "category")}
+                >
+                  {name}
+                  {count !== undefined ? (
+                    <span className={cn("ml-1.5 tabular-nums", active ? "opacity-90" : "")}>
+                      ({count})
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setManageCatsOpen(true)}
+              className="inline-flex items-center gap-1 rounded-full border border-dashed border-outline-variant/40 bg-cream/50 px-3 py-1.5 text-[12px] font-medium text-rose-gold-deep hover:bg-champagne sm:px-3.5 sm:py-2 sm:text-[13px]"
+            >
+              <Icon name="add" className="text-[16px]" />
+              Manage categories
+            </button>
+          </div>
+        </div>
+
+        <div className="border-t border-outline-variant/10 pt-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-taupe">
+            Lifecycle stage
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {CONTACT_SEGMENT_TABS.map((tab) => {
+              const count =
+                tab.id === "all"
+                  ? counts?.all
+                  : tab.id === "cold-lead"
+                    ? counts?.coldLead
+                    : tab.id === "active-lead"
+                      ? counts?.activeLead
+                      : counts?.pastClient;
+              const active = segment === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSegment(tab.id)}
+                  className={contactFilterPill(active, "stage")}
+                  title={tab.description}
+                >
+                  {tab.label}
+                  {count !== undefined ? (
+                    <span className={cn("ml-1.5 tabular-nums", active ? "opacity-90" : "")}>
+                      ({count})
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="border-t border-outline-variant/10 pt-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-taupe">Sort by</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setSort("name-asc")}
+              className={contactFilterPill(sort === "name-asc", "sort")}
+            >
+              A–Z
+            </button>
+            <button
+              type="button"
+              onClick={() => setSort("name-desc")}
+              className={contactFilterPill(sort === "name-desc", "sort")}
+            >
+              Z–A
+            </button>
+            <button
+              type="button"
+              onClick={() => setSort("recent")}
+              className={contactFilterPill(sort === "recent", "sort")}
+            >
+              Newest
+            </button>
+          </div>
+        </div>
+      </LuxuryCard>
 
       {category !== "all" ? (
         <p className="rounded-2xl border border-outline-variant/15 bg-ivory px-4 py-3 text-[14px] text-slate-text">
@@ -412,13 +415,55 @@ export function ContactManagementPage() {
         </p>
       ) : null}
 
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        <KpiCard
+          id="contacts-total"
+          label="Total contacts"
+          value={loading ? "…" : total.toLocaleString()}
+          icon="group"
+          tone="default"
+          compact
+        />
+        <KpiCard
+          id="contacts-consent"
+          label="Consent validated"
+          value={loading ? "…" : `${rows.length ? Math.round((validated / rows.length) * 100) : 0}%`}
+          icon="verified_user"
+          tone="sage"
+          compact
+        />
+        <KpiCard
+          id="contacts-past"
+          label="Past clients"
+          value={loading ? "…" : String(counts?.pastClient ?? "—")}
+          icon="handshake"
+          tone="bronze"
+          compact
+        />
+        <KpiCard
+          id="contacts-cold"
+          label="Cold leads"
+          value={loading ? "…" : String(counts?.coldLead ?? "—")}
+          icon="ac_unit"
+          tone="rose"
+          compact
+        />
+      </div>
+
       {contacts.length > 0 ? (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-outline-variant/10 bg-ivory px-4 py-3">
+        <div
+          className={cn(
+            "flex flex-col gap-3 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
+            selectedIds.length > 0
+              ? "border-rose-gold/25 bg-champagne/50"
+              : "border-outline-variant/10 bg-ivory",
+          )}
+        >
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={toggleAll}
-              className="inline-flex items-center gap-2 rounded-full border border-outline-variant/20 bg-cream px-4 py-2 text-[13px] font-medium text-ink hover:bg-champagne"
+              className="inline-flex items-center gap-2 rounded-full border border-outline-variant/20 bg-cream px-3.5 py-1.5 text-[13px] font-medium text-ink hover:bg-champagne sm:px-4 sm:py-2"
             >
               <Icon name={allSelected ? "check_box" : "check_box_outline_blank"} className="text-[18px]" />
               {allSelected ? "Unselect all" : "Select all"}
@@ -476,50 +521,32 @@ export function ContactManagementPage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {[
-          { label: "Total contacts", value: loading ? "…" : total.toLocaleString() },
-          {
-            label: "Consent validated",
-            value: loading ? "…" : `${rows.length ? Math.round((validated / rows.length) * 100) : 0}%`,
-          },
-          { label: "Past clients", value: loading ? "…" : String(counts?.pastClient ?? " - ") },
-          { label: "Cold leads", value: loading ? "…" : String(counts?.coldLead ?? " - ") },
-        ].map((stat) => (
-          <LuxuryCard key={stat.label} padding="md">
-            <p className="text-[13px] text-taupe">{stat.label}</p>
-            <p className="mt-1 font-serif text-[28px] font-semibold text-ink">{stat.value}</p>
-          </LuxuryCard>
-        ))}
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-outline-variant/10 bg-champagne/40 px-4 py-3">
-        <p className="flex items-center gap-2 text-[14px] text-slate-text">
-          <Icon name="favorite" className="text-[18px] text-rose-gold-deep" />
-          Each row opens timeline, signals, tasks, and AI suggestions.
-        </p>
-        <Link
-          href={`/dashboard/contacts/${rows[0]?.id ?? DEMO_CONTACT.id}`}
-          className="text-[13px] font-medium text-rose-gold-deep whitespace-nowrap hover:underline"
-        >
-          Try sample profile →
-        </Link>
-      </div>
-
       <LuxuryCard padding="none" className="overflow-hidden">
+        <div className="flex flex-col gap-2 border-b border-outline-variant/15 bg-champagne/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <p className="flex items-center gap-2 text-[13px] text-slate-text">
+            <Icon name="favorite" className="text-[17px] text-rose-gold-deep" />
+            Open a row for timeline, signals, tasks, and AI suggestions.
+          </p>
+          <Link
+            href={`/dashboard/contacts/${rows[0]?.id ?? DEMO_CONTACT.id}`}
+            className="text-[12px] font-medium text-rose-gold-deep whitespace-nowrap hover:underline sm:text-[13px]"
+          >
+            Sample profile →
+          </Link>
+        </div>
         {loading ? (
           <p className="p-8 text-center text-taupe">Loading contacts…</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-outline-variant/20 bg-cream/80">
+            <table className="w-full min-w-[720px] text-left">
+              <thead className="sticky top-0 z-[1]">
+                <tr className="border-b border-outline-variant/20 bg-cream/95 backdrop-blur-sm">
                   {contacts.length > 0 ? (
-                    <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
-                      Select
+                    <th scope="col" className="w-12 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-4">
+                      <span className="sr-only">Select</span>
                     </th>
                   ) : null}
-                  <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
+                  <th scope="col" className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
                     <button
                       type="button"
                       className="inline-flex items-center gap-1 hover:text-rose-gold-deep"
@@ -541,26 +568,26 @@ export function ContactManagementPage() {
                       />
                     </button>
                   </th>
-                  <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
+                  <th scope="col" className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
                     Phone
                   </th>
-                  <th className="min-w-[100px] px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
+                  <th scope="col" className="min-w-[100px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
                     Type
                   </th>
-                  <th className="min-w-[88px] px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
+                  <th scope="col" className="min-w-[88px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
                     Source
                   </th>
-                  <th className="min-w-[96px] px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
+                  <th scope="col" className="min-w-[96px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
                     Compliance
                   </th>
-                  <th className="min-w-[120px] px-6 py-4" />
+                  <th scope="col" className="min-w-[108px] px-4 py-3 sm:px-5" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/15">
+              <tbody className="divide-y divide-outline-variant/12">
                 {sortedRows.map((contact) => (
-                  <tr key={contact.id} className="transition-colors hover:bg-cream/50">
+                  <tr key={contact.id} className="transition-colors hover:bg-champagne/35">
                     {contacts.length > 0 ? (
-                      <td className="px-4 py-4 align-middle">
+                      <td className="px-3 py-3 align-middle sm:px-4">
                         <button
                           type="button"
                           onClick={() => toggleOne(contact.id)}
@@ -574,10 +601,10 @@ export function ContactManagementPage() {
                         </button>
                       </td>
                     ) : null}
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 sm:px-5">
                       <Link
                         href={`/dashboard/contacts/${contact.id}`}
-                        className="flex items-center gap-3 group"
+                        className="group flex items-center gap-3"
                       >
                         <ContactAvatar
                           firstName={contact.first_name}
@@ -595,15 +622,17 @@ export function ContactManagementPage() {
                         </div>
                       </Link>
                     </td>
-                    <td className="px-6 py-4 text-[14px] text-ink">{contact.phone}</td>
-                    <td className="px-6 py-4 align-middle whitespace-nowrap">
+                    <td className="px-4 py-3 text-[13px] text-ink tabular-nums sm:px-5 sm:text-[14px]">
+                      {contact.phone}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 align-middle sm:px-5">
                       {(() => {
                         const seg = contactSegment(contact.type);
                         const cat = contact.category?.trim();
                         return (
                           <div className="flex flex-wrap items-center gap-1.5">
                             {cat ? (
-                              <span className="inline-flex items-center whitespace-nowrap rounded-lg bg-ink/10 px-2.5 py-1 text-[12px] font-medium leading-none text-ink">
+                              <span className="inline-flex items-center whitespace-nowrap rounded-lg bg-rose-gold/12 px-2.5 py-1 text-[12px] font-medium leading-none text-rose-gold-deep">
                                 {cat}
                               </span>
                             ) : null}
@@ -616,15 +645,15 @@ export function ContactManagementPage() {
                         );
                       })()}
                     </td>
-                    <td className="px-6 py-4 align-middle">
+                    <td className="px-4 py-3 align-middle sm:px-5">
                       <span className="inline-flex max-w-[140px] truncate rounded-lg bg-champagne/80 px-2.5 py-1 text-[12px] text-taupe">
-                        {contact.source ?? " - "}
+                        {contact.source ?? "—"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 align-middle whitespace-nowrap">
+                    <td className="whitespace-nowrap px-4 py-3 align-middle sm:px-5">
                       <ComplianceBadge status={consentStatus(contact)} compact />
                     </td>
-                    <td className="px-6 py-4 align-middle text-right whitespace-nowrap">
+                    <td className="whitespace-nowrap px-4 py-3 text-right align-middle sm:px-5">
                       <Link
                         href={`/dashboard/contacts/${contact.id}`}
                         className="text-[13px] font-medium text-rose-gold-deep hover:underline"
