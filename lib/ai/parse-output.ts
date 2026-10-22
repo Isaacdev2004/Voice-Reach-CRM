@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { AiContext, AiTaskType } from "./prompts";
 
 export function stripMarkdownCodeFence(text: string): string {
@@ -32,6 +33,16 @@ export function parseJsonFromLlm(text: string): Record<string, unknown> | null {
   return null;
 }
 
+export function parseStructuredAiJson(text: string): Record<string, unknown> | null {
+  const fence = /^```(?:json)?\s*\n?([\s\S]*?)\n?```\s*$/i.exec(text.trim());
+  const cleaned = fence ? fence[1].trim() : text.trim();
+  try {
+    const parsed: unknown = JSON.parse(cleaned);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed as Record<string, unknown>;
+  } catch { /* Rejected output is never treated as prose. */ }
+  return null;
+}
+
 function asString(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const t = value.trim();
@@ -39,10 +50,29 @@ function asString(value: unknown): string | null {
 }
 
 function asStringArray(value: unknown): string[] | null {
-  if (!Array.isArray(value)) return null;
-  const items = value.map((v) => String(v).trim()).filter(Boolean);
-  return items.length > 0 ? items : null;
+  if (!Array.isArray(value) || !value.every((v) => typeof v === "string" && v.trim())) return null;
+  return value.map((v) => v.trim());
 }
+
+/** Subscriber-facing prose must not contain serialized objects or code fences. */
+const prose = z.string().trim().min(1).max(12000).refine(
+  (value) => !/```|^\s*[{\[]/.test(value),
+);
+const subject = prose.max(180).refine((value) => !/[\r\n]/.test(value));
+const channel = z.enum(["email", "sms", "voicemail", "phone", "call", "task"]);
+const schemas = {
+  email_writer: z.object({ subject, body: prose }),
+  sms_writer: z.object({ body: prose.max(320) }),
+  voicemail_script: z.object({ script: prose.max(4000) }),
+  follow_up: z.object({ recommendation: prose, reason: prose, suggestedChannel: channel }),
+  next_best_action: z.object({ recommendation: prose, reason: prose, suggestedChannel: channel }),
+  note_summary: z.object({ bullets: z.array(prose).min(1).max(3) }),
+  campaign_idea: z.object({
+    name: prose.max(180), description: prose,
+    steps: z.array(z.object({ type: z.enum(["email", "sms", "voicemail", "avatar_video", "callback", "task", "wait", "retargeting", "video", "rvm"]), title: prose.max(180), dayLabel: prose.max(60), description: prose })).min(1).max(20),
+  }),
+  relationship_pulse: z.object({ summary: prose.max(320) }),
+} satisfies Record<AiTaskType, z.ZodType>;
 
 /** Remove internal/debug fields before sending to the client. */
 export function stripInternalAiFields(record: Record<string, unknown>): Record<string, unknown> {
@@ -61,7 +91,7 @@ export type NormalizeResult =
 function flattenNestedJsonBody(raw: Record<string, unknown>): Record<string, unknown> {
   const body = raw.body;
   if (typeof body !== "string") return raw;
-  const nested = parseJsonFromLlm(body);
+  const nested = parseStructuredAiJson(body);
   if (!nested) return raw;
   return { ...raw, ...nested };
 }
@@ -77,60 +107,23 @@ export function normalizeAiOutput(
 ): NormalizeResult {
   const raw = flattenNestedJsonBody(stripInternalAiFields(rawInput));
 
-  switch (task) {
-    case "email_writer": {
-      if (asString(raw.recommendation) && !asString(raw.subject)) {
-        return { ok: false, reason: "wrong_shape" };
-      }
-      const subject = asString(raw.subject);
-      const body = asString(raw.body) ?? asString(raw.message);
-      if (!subject || !body) return { ok: false, reason: "wrong_shape" };
-      return { ok: true, output: { subject, body } };
-    }
-    case "sms_writer": {
-      const body = asString(raw.body) ?? asString(raw.message);
-      if (!body) return { ok: false, reason: "wrong_shape" };
-      return { ok: true, output: { body } };
-    }
-    case "voicemail_script": {
-      const script = asString(raw.script) ?? asString(raw.body);
-      if (!script) return { ok: false, reason: "wrong_shape" };
-      return { ok: true, output: { script } };
-    }
-    case "follow_up":
-    case "next_best_action": {
-      const recommendation = asString(raw.recommendation);
-      const reason = asString(raw.reason) ?? "";
-      const suggestedChannel = asString(raw.suggestedChannel) ?? asString(raw.channel) ?? "";
-      if (!recommendation) return { ok: false, reason: "wrong_shape" };
-      return {
-        ok: true,
-        output: { recommendation, reason, suggestedChannel },
-      };
-    }
-    case "note_summary": {
-      const bullets = asStringArray(raw.bullets);
-      if (!bullets) return { ok: false, reason: "wrong_shape" };
-      return { ok: true, output: { bullets } };
-    }
-    case "campaign_idea": {
-      const name = asString(raw.name);
-      const description = asString(raw.description) ?? "";
-      const steps = Array.isArray(raw.steps) ? raw.steps : null;
-      if (!name || !steps?.length) return { ok: false, reason: "wrong_shape" };
-      return { ok: true, output: { name, description, steps } };
-    }
-    case "relationship_pulse": {
-      const summary = asString(raw.summary) ?? asString(raw.conciergeHint);
-      if (!summary) return { ok: false, reason: "wrong_shape" };
-      return { ok: true, output: { summary: summary.slice(0, 320) } };
-    }
-    default:
-      return { ok: false, reason: "wrong_shape" };
-  }
+  const normalized = { ...raw };
+  // Preserve known historical aliases, but never synthesize missing required content.
+  if (task === "sms_writer" || task === "email_writer") normalized.body ??= normalized.message;
+  if (task === "voicemail_script") normalized.script ??= normalized.body;
+  if (task === "follow_up" || task === "next_best_action") normalized.suggestedChannel ??= normalized.channel;
+  if (task === "relationship_pulse") normalized.summary ??= normalized.conciergeHint;
+  if (!Object.hasOwn(schemas, task)) return { ok: false, reason: "wrong_shape" };
+  const parsed = schemas[task].safeParse(normalized);
+  return parsed.success
+    ? { ok: true, output: parsed.data as Record<string, unknown> }
+    : { ok: false, reason: "wrong_shape" };
 }
 
 export function outputToPlainText(task: AiTaskType, output: Record<string, unknown>): string {
+  const checked = normalizeAiOutput(task, output, {});
+  if (!checked.ok) return "";
+  output = checked.output;
   switch (task) {
     case "email_writer": {
       const subject = asString(output.subject);
@@ -167,6 +160,8 @@ export function outputToPlainText(task: AiTaskType, output: Record<string, unkno
         : "";
       return [name, description, steps].filter(Boolean).join("\n\n");
     }
+    case "relationship_pulse":
+      return asString(output.summary) ?? "";
     default:
       return "";
   }

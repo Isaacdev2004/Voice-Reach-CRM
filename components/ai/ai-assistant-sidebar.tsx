@@ -1,9 +1,12 @@
 "use client";
 
 import { Modal, ModalFooterActions } from "@/components/crm/modal";
-import { safeFetch } from "@/lib/api-response";
+import { requestAiDraft } from "@/lib/ai/request-draft";
+import type { AiResult } from "@/lib/ai/generate";
+import { AiGenerationError, AI_ERROR_MESSAGES } from "@/lib/ai/errors";
+import { normalizeAiOutput } from "@/lib/ai/parse-output";
 import { cn } from "@/lib/cn";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { outputToPlainText } from "@/lib/ai/parse-output";
 import { AiResultPanel } from "./ai-result-panel";
 import { useAiAssistant, type AiTaskType } from "./ai-assistant-context";
@@ -40,70 +43,81 @@ const TONES: { id: "warm" | "professional" | "concise" | "luxury"; label: string
 export function AiAssistantSidebar() {
   const { state, closeAssistant, setBrief, setTask } = useAiAssistant();
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [result, setResult] = useState<AiResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tone, setTone] = useState<(typeof TONES)[number]["id"]>(state.context.tone ?? "luxury");
   const [copied, setCopied] = useState(false);
 
+  const sequence = useRef(0);
+  const pending = useRef<AbortController | null>(null);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancel = useCallback(() => {
+    sequence.current += 1;
+    pending.current?.abort();
+    pending.current = null;
+    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+  }, []);
+
   useEffect(() => {
-    if (state.open) {
-      setResult(null);
-      setError(null);
-      setTone(state.context.tone ?? "luxury");
-    }
-  }, [state.open, state.task, state.context.tone]);
+    cancel();
+    setLoading(false);
+    setResult(null);
+    setError(null);
+    setCopied(false);
+    setTone(state.context.tone ?? "luxury");
+    return cancel;
+  }, [state.open, state.task, state.context, cancel]);
+
+  const close = () => { cancel(); closeAssistant(); };
+  const chooseTask = (task: AiTaskType) => {
+    cancel(); setLoading(false); setResult(null); setError(null); setCopied(false); setTask(task);
+  };
 
   const run = async () => {
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    const envelope = await safeFetch<{
-      task: AiTaskType;
-      output: Record<string, unknown>;
-      provider: string;
-    }>("/api/ai/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        task: state.task,
-        brief: state.brief,
-        context: { ...state.context, tone },
-      }),
-    });
-    setLoading(false);
-    if (!envelope.success) {
-      setError(envelope.error);
-      return;
+    cancel();
+    const requestSequence = sequence.current;
+    const controller = new AbortController();
+    pending.current = controller;
+    setLoading(true); setError(null); setResult(null); setCopied(false);
+    try {
+      const draft = await requestAiDraft(state.task, { ...state.context, tone }, state.brief, { signal: controller.signal });
+      if (requestSequence === sequence.current) setResult(draft);
+    } catch (failure) {
+      if (requestSequence === sequence.current) setError(failure instanceof AiGenerationError ? failure.message : AI_ERROR_MESSAGES.unavailable);
+    } finally {
+      if (requestSequence === sequence.current) { pending.current = null; setLoading(false); }
     }
-    const out = envelope.data?.output;
-    if (!out || typeof out !== "object") {
-      setError("We couldn't generate a suggestion. Please try again.");
-      return;
-    }
-    setResult(out);
   };
 
   const copyOutput = async () => {
     if (!result) return;
+    const text = outputToPlainText(result.task, result.output);
+    if (!text) { setError("Complete the draft before copying it."); return; }
+    const copySequence = sequence.current;
     try {
-      await navigator.clipboard.writeText(outputToPlainText(state.task, result));
+      await navigator.clipboard.writeText(text);
+      if (copySequence !== sequence.current) return;
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      copiedTimer.current = setTimeout(() => setCopied(false), 1500);
     } catch {
-      /* ignore */
+      if (copySequence === sequence.current) setError("Copy isn't available. Select the draft text and copy it manually.");
     }
   };
+
+  const canCopy = result ? normalizeAiOutput(result.task, result.output, {}).ok : false;
 
   return (
     <Modal
       open={state.open}
-      onClose={closeAssistant}
+      onClose={close}
       title="MyARI AI"
       description="Relationship copilot - pick a task and generate a draft."
       size="lg"
       footer={
         <ModalFooterActions
-          onCancel={closeAssistant}
+          onCancel={close}
           cancelLabel="Close"
           primaryLabel={loading ? "Generating…" : "Generate"}
           onPrimary={() => void run()}
@@ -124,7 +138,8 @@ export function AiAssistantSidebar() {
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => setTask(t.id)}
+                  onClick={() => chooseTask(t.id)}
+                  aria-pressed={active}
                   className={cn(
                     "rounded-xl border px-3 py-3 text-left transition-all",
                     active
@@ -148,6 +163,7 @@ export function AiAssistantSidebar() {
                 key={t.id}
                 type="button"
                 onClick={() => setTone(t.id)}
+                aria-pressed={tone === t.id}
                 className={cn(
                   "rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors",
                   tone === t.id
@@ -168,10 +184,12 @@ export function AiAssistantSidebar() {
         ) : null}
 
         <div>
-          <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
+          <label htmlFor="ai-brief" className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
             Brief (optional)
           </label>
           <textarea
+            id="ai-brief"
+            maxLength={4000}
             value={state.brief ?? ""}
             onChange={(e) => setBrief(e.target.value)}
             rows={3}
@@ -181,30 +199,36 @@ export function AiAssistantSidebar() {
         </div>
 
         {error ? (
-          <p className="rounded-xl border border-error/30 bg-error/5 px-3 py-2 text-[13px] text-error">
+          <p role="alert" className="rounded-xl border border-error/30 bg-error/5 px-3 py-2 text-[13px] text-error">
             {error}
           </p>
         ) : null}
 
+        {loading ? <p role="status" className="text-[13px] text-taupe">Preparing your draft…</p> : null}
         {result ? (
           <div className="rounded-2xl border border-outline-variant/15 bg-cream p-4">
             <div className="mb-2 flex items-center justify-between">
               <p className="text-[12px] font-semibold uppercase tracking-wider text-taupe">
-                Suggestion
+                {result.task === "email_writer" ? "Email draft" : result.task === "sms_writer" ? "SMS draft" : "Suggestion"}
               </p>
               <button
                 type="button"
                 onClick={() => void copyOutput()}
-                className="text-[12px] font-medium text-rose-gold-deep hover:underline"
+                disabled={!canCopy}
+                className="text-[12px] font-medium text-rose-gold-deep hover:underline disabled:opacity-50"
               >
                 {copied ? "Copied!" : "Copy"}
               </button>
             </div>
+            {result.task !== state.task ? <p className="mb-3 text-[12px] text-taupe">Your brief requested a draft, so this result is ready to edit.</p> : null}
+            {result.provider === "template" ? <p className="mb-3 text-[12px] text-taupe">Template draft — review and personalize before use.</p> : null}
             <AiResultPanel
-              task={state.task}
-              output={result}
+              task={result.task as AiTaskType}
+              output={result.output}
+              onChange={(output) => { setResult({ ...result, output }); setCopied(false); setError(null); }}
               contactId={state.context.contactId}
             />
+            {!canCopy ? <p role="status" className="mt-2 text-[12px] text-taupe">Complete the draft fields before copying.</p> : null}
           </div>
         ) : null}
       </div>
