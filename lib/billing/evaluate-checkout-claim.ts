@@ -68,7 +68,7 @@ export function evaluateCheckoutClaim(input: CheckoutClaimInput): CheckoutClaimR
 
   const checkoutEmail = input.checkoutEmail?.trim().toLowerCase() || null;
   const clerkEmail = input.clerkEmail?.trim().toLowerCase() || null;
-  if (!boundOwner && !priorOwner && checkoutEmail && clerkEmail && checkoutEmail !== clerkEmail) {
+  if (!boundOwner && !priorOwner && (!checkoutEmail || !clerkEmail || checkoutEmail !== clerkEmail)) {
     return {
       ok: false,
       status: 403,

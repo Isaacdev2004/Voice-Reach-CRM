@@ -1,4 +1,5 @@
-import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
+import { checkoutIsEligible, subscriptionStatus } from "@/lib/billing/verification";
+import { apiOk, withApiHandler } from "@/lib/api-response";
 import { applyBillingPlan } from "@/lib/billing/settings-store";
 import type { PlanId } from "@/lib/billing/plans";
 import { getStripe, isStripeConfigured } from "@/lib/stripe/config";
@@ -18,60 +19,24 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const planId = planFromMetadata(session.metadata);
   if (!ownerId || !planId) return;
 
-  if (typeof session.customer === "string") {
+  const stripe = getStripe();
+  const expanded = await stripe.checkout.sessions.retrieve(session.id, { expand: ["subscription"] });
+  if (!checkoutIsEligible(expanded)) return;
+  if (typeof expanded.customer === "string") {
     const { saveStripeCustomerId } = await import("@/lib/billing/settings-store");
-    await saveStripeCustomerId(ownerId, session.customer);
+    await saveStripeCustomerId(ownerId, expanded.customer);
   }
-
-  let subscriptionStatus: "trialing" | "active" = "active";
-  if (typeof session.subscription === "string") {
-    const stripe = getStripe();
-    const sub = await stripe.subscriptions.retrieve(session.subscription);
-    subscriptionStatus = sub.status === "trialing" ? "trialing" : "active";
-  }
-
-  await applyBillingPlan(ownerId, planId, { subscriptionStatus });
+  const sub = expanded.subscription as Stripe.Subscription;
+  await applyBillingPlan(ownerId, planId, { subscriptionStatus: subscriptionStatus(sub.status) });
 }
 
 async function handleSubscriptionChange(subscription: Stripe.Subscription) {
   const ownerId = subscription.metadata?.ownerId;
-  if (!ownerId) return;
-
-  if (
-    subscription.status === "active" ||
-    subscription.status === "trialing" ||
-    subscription.status === "paused"
-  ) {
-    const planId = planFromMetadata(subscription.metadata);
-    if (planId) {
-      const subscriptionStatus =
-        subscription.status === "trialing"
-          ? "trialing"
-          : subscription.status === "paused"
-            ? "trialing"
-            : "active";
-      await applyBillingPlan(ownerId, planId, { subscriptionStatus });
-    }
-    return;
-  }
-
-  if (subscription.status === "canceled" || subscription.status === "unpaid") {
-    const saved = await applyBillingPlan(ownerId, "starter");
-    // Downgrade is still a known plan; mark canceled so paywall can prompt upgrade again
-    const { writeAuditLog } = await import("@/lib/audit");
-    await writeAuditLog({
-      ownerId,
-      action: "SETTINGS_SAVED",
-      entityType: "user_settings",
-      metadata: {
-        settings: {
-          ...saved,
-          billing: { ...saved.billing, subscriptionStatus: "canceled", monthlyPrice: 0, planName: "Choose a plan" },
-        },
-        source: "stripe_canceled",
-      },
-    });
-  }
+  const planId = planFromMetadata(subscription.metadata);
+  if (!ownerId || !planId) return;
+  await applyBillingPlan(ownerId, planId, {
+    subscriptionStatus: subscriptionStatus(subscription.status),
+  });
 }
 
 export async function POST(request: Request) {

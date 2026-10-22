@@ -1,3 +1,4 @@
+import { assertAttachmentOwnership } from "@/lib/campaigns/attachment-ownership";
 import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
@@ -130,6 +131,12 @@ function guessDelay(step: { dayLabel?: string }): number {
 export const POST = withApiHandler(async (request: Request) => {
   const ownerId = await requireUserId();
   const body = BodySchema.parse(await request.json());
+  for (const step of body.campaign.steps) {
+    for (const attachment of step.attachments ?? []) {
+      try { assertAttachmentOwnership(ownerId, attachment.storagePath); }
+      catch { return apiError("Attachment does not belong to this account.", { status: 403 }); }
+    }
+  }
   const {
     action,
     campaign: blueprint,

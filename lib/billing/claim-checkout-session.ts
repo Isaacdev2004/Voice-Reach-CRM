@@ -1,3 +1,4 @@
+import { checkoutIsEligible } from "@/lib/billing/verification";
 import { writeAuditLog } from "@/lib/audit";
 import { evaluateCheckoutClaim } from "@/lib/billing/evaluate-checkout-claim";
 import { applyBillingPlan } from "@/lib/billing/settings-store";
@@ -41,6 +42,10 @@ export async function claimCheckoutSessionForOwner(
   const session = await stripe.checkout.sessions.retrieve(sessionId, {
     expand: ["subscription"],
   });
+
+  if (!checkoutIsEligible(session)) {
+    return { ok: false, status: 400, code: "inactive_subscription", message: "Checkout requires a paid or trialing subscription." };
+  }
 
   const metadataClaimed = session.metadata?.claimedOwnerId?.trim();
   const auditClaimed = await findCheckoutSessionClaimOwner(sessionId);

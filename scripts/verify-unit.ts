@@ -1,3 +1,4 @@
+import "./verify-regressions";
 /**
  * Unit checks for audit Phase 2–3 (no DB/network). Run: npm run test:unit
  */

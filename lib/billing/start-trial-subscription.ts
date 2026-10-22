@@ -1,3 +1,4 @@
+import { subscriptionStatus as normalizeSubscriptionStatus } from "@/lib/billing/verification";
 import { applyBillingPlan, loadStripeCustomerId, saveStripeCustomerId } from "@/lib/billing/settings-store";
 import { planById, type PlanId } from "@/lib/billing/plans";
 import {
@@ -10,7 +11,7 @@ import { getStripe } from "@/lib/stripe/config";
 import type Stripe from "stripe";
 
 export type StartTrialResult =
-  | { ok: true; planId: PlanId; subscriptionStatus: "trialing" | "active"; subscriptionId: string }
+  | { ok: true; planId: PlanId; subscriptionStatus: "trialing" | "active" | "canceled"; subscriptionId: string }
   | { ok: false; message: string; code: string };
 
 async function ensureCustomer(params: {
@@ -70,7 +71,7 @@ export async function startTrialSubscriptionForOwner(params: {
   if (current) {
     const metaPlan = current.metadata?.planId as PlanId | undefined;
     const planId = metaPlan && planById(metaPlan) ? metaPlan : params.planId;
-    const status = current.status === "trialing" ? "trialing" : "active";
+    const status = normalizeSubscriptionStatus(current.status);
     await applyBillingPlan(params.ownerId, planId, { subscriptionStatus: status });
     return {
       ok: true,
@@ -98,7 +99,7 @@ export async function startTrialSubscriptionForOwner(params: {
       ...base,
       items: subscriptionItems(params.planId),
     });
-    const subscriptionStatus = sub.status === "trialing" ? "trialing" : "active";
+    const subscriptionStatus = normalizeSubscriptionStatus(sub.status);
     await applyBillingPlan(params.ownerId, params.planId, { subscriptionStatus });
     return {
       ok: true,
@@ -114,7 +115,7 @@ export async function startTrialSubscriptionForOwner(params: {
           ...base,
           items: subscriptionItems(params.planId),
         });
-        const subscriptionStatus = sub.status === "trialing" ? "trialing" : "active";
+        const subscriptionStatus = normalizeSubscriptionStatus(sub.status);
         await applyBillingPlan(params.ownerId, params.planId, { subscriptionStatus });
         return {
           ok: true,

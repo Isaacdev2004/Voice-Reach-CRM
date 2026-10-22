@@ -60,7 +60,13 @@ export const GET = withApiHandler(async (request) => {
     stepRuns: stepRunsRes.data ?? [],
   });
 
-  const engagement = engagementRes.data ?? [];
+  if (engagementRes.error) return apiError(engagementRes.error.message, { status: 500 });
+  const periodStart = new Date();
+  periodStart.setDate(periodStart.getDate() - (range === "7d" ? 7 : range === "30d" ? 30 : 90));
+  periodStart.setHours(0, 0, 0, 0);
+  const engagement = (engagementRes.data ?? []).filter((event) =>
+    range === "all" || new Date(event.occurred_at) >= periodStart,
+  );
   const engagementSummary = {
     total: engagement.length,
     byEvent: engagement.reduce<Record<string, number>>((acc, e) => {

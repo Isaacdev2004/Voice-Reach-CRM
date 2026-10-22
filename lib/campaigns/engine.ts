@@ -602,7 +602,7 @@ export async function runDueStepRuns(
     let emailAttachments: Array<{ filename: string; content: string }> | undefined;
 
     if (channel === "sms" && stepAttachments.length) {
-      mediaUrls = await signAttachmentsForSend(stepAttachments);
+      mediaUrls = await signAttachmentsForSend(run.owner_id, stepAttachments);
       if (!mediaUrls.length) {
         await markRun(run.id, "failed", {
           error: "Could not sign MMS attachment URL. Re-upload the image on this step.",
@@ -613,7 +613,7 @@ export async function runDueStepRuns(
     }
 
     if (channel === "email" && stepAttachments.length) {
-      emailAttachments = await emailAttachmentsForSend(stepAttachments);
+      emailAttachments = await emailAttachmentsForSend(run.owner_id, stepAttachments);
       if (!emailAttachments.length) {
         await markRun(run.id, "failed", {
           error: "Could not load email attachment. Re-upload the file on this step.",
