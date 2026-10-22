@@ -1,3 +1,4 @@
+import { checkoutIsEligible } from "@/lib/billing/verification";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { claimCheckoutSessionForOwner } from "@/lib/billing/claim-checkout-session";
@@ -25,7 +26,9 @@ export const POST = withApiHandler(async (request) => {
     try {
       const client = await clerkClient();
       const user = await client.users.getUser(userId);
-      clerkEmail = user.emailAddresses[0]?.emailAddress ?? null;
+      clerkEmail = user.emailAddresses.find((email) =>
+        email.id === user.primaryEmailAddressId && email.verification?.status === "verified"
+      )?.emailAddress ?? null;
     } catch {
       /* optional */
     }
@@ -59,7 +62,7 @@ export const GET = withApiHandler(async (request) => {
   }
 
   const stripe = getStripe();
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["subscription"] });
   const planId = session.metadata?.planId ?? "";
   const plan = planById(planId);
   const subscription = session.subscription;
@@ -68,7 +71,7 @@ export const GET = withApiHandler(async (request) => {
     subscription !== null &&
     "status" in subscription &&
     subscription.status === "trialing";
-  const paid = session.status === "complete";
+  const paid = checkoutIsEligible(session);
 
   return apiOk({
     paid,
@@ -76,6 +79,5 @@ export const GET = withApiHandler(async (request) => {
     planId: plan?.id ?? null,
     planName: plan?.name ?? null,
     price: plan?.price ?? null,
-    customerEmail: session.customer_details?.email ?? session.customer_email ?? null,
   });
 });

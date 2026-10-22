@@ -1,3 +1,4 @@
+import { assertAttachmentOwnership } from "./attachment-ownership";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export type CampaignStepAttachment = {
@@ -66,9 +67,11 @@ export function validateAttachmentUpload(params: {
 }
 
 export async function signStoragePath(
+  ownerId: string,
   storagePath: string,
   expiresInSeconds = 60 * 60,
 ): Promise<string | null> {
+  assertAttachmentOwnership(ownerId, storagePath);
   const { data, error } = await supabaseAdmin.storage
     .from(storageBucket())
     .createSignedUrl(storagePath, expiresInSeconds);
@@ -77,19 +80,22 @@ export async function signStoragePath(
 }
 
 export async function signAttachmentsForSend(
+  ownerId: string,
   attachments: CampaignStepAttachment[],
 ): Promise<string[]> {
   const urls: string[] = [];
   for (const file of attachments) {
-    const signed = await signStoragePath(file.storagePath);
+    const signed = await signStoragePath(ownerId, file.storagePath);
     if (signed) urls.push(signed);
   }
   return urls;
 }
 
 export async function downloadAttachmentBase64(
+  ownerId: string,
   attachment: CampaignStepAttachment,
 ): Promise<{ filename: string; content: string } | null> {
+  assertAttachmentOwnership(ownerId, attachment.storagePath);
   const { data, error } = await supabaseAdmin.storage
     .from(storageBucket())
     .download(attachment.storagePath);
@@ -102,11 +108,12 @@ export async function downloadAttachmentBase64(
 }
 
 export async function emailAttachmentsForSend(
+  ownerId: string,
   attachments: CampaignStepAttachment[],
 ): Promise<Array<{ filename: string; content: string }>> {
   const out: Array<{ filename: string; content: string }> = [];
   for (const file of attachments) {
-    const downloaded = await downloadAttachmentBase64(file);
+    const downloaded = await downloadAttachmentBase64(ownerId, file);
     if (downloaded) out.push(downloaded);
   }
   return out;

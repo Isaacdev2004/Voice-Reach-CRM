@@ -1,3 +1,4 @@
+import { verifiedUsageCount } from "./usage-count";
 import {
   overageRatesForPlan,
   planById,
@@ -42,7 +43,7 @@ export async function resolveOwnerPlan(ownerId: string): Promise<PlanOption> {
 export async function isTrialUsagePeriod(ownerId: string): Promise<boolean> {
   const saved = await loadSavedSettings(ownerId);
   const status = saved?.billing.subscriptionStatus ?? "none";
-  return status === "trialing" || status === "none";
+  return status !== "active";
 }
 
 async function countChannelSends(ownerId: string, channel: "sms" | "email" | "voicemail") {
@@ -55,11 +56,7 @@ async function countChannelSends(ownerId: string, channel: "sms" | "email" | "vo
     .in("event_type", ["delivered", "sent", "queued"])
     .gte("occurred_at", since);
 
-  if (error) {
-    // Table may differ in older DBs - fall back to 0 so we don't hard-crash trials
-    return 0;
-  }
-  return count ?? 0;
+  return verifiedUsageCount(count, error);
 }
 
 export async function getPlanUsage(ownerId: string): Promise<PlanUsage> {
@@ -132,6 +129,10 @@ export async function assertCanSendChannel(
 ) {
   const usage = await getPlanUsage(ownerId);
   const plan = usage.plan;
+  const saved = await loadSavedSettings(ownerId);
+  if (!["active", "trialing"].includes(saved?.billing.subscriptionStatus ?? "none")) {
+    return { ok: false as const, usage, error: "An active subscription or trial is required to send.", code: "subscription_inactive" };
+  }
   const onTrial = await isTrialUsagePeriod(ownerId);
   const caps = FOUNDING_100.trialUsageCaps;
 

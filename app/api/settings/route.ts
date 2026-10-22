@@ -1,3 +1,4 @@
+import { billingForSettingsWrite } from "@/lib/billing/verification";
 import { apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
@@ -195,9 +196,10 @@ export const POST = withApiHandler(async (request) => {
   const { settings: body } = PostSchema.parse(await request.json());
   const minutesUsed = await usageMinutes(ownerId);
 
+  const saved = await loadSavedSettings(ownerId);
   const settings: UserSettings = {
     ...body,
-    billing: { ...body.billing, voiceMinutesUsed: minutesUsed || body.billing.voiceMinutesUsed },
+    billing: billingForSettingsWrite(saved?.billing, minutesUsed),
     updatedAt: new Date().toISOString(),
   };
 

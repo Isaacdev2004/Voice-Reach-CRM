@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "smoke": "node scripts/smoke-test.mjs",
     "test:security": "node scripts/verify-audit-fixes.mjs",
-    "test:unit": "tsx scripts/verify-unit.ts"
+    "test:unit": "node --import tsx scripts/verify-unit.ts",
+    "test:regressions": "node --import tsx scripts/verify-regressions.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",

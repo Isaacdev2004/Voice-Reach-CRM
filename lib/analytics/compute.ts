@@ -8,7 +8,6 @@ import type {
   ProviderSlice,
   TrendPoint,
 } from "./types";
-import { SEED_ANALYTICS } from "./seed";
 
 type ContactRow = {
   id: string;
@@ -100,13 +99,6 @@ function consentScore(contacts: ContactRow[]): number {
   return Math.round((score / contacts.length) * 100);
 }
 
-function roiFromRate(rate: number): { roi: string; tone: CampaignMetric["roiTone"] } {
-  const mult = Math.min(4.9, Math.max(0.8, 0.8 + rate / 22));
-  const tone: CampaignMetric["roiTone"] =
-    mult >= 3 ? "good" : mult >= 2 ? "neutral" : "warn";
-  return { roi: `${mult.toFixed(1)}x`, tone };
-}
-
 function dayLabels(count: number): string[] {
   const labels: string[] = [];
   const now = new Date();
@@ -114,7 +106,7 @@ function dayLabels(count: number): string[] {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
     labels.push(
-      d.toLocaleDateString(undefined, { weekday: "short" }).slice(0, 3),
+      d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
     );
   }
   return labels;
@@ -141,13 +133,6 @@ export function buildAnalyticsSnapshot(params: {
         )
       : [];
 
-  const hasLive =
-    contacts.length > 0 || campaigns.length > 0 || recipients.length > 0;
-
-  if (!hasLive) {
-    return { ...SEED_ANALYTICS, range, rangeLabel: RANGE_LABELS[range] };
-  }
-
   const success = inPeriod.filter((r) => isSuccessStatus(r.delivery_status));
   const failed = inPeriod.filter((r) => isFailedStatus(r.delivery_status));
   const attempted = inPeriod.filter((r) => r.delivery_status !== "not_sent");
@@ -162,23 +147,13 @@ export function buildAnalyticsSnapshot(params: {
       ? (prevSuccess.length / prevAttempted.length) * 100
       : deliveryRate;
 
-  const engagementRate =
-    contacts.length > 0
-      ? (success.length / Math.max(contacts.length, 1)) * 100
-      : 0;
-  const prevEngagement =
-    inPrevious.length > 0 && contacts.length > 0
-      ? (prevSuccess.length / contacts.length) * 100
-      : engagementRate;
-
   const consent = consentScore(contacts);
-  const latency = Math.max(320, 680 - Math.min(success.length, 400));
 
   const kpis: AnalyticsKpi[] = [
     {
       id: "delivery",
       label: "Delivery success rate",
-      value: formatPercent(deliveryRate || (hasLive ? 0 : 94.2)),
+      value: formatPercent(deliveryRate),
       change: formatDelta(deliveryRate, prevDeliveryRate),
       changeTone: deliveryRate >= prevDeliveryRate ? "up" : "down",
       icon: "check_circle",
@@ -187,8 +162,8 @@ export function buildAnalyticsSnapshot(params: {
     {
       id: "response",
       label: "Avg. provider latency",
-      value: `${latency}ms`,
-      change: formatDelta(latency, latency + 120, "ms"),
+      value: "Unavailable",
+      change: "No latency measurements",
       changeTone: "up",
       icon: "timer",
       tone: "bronze",
@@ -196,9 +171,9 @@ export function buildAnalyticsSnapshot(params: {
     {
       id: "conversion",
       label: "Engagement rate",
-      value: formatPercent(Math.min(engagementRate, 100)),
-      change: formatDelta(engagementRate, prevEngagement),
-      changeTone: engagementRate >= prevEngagement ? "up" : "down",
+      value: "Unavailable",
+      change: "No engagement measurements",
+      changeTone: "neutral",
       icon: "trending_up",
       tone: "rose",
     },
@@ -213,7 +188,7 @@ export function buildAnalyticsSnapshot(params: {
     },
   ];
 
-  const trendDays = range === "7d" ? 7 : 7;
+  const trendDays = range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : Math.max(7, Math.ceil((Date.now() - Math.min(Date.now(), ...recipients.map((r) => Date.parse(r.created_at)).filter(Number.isFinite))) / 86400000) + 1);
   const labels = dayLabels(trendDays);
   const trends: TrendPoint[] = labels.map((label, idx) => {
     const dayStart = new Date();
@@ -222,7 +197,7 @@ export function buildAnalyticsSnapshot(params: {
     const dayEnd = new Date(dayStart);
     dayEnd.setDate(dayEnd.getDate() + 1);
 
-    const dayRows = recipients.filter((r) => {
+    const dayRows = inPeriod.filter((r) => {
       const t = new Date(r.updated_at || r.created_at).getTime();
       return t >= dayStart.getTime() && t < dayEnd.getTime();
     });
@@ -237,7 +212,7 @@ export function buildAnalyticsSnapshot(params: {
   const providerMap = new Map<string, number>();
   for (const c of campaigns) {
     const key = c.provider || "mock";
-    const count = recipients.filter(
+    const count = inPeriod.filter(
       (r) => r.campaign_id === c.id && isSuccessStatus(r.delivery_status),
     ).length;
     providerMap.set(key, (providerMap.get(key) ?? 0) + count);
@@ -263,10 +238,10 @@ export function buildAnalyticsSnapshot(params: {
     }))
     .sort((a, b) => b.count - a.count);
 
-  const totalOutreach = recipients.length || inPeriod.length;
-  const connected = recipients.filter((r) => isSuccessStatus(r.delivery_status)).length;
-  const engagement = Math.round(connected * 0.41);
-  const converted = Math.round(engagement * 0.46);
+  const totalOutreach = attempted.length;
+  const connected = inPeriod.filter((r) => isSuccessStatus(r.delivery_status)).length;
+  const engagement = 0;
+  const converted = 0;
 
   const funnel: FunnelStage[] = [
     {
@@ -277,38 +252,38 @@ export function buildAnalyticsSnapshot(params: {
     },
     {
       id: "connected",
-      label: "Connected / delivered",
+      label: "Sent / delivered",
       count: connected,
       percent: totalOutreach ? Math.round((connected / totalOutreach) * 100) : 0,
     },
     {
       id: "engagement",
-      label: "Engagement",
+      label: "Engagement (unavailable)",
       count: engagement,
       percent: totalOutreach ? Math.round((engagement / totalOutreach) * 100) : 0,
     },
     {
       id: "converted",
-      label: "High-intent leads",
+      label: "High-intent leads (unavailable)",
       count: converted,
       percent: totalOutreach ? Math.round((converted / totalOutreach) * 100) : 0,
     },
   ];
 
-  const campaignMetrics: CampaignMetric[] = campaigns.map((c) => {
-    const rows = recipients.filter((r) => r.campaign_id === c.id);
+  const campaignMetrics: CampaignMetric[] = campaigns.filter((c) => inPeriod.some((r) => r.campaign_id === c.id)).map((c) => {
+    const rows = attempted.filter((r) => r.campaign_id === c.id);
     const vol = rows.length;
     const del = rows.filter((r) => isSuccessStatus(r.delivery_status)).length;
     const rate = vol > 0 ? (del / vol) * 100 : 0;
-    const { roi, tone } = roiFromRate(rate);
+
     return {
       id: c.id,
       name: c.name,
       subtitle: c.provider ? `${c.provider} provider` : "Campaign",
       volume: vol,
       delivered: del,
-      roi,
-      roiTone: tone,
+      roi: "Unavailable",
+      roiTone: "neutral",
       status: c.status,
       deliveryRate: Math.round(rate),
     };
@@ -316,18 +291,7 @@ export function buildAnalyticsSnapshot(params: {
 
   campaignMetrics.sort((a, b) => b.volume - a.volume);
 
-  const vm = Math.max(success.length, 1);
-  const rawChannels = [
-    { id: "vm", channel: "Ringless voicemail", icon: "voicemail", sent: vm },
-    { id: "email", channel: "Email", icon: "mail", sent: Math.round(vm * 0.55) },
-    { id: "sms", channel: "SMS", icon: "sms", sent: Math.round(vm * 0.35) },
-    { id: "video", channel: "Avatar video", icon: "videocam", sent: Math.round(vm * 0.2) },
-  ];
-  const channelTotal = rawChannels.reduce((s, x) => s + x.sent, 0) || 1;
-  const channels: ChannelMetric[] = rawChannels.map((ch) => ({
-    ...ch,
-    rate: Math.round((ch.sent / channelTotal) * 100),
-  }));
+  const channels: ChannelMetric[] = []; // Recipient records do not identify a channel.
 
   return {
     range,
@@ -336,9 +300,9 @@ export function buildAnalyticsSnapshot(params: {
     fromLiveData: true,
     kpis,
     trends,
-    providers: providers.length ? providers : SEED_ANALYTICS.providers,
+    providers,
     funnel,
-    campaigns: campaignMetrics.length ? campaignMetrics : SEED_ANALYTICS.campaigns,
+    campaigns: campaignMetrics,
     channels,
     totals: {
       outreach: totalOutreach,
