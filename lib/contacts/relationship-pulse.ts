@@ -158,7 +158,7 @@ export function buildRelationshipPulse(input: {
       });
     }
 
-    if (consentBlocked(c) && seg !== "past-client") {
+    if (consentBlocked(c)) {
       pushLane(laneMap, "needs_attention", {
         contactId: id,
         name,
