@@ -47,10 +47,10 @@ export type DashboardPageHeroConfig = {
   heroGridClass?: string;
   /** Large faith / editorial quote as the main left column (Calendar inspiration). */
   editorialQuoteOnCopy?: boolean;
-  /** Shorter hero panel (~20% less vertical space). */
-  heroDensity?: "default" | "compact";
-  /** Narrower/lighter photo fade so the image stays vivid. */
-  imageBlend?: "default" | "subtle";
+  /** Shorter hero panel (`compact` ~15%, `dense` ~25% vs default on desktop). */
+  heroDensity?: "default" | "compact" | "dense";
+  /** Photo edge fade: `vivid` = minimal overlay for sharper hero art (home). */
+  imageBlend?: "default" | "subtle" | "vivid";
 };
 
 /** Matches resized client art in `public/brand/heroes/` (Oct 2026). */
@@ -105,7 +105,8 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     titleMode: "dashboardHome",
     subtitle:
       "Nurture your leads, stay top of mind, and create more opportunities with AI-driven outreach.",
-    ...DASHBOARD_HERO_COMPACT,
+    heroDensity: "dense",
+    imageBlend: "vivid",
     imageAlt: "Luxury pool and property at golden hour",
     imageObjectPosition: "62% 42%",
     actions: [

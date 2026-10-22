@@ -26,15 +26,25 @@ export function KpiCard({
   icon,
   tone = "default",
   spark,
-}: DashboardKpi) {
+  compact = false,
+}: DashboardKpi & { compact?: boolean }) {
   return (
     <LuxuryCard
       padding="sm"
-      className="relative flex min-h-[108px] flex-col justify-between transition-shadow hover:shadow-nav"
+      className={cn(
+        "relative flex flex-col justify-between transition-shadow hover:shadow-nav",
+        compact ? "min-h-[88px] !p-3 sm:!p-3.5" : "min-h-[108px]",
+      )}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl", toneStyles[tone])}>
-          <Icon name={icon} className="text-[20px]" />
+        <div
+          className={cn(
+            "flex items-center justify-center rounded-xl",
+            compact ? "h-8 w-8" : "h-9 w-9",
+            toneStyles[tone],
+          )}
+        >
+          <Icon name={icon} className={compact ? "text-[18px]" : "text-[20px]"} />
         </div>
         <div className="flex flex-col items-end gap-1">
           {change ? (
@@ -50,10 +60,21 @@ export function KpiCard({
           {spark ? <KpiSpark variant={spark} /> : null}
         </div>
       </div>
-      <div className="mt-2.5">
-        <p className="text-[13px] text-taupe">{label}</p>
-        <p className="font-serif text-[24px] font-semibold leading-tight text-ink sm:text-[26px]">{value}</p>
-        {detail ? <p className="mt-0.5 text-[11px] text-slate-text">{detail}</p> : null}
+      <div className={compact ? "mt-1.5" : "mt-2.5"}>
+        <p className={cn("text-taupe", compact ? "text-[12px]" : "text-[13px]")}>{label}</p>
+        <p
+          className={cn(
+            "font-serif font-semibold leading-tight text-ink",
+            compact ? "text-[21px] sm:text-[22px]" : "text-[24px] sm:text-[26px]",
+          )}
+        >
+          {value}
+        </p>
+        {detail ? (
+          <p className={cn("text-slate-text", compact ? "mt-0 text-[10px]" : "mt-0.5 text-[11px]")}>
+            {detail}
+          </p>
+        ) : null}
       </div>
     </LuxuryCard>
   );
