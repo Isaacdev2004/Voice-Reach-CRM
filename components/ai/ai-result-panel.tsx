@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { CampaignIdeaActions } from "@/components/ai/campaign-idea-actions";
 import type { AiTaskType } from "./ai-assistant-context";
 
 type AiResultPanelProps = {
@@ -112,6 +113,7 @@ export function AiResultPanel({ task, output }: AiResultPanelProps) {
               ))}
             </ol>
           ) : null}
+          <CampaignIdeaActions output={output} />
         </div>
       );
     }

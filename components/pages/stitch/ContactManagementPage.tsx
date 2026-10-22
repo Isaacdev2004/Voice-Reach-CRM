@@ -20,13 +20,15 @@ import {
 } from "@/lib/contacts/lifecycle";
 import { DEFAULT_CONTACT_CATEGORIES } from "@/lib/contacts/categories";
 import { ManageCategoriesModal } from "@/components/crm/manage-categories-modal";
+import { RelationshipPulseSection } from "@/components/crm/relationship-pulse-section";
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
 import { useContacts, type ApiContact } from "@/lib/hooks/use-contacts";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { DATABASE_SETUP_HINT } from "@/lib/supabase-errors";
-import { useMemo, useState } from "react";
+import type { PulseLaneId, RelationshipPulseResult } from "@/lib/contacts/relationship-pulse";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type ContactSort = "name-asc" | "name-desc" | "recent";
@@ -86,8 +88,34 @@ export function ContactManagementPage() {
     category,
   );
   const rows: ApiContact[] = contacts.length > 0 ? contacts : FALLBACK_ROWS;
+  const [pulse, setPulse] = useState<RelationshipPulseResult | null>(null);
+  const [pulseLoading, setPulseLoading] = useState(true);
+  const [activePulseLane, setActivePulseLane] = useState<PulseLaneId | null>(null);
+
+  const loadPulse = useCallback(async () => {
+    setPulseLoading(true);
+    const envelope = await safeFetch<RelationshipPulseResult>("/api/contacts/relationship-pulse");
+    setPulseLoading(false);
+    if (envelope.success) setPulse(envelope.data);
+    else setPulse(null);
+  }, []);
+
+  useEffect(() => {
+    void loadPulse();
+  }, [loadPulse]);
+
+  const pulseFilterIds = useMemo(() => {
+    if (!activePulseLane || !pulse) return null;
+    const lane = pulse.lanes.find((l) => l.id === activePulseLane);
+    if (!lane?.contacts.length) return new Set<string>();
+    return new Set(lane.contacts.map((c) => c.contactId));
+  }, [activePulseLane, pulse]);
+
   const sortedRows = useMemo(() => {
-    const list = [...rows];
+    let list = [...rows];
+    if (pulseFilterIds) {
+      list = list.filter((c) => pulseFilterIds.has(c.id));
+    }
     if (sort === "name-asc") {
       list.sort((a, b) => contactSortKey(a).localeCompare(contactSortKey(b)));
     } else if (sort === "name-desc") {
@@ -100,7 +128,7 @@ export function ContactManagementPage() {
       });
     }
     return list;
-  }, [rows, sort]);
+  }, [rows, sort, pulseFilterIds]);
   const total = meta?.total ?? (contacts.length > 0 ? contacts.length : rows.length);
 
   const selectableRows = useMemo<ApiContact[]>(() => (contacts.length > 0 ? contacts : []), [contacts]);
@@ -172,6 +200,7 @@ export function ContactManagementPage() {
     setSelected({});
     closeBulk();
     void refresh();
+    void loadPulse();
   };
 
   const runBulkType = async () => {
@@ -191,6 +220,7 @@ export function ContactManagementPage() {
     setSelected({});
     closeBulk();
     void refresh();
+    void loadPulse();
   };
 
   const counts = meta?.counts;
@@ -217,6 +247,7 @@ export function ContactManagementPage() {
     setSelected({});
     closeBulk();
     void refresh();
+    void loadPulse();
   };
 
   const runBulkConsent = async () => {
@@ -235,6 +266,7 @@ export function ContactManagementPage() {
     }
     closeBulk();
     void refresh();
+    void loadPulse();
   };
 
   return (
@@ -246,6 +278,7 @@ export function ContactManagementPage() {
         onChanged={(next) => {
           setCustomCategories(next);
           void refresh();
+    void loadPulse();
         }}
       />
       <BulkConsentModal
@@ -288,7 +321,12 @@ export function ContactManagementPage() {
         error={bulkError}
       />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-        <ContactPageActions onRefresh={refresh} />
+        <ContactPageActions
+          onRefresh={() => {
+            refresh();
+            void loadPulse();
+          }}
+        />
       </div>
 
       <LuxuryCard padding="md" className="space-y-4">
@@ -401,6 +439,14 @@ export function ContactManagementPage() {
           </div>
         </div>
       </LuxuryCard>
+
+      <RelationshipPulseSection
+        pulse={pulse}
+        loading={pulseLoading}
+        activeLane={activePulseLane}
+        onSelectLane={setActivePulseLane}
+        onOpenContact={() => undefined}
+      />
 
       {category !== "all" ? (
         <p className="rounded-2xl border border-outline-variant/15 bg-ivory px-4 py-3 text-[14px] text-slate-text">

@@ -23,6 +23,11 @@ import {
   parsePmmsCsv,
   selectPmmsHistory,
 } from "../lib/mortgage/market-rates";
+import { campaignBlueprintFromAiIdea } from "../lib/ai/campaign-blueprint-from-idea";
+import {
+  buildRelationshipPulse,
+  type PulseContactInput,
+} from "../lib/contacts/relationship-pulse";
 import {
   formatPipelineValueDisplay,
   sumActiveLeadBudgets,
@@ -172,6 +177,58 @@ function testMortgageMarketRates() {
   assert.equal(history.length, 3);
 }
 
+function testRelationshipPulse() {
+  const contacts: PulseContactInput[] = [
+    {
+      id: "a1",
+      first_name: "Alex",
+      last_name: "Buyer",
+      type: "Active Lead",
+      consent_status: "Yes",
+      budget: 600_000,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "c1",
+      first_name: "Cold",
+      type: "Cold Lead",
+      consent_status: "Unknown",
+      created_at: "2020-01-01T00:00:00.000Z",
+      updated_at: "2020-01-01T00:00:00.000Z",
+    },
+  ];
+  const pulse = buildRelationshipPulse({
+    contacts,
+    tasks: [{ contact_id: "a1", due_at: "2020-01-01T00:00:00.000Z", completed: false }],
+    engagement: [
+      {
+        contact_id: "a1",
+        event_type: "replied",
+        occurred_at: new Date().toISOString(),
+        score: 60,
+      },
+    ],
+    now: new Date("2026-10-22T12:00:00.000Z"),
+  });
+  assert.ok(pulse.lanes.find((l) => l.id === "needs_attention")!.contacts.some((c) => c.contactId === "a1"));
+  assert.ok(pulse.lanes.find((l) => l.id === "heating_up")!.contacts.some((c) => c.contactId === "a1"));
+  assert.ok(pulse.lanes.find((l) => l.id === "ready_for_business")!.contacts.some((c) => c.contactId === "a1"));
+}
+
+function testCampaignBlueprintFromAi() {
+  const bp = campaignBlueprintFromAiIdea({
+    name: "Re-engage cold leads",
+    description: "Three-touch sequence",
+    steps: [
+      { type: "sms", title: "Check-in", dayLabel: "Day 1", description: "Hi there" },
+      { type: "email", title: "Listings", dayLabel: "Day 3", description: "Body" },
+    ],
+  });
+  assert.ok(bp);
+  assert.equal(bp!.steps.length, 2);
+  assert.equal(bp!.steps[0]!.type, "sms");
+}
+
 function testHomePipelineKpi() {
   const contacts = [
     { type: "Active Lead", budget: 500_000 },
@@ -192,4 +249,6 @@ testAiParseOutput();
 testOutboundContent();
 testMortgageMarketRates();
 testHomePipelineKpi();
+testRelationshipPulse();
+testCampaignBlueprintFromAi();
 console.log("verify-unit: ok");
