@@ -120,6 +120,11 @@ export function normalizeAiOutput(
       if (!name || !steps?.length) return { ok: false, reason: "wrong_shape" };
       return { ok: true, output: { name, description, steps } };
     }
+    case "relationship_pulse": {
+      const summary = asString(raw.summary) ?? asString(raw.conciergeHint);
+      if (!summary) return { ok: false, reason: "wrong_shape" };
+      return { ok: true, output: { summary: summary.slice(0, 320) } };
+    }
     default:
       return { ok: false, reason: "wrong_shape" };
   }

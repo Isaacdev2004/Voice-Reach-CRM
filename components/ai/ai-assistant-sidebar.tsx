@@ -200,7 +200,11 @@ export function AiAssistantSidebar() {
                 {copied ? "Copied!" : "Copy"}
               </button>
             </div>
-            <AiResultPanel task={state.task} output={result} />
+            <AiResultPanel
+              task={state.task}
+              output={result}
+              contactId={state.context.contactId}
+            />
           </div>
         ) : null}
       </div>

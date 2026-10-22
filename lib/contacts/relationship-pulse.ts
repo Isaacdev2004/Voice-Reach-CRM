@@ -19,6 +19,8 @@ export type RelationshipPulseResult = {
   lanes: PulseLane[];
   /** Short concierge-style nudge (rule-based, not LLM). */
   conciergeHint: string;
+  /** When requested, MyARI AI rewrites priorities in natural language. */
+  aiConciergeHint?: string | null;
   generatedAt: string;
 };
 

@@ -7,6 +7,7 @@ type AiLauncherButtonProps = {
   label?: string;
   className?: string;
   task?: import("./ai-assistant-context").AiTaskType;
+  contactId?: string;
   contactName?: string;
   contactNotes?: string;
   campaignName?: string;
@@ -17,6 +18,7 @@ export function AiLauncherButton({
   label = "Ask MyARI",
   className,
   task = "follow_up",
+  contactId,
   contactName,
   contactNotes,
   campaignName,
@@ -29,7 +31,7 @@ export function AiLauncherButton({
       onClick={() =>
         openAssistant({
           task,
-          context: { contactName, contactNotes, campaignName, goal, tone: "luxury" },
+          context: { contactId, contactName, contactNotes, campaignName, goal, tone: "luxury" },
         })
       }
       className={cn(

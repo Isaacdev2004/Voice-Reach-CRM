@@ -7,6 +7,7 @@ import type { AiTaskType } from "./ai-assistant-context";
 type AiResultPanelProps = {
   task: AiTaskType;
   output: Record<string, unknown>;
+  contactId?: string;
 };
 
 function FieldLabel({ children }: { children: ReactNode }) {
@@ -15,7 +16,7 @@ function FieldLabel({ children }: { children: ReactNode }) {
   );
 }
 
-export function AiResultPanel({ task, output }: AiResultPanelProps) {
+export function AiResultPanel({ task, output, contactId }: AiResultPanelProps) {
   switch (task) {
     case "email_writer":
       return (
@@ -113,7 +114,7 @@ export function AiResultPanel({ task, output }: AiResultPanelProps) {
               ))}
             </ol>
           ) : null}
-          <CampaignIdeaActions output={output} />
+          <CampaignIdeaActions output={output} contactId={contactId} />
         </div>
       );
     }

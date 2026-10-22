@@ -4,7 +4,9 @@ import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import type { PulseLane, PulseLaneId, RelationshipPulseResult } from "@/lib/contacts/relationship-pulse";
+import { PulseEnrollModal } from "@/components/crm/pulse-enroll-modal";
 import Link from "next/link";
+import { useState } from "react";
 
 type RelationshipPulseSectionProps = {
   pulse: RelationshipPulseResult | null;
@@ -12,6 +14,7 @@ type RelationshipPulseSectionProps = {
   activeLane: PulseLaneId | null;
   onSelectLane: (lane: PulseLaneId | null) => void;
   onOpenContact: (contactId: string) => void;
+  onEnrollSuccess?: (message: string) => void;
 };
 
 const LANE_STYLES: Record<PulseLaneId, { accent: string; icon: string }> = {
@@ -75,9 +78,13 @@ export function RelationshipPulseSection({
   activeLane,
   onSelectLane,
   onOpenContact,
+  onEnrollSuccess,
 }: RelationshipPulseSectionProps) {
-  const activeContacts =
-    activeLane && pulse ? pulse.lanes.find((l) => l.id === activeLane)?.contacts ?? [] : [];
+  const [enrollOpen, setEnrollOpen] = useState(false);
+  const activeLaneData =
+    activeLane && pulse ? pulse.lanes.find((l) => l.id === activeLane) : null;
+  const activeContacts = activeLaneData?.contacts ?? [];
+  const displayHint = pulse?.aiConciergeHint?.trim() || pulse?.conciergeHint || "";
 
   return (
     <LuxuryCard padding="md" className="border border-outline-variant/12">
@@ -107,8 +114,13 @@ export function RelationshipPulseSection({
         <>
           <p className="mt-3 flex items-start gap-2 rounded-2xl bg-cream/50 px-3 py-2.5 text-[13px] leading-relaxed text-slate-text">
             <Icon name="auto_awesome" className="mt-0.5 shrink-0 text-[18px] text-rose-gold-deep" />
-            {pulse.conciergeHint}
+            {displayHint}
           </p>
+          {pulse.aiConciergeHint ? (
+            <p className="mt-1 text-[10px] uppercase tracking-wider text-taupe">
+              MyARI AI concierge
+            </p>
+          ) : null}
           <div className="mt-4 grid gap-3 lg:grid-cols-3">
             {pulse.lanes.map((lane) => (
               <LaneCard
@@ -119,6 +131,23 @@ export function RelationshipPulseSection({
               />
             ))}
           </div>
+          {activeLane && activeLaneData && activeContacts.length > 0 ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setEnrollOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full bg-rose-gold px-4 py-2 text-[13px] font-medium text-ivory hover:opacity-90"
+              >
+                Enroll lane in campaign
+              </button>
+              <Link
+                href="/dashboard/campaigns#campaign-builder"
+                className="text-[12px] font-medium text-rose-gold-deep hover:underline"
+              >
+                Open campaign builder
+              </Link>
+            </div>
+          ) : null}
           {activeLane && activeContacts.length > 0 ? (
             <ul className="mt-4 divide-y divide-outline-variant/10 rounded-2xl border border-outline-variant/12 bg-ivory">
               {activeContacts.map((c) => (
@@ -139,6 +168,17 @@ export function RelationshipPulseSection({
       ) : (
         <p className="mt-4 text-[13px] text-taupe">Pulse unavailable — refresh contacts to retry.</p>
       )}
+
+      {activeLane && activeLaneData ? (
+        <PulseEnrollModal
+          open={enrollOpen}
+          onClose={() => setEnrollOpen(false)}
+          laneId={activeLane}
+          laneTitle={activeLaneData.title}
+          contactCount={activeContacts.length}
+          onSuccess={(msg) => onEnrollSuccess?.(msg)}
+        />
+      ) : null}
     </LuxuryCard>
   );
 }

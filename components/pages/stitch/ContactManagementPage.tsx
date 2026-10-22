@@ -91,10 +91,13 @@ export function ContactManagementPage() {
   const [pulse, setPulse] = useState<RelationshipPulseResult | null>(null);
   const [pulseLoading, setPulseLoading] = useState(true);
   const [activePulseLane, setActivePulseLane] = useState<PulseLaneId | null>(null);
+  const [pulseToast, setPulseToast] = useState<string | null>(null);
 
   const loadPulse = useCallback(async () => {
     setPulseLoading(true);
-    const envelope = await safeFetch<RelationshipPulseResult>("/api/contacts/relationship-pulse");
+    const envelope = await safeFetch<RelationshipPulseResult>(
+      "/api/contacts/relationship-pulse?ai=1",
+    );
     setPulseLoading(false);
     if (envelope.success) setPulse(envelope.data);
     else setPulse(null);
@@ -440,12 +443,22 @@ export function ContactManagementPage() {
         </div>
       </LuxuryCard>
 
+      {pulseToast ? (
+        <p className="rounded-2xl border border-sage/25 bg-sage-light/40 px-4 py-3 text-[13px] text-emerald-muted">
+          {pulseToast}
+        </p>
+      ) : null}
+
       <RelationshipPulseSection
         pulse={pulse}
         loading={pulseLoading}
         activeLane={activePulseLane}
         onSelectLane={setActivePulseLane}
         onOpenContact={() => undefined}
+        onEnrollSuccess={(msg) => {
+          setPulseToast(msg);
+          window.setTimeout(() => setPulseToast(null), 6000);
+        }}
       />
 
       {category !== "all" ? (

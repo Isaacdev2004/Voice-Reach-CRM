@@ -168,6 +168,7 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
                 Edit contact
               </button>
               <AiLauncherButton
+                contactId={profile.id}
                 contactName={`${profile.firstName} ${profile.lastName}`}
                 contactNotes={profile.notes}
                 goal={profile.leadStatus}

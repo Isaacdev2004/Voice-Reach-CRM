@@ -142,6 +142,14 @@ function templateOutput(task: AiTaskType, ctx: AiContext, brief?: string): Recor
             : "Limited recent engagement - a warm, personalized touch tends to outperform email here.",
           suggestedChannel: pick(["voicemail", "sms", "email"], seed),
         };
+      case "relationship_pulse": {
+        const base =
+          brief?.trim() ||
+          "Review contacts in each lane and follow up with the highest-intent relationships first.";
+        return {
+          summary: base.length > 280 ? `${base.slice(0, 277)}…` : base,
+        };
+      }
       case "campaign_idea":
         return {
           name: `Luxury ${ctx.tone === "luxury" ? "discreet" : "warm"} nurture - 10 days`,
