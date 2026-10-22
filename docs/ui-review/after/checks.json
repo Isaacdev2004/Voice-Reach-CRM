@@ -1,0 +1,506 @@
+[
+  {
+    "tab": "dashboard",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your business. Beautifully in motion."
+    ]
+  },
+  {
+    "tab": "contacts",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every connection holds potential."
+    ]
+  },
+  {
+    "tab": "properties",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "The right property changes everything."
+    ]
+  },
+  {
+    "tab": "campaigns",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Stay connected. Stay top of mind."
+    ]
+  },
+  {
+    "tab": "calendar",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make every moment count."
+    ]
+  },
+  {
+    "tab": "mortgage",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Clarity behind every number."
+    ]
+  },
+  {
+    "tab": "notes",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Great outcomes begin with a plan."
+    ]
+  },
+  {
+    "tab": "tasks",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "The details drive the deal."
+    ]
+  },
+  {
+    "tab": "voice-scripts",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Find the words that move people."
+    ]
+  },
+  {
+    "tab": "activity",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every interaction tells a story."
+    ]
+  },
+  {
+    "tab": "analytics",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "See the bigger picture."
+    ]
+  },
+  {
+    "tab": "settings",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make MyARI yours."
+    ]
+  },
+  {
+    "tab": "automations",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make room for your next opportunity."
+    ]
+  },
+  {
+    "tab": "partners",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Build stronger connections, together."
+    ]
+  },
+  {
+    "tab": "dashboard",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your business. Beautifully in motion."
+    ]
+  },
+  {
+    "tab": "contacts",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every connection holds potential."
+    ]
+  },
+  {
+    "tab": "properties",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "The right property changes everything."
+    ]
+  },
+  {
+    "tab": "campaigns",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Stay connected. Stay top of mind."
+    ]
+  },
+  {
+    "tab": "calendar",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make every moment count."
+    ]
+  },
+  {
+    "tab": "mortgage",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Clarity behind every number."
+    ]
+  },
+  {
+    "tab": "notes",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Great outcomes begin with a plan."
+    ]
+  },
+  {
+    "tab": "tasks",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "The details drive the deal."
+    ]
+  },
+  {
+    "tab": "voice-scripts",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Find the words that move people."
+    ]
+  },
+  {
+    "tab": "activity",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every interaction tells a story."
+    ]
+  },
+  {
+    "tab": "analytics",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "See the bigger picture."
+    ]
+  },
+  {
+    "tab": "settings",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make MyARI yours."
+    ]
+  },
+  {
+    "tab": "automations",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make room for your next opportunity."
+    ]
+  },
+  {
+    "tab": "partners",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Build stronger connections, together."
+    ]
+  },
+  {
+    "tab": "dashboard",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your business. Beautifully in motion."
+    ]
+  },
+  {
+    "tab": "contacts",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every connection holds potential."
+    ]
+  },
+  {
+    "tab": "properties",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "The right property changes everything."
+    ]
+  },
+  {
+    "tab": "campaigns",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Stay connected. Stay top of mind."
+    ]
+  },
+  {
+    "tab": "calendar",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make every moment count."
+    ]
+  },
+  {
+    "tab": "mortgage",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Clarity behind every number."
+    ]
+  },
+  {
+    "tab": "notes",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Great outcomes begin with a plan."
+    ]
+  },
+  {
+    "tab": "tasks",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "The details drive the deal."
+    ]
+  },
+  {
+    "tab": "voice-scripts",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Find the words that move people."
+    ]
+  },
+  {
+    "tab": "activity",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every interaction tells a story."
+    ]
+  },
+  {
+    "tab": "analytics",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "See the bigger picture."
+    ]
+  },
+  {
+    "tab": "settings",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make MyARI yours."
+    ]
+  },
+  {
+    "tab": "automations",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make room for your next opportunity."
+    ]
+  },
+  {
+    "tab": "partners",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Build stronger connections, together."
+    ]
+  },
+  {
+    "tab": "dashboard",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your business. Beautifully in motion."
+    ]
+  },
+  {
+    "tab": "contacts",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every connection holds potential."
+    ]
+  },
+  {
+    "tab": "properties",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "The right property changes everything."
+    ]
+  },
+  {
+    "tab": "campaigns",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Stay connected. Stay top of mind."
+    ]
+  },
+  {
+    "tab": "calendar",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make every moment count."
+    ]
+  },
+  {
+    "tab": "mortgage",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Clarity behind every number."
+    ]
+  },
+  {
+    "tab": "notes",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Great outcomes begin with a plan."
+    ]
+  },
+  {
+    "tab": "tasks",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "The details drive the deal."
+    ]
+  },
+  {
+    "tab": "voice-scripts",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Find the words that move people."
+    ]
+  },
+  {
+    "tab": "activity",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every interaction tells a story."
+    ]
+  },
+  {
+    "tab": "analytics",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "See the bigger picture."
+    ]
+  },
+  {
+    "tab": "settings",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make MyARI yours."
+    ]
+  },
+  {
+    "tab": "automations",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Make room for your next opportunity."
+    ]
+  },
+  {
+    "tab": "partners",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Build stronger connections, together."
+    ]
+  }
+]

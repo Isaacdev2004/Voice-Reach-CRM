@@ -31,13 +31,13 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 flex h-screen w-64 max-w-[85vw] flex-col border-r border-outline-variant/10 bg-ivory py-6 shadow-nav transition-transform duration-300 ease-out",
+          "premium-sidebar fixed left-0 top-0 z-50 flex h-screen w-64 max-w-[85vw] flex-col border-r border-outline-variant/10 bg-ivory py-6 shadow-nav transition-transform duration-300 ease-out",
           "lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
-        aria-hidden={!mobileOpen ? undefined : undefined}
+        data-mobile-open={mobileOpen}
       >
-        <div className="mb-8 flex items-start justify-between px-6">
+        <div className="mb-3 flex items-start justify-between px-6">
           <Link href="/dashboard" className="group" onClick={onMobileClose}>
             <AriLogo height={96} className="max-w-[148px]" />
             <p className="mt-2.5 text-[13px] italic leading-snug text-taupe group-hover:text-rose-gold-deep">
@@ -54,7 +54,7 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto">
+        <nav aria-label="Main navigation" className="premium-navigation flex-1 overflow-y-auto px-3 py-2">
           {dashboardNav.map((item) => {
             const active = isActiveNav(pathname, item.href);
             return (
@@ -62,14 +62,15 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                 key={item.href}
                 href={item.href}
                 onClick={onMobileClose}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "mx-2 my-1 flex items-center gap-3 rounded-full px-4 py-3 transition-all",
+                  "my-1 flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors",
                   active
-                    ? "bg-rose-gold-deep text-ivory shadow-sm"
+                    ? "bg-champagne text-ink font-semibold shadow-[inset_3px_0_0_var(--color-rose-gold-deep)]"
                     : "text-taupe hover:bg-champagne/80",
                 )}
               >
-                <Icon name={item.icon} />
+                <Icon name={item.icon} className="w-5 shrink-0 text-[20px] text-rose-gold-deep" />
                 <span className="text-label-md font-medium">{item.label}</span>
               </Link>
             );
@@ -90,7 +91,7 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
               openUpgrade();
               onMobileClose?.();
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-rose-gold py-4 text-label-md font-medium text-ivory transition-all hover:opacity-90 active:scale-95"
+            className="premium-button premium-button--primary w-full"
           >
             <Icon name="workspace_premium" className="text-[20px]" />
             Upgrade plan

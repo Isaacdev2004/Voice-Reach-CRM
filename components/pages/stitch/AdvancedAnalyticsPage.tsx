@@ -218,7 +218,7 @@ export function AdvancedAnalyticsPage() {
         <p className="py-16 text-center text-taupe">Loading analytics…</p>
       ) : snapshot ? (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {snapshot.kpis.map((kpi) => (
               <KpiCard
                 key={kpi.id}

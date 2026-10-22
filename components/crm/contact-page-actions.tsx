@@ -13,25 +13,18 @@ export function ContactPageActions({ onRefresh, variant = "header" }: ContactPag
   const [addOpen, setAddOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
 
-  const btnSecondary =
-    variant === "compact"
-      ? "flex h-10 items-center gap-2 rounded-full border border-outline-variant/40 bg-ivory px-4 text-[13px] font-medium text-ink"
-      : "flex h-12 items-center gap-2 rounded-full border border-outline-variant/40 bg-ivory px-6 text-[14px] font-medium text-ink hover:bg-champagne transition-colors";
-
-  const btnPrimary =
-    variant === "compact"
-      ? "flex h-10 items-center gap-2 rounded-full bg-rose-gold px-4 text-[13px] font-medium text-ivory"
-      : "flex h-12 items-center gap-2 rounded-full bg-rose-gold px-6 text-[14px] font-medium text-ivory shadow-card hover:opacity-90 transition-opacity";
+  const btnSecondary = `premium-button premium-button--secondary ${variant === "compact" ? "!min-h-10 !px-4 !text-[13px]" : ""}`;
+  const btnPrimary = `premium-button premium-button--primary ${variant === "compact" ? "!min-h-10 !px-4 !text-[13px]" : ""}`;
 
   return (
     <>
-      <div className="flex flex-wrap gap-3">
+      <div className="contact-page-actions flex flex-wrap gap-2.5">
         <button type="button" className={btnSecondary} onClick={() => setImportOpen(true)}>
-          <span className="material-symbols-outlined text-[20px]">upload</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px]">upload</span>
           Import CSV
         </button>
         <button type="button" className={btnPrimary} onClick={() => setAddOpen(true)}>
-          <span className="material-symbols-outlined text-[20px]">person_add</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px]">person_add</span>
           Add contact
         </button>
       </div>

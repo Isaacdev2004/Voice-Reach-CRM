@@ -1,0 +1,510 @@
+[
+  {
+    "tab": "dashboard",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Alex, Let's make today exceptional."
+    ]
+  },
+  {
+    "tab": "contacts",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Relationships that open doors"
+    ]
+  },
+  {
+    "tab": "properties",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Find the right match"
+    ]
+  },
+  {
+    "tab": "campaigns",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Meaningful outreach. Real relationships.",
+      "All campaigns"
+    ]
+  },
+  {
+    "tab": "calendar",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your schedule, beautifully organized."
+    ]
+  },
+  {
+    "tab": "mortgage",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Mortgage Calculator"
+    ]
+  },
+  {
+    "tab": "notes",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Notes & Strategy",
+      "Notes & Strategy"
+    ]
+  },
+  {
+    "tab": "tasks",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Follow-ups & to-dos"
+    ]
+  },
+  {
+    "tab": "voice-scripts",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Voice Scripts Library",
+      "Voice Scripts Library"
+    ]
+  },
+  {
+    "tab": "activity",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every action moves you forward"
+    ]
+  },
+  {
+    "tab": "analytics",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Insight creates opportunity"
+    ]
+  },
+  {
+    "tab": "settings",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your workspace, your way"
+    ]
+  },
+  {
+    "tab": "automations",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": []
+  },
+  {
+    "tab": "partners",
+    "width": 1440,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Partner workspaces"
+    ]
+  },
+  {
+    "tab": "dashboard",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Alex, Let's make today exceptional."
+    ]
+  },
+  {
+    "tab": "contacts",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Relationships that open doors"
+    ]
+  },
+  {
+    "tab": "properties",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Find the right match"
+    ]
+  },
+  {
+    "tab": "campaigns",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Meaningful outreach. Real relationships.",
+      "All campaigns"
+    ]
+  },
+  {
+    "tab": "calendar",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your schedule, beautifully organized."
+    ]
+  },
+  {
+    "tab": "mortgage",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Mortgage Calculator"
+    ]
+  },
+  {
+    "tab": "notes",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Notes & Strategy",
+      "Notes & Strategy"
+    ]
+  },
+  {
+    "tab": "tasks",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Follow-ups & to-dos"
+    ]
+  },
+  {
+    "tab": "voice-scripts",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Voice Scripts Library",
+      "Voice Scripts Library"
+    ]
+  },
+  {
+    "tab": "activity",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every action moves you forward"
+    ]
+  },
+  {
+    "tab": "analytics",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Insight creates opportunity"
+    ]
+  },
+  {
+    "tab": "settings",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your workspace, your way"
+    ]
+  },
+  {
+    "tab": "automations",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": []
+  },
+  {
+    "tab": "partners",
+    "width": 1920,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Partner workspaces"
+    ]
+  },
+  {
+    "tab": "dashboard",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Alex, Let's make today exceptional."
+    ]
+  },
+  {
+    "tab": "contacts",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Relationships that open doors"
+    ]
+  },
+  {
+    "tab": "properties",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Find the right match"
+    ]
+  },
+  {
+    "tab": "campaigns",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Meaningful outreach. Real relationships.",
+      "All campaigns"
+    ]
+  },
+  {
+    "tab": "calendar",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your schedule, beautifully organized."
+    ]
+  },
+  {
+    "tab": "mortgage",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Mortgage Calculator"
+    ]
+  },
+  {
+    "tab": "notes",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Notes & Strategy",
+      "Notes & Strategy"
+    ]
+  },
+  {
+    "tab": "tasks",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Follow-ups & to-dos"
+    ]
+  },
+  {
+    "tab": "voice-scripts",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Voice Scripts Library",
+      "Voice Scripts Library"
+    ]
+  },
+  {
+    "tab": "activity",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every action moves you forward"
+    ]
+  },
+  {
+    "tab": "analytics",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Insight creates opportunity"
+    ]
+  },
+  {
+    "tab": "settings",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your workspace, your way"
+    ]
+  },
+  {
+    "tab": "automations",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": []
+  },
+  {
+    "tab": "partners",
+    "width": 768,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Partner workspaces"
+    ]
+  },
+  {
+    "tab": "dashboard",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Alex, Let's make today exceptional."
+    ]
+  },
+  {
+    "tab": "contacts",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Relationships that open doors"
+    ]
+  },
+  {
+    "tab": "properties",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Find the right match"
+    ]
+  },
+  {
+    "tab": "campaigns",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Meaningful outreach. Real relationships.",
+      "All campaigns"
+    ]
+  },
+  {
+    "tab": "calendar",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your schedule, beautifully organized."
+    ]
+  },
+  {
+    "tab": "mortgage",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Mortgage Calculator"
+    ]
+  },
+  {
+    "tab": "notes",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Notes & Strategy",
+      "Notes & Strategy"
+    ]
+  },
+  {
+    "tab": "tasks",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Follow-ups & to-dos"
+    ]
+  },
+  {
+    "tab": "voice-scripts",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Voice Scripts Library",
+      "Voice Scripts Library"
+    ]
+  },
+  {
+    "tab": "activity",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Every action moves you forward"
+    ]
+  },
+  {
+    "tab": "analytics",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Insight creates opportunity"
+    ]
+  },
+  {
+    "tab": "settings",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Your workspace, your way"
+    ]
+  },
+  {
+    "tab": "automations",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": []
+  },
+  {
+    "tab": "partners",
+    "width": 390,
+    "errors": [],
+    "overflow": false,
+    "headings": [
+      "Partner workspaces"
+    ]
+  }
+]

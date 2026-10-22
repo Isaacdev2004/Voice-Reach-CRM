@@ -278,11 +278,13 @@ export function ContactManagementPage() {
         <ContactPageActions onRefresh={refresh} />
       </header>
 
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="contact-filters">
+        <div className="contact-filter-group" role="group" aria-label="Filter by category">
+          <span className="contact-filter-label">Category</span>
           <button
             type="button"
             onClick={() => setCategory("all")}
+            aria-pressed={category === "all"}
             className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
               category === "all"
                 ? "bg-ink text-ivory shadow-sm"
@@ -304,6 +306,7 @@ export function ContactManagementPage() {
                 key={name}
                 type="button"
                 onClick={() => setCategory(name)}
+                aria-pressed={active}
                 className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
                   active
                     ? "bg-ink text-ivory shadow-sm"
@@ -328,7 +331,8 @@ export function ContactManagementPage() {
             Manage categories
           </button>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="contact-filter-group" role="group" aria-label="Filter by lead stage">
+          <span className="contact-filter-label">Lead stage</span>
           {CONTACT_SEGMENT_TABS.map((tab) => {
             const count =
               tab.id === "all"
@@ -344,6 +348,7 @@ export function ContactManagementPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setSegment(tab.id)}
+                aria-pressed={active}
                 className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
                   active
                     ? "bg-sage text-ivory shadow-sm"
@@ -361,11 +366,12 @@ export function ContactManagementPage() {
             );
           })}
         </div>
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="text-[12px] font-medium uppercase tracking-wider text-taupe">Sort</span>
+        <div className="contact-filter-group" role="group" aria-label="Sort contacts">
+          <span className="contact-filter-label">Sort</span>
           <button
             type="button"
             onClick={() => setSort("name-asc")}
+            aria-pressed={sort === "name-asc"}
             className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
               sort === "name-asc"
                 ? "bg-rose-gold-deep text-ivory"
@@ -377,6 +383,7 @@ export function ContactManagementPage() {
           <button
             type="button"
             onClick={() => setSort("name-desc")}
+            aria-pressed={sort === "name-desc"}
             className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
               sort === "name-desc"
                 ? "bg-rose-gold-deep text-ivory"
@@ -388,6 +395,7 @@ export function ContactManagementPage() {
           <button
             type="button"
             onClick={() => setSort("recent")}
+            aria-pressed={sort === "recent"}
             className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
               sort === "recent"
                 ? "bg-rose-gold-deep text-ivory"
@@ -476,7 +484,7 @@ export function ContactManagementPage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="contact-statistics premium-metrics grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
           { label: "Total contacts", value: loading ? "…" : total.toLocaleString() },
           {
@@ -487,7 +495,7 @@ export function ContactManagementPage() {
           { label: "Cold leads", value: loading ? "…" : String(counts?.coldLead ?? " - ") },
         ].map((stat) => (
           <LuxuryCard key={stat.label} padding="md">
-            <p className="text-[13px] text-taupe">{stat.label}</p>
+            <p className="text-[13px] text-taupe" title={stat.label === "Consent validated" ? "Recorded consent status in the displayed contacts. Channel eligibility is checked separately." : undefined}>{stat.label}</p>
             <p className="mt-1 font-serif text-[28px] font-semibold text-ink">{stat.value}</p>
           </LuxuryCard>
         ))}
@@ -508,10 +516,11 @@ export function ContactManagementPage() {
 
       <LuxuryCard padding="none" className="overflow-hidden">
         {loading ? (
-          <p className="p-8 text-center text-taupe">Loading contacts…</p>
+          <p role="status" className="p-8 text-center text-taupe">Loading contacts…</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Contacts table; scroll horizontally to see all columns">
+            <table className="contacts-table w-full text-left">
+              <caption className="sr-only">Contact records with type, source, and compliance status</caption>
               <thead>
                 <tr className="border-b border-outline-variant/20 bg-cream/80">
                   {contacts.length > 0 ? (
@@ -519,7 +528,7 @@ export function ContactManagementPage() {
                       Select
                     </th>
                   ) : null}
-                  <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
+                  <th scope="col" aria-sort={sort === "name-asc" ? "ascending" : sort === "name-desc" ? "descending" : "none"} className="px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
                     <button
                       type="button"
                       className="inline-flex items-center gap-1 hover:text-rose-gold-deep"
@@ -553,7 +562,7 @@ export function ContactManagementPage() {
                   <th className="min-w-[96px] px-6 py-4 text-[12px] font-semibold uppercase tracking-wider text-taupe">
                     Compliance
                   </th>
-                  <th className="min-w-[120px] px-6 py-4" />
+                  <th scope="col" className="min-w-[120px] px-6 py-4"><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/15">
@@ -566,6 +575,7 @@ export function ContactManagementPage() {
                           onClick={() => toggleOne(contact.id)}
                           className="rounded-full p-2 hover:bg-champagne"
                           aria-label={`Select ${contact.first_name}`}
+                          aria-pressed={Boolean(selected[contact.id])}
                         >
                           <Icon
                             name={selected[contact.id] ? "check_box" : "check_box_outline_blank"}

@@ -140,7 +140,7 @@ export function VoiceScriptLibrary({ onCreateScript }: VoiceScriptLibraryProps) 
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-serif text-[28px] font-semibold text-ink">Voice Scripts Library</h1>
+          <h2 className="font-serif text-[22px] font-semibold text-ink">Script library</h2>
           <p className="mt-1 text-[14px] text-slate-text">
             Browse, approve, and assign recordings to campaigns.
           </p>

@@ -146,7 +146,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           showQuickCreate={config.showQuickCreate ?? true}
           onMenuClick={() => setMobileNavOpen(true)}
         >
-          <div className="min-h-screen bg-cream text-on-surface">
+          <div className="myari-workspace min-h-screen bg-cream text-on-surface">
             <DashboardSidebar
               mobileOpen={mobileNavOpen}
               onMobileClose={() => setMobileNavOpen(false)}

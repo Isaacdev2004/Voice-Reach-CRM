@@ -236,9 +236,9 @@ export function CampaignListPanel() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
             Campaign library
           </p>
-          <h1 className="mt-1 font-serif text-[32px] font-semibold leading-tight text-ink sm:text-[36px]">
+          <h2 className="mt-1 font-serif text-[24px] font-semibold leading-tight text-ink">
             All campaigns
-          </h1>
+          </h2>
           <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
             Create, organize, and automate your outreach with ready-to-use campaigns or build your
             own.

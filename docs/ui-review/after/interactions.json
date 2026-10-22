@@ -1,0 +1,61 @@
+{
+  "checks": [
+    {
+      "name": "Category filter state",
+      "passed": true
+    },
+    {
+      "name": "Lead stage filter state",
+      "passed": true
+    },
+    {
+      "name": "Name sorting",
+      "passed": true
+    },
+    {
+      "name": "Contact selection",
+      "passed": true
+    },
+    {
+      "name": "Contact dialog form input",
+      "passed": true
+    },
+    {
+      "name": "Dialog keyboard containment, Escape and focus restoration",
+      "passed": true
+    },
+    {
+      "name": "CSV import dialog",
+      "passed": true
+    },
+    {
+      "name": "All 12 navigation destinations, single page headline and active state",
+      "passed": true
+    },
+    {
+      "name": "Settings tabs render",
+      "passed": true
+    },
+    {
+      "name": "Mobile menu opens and closes",
+      "passed": true
+    },
+    {
+      "name": "Mobile table scroll and keyboard focus",
+      "passed": true
+    },
+    {
+      "name": "Reduced motion preference",
+      "passed": true
+    },
+    {
+      "name": "Core text and button palette exceeds WCAG AA 4.5:1",
+      "passed": true
+    }
+  ],
+  "contrast": {
+    "primary": 5.929106164017506,
+    "secondary": 4.958954616523773,
+    "text": 14.989872306789097
+  }
+}

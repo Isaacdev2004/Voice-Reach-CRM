@@ -3,7 +3,7 @@
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { cloneElement, isValidElement, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 type ModalSize = "sm" | "md" | "lg" | "xl";
@@ -39,9 +39,24 @@ export function Modal({
   size = "md",
   className,
 }: ModalProps) {
+  const titleId = useId();
+  const descriptionId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    // Track the trigger before a child input's autoFocus runs in the portal.
+    const rememberFocus = (event: FocusEvent) => {
+      if (event.target instanceof HTMLElement && !event.target.closest('[role="dialog"]')) {
+        restoreFocusRef.current = event.target;
+      }
+    };
+    document.addEventListener("focusin", rememberFocus);
+    return () => document.removeEventListener("focusin", rememberFocus);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -57,6 +72,30 @@ export function Modal({
     };
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (!open || !mounted) return;
+    const previous = restoreFocusRef.current;
+    const panel = panelRef.current;
+    const focusable = () => Array.from(panel?.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]',
+    ) ?? []).filter((element) => element.getClientRects().length > 0);
+    if (!panel?.contains(document.activeElement)) (focusable()[0] ?? panel)?.focus();
+    const trapFocus = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first) { event.preventDefault(); panel?.focus(); return; }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault(); first.focus();
+      }
+    };
+    panel?.addEventListener("keydown", trapFocus);
+    return () => { panel?.removeEventListener("keydown", trapFocus); previous?.focus(); };
+  }, [open, mounted]);
+
   if (!open || !mounted) return null;
 
   return createPortal(
@@ -71,18 +110,21 @@ export function Modal({
       {/* min-h-full + grid centers dialog without flex width collapse */}
       <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
         <div
+          ref={panelRef}
+          tabIndex={-1}
           role="dialog"
           aria-modal
-          aria-labelledby="modal-title"
+          aria-labelledby={titleId}
+          aria-describedby={description ? descriptionId : undefined}
           className={cn(
-            "modal-panel relative z-10 flex w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[28px] border border-outline-variant/20 bg-ivory shadow-[0_24px_80px_-12px_rgba(26,22,18,0.35)] sm:w-[calc(100vw-3rem)]",
+            "modal-panel relative z-10 flex w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[20px] border border-outline-variant/20 bg-ivory shadow-[0_24px_80px_-12px_rgba(26,22,18,0.35)] sm:w-[calc(100vw-3rem)]",
             sizeWidth[size],
             className,
           )}
           style={{ maxHeight: "min(640px, calc(100vh - 2rem))" }}
           onClick={(e) => e.stopPropagation()}
         >
-          <header className="shrink-0 border-b border-outline-variant/10 bg-gradient-to-b from-champagne/50 to-ivory px-6 pb-5 pt-6 sm:px-8">
+          <header className="shrink-0 border-b border-outline-variant/10 bg-cream px-6 pb-5 pt-6 sm:px-8">
             <div className="flex items-start gap-4">
               {icon ? (
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-gold/15 text-rose-gold-deep">
@@ -91,13 +133,13 @@ export function Modal({
               ) : null}
               <div className="min-w-0 flex-1 pr-2">
                 <h2
-                  id="modal-title"
+                  id={titleId}
                   className="font-serif text-[26px] font-semibold leading-tight text-ink"
                 >
                   {title}
                 </h2>
                 {description ? (
-                  <p className="mt-1.5 text-[14px] leading-relaxed text-slate-text">{description}</p>
+                  <p id={descriptionId} className="mt-1.5 text-[14px] leading-relaxed text-slate-text">{description}</p>
                 ) : null}
               </div>
               <button
@@ -141,13 +183,18 @@ export function ModalField({
   children: ReactNode;
   className?: string;
 }) {
+  const generatedId = useId();
+  const control = isValidElement<{ id?: string }>(children) &&
+    typeof children.type === "string" && ["input", "select", "textarea"].includes(children.type)
+    ? children : null;
+  const controlId = control ? control.props.id ?? generatedId : undefined;
   return (
     <div className={cn("block min-w-0", className)}>
-      <label className={modalLabelClass}>
+      <label htmlFor={controlId} className={modalLabelClass}>
         {label}
         {required ? <span className="text-rose-gold-deep"> *</span> : null}
       </label>
-      {children}
+      {control ? cloneElement(control, { id: controlId }) : children}
     </div>
   );
 }
@@ -185,7 +232,7 @@ export function ModalFooterActions({
         form={formId}
         onClick={onPrimary}
         disabled={primaryDisabled || primaryLoading}
-        className="h-11 shrink-0 rounded-xl bg-rose-gold px-6 text-[14px] font-medium text-ivory shadow-sm transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[140px]"
+        className="h-11 shrink-0 rounded-xl bg-rose-gold-deep px-6 text-[14px] font-medium text-ivory shadow-sm transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[140px]"
       >
         {primaryLoading ? "Please wait…" : primaryLabel}
       </button>

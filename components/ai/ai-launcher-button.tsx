@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { useAiAssistant } from "./ai-assistant-context";
 
@@ -47,6 +48,7 @@ export function AiLauncherButton({
 
 export function AiFloatingButton() {
   const { state, openAssistant } = useAiAssistant();
+  const pathname = usePathname();
 
   if (state.open) return null;
 
@@ -61,7 +63,7 @@ export function AiFloatingButton() {
         })
       }
       style={{ zIndex: 9999 }}
-      className="fixed bottom-6 right-6 flex items-center gap-2 rounded-full bg-rose-gold px-5 py-3 text-[13px] font-semibold text-ivory shadow-[0_12px_40px_-8px_rgba(26,22,18,0.45)] transition-transform hover:scale-105 active:scale-95"
+      className={cn("premium-button premium-button--primary fixed right-4 shadow-card sm:right-6", pathname === "/dashboard/settings" ? "bottom-24" : "bottom-4 sm:bottom-6")}
       aria-label="Open AI assistant"
     >
       <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>

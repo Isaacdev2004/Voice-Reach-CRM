@@ -79,10 +79,10 @@ export function TasksPage() {
     <div className={DASHBOARD_PAGE_BODY}>
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-serif text-[28px] font-semibold text-ink sm:text-[32px]">
+          <h2 className="font-serif text-[22px] font-semibold text-ink">
             Follow-ups &amp; to-dos
-          </h1>
-          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-slate-text">
+          </h2>
+          <p className="mt-2 max-w-[var(--container-2xl)] text-[15px] leading-relaxed text-slate-text">
             Stay on top of follow-ups, reminders, and client touchpoints — due dates can sync to your
             calendar when you create a task.
           </p>
@@ -110,7 +110,7 @@ export function TasksPage() {
         <p className="rounded-2xl bg-champagne px-4 py-3 text-[14px] text-taupe">{error}</p>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="premium-metrics grid grid-cols-2 gap-3 xl:grid-cols-4">
         <LuxuryCard padding="md">
           <p className="text-[13px] text-taupe">Open tasks</p>
           <p className="mt-1 font-serif text-[32px] font-semibold text-ink">

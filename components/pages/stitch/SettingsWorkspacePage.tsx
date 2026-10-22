@@ -374,6 +374,7 @@ export function SettingsWorkspacePage() {
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
+            aria-pressed={tab === t.id}
             className={cn(
               "pb-3 text-[14px] font-medium transition-colors",
               tab === t.id

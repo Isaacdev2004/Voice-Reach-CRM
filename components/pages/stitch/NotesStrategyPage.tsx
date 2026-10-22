@@ -396,10 +396,10 @@ export function NotesStrategyPage() {
     >
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-serif text-[28px] font-semibold text-ink sm:text-[32px]">
+          <h2 className="font-serif text-[22px] font-semibold text-ink">
             Notes &amp; Strategy
-          </h1>
-          <p className="mt-1 max-w-2xl text-[14px] text-slate-text">
+          </h2>
+          <p className="mt-1 max-w-[var(--container-2xl)] text-[14px] text-slate-text">
             Capture ideas, plan strategy, and keep client context — all in one place.
           </p>
         </div>
@@ -563,7 +563,7 @@ export function NotesStrategyPage() {
                 <button type="button" className="rounded-full border border-outline-variant/20 px-3 py-1 text-[12px] text-ink">
                   Share
                 </button>
-                <button type="button" className="rounded-full p-1 text-taupe hover:bg-champagne">
+                <button type="button" aria-label="More note options" className="rounded-full p-1 text-taupe hover:bg-champagne">
                   <Icon name="more_horiz" />
                 </button>
               </div>

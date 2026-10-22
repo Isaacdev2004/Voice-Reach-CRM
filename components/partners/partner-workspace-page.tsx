@@ -1,5 +1,6 @@
 "use client";
 
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Modal, ModalField, ModalFooterActions, modalInputClass, modalLabelClass } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
@@ -108,7 +109,7 @@ export function PartnerWorkspacePage() {
   const pendingApprovals = sharedAssets.filter((a) => a.approval_status === "pending").length;
 
   return (
-    <div className="luxury-page p-8 max-w-[1500px] w-full mx-auto space-y-8">
+    <div className={DASHBOARD_PAGE_BODY}>
       {toast ? (
         <div
           className={cn(
@@ -130,8 +131,8 @@ export function PartnerWorkspacePage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-taupe">
             Relationship marketing
           </p>
-          <h1 className="mt-1 font-serif text-[36px] font-semibold text-ink">Partner workspaces</h1>
-          <p className="mt-2 max-w-2xl text-[15px] text-slate-text">
+          <h2 className="mt-1 font-serif text-[22px] font-semibold text-ink">Partner workspaces</h2>
+          <p className="mt-2 max-w-[var(--container-2xl)] text-[15px] text-slate-text">
             Co-brand campaigns with lenders, approve shared assets, and run collaborative outreach - without juggling external tools.
           </p>
         </div>
