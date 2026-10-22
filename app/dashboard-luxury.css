@@ -1,0 +1,98 @@
+/* Dashboard presentation only. Keep operational data and shared page layouts intact. */
+.dashboard-luxury {
+  --dashboard-paper: #fffdfa;
+  --dashboard-border: #ebe4db;
+  --dashboard-bronze: #956846;
+  --dashboard-muted: #716960;
+  --color-rose-gold-deep: #956846;
+  --color-emerald-muted: #956846;
+  --color-slate-text: #716960;
+  --color-taupe: #776e64;
+  --color-ink: #292520;
+  background: #f8f5ef;
+}
+.dashboard-luxury main > div:last-child { max-width: 1580px; }
+.dashboard-luxury #dashboard-hero-mount { padding-top: 22px; }
+.dashboard-luxury .luxury-page { background: transparent; padding-top: 16px; }
+.dashboard-luxury .luxury-card { border-color: #eee8df; background: var(--dashboard-paper); border-radius: 18px; box-shadow: 0 4px 22px -12px #56402e26; }
+.dashboard-luxury-hero { position: relative; isolation: isolate; overflow: hidden; border-radius: 21px; background: #fffdfa; min-height: 300px; }
+.dashboard-luxury-hero-photo { position: absolute; z-index: -2; inset: 0 0 0 35%; }
+.dashboard-luxury-hero-photo img { object-position: 60% 55%; }
+.dashboard-luxury-hero::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg,#fffdfa 0%,#fffdfafc 32%,#fffdfae6 41%,#fffdfa80 52%,#fffdfa00 65%); pointer-events: none; }
+.dashboard-luxury-hero-copy { width: 56%; padding: 32px 36px 34px; }
+.dashboard-luxury-eyebrow { font-size: 10px; font-weight: 600; letter-spacing: .22em; color: #8a6c57; }
+.dashboard-luxury-hero h1 { margin-top: 12px; font-family: var(--font-serif); font-size: clamp(36px,3.1vw,50px); font-weight: 500; line-height: 1.06; letter-spacing: -.025em; max-width: 560px; text-wrap: balance; color: #292520; }
+.dashboard-luxury-hero h1 span { display: block; }
+.dashboard-luxury-hero-description { max-width: 420px; margin-top: 14px; font-size: 14px; line-height: 1.65; color: #716960; }
+.dashboard-luxury-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.dashboard-luxury-primary,.dashboard-luxury-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 43px; padding: 10px 18px; border-radius: 999px; font-size: 13px; font-weight: 500; transition: background-color .18s,box-shadow .18s; }
+.dashboard-luxury-primary { background: #956846; color: #fff; box-shadow: 0 3px 8px #8e62451a; }
+.dashboard-luxury-primary:hover { background: #805638; }
+.dashboard-luxury-secondary { border: 1px solid #e6ded3; color: #68594b; background: #fffdf9c9; }
+.dashboard-luxury-secondary:hover { background: #f3eee6; }
+.dashboard-luxury-kpi { display: flex; align-items: flex-start; gap: 13px; height: 100%; min-height: 116px; padding: 20px 18px; position: relative; }
+.dashboard-luxury-kpi-icon { flex: 0 0 42px; height: 46px; display: grid; place-items: center; background: #f6f1e9; color: #956846; border-radius: 13px; }
+.dashboard-luxury-kpi-label { font-size: 12px; line-height: 1.4; color: #716960; }
+.dashboard-luxury-kpi-value { font-family: var(--font-serif); font-size: 33px; line-height: 1.18; color: #292520; font-weight: 600; font-variant-numeric: tabular-nums; }
+.dashboard-luxury-kpi-detail { margin-top: 5px; font-size: 11px; line-height: 1.5; color: #716960; }
+.dashboard-luxury-kpi-change { font-size: 10px; font-weight: 600; line-height: 1.4; }
+.dashboard-opportunity-arrow { position: absolute; right: 12px; top: 12px; color: #956846; }
+.dashboard-opportunity-link { border-radius: 18px; }
+.dashboard-opportunity-link .luxury-card { transition: border-color .18s,box-shadow .18s; }
+.dashboard-opportunity-link:hover .luxury-card { border-color: #c5a384; box-shadow: 0 5px 20px -10px #95684655; }
+.dashboard-luxury :is(a,button,input,select):focus-visible { outline: 2px solid #956846; outline-offset: 3px; }
+.dashboard-luxury-section h2 { font-weight: 600; }
+.dashboard-recommendation { border: 1px solid #eee8df; padding: 8px; background: #fffdfa; }
+.dashboard-recommendation:hover { background: #f8f5ef; }
+.dashboard-luxury .dashboard-recommendation p:first-child { font-size: 12px; }
+.dashboard-sidebar { background: #fffdfa; border-color: #eee8df; }
+.dashboard-sidebar-brand { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.dashboard-sidebar-brand img { object-position: center; }
+.dashboard-sidebar-brand p { color: #776e64; text-align: center; }
+.dashboard-nav-item { color: #776e64; margin: 3px 0; border-radius: 13px; font-size: 13px; padding: 11px 14px; gap: 13px; }
+.dashboard-nav-active { background: #956846; color: white; box-shadow: 0 3px 8px #95684614; }
+.dashboard-nav-active:hover { background: #805638; }
+.dashboard-upgrade { margin: 14px; padding: 15px 12px; background: #f5eee4; border: 1px solid #eee4d6; border-radius: 17px; }
+.dashboard-upgrade button { background: #956846; border-radius: 999px; }
+.dashboard-topbar { background: #fffdfaf2; border-color: #ebe4db; box-shadow: 0 3px 16px -12px #56402e33; }
+.dashboard-topbar input { background: #faf8f5; border-color: #e9e2d9; }
+.dashboard-pulse-trend { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; padding: 0; min-height: 176px; }
+.dashboard-pulse-trend-copy { display: flex; flex-direction: column; align-items: flex-start; padding: 16px; }
+.dashboard-pulse-trend-photo { position: relative; min-height: 176px; }
+.dashboard-pulse-response { position: absolute; bottom: 10px; right: 10px; max-width: 170px; border: 1px solid #eee8df; border-radius: 10px; padding: 9px 12px; background: #fffdfaf5; }
+.dashboard-pulse-response strong { font-family: var(--font-serif); font-size: 20px; color: #292520; }
+.dashboard-pulse-response p { color: #716960; font-size: 10px; line-height: 1.4; }
+.dashboard-pulse-tile { border-color: #eee8df; background: #fffdfa; }
+.dashboard-recent-table { table-layout: fixed; }
+.dashboard-recent-table th { font-size: 10px; text-transform: none; letter-spacing: 0; background: #f8f5ef; padding-top: 10px; }
+.dashboard-recent-table th:first-child { width: 29%; padding-left: 12px; border-radius: 10px 0 0 10px; }
+.dashboard-recent-table th:last-child { width: 15%; border-radius: 0 10px 10px 0; }
+.dashboard-recent-table th:nth-child(2) { width: 12%; }
+.dashboard-recent-table td { padding-top: 10px; padding-bottom: 10px; font-size: 11px; }
+.dashboard-recent-table tr:hover td { background: #faf7f1; }
+.dashboard-recent-table td:first-child { padding-left: 10px; }
+.dashboard-recent-table td span { max-width: 100%; }
+@media (min-width:1600px) { .dashboard-luxury-hero { min-height: 330px; } .dashboard-luxury-hero-copy { padding: 40px; } }
+@media (max-width:1199px) { .dashboard-luxury-hero-copy { width: 65%; padding: 28px; } .dashboard-luxury-hero::after { background: linear-gradient(90deg,#fffdfa 0%,#fffdfaf5 36%,#fffdfac9 51%,#fffdfa00 77%); } }
+@media (max-width:767px) {
+  .dashboard-luxury #dashboard-hero-mount { padding-top: 14px; }
+  .dashboard-luxury-hero { display: flex; flex-direction: column-reverse; }
+  .dashboard-luxury-hero-copy { width: 100%; padding: 23px; }
+  .dashboard-luxury-hero h1 { font-size: 35px; }
+  .dashboard-luxury-hero-photo { position: relative; inset: auto; width: 100%; height: 175px; z-index: 0; }
+  .dashboard-luxury-hero::after { display: none; }
+  .dashboard-luxury-hero-actions { margin-top: 18px; }
+  .dashboard-luxury-primary,.dashboard-luxury-secondary { font-size: 12px; padding: 10px 14px; }
+  .dashboard-pulse-trend { grid-template-columns: 1fr; }
+  .dashboard-pulse-trend-photo { min-height: 155px; }
+  .dashboard-luxury-kpi { min-height: 108px; padding: 16px; }
+}
+@media (prefers-reduced-motion:reduce) { .dashboard-luxury *, .dashboard-sidebar * { transition: none !important; animation: none !important; } }
+
+.dashboard-luxury-section .dashboard-section-heading { display: flex; align-items: center; gap: 10px; }
+.dashboard-section-heading > .material-symbols-outlined { color: #a77b58; font-size: 23px; }
+.dashboard-pulse-tile > span { align-self: flex-start; }
+.dashboard-pulse-tile > p.font-semibold { font-family: var(--font-serif); font-size: 19px; font-weight: 600; }
+.dashboard-upgrade-heading { font-family: var(--font-serif); font-size: 20px; font-weight: 600; color: #292520; text-align: center; margin-bottom: 4px; }
+
+.dashboard-topbar button[class~="bg-rose-gold"] { background: #956846; color: white; }

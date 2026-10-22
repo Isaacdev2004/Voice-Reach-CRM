@@ -243,7 +243,7 @@ export function DashboardHeaderProvider({
 
   return (
     <DashboardHeaderContext.Provider value={headerActions}>
-      <header className="fixed top-0 left-0 right-0 z-40 flex h-[3.75rem] min-w-0 items-center gap-1.5 border-b border-outline-variant/12 bg-ivory/90 px-3 shadow-[0_1px_0_rgba(26,22,18,0.04)] backdrop-blur-md max-md:gap-1 sm:gap-2.5 sm:px-4 lg:left-64 lg:h-16 lg:gap-4 lg:px-margin-desktop">
+      <header className="dashboard-topbar fixed top-0 left-0 right-0 z-40 flex h-[3.75rem] min-w-0 items-center gap-1.5 border-b border-outline-variant/12 bg-ivory/90 px-3 shadow-[0_1px_0_rgba(26,22,18,0.04)] backdrop-blur-md max-md:gap-1 sm:gap-2.5 sm:px-4 lg:left-64 lg:h-16 lg:gap-4 lg:px-margin-desktop">
         <button
           type="button"
           onClick={onMenuClick}

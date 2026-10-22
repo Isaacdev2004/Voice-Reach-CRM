@@ -31,15 +31,15 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 flex h-screen w-64 max-w-[85vw] flex-col border-r border-outline-variant/10 bg-cream py-4 shadow-[2px_0_24px_-12px_rgba(26,22,18,0.06)] transition-transform duration-300 ease-out lg:py-5",
+          "dashboard-sidebar fixed left-0 top-0 z-50 flex h-screen w-64 max-w-[85vw] flex-col border-r border-outline-variant/10 bg-cream py-4 shadow-[2px_0_24px_-12px_rgba(26,22,18,0.06)] transition-transform duration-300 ease-out lg:py-5",
           "lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
         aria-hidden={!mobileOpen ? undefined : undefined}
       >
         <div className="mb-4 flex items-start justify-between px-5 lg:mb-5 lg:px-6">
-          <Link href="/dashboard" className="group" onClick={onMobileClose}>
-            <AriLogo height={72} className="max-w-[128px]" />
+          <Link href="/dashboard" className="dashboard-sidebar-brand group" onClick={onMobileClose}>
+            <AriLogo height={96} className="max-w-[128px]" />
             <p className="mt-1.5 text-[11px] italic leading-snug text-taupe transition-colors group-hover:text-rose-gold-deep">
               {BRAND_TAGLINE}
             </p>
@@ -62,10 +62,11 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                 key={item.href}
                 href={item.href}
                 onClick={onMobileClose}
+                aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14px] transition-colors duration-150",
+                  "dashboard-nav-item flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14px] transition-colors duration-150",
                   active
-                    ? "bg-ivory font-medium text-rose-gold-deep ring-1 ring-inset ring-rose-gold/25"
+                    ? "dashboard-nav-active font-medium text-ivory"
                     : "text-taupe hover:bg-ivory/60 hover:text-ink",
                 )}
               >
@@ -76,7 +77,9 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
           })}
         </nav>
 
-        <div className="mt-auto space-y-2.5 border-t border-outline-variant/10 px-4 pb-1 pt-4">
+        <div className="dashboard-upgrade mt-auto space-y-2.5 border-t border-outline-variant/10 px-4 pb-1 pt-4">
+          <div className="flex justify-center text-rose-gold-deep"><Icon name="diamond" className="text-[26px]" /></div>
+          <p className="dashboard-upgrade-heading">Your next chapter</p>
           <p className="text-center text-[11px] leading-snug text-taupe">
             {billing.subscriptionStatus === "active"
               ? `${billing.planName} · $${billing.monthlyPrice}/mo`

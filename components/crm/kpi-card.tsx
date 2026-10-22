@@ -27,7 +27,22 @@ export function KpiCard({
   tone = "default",
   spark,
   compact = false,
-}: DashboardKpi & { compact?: boolean }) {
+  luxury = false,
+}: DashboardKpi & { compact?: boolean; luxury?: boolean }) {
+  if (luxury) return (
+    <LuxuryCard className="dashboard-luxury-kpi" padding="none">
+      <span className="dashboard-luxury-kpi-icon"><Icon name={icon} className="text-[24px]" /></span>
+      <div className="min-w-0 flex-1">
+        <p className="dashboard-luxury-kpi-label">{label}</p>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <p className="dashboard-luxury-kpi-value">{value}</p>
+          {change ? <span className={cn("dashboard-luxury-kpi-change", changeToneStyles[changeTone])}>{change}</span> : null}
+        </div>
+        {detail ? <p className="dashboard-luxury-kpi-detail">{detail}</p> : null}
+      </div>
+      {label === "Opportunities" ? <Icon name="arrow_outward" className="dashboard-opportunity-arrow text-[18px]" /> : null}
+    </LuxuryCard>
+  );
   return (
     <LuxuryCard
       padding="sm"
