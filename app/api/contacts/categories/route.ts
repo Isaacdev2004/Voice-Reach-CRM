@@ -3,6 +3,7 @@ import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import {
   categoriesUsedOnContacts,
+  contactMatchesCategory,
   mergeCategoryLists,
   normalizeCategoryName,
 } from "@/lib/contacts/categories";
@@ -11,6 +12,7 @@ import { loadSavedSettings } from "@/lib/billing/settings-store";
 import type { UserSettings } from "@/lib/settings/types";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
+import { readContactSnapshot } from "@/lib/contacts/read-snapshot";
 
 async function saveCategories(ownerId: string, categories: string[], base: UserSettings) {
   const settings: UserSettings = {
@@ -30,10 +32,9 @@ async function saveCategories(ownerId: string, categories: string[], base: UserS
 export const GET = withApiHandler(async () => {
   const ownerId = await requireUserId();
   const saved = await loadSavedSettings(ownerId);
-  const { data } = await supabaseAdmin
-    .from("contacts")
-    .select("category, type")
-    .eq("owner_id", ownerId);
+  let data;
+  try { data = await readContactSnapshot(supabaseAdmin, ownerId); }
+  catch { return apiError("Unable to load contact categories. Please retry.", { status: 503 }); }
 
   const categories = mergeCategoryLists(
     saved?.contactCategories ?? DEFAULT_SETTINGS.contactCategories,
@@ -43,14 +44,7 @@ export const GET = withApiHandler(async () => {
   const counts: Record<string, number> = { all: (data ?? []).length };
   for (const name of categories) {
     const key = name.toLowerCase();
-    counts[key] = (data ?? []).filter((c) => {
-      const assigned = c.category?.trim()?.toLowerCase();
-      if (assigned === key) return true;
-      const type = (c.type ?? "").toLowerCase();
-      if (key === "residential" && type.includes("residential")) return true;
-      if (key === "commercial" && type.includes("commercial")) return true;
-      return false;
-    }).length;
+    counts[key] = data.filter(contact => contactMatchesCategory(contact, name)).length;
   }
 
   return apiOk({ categories, counts });
@@ -68,7 +62,10 @@ export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const body = BodySchema.parse(await request.json());
   const saved = (await loadSavedSettings(ownerId)) ?? DEFAULT_SETTINGS;
-  let list = mergeCategoryLists(saved.contactCategories ?? DEFAULT_SETTINGS.contactCategories);
+  let used;
+  try { used = await readContactSnapshot(supabaseAdmin, ownerId); }
+  catch { return apiError("Unable to verify contact categories. Please retry.", { status: 503 }); }
+  let list = mergeCategoryLists(saved.contactCategories ?? DEFAULT_SETTINGS.contactCategories, categoriesUsedOnContacts(used));
 
   if (body.action === "replace") {
     list = mergeCategoryLists(body.categories ?? []);
@@ -92,20 +89,22 @@ export const POST = withApiHandler(async (request) => {
       return apiError("That category already exists.", { status: 409, code: "duplicate" });
     }
     list = list.map((c) => (c.toLowerCase() === from.toLowerCase() ? to : c));
-    await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from("contacts")
       .update({ category: to, updated_at: new Date().toISOString() })
       .eq("owner_id", ownerId)
-      .ilike("category", from);
+      .ilike("category", from.replace(/[\\%_]/g, match => "\\" + match));
+    if (error) return apiError("Unable to rename category. Please retry.", { status: 503 });
   } else if (body.action === "remove") {
     const name = normalizeCategoryName(body.name ?? "");
     if (!name) return apiError("Category name is required.", { status: 400 });
     list = list.filter((c) => c.toLowerCase() !== name.toLowerCase());
-    await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from("contacts")
       .update({ category: null, updated_at: new Date().toISOString() })
       .eq("owner_id", ownerId)
-      .ilike("category", name);
+      .ilike("category", name.replace(/[\\%_]/g, match => "\\" + match));
+    if (error) return apiError("Unable to remove category. Please retry.", { status: 503 });
   }
 
   const settings = await saveCategories(ownerId, list, saved);

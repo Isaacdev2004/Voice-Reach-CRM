@@ -1,3 +1,4 @@
+import { ownedConsentRecords } from "./owned-consent";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ApiContact } from "@/lib/hooks/use-contacts";
 
@@ -22,7 +23,8 @@ export async function readContactSnapshot(database: SupabaseClient, ownerId: str
     expected = count;
     for (const row of data as OwnedContact[]) {
       if (!row.id || row.owner_id !== ownerId) throw new Error(CONTACT_SNAPSHOT_ERROR);
-      unique.set(row.id, row);
+      const records = (row.consent_records ?? []) as (NonNullable<OwnedContact["consent_records"]>[number] & { owner_id?: string; contact_id?: string })[];
+      unique.set(row.id, { ...row, consent_records: ownedConsentRecords(records, ownerId, row.id) });
     }
     offset += data.length;
     if (unique.size === expected) break;

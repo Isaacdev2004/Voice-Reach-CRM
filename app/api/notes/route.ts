@@ -20,6 +20,13 @@ export const GET = withApiHandler(async (request) => {
   const kind = searchParams.get("kind");
   const contactId = searchParams.get("contactId");
 
+  if (contactId) {
+    const { data: contact, error } = await supabaseAdmin.from("contacts").select("id")
+      .eq("owner_id", ownerId).eq("id", contactId).maybeSingle();
+    if (error) return apiError("Unable to verify contact. Please retry.", { status: 503 });
+    if (!contact) return apiError("Contact not found", { status: 404 });
+  }
+
   let query = supabaseAdmin
     .from("contact_notes")
     .select("*, contacts(id, first_name, last_name)")
@@ -32,7 +39,7 @@ export const GET = withApiHandler(async (request) => {
   if (contactId) query = query.eq("contact_id", contactId);
 
   const { data, error } = await query;
-  if (error) return apiOk({ notes: [], error: error.message });
+  if (error) return apiError("Unable to load notes. Please retry.", { status: 503 });
   return apiOk({ notes: data ?? [] });
 });
 

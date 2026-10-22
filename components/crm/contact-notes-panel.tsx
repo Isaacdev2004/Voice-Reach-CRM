@@ -1,5 +1,6 @@
 "use client";
 
+import { notifyContactsChanged } from "@/lib/contacts/change-events";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { modalInputClass } from "@/components/crm/modal";
 import { useCallback, useEffect, useState } from "react";
@@ -25,15 +26,19 @@ export function ContactNotesPanel({
   const [adding, setAdding] = useState(false);
   const [body, setBody] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     if (isDemo) return;
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/notes?contactId=${contactId}`, { cache: "no-store" });
       const data = await res.json();
-      setNotes(data.notes ?? []);
+      if (!res.ok || data.success === false || !Array.isArray(data.notes)) throw new Error("Notes unavailable");
+      setNotes(data.notes);
     } catch {
+      setError("Unable to load notes. Please retry.");
       setNotes([]);
     } finally {
       setLoading(false);
@@ -47,6 +52,7 @@ export function ContactNotesPanel({
   const save = async () => {
     if (!body.trim() || isDemo) return;
     setSaving(true);
+    setError(null);
     try {
       const res = await fetch("/api/notes", {
         method: "POST",
@@ -58,11 +64,15 @@ export function ContactNotesPanel({
           contactId,
         }),
       });
-      if (res.ok) {
+      const data = await res.json();
+      if (res.ok && data.success !== false) {
         setBody("");
         setAdding(false);
         await refresh();
-      }
+        notifyContactsChanged();
+      } else { throw new Error("Save failed"); }
+    } catch {
+      setError("Your note could not be saved. Your text is still here; please retry.");
     } finally {
       setSaving(false);
     }
@@ -83,6 +93,7 @@ export function ContactNotesPanel({
         ) : null}
       </div>
 
+      {error ? <p role="alert" className="mb-3 text-[13px] text-error">{error} <button type="button" onClick={() => void refresh()}>Reload notes</button></p> : null}
       {adding ? (
         <div className="mb-4 space-y-2">
           <textarea
@@ -118,7 +129,7 @@ export function ContactNotesPanel({
 
       {loading ? (
         <p className="text-[14px] text-taupe">Loading notes…</p>
-      ) : notes.length === 0 ? (
+      ) : error && !notes.length ? null : notes.length === 0 ? (
         <p className="text-[15px] leading-relaxed text-slate-text">
           {fallback || "No notes yet for this relationship."}
         </p>

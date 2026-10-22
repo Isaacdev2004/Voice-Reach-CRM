@@ -259,7 +259,8 @@ export function EditContactModal({
               value={form.type}
               onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
             >
-              {CONTACT_TYPE_OPTIONS.map((opt) => (
+              {form.type && !CONTACT_TYPE_OPTIONS.some(opt => opt.value === form.type) ? <option value={form.type}>{form.type}</option> : null}
+            {CONTACT_TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
