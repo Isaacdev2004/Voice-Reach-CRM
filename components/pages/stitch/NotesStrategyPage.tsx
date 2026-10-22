@@ -477,7 +477,7 @@ export function NotesStrategyPage() {
         </p>
       ) : null}
 
-      <div className="grid min-h-[520px] flex-1 gap-4 overflow-hidden lg:grid-cols-12">
+      <div className="grid min-h-0 flex-1 gap-4 overflow-hidden max-md:min-h-[420px] md:min-h-[520px] lg:grid-cols-12">
         <aside className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-outline-variant/15 bg-ivory lg:col-span-3">
           <div className="flex items-center justify-between border-b border-outline-variant/10 px-4 py-3">
             <h2 className="font-medium text-ink">

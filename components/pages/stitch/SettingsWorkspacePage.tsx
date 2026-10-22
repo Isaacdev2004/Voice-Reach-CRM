@@ -368,7 +368,7 @@ export function SettingsWorkspacePage() {
         </div>
       </header>
 
-      <div className="flex gap-6 overflow-x-auto border-b border-outline-variant/20 whitespace-nowrap">
+      <div className="flex gap-4 overflow-x-auto border-b border-outline-variant/20 whitespace-nowrap pb-px [-webkit-overflow-scrolling:touch] sm:gap-6">
         {TABS.map((t) => (
           <button
             key={t.id}

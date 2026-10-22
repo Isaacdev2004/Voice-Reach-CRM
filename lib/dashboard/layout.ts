@@ -1,6 +1,6 @@
 /** Shared dashboard main-column layout (shell wraps hero + page body). */
 export const DASHBOARD_MAIN_COLUMN =
-  "mx-auto box-border w-full max-w-[1400px] px-3 pb-8 sm:px-6 lg:px-8";
+  "mx-auto box-border w-full max-w-[1400px] px-4 pb-8 max-md:pb-24 sm:px-6 lg:px-8";
 
 export const DASHBOARD_HERO_SLOT = "block w-full min-w-0 max-w-full pt-1.5 sm:pt-2";
 

@@ -121,7 +121,7 @@ export function RelationshipPulseSection({
               MyARI AI concierge
             </p>
           ) : null}
-          <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {pulse.lanes.map((lane) => (
               <LaneCard
                 key={lane.id}
@@ -132,11 +132,11 @@ export function RelationshipPulseSection({
             ))}
           </div>
           {activeLane && activeLaneData && activeContacts.length > 0 ? (
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <button
                 type="button"
                 onClick={() => setEnrollOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full bg-rose-gold px-4 py-2 text-[13px] font-medium text-ivory hover:opacity-90"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-rose-gold px-4 py-2.5 text-[13px] font-medium text-ivory hover:opacity-90 sm:w-auto"
               >
                 Enroll lane in campaign
               </button>

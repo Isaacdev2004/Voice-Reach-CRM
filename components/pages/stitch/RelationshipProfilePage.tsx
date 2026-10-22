@@ -19,6 +19,8 @@ import { isUuid } from "@/lib/contacts/is-uuid";
 import { contactProfileFromApi, DEMO_CONTACT } from "@/lib/crm/mock-data";
 import type { ContactProfile } from "@/lib/crm/types";
 import { useContact } from "@/lib/hooks/use-contacts";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
+import { cn } from "@/lib/cn";
 import { useEffect, useRef, useState } from "react";
 
 type RelationshipProfilePageProps = {
@@ -77,7 +79,7 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
   }
 
   return (
-    <div className="luxury-page p-8 max-w-[1400px] w-full mx-auto space-y-8">
+    <div className={cn(DASHBOARD_PAGE_BODY, "mx-auto max-w-[1400px] space-y-6 sm:space-y-8")}>
       <Link
         href="/dashboard/contacts"
         className="inline-flex items-center gap-1 text-[14px] text-taupe transition-colors hover:text-rose-gold-deep"
@@ -124,15 +126,15 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
               Relationship profile
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-3">
-              <h1 className="font-serif text-[40px] font-semibold leading-tight text-ink">
+              <h1 className="font-serif text-[28px] font-semibold leading-tight text-ink sm:text-[34px] lg:text-[40px]">
                 {profile.firstName} {profile.lastName}
-                <Icon name="star" className="ml-2 inline text-[28px] text-bronze" />
+                <Icon name="star" className="ml-1 inline text-[22px] text-bronze sm:ml-2 sm:text-[28px]" />
               </h1>
               {apiContact ? (
                 <button
                   type="button"
                   onClick={() => setEditOpen(true)}
-                  className="rounded-full border border-outline-variant/30 px-4 py-2 text-[13px] font-medium text-ink hover:bg-champagne"
+                  className="hidden rounded-full border border-outline-variant/30 px-4 py-2 text-[13px] font-medium text-ink hover:bg-champagne sm:inline-flex"
                 >
                   Edit contact
                 </button>
@@ -159,11 +161,11 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
                 &ldquo;{profile.quote}&rdquo;
               </blockquote>
             ) : null}
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setEditOpen(true)}
-                className="rounded-full bg-bronze px-6 py-2.5 text-[14px] font-medium text-ivory transition-opacity hover:opacity-90"
+                className="w-full rounded-full bg-bronze px-5 py-2.5 text-[14px] font-medium text-ivory transition-opacity hover:opacity-90 sm:w-auto sm:px-6"
               >
                 Edit contact
               </button>
@@ -220,7 +222,7 @@ export function RelationshipProfilePage({ contactId }: RelationshipProfilePagePr
           {profile.relationshipScore > 0 ? (
             <div className="text-center lg:text-right">
               <p className="text-[12px] uppercase tracking-wider text-taupe">Relationship score</p>
-              <p className="font-serif text-[48px] font-semibold text-rose-gold-deep">
+              <p className="font-serif text-[36px] font-semibold text-rose-gold-deep sm:text-[48px]">
                 {profile.relationshipScore}
               </p>
             </div>

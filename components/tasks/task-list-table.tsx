@@ -50,7 +50,72 @@ export function TaskListTable({ tasks, completed = false, onToggleComplete }: Ta
   if (tasks.length === 0) return null;
 
   return (
-    <div className="overflow-x-auto">
+    <>
+      <ul className="divide-y divide-outline-variant/10 md:hidden">
+        {tasks.map((task) => {
+          const cat = taskCategory(task.title, task.notes);
+          const priority = taskPriority(task);
+          const assignee = assigneeLabel(task.contacts);
+          const sub = task.notes?.trim() || "Stay focused and follow through on this step.";
+
+          return (
+            <li key={task.id} className="px-4 py-3 sm:px-5">
+              <div className="flex items-start gap-3">
+                {!completed && onToggleComplete ? (
+                  <button
+                    type="button"
+                    onClick={() => onToggleComplete(task)}
+                    className="mt-0.5 shrink-0 rounded-full p-1 hover:bg-champagne"
+                    aria-label="Mark complete"
+                  >
+                    <Icon name="radio_button_unchecked" className="text-[20px] text-taupe" />
+                  </button>
+                ) : (
+                  <Icon name="check_circle" className="mt-0.5 shrink-0 text-[20px] text-emerald-muted" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={cn(
+                        "inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                        cat.className,
+                      )}
+                    >
+                      {cat.label}
+                    </span>
+                    <PriorityCell priority={priority} />
+                  </div>
+                  <p
+                    className={cn(
+                      "mt-1.5 font-medium text-ink",
+                      completed && "text-slate-text line-through",
+                    )}
+                  >
+                    {task.title}
+                  </p>
+                  {!completed ? (
+                    <p className="mt-0.5 line-clamp-2 text-[12px] text-slate-text">{sub}</p>
+                  ) : null}
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-taupe">
+                    <span>
+                      {completed
+                        ? formatTaskDue(task.completed_at ?? task.due_at)
+                        : formatTaskDue(task.due_at)}
+                    </span>
+                    <Link
+                      href={`/dashboard/contacts/${task.contact_id}`}
+                      className="font-medium text-rose-gold-deep hover:underline"
+                    >
+                      {assignee}
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    <div className="hidden overflow-x-auto md:block">
       <table className="w-full min-w-[880px] border-collapse text-left text-[13px]">
         <thead>
           <tr className="border-b border-outline-variant/15 text-[11px] font-semibold uppercase tracking-wider text-taupe">
@@ -134,6 +199,7 @@ export function TaskListTable({ tasks, completed = false, onToggleComplete }: Ta
         </tbody>
       </table>
     </div>
+    </>
   );
 }
 

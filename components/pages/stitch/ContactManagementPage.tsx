@@ -20,6 +20,7 @@ import {
 } from "@/lib/contacts/lifecycle";
 import { DEFAULT_CONTACT_CATEGORIES } from "@/lib/contacts/categories";
 import { ManageCategoriesModal } from "@/components/crm/manage-categories-modal";
+import { ContactMobileList } from "@/components/crm/contact-mobile-list";
 import { RelationshipPulseSection } from "@/components/crm/relationship-pulse-section";
 import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
 import { useContacts, type ApiContact } from "@/lib/hooks/use-contacts";
@@ -92,6 +93,7 @@ export function ContactManagementPage() {
   const [pulseLoading, setPulseLoading] = useState(true);
   const [activePulseLane, setActivePulseLane] = useState<PulseLaneId | null>(null);
   const [pulseToast, setPulseToast] = useState<string | null>(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const loadPulse = useCallback(async () => {
     setPulseLoading(true);
@@ -333,6 +335,17 @@ export function ContactManagementPage() {
       </div>
 
       <LuxuryCard padding="md" className="space-y-4">
+        <div className="flex items-center justify-between gap-2 md:hidden">
+          <p className="text-[13px] font-medium text-ink">Filters</p>
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen((o) => !o)}
+            className="inline-flex items-center gap-1 rounded-full border border-outline-variant/25 px-3 py-1.5 text-[12px] font-medium text-rose-gold-deep"
+          >
+            {mobileFiltersOpen ? "Hide" : "Show all"}
+            <Icon name={mobileFiltersOpen ? "expand_less" : "expand_more"} className="text-[18px]" />
+          </button>
+        </div>
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-taupe">
             Category
@@ -380,7 +393,7 @@ export function ContactManagementPage() {
           </div>
         </div>
 
-        <div className="border-t border-outline-variant/10 pt-4">
+        <div className={cn("border-t border-outline-variant/10 pt-4", !mobileFiltersOpen && "max-md:hidden")}>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-taupe">
             Lifecycle stage
           </p>
@@ -415,7 +428,7 @@ export function ContactManagementPage() {
           </div>
         </div>
 
-        <div className="border-t border-outline-variant/10 pt-4">
+        <div className={cn("border-t border-outline-variant/10 pt-4", !mobileFiltersOpen && "max-md:hidden")}>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-taupe">Sort by</p>
           <div className="mt-2 flex flex-wrap gap-2">
             <button
@@ -531,12 +544,12 @@ export function ContactManagementPage() {
               Selected: <span className="font-medium text-ink">{selectedIds.length}</span>
             </span>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex max-md:-mx-1 max-md:flex-nowrap max-md:gap-2 max-md:overflow-x-auto max-md:pb-1 max-md:[scrollbar-width:none] flex-wrap gap-2 [&::-webkit-scrollbar]:hidden">
             <button
               type="button"
               disabled={selectedIds.length === 0}
               onClick={() => setBulkOpen("category")}
-              className="inline-flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-50"
+              className="inline-flex max-md:shrink-0 items-center gap-2 rounded-full bg-cream px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-50"
             >
               <Icon name="category" className="text-[18px]" />
               Set category
@@ -596,7 +609,15 @@ export function ContactManagementPage() {
         {loading ? (
           <p className="p-8 text-center text-taupe">Loading contacts…</p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <ContactMobileList
+              contacts={sortedRows}
+              selected={selected}
+              onToggle={toggleOne}
+              selectable={contacts.length > 0}
+              consentStatus={consentStatus}
+            />
+            <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[720px] text-left">
               <thead className="sticky top-0 z-[1]">
                 <tr className="border-b border-outline-variant/20 bg-cream/95 backdrop-blur-sm">
@@ -724,7 +745,8 @@ export function ContactManagementPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </LuxuryCard>
 
