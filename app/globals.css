@@ -2,6 +2,7 @@
 @import "./dashboard-luxury.css";
 @import "./contacts-luxury.css";
 @import "./property-finder-premium.css";
+@import "./campaigns-premium.css";
 @plugin "@tailwindcss/forms";
 
 @theme {

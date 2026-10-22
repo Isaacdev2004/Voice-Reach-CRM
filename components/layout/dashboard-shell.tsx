@@ -109,6 +109,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const normalizedPath = normalizeDashboardPath(pathname ?? "");
   const pageHero = getDashboardHeroForPath(normalizedPath);
   const isCalendarRoute = normalizedPath === "/dashboard/calendar";
+  const isCampaignLibraryRoute = normalizedPath === "/dashboard/campaigns";
   const isPropertyFinderRoute = isPropertyFinderDashboardPath(normalizedPath);
 
   useEffect(() => {
@@ -117,7 +118,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
   useEffect(() => {
     const root = document.documentElement;
-    if (isPropertyFinderRoute) {
+    if (isCampaignLibraryRoute) {
+      root.dataset.dashboardRoute = "campaigns";
+    } else if (isPropertyFinderRoute) {
       root.dataset.dashboardRoute = "properties";
     } else {
       delete root.dataset.dashboardRoute;
@@ -125,7 +128,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
     return () => {
       delete root.dataset.dashboardRoute;
     };
-  }, [isPropertyFinderRoute]);
+  }, [isPropertyFinderRoute, isCampaignLibraryRoute]);
 
   useEffect(() => {
     document.body.style.overflow = mobileNavOpen ? "hidden" : "";
@@ -154,7 +157,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             />
             <main className={`${mainClass} dashboard-main`}>
               <SetupBanner />
-              {isPropertyFinderRoute ? (
+              {isPropertyFinderRoute || isCampaignLibraryRoute ? (
                 <div className={DASHBOARD_MAIN_COLUMN}>{children}</div>
               ) : (
                 <div className={DASHBOARD_MAIN_COLUMN}>
@@ -175,7 +178,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               )}
             </main>
           </div>
-          {normalizedPath !== "/dashboard" && normalizedPath !== "/dashboard/contacts" && !isPropertyFinderRoute ? <AiFloatingButton /> : null}
+          {normalizedPath !== "/dashboard" && normalizedPath !== "/dashboard/contacts" && !isPropertyFinderRoute && !isCampaignLibraryRoute ? <AiFloatingButton /> : null}
           <AiAssistantSidebar />
         </DashboardHeaderProvider>
       </AiAssistantProvider>
