@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./dashboard-luxury.css";
+@import "./contacts-luxury.css";
 @plugin "@tailwindcss/forms";
 
 @theme {
