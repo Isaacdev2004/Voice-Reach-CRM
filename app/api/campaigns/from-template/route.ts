@@ -1,6 +1,7 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
+import { delayFromDayLabel } from "@/lib/campaigns/delay-from-day-label";
 import { persistSteps, type CampaignBlueprintStep } from "@/lib/campaigns/engine";
 import { getTemplate, instantiateTemplate } from "@/lib/crm/campaign-templates";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -10,14 +11,6 @@ const BodySchema = z.object({
   templateKey: z.string().min(1).default("cold-lead-reengage"),
   createAutomation: z.boolean().optional().default(false),
 });
-
-/** Supports "Day 1", "Day 30", "Day 180" etc. */
-export function delayFromDayLabel(dayLabel?: string): number {
-  const match = dayLabel?.match(/day\s*(\d+)/i);
-  if (!match) return 0;
-  const day = Number(match[1]);
-  return Number.isNaN(day) ? 0 : Math.max(0, (day - 1) * 24 * 60);
-}
 
 export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
