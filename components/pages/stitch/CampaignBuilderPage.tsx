@@ -212,6 +212,7 @@ export function CampaignBuilderPage() {
     try {
       const result = await saveCampaignBuilder("template", campaign, dbCampaignId);
       setDbCampaignId(result.campaignId);
+      window.dispatchEvent(new Event("myari:campaigns-changed"));
       setCampaignStatus("draft");
       saveTemplateLocally(campaign, result.campaignId);
       showToast(result.message || "Template saved successfully.");
@@ -244,6 +245,7 @@ export function CampaignBuilderPage() {
         options,
       );
       setDbCampaignId(result.campaignId);
+      window.dispatchEvent(new Event("myari:campaigns-changed"));
       setCampaignStatus("queued");
       setActivateOpen(false);
       showToast(result.message || "Campaign activated and queued.");
