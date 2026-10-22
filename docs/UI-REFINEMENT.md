@@ -1,8 +1,9 @@
 # MyARI premium UI refinement
 
 Branch: `ui/myari-premium-refinement`.
-Base: `fix/myari-security-and-analytics` / `76d988e` (PR #8). This is a presentation
-change layered on that existing work; it must not replace or undo those fixes.
+Original baseline: `fix/myari-security-and-analytics` / `76d988e` (PR #8).
+PR #8 has since merged into `main`; this UI PR targets `main` and must preserve
+those existing security fixes.
 
 ## Audit and approach
 
@@ -119,9 +120,8 @@ search behavior is unchanged. This reduced the previous lint warning count by on
 
 ## Review in staging
 
-1. Review this UI diff against `fix/myari-security-and-analytics` so PR #8's functional
-   fixes are not mistaken for new UI work. Resolve/merge that dependency first when
-   preparing a main-targeted UI release.
+1. Review this UI PR against `main`. PR #8 is already merged; preserve its
+   functional fixes and treat `76d988e` as the original screenshot baseline.
 2. Use the repository's non-production Vercel Preview for the review branch. Confirm
    the preview is configured for test Clerk/Supabase accounts and outbound simulation
    according to `docs/STAGING.md`. Do not promote it to Production.
