@@ -32,15 +32,15 @@ export function KpiCard({
     <LuxuryCard
       padding="sm"
       className={cn(
-        "group relative flex h-full min-h-[108px] flex-col transition-[box-shadow,border-color] duration-200 hover:border-outline-variant/20 hover:shadow-[0_12px_32px_-12px_rgba(26,22,18,0.1)] motion-reduce:transition-none",
-        compact && "!p-4",
+        "group relative flex h-full min-h-[112px] flex-col transition-[box-shadow,border-color] duration-200 hover:border-outline-variant/20 hover:shadow-[0_12px_32px_-12px_rgba(26,22,18,0.1)] motion-reduce:transition-none",
+        compact && "!p-4 sm:!p-4",
       )}
     >
       <div className="flex items-start justify-between gap-2">
         <p
           className={cn(
             "font-medium uppercase tracking-[0.12em] text-taupe",
-            compact ? "text-[10px] sm:text-[11px]" : "text-[11px]",
+            "text-[11px]",
           )}
         >
           {label}
@@ -65,7 +65,7 @@ export function KpiCard({
         {value}
       </p>
 
-      <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+      <div className="mt-auto flex items-end justify-between gap-2 pt-3">
         <div className="min-w-0">
           {detail ? (
             <p className={cn("leading-snug text-slate-text", compact ? "text-[11px]" : "text-[12px]")}>

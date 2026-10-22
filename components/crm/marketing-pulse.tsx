@@ -5,6 +5,12 @@ import Link from "next/link";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import {
+  DASHBOARD_SECTION_CARD,
+  DASHBOARD_SECTION_HEADER,
+  DASHBOARD_SECTION_SUBTITLE,
+  DASHBOARD_SECTION_TITLE,
+} from "@/lib/dashboard/layout";
 import { getRotatingResourceArticle } from "@/lib/seo/resource-articles";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -206,13 +212,11 @@ export function MarketingPulse() {
   const insightCard = cards.find((c) => c.badge === "Insight");
 
   return (
-    <LuxuryCard padding="md" className="h-full !p-5 sm:!p-6">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-outline-variant/10 pb-4">
+    <LuxuryCard padding="md" className={cn("h-full", DASHBOARD_SECTION_CARD)}>
+      <div className={DASHBOARD_SECTION_HEADER}>
         <div>
-          <h2 className="font-serif text-[22px] font-semibold leading-tight text-ink sm:text-[24px]">
-            Marketing Pulse
-          </h2>
-          <p className="mt-1 text-[13px] leading-relaxed text-slate-text">
+          <h2 className={DASHBOARD_SECTION_TITLE}>Marketing Pulse</h2>
+          <p className={DASHBOARD_SECTION_SUBTITLE}>
             Trends, performance, and curated insights for your outreach
           </p>
         </div>

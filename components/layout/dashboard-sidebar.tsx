@@ -65,7 +65,7 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
                 className={cn(
                   "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[14px] transition-colors duration-150",
                   active
-                    ? "bg-ivory font-medium text-ink ring-1 ring-inset ring-rose-gold/20"
+                    ? "bg-ivory font-medium text-rose-gold-deep ring-1 ring-inset ring-rose-gold/25"
                     : "text-taupe hover:bg-ivory/60 hover:text-ink",
                 )}
               >

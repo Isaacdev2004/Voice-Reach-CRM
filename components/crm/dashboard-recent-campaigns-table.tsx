@@ -5,6 +5,12 @@ import Link from "next/link";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import {
+  DASHBOARD_SECTION_CARD,
+  DASHBOARD_SECTION_HEADER,
+  DASHBOARD_SECTION_SUBTITLE,
+  DASHBOARD_SECTION_TITLE,
+} from "@/lib/dashboard/layout";
 import { useEffect, useState } from "react";
 
 type CampaignRow = {
@@ -96,11 +102,11 @@ export function DashboardRecentCampaignsTable() {
   }, []);
 
   return (
-    <LuxuryCard padding="md" className="!p-5 sm:!p-6">
-      <div className="mb-5 flex flex-col gap-3 border-b border-outline-variant/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
+    <LuxuryCard padding="md" className={DASHBOARD_SECTION_CARD}>
+      <div className={cn(DASHBOARD_SECTION_HEADER, "sm:items-end")}>
         <div>
-          <h2 className="font-serif text-[22px] font-semibold text-ink sm:text-[24px]">Recent Campaigns</h2>
-          <p className="mt-1 text-[13px] text-slate-text">
+          <h2 className={DASHBOARD_SECTION_TITLE}>Recent Campaigns</h2>
+          <p className={DASHBOARD_SECTION_SUBTITLE}>
             Delivery, opens, and replies across your latest sequences
           </p>
         </div>

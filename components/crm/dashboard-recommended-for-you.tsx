@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
+import {
+  DASHBOARD_SECTION_CARD,
+  DASHBOARD_SECTION_HEADER,
+  DASHBOARD_SECTION_SUBTITLE,
+  DASHBOARD_SECTION_TITLE,
+} from "@/lib/dashboard/layout";
 import { PRODUCT_CAMPAIGN_TEMPLATES } from "@/lib/crm/campaign-templates";
 import { useState } from "react";
 
@@ -73,13 +79,11 @@ export function DashboardRecommendedForYou() {
   };
 
   return (
-    <LuxuryCard padding="md" className="flex h-full flex-col !p-5 sm:!p-6">
-      <div className="mb-4 flex items-start justify-between gap-3 border-b border-outline-variant/10 pb-4">
+    <LuxuryCard padding="md" className={cn("flex h-full flex-col", DASHBOARD_SECTION_CARD)}>
+      <div className={DASHBOARD_SECTION_HEADER}>
         <div>
-          <h2 className="font-serif text-[20px] font-semibold leading-tight text-ink sm:text-[22px]">
-            Recommended for You
-          </h2>
-          <p className="mt-1 text-[12px] text-slate-text">Playbooks tuned to your pipeline</p>
+          <h2 className={DASHBOARD_SECTION_TITLE}>Recommended for You</h2>
+          <p className={DASHBOARD_SECTION_SUBTITLE}>Playbooks tuned to your pipeline</p>
         </div>
         <Link
           href="/dashboard/campaigns"
