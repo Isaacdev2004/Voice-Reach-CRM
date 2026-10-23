@@ -66,7 +66,7 @@ export function useVoiceAssets() {
       body: JSON.stringify({ voiceAssetId: id, confirmed: true }),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error ?? "Approval failed");
+    if (!res.ok || data.success!==true || data.voiceAsset?.id!==id || data.voiceAsset?.approved!==true) throw new Error("Approval was not confirmed. Reload the recording and retry.");
     await refresh();
     return data.voiceAsset as VoiceAsset;
   };

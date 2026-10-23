@@ -8,6 +8,7 @@ import {
 } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
 import { safeFetch } from "@/lib/api-response";
+import { previewPersonalization } from "@/lib/voice-studio/verification";
 import { cn } from "@/lib/cn";
 import type { VoiceAsset } from "@/lib/hooks/use-voice-assets";
 import { useEffect, useState } from "react";
@@ -26,8 +27,9 @@ type EnvVoice = {
 
 type VoiceCloningStripProps = {
   scriptText: string;
+  scriptId?: string;
   assets: VoiceAsset[];
-  onGenerated?: () => void;
+  onGenerated?: (asset?:VoiceAsset) => void;
   /** When true, renders inline inside the script card (no duplicate section chrome). */
   embedded?: boolean;
 };
@@ -39,6 +41,7 @@ const CLONE_BLOCKED_HINT =
 
 export function VoiceCloningStrip({
   scriptText,
+  scriptId,
   assets,
   onGenerated,
   embedded = false,
@@ -114,6 +117,7 @@ export function VoiceCloningStrip({
     const payload: Record<string, string> = {
       script: scriptText.trim(),
       title: title.trim() || "AI generated voicemail",
+      ...(scriptId ? {scriptId} : {}),
     };
 
     if (selectedVoiceKey.startsWith(ENV_VOICE_PREFIX)) {
@@ -122,7 +126,7 @@ export function VoiceCloningStrip({
       payload.voiceProfileId = selectedVoiceKey;
     }
 
-    const envelope = await safeFetch<{ message: string }>(
+    const envelope = await safeFetch<{ message: string; voiceAsset?:VoiceAsset }>(
       "/api/voice-assets/synthesize",
       {
         method: "POST",
@@ -133,7 +137,7 @@ export function VoiceCloningStrip({
     setGenerating(false);
     if (envelope.success) {
       setMessage(envelope.data.message);
-      onGenerated?.();
+      onGenerated?.(envelope.data.voiceAsset);
     } else {
       setError(envelope.error);
     }
@@ -209,7 +213,7 @@ export function VoiceCloningStrip({
   };
 
   const hasVoice = Boolean(envVoice?.voiceId || profiles.length > 0);
-  const canGenerate = apiConfigured;
+  const canGenerate = apiConfigured && scriptText.trim().length>=10 && previewPersonalization(scriptText,{}).ready;
 
   const stripBody = (
     <div className="flex w-full min-w-0 flex-col gap-4">

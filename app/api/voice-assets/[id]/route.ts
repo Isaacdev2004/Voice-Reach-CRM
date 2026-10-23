@@ -58,13 +58,10 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     return apiError("No updates provided", { status: 400 });
   }
 
-  const { data, error } = await supabaseAdmin
-    .from("voice_assets")
-    .update(updates)
-    .eq("id", id)
-    .eq("owner_id", ownerId)
-    .select("*")
-    .single();
+  let query=supabaseAdmin.from("voice_assets").update(updates).eq("id",id).eq("owner_id",ownerId);
+  if(body.studioMetadata)query=query.eq("approved",Boolean(current.data.approved));
+  const {data,error}=await query.select("*").maybeSingle();
+  if(!error && !data)return apiError("The recording changed during this edit. Reload it before trying again; approved content is unchanged.",{status:409});
 
   if (error) {
     const mapped = apiErrorFromSupabase(error);

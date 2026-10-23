@@ -39,6 +39,13 @@ const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
  await db.query('insert into voice_assets values($1,$2),($3,$4)',[id(80),'a',id(81),'b']);
  const claim=(owner,voice,sample=null)=>db.query('select claim_subscriber_voice($1,$2,$3,$4) as profile',[owner,voice,'Test voice',sample]);
  const voice=(await claim('a','private-voice',id(80))).rows[0].profile;assert.ok(voice.id);await assert.rejects(claim('b','private-voice'),/VOICE_UNAVAILABLE/);await assert.rejects(claim('a','another-voice',id(81)),/VOICE_UNAVAILABLE/);assert.equal((await claim('a','private-voice',id(80))).rows[0].profile.id,voice.id);assert.equal((await db.query('select count(*)::int as n from voice_profiles')).rows[0].n,1);
- await db.exec('set role authenticated');await assert.rejects(db.query("select * from inbound_communications"),/permission denied/);await assert.rejects(call('SM3','hello','Needs review'),/permission denied/);await db.exec('reset role');
+
+ // Draft primary-key ownership and conditional updates remain safe in real PostgreSQL semantics.
+ const draft=(await db.query("insert into voice_script_drafts(id,owner_id,title,script) values($1,'a','First','Original') returning updated_at::text as revision",[id(95)])).rows[0];
+ await assert.rejects(db.query("insert into voice_script_drafts(id,owner_id,title,script) values($1,'b','Foreign','Overwrite')",[id(95)]),/duplicate key/);
+ const firstUpdate=await db.query("update voice_script_drafts set script='Updated',updated_at=clock_timestamp()+interval '1 second' where owner_id='a' and id=$1 and updated_at=$2::timestamptz returning id",[id(95),draft.revision]);assert.equal(firstUpdate.rows.length,1);
+ const stale=await db.query("update voice_script_drafts set script='Lost update' where owner_id='a' and id=$1 and updated_at=$2::timestamptz returning id",[id(95),draft.revision]);assert.equal(stale.rows.length,0);
+ const foreign=await db.query("update voice_script_drafts set script='Stolen' where owner_id='b' and id=$1 returning id",[id(95)]);assert.equal(foreign.rows.length,0);
+ await db.exec('set role authenticated');await assert.rejects(db.query("select * from inbound_communications"),/permission denied/);await assert.rejects(db.query('select * from voice_script_drafts'),/permission denied/);await assert.rejects(call('SM3','hello','Needs review'),/permission denied/);await db.exec('reset role');
  console.log('Studio database checks passed: migrations, atomic STOP, duplicate callbacks, foreign contacts, reply stopping, START preservation, unknown sender, call ordering, versioned Settings conflicts and retry deduplication, private brand bucket, browser permissions.');
  }finally{await db.close()}})().catch(e=>{console.error(e);process.exitCode=1});
