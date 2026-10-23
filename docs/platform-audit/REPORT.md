@@ -4,7 +4,7 @@ Date: 2026-10-23. Branch: `audit/platform-complete`. Base: `7b728c1e735d03f32b2c
 
 ## Outcome and release decision
 
-All 17 phases were addressed through repository discovery, source inspection, isolated reproductions, safe repairs, image/branding refinement and the available automated checks. **This is ready for code review, not an unconditional production-readiness sign-off.** There are unresolved P0/P1 release gates below. Nothing has been pushed, published, deployed or migrated in production. No live communications, charges, credential changes or subscriber writes were performed.
+All 17 phases were addressed through repository discovery, source inspection, isolated reproductions, safe repairs, image/branding refinement and the available automated checks. **This is ready for code review, not an unconditional production-readiness sign-off.** There are unresolved P0/P1 release gates below. At audit completion, nothing had been pushed or published. The subsequent explicit push request authorizes GitHub branch/PR publication for review only; production deployment, merge and migration remain unapproved. No live communications, charges, credential changes or subscriber writes were performed.
 
 Production database grants, actual subscriber totals, Stripe records, provider consoles, Vercel settings and authenticated live sessions were unavailable for verification. Local environment readiness is not proof of production connectivity.
 
@@ -161,7 +161,7 @@ A preliminary post-change browser run overlapped a production build and failed w
 
 ## 13. Approval and review instructions
 
-1. Review this branch locally; nothing was pushed and no PR was opened because the latest request prohibits publishing.
+1. Review this branch locally or in its review PR after the subsequently authorized push. Do not merge, deploy or apply the migration without separate approval.
 2. Read SEC-01 and DATA-01 first. Review the migration against the actual production grants and data access architecture; do not apply it automatically.
 3. Review the billing-status/error-classification repairs with mocked tests. No pricing, charges or active subscriptions were changed.
 4. Run `npm run audit:inventory`, `npm run test:platform-audit`, the existing test commands, and PGlite via `PGLITE_MODULE=/tmp/myari-financing-qa/node_modules/@electric-sql/pglite npm run test:platform-db` (or install the test-only PGlite runner in your QA environment).
@@ -181,7 +181,7 @@ A preliminary post-change browser run overlapped a production build and failed w
 | 11–12 Responsive/performance | Desktop/tablet/mobile fixture checks, public overflow checks, measured asset reduction and memo repair |
 | 13–14 Security/repair | P0 local reproduction/migration proposal, foreign-reference checks, privacy repairs and prioritized findings |
 | 15–16 Tests/visual review | Available suites and before/after captures, documented limitations and preliminary harness failure |
-| 17 Delivery | Report, route/image/test inventories, file manifest, local review branch; no deployment |
+| 17 Delivery | Report, route/image/test inventories, file manifest, review branch; no production deployment |
 
 ## 15. Files changed
 
