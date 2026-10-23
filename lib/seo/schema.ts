@@ -8,12 +8,12 @@ export function organizationSchema() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: `${BRAND_NAME} CRM`,
-    alternateName: ["ARI Real Estate CRM", "ARI Lead Follow-Up"],
+    alternateName: ["MyARI Real Estate CRM", "MyARI Lead Follow-Up"],
     url: SITE_URL,
     logo: absoluteUrl("/brand/ari-logo.png"),
     email: SUPPORT_EMAIL,
     description:
-      "ARI CRM helps real estate agents organize leads, automate follow-up, and convert more opportunities into clients.",
+      "MyARI CRM helps real estate agents organize leads, automate follow-up, and convert more opportunities into clients.",
   };
 }
 

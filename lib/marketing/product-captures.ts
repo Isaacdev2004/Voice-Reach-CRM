@@ -12,8 +12,8 @@ export const PRODUCT_CAPTURES = {
   contacts: {
     src: "/brand/product-captures/contacts.webp",
     alt: "Actual MyARI Contact table, lifecycle filters and contact details with synthetic demo records",
-    width: 1158,
-    height: 600,
+    width: 2320,
+    height: 1200,
     variant: "capture",
   },
   campaigns: {
@@ -21,6 +21,13 @@ export const PRODUCT_CAPTURES = {
     alt: "Actual MyARI Campaign library with synthetic demo records",
     width: 1440,
     height: 1086,
+    variant: "capture",
+  },
+  builder: {
+    src: "/brand/product-captures/builder.webp",
+    alt: "Actual MyARI Campaign Builder showing a synthetic outreach sequence with email, SMS and voicemail editing controls",
+    width: 2560,
+    height: 2000,
     variant: "capture",
   },
   sequence: {

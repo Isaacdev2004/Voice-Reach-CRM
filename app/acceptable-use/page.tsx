@@ -6,8 +6,8 @@ import { LEGAL_POLICY_META } from "@/lib/legal/policy-meta";
 import { LEGAL_RELATED } from "@/lib/legal/links";
 
 export const metadata: Metadata = {
-  title: "Acceptable Use Policy | ARI",
-  description: `Acceptable Use Policy for ARI, operated by ${LEGAL_ENTITY_DBA}.`,
+  title: "Acceptable Use Policy | MyARI",
+  description: `Acceptable Use Policy for MyARI, operated by ${LEGAL_ENTITY_DBA}.`,
   alternates: { canonical: "/acceptable-use" },
   robots: { index: true, follow: true },
 };

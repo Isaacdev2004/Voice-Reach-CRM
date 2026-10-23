@@ -9,13 +9,13 @@ const TOPICS = [
   },
   {
     h2: "Built for real estate agents who want to grow",
-    body: "Whether you're a solo agent or building a team, ARI combines a real estate CRM with automated follow-up so your pipeline keeps moving toward closed deals.",
+    body: "Whether you're a solo agent or building a team, MyARI combines a real estate CRM with automated follow-up so your pipeline keeps moving toward closed deals.",
     href: "/real-estate-crm",
     cta: "Real estate CRM for agents",
   },
   {
     h2: "Never let another lead fall through the cracks",
-    body: "Speed wins in real estate. When leads enter ARI, your follow-up sequence can begin on the schedule you configure - so you're the agent who stays in touch.",
+    body: "Speed wins in real estate. When leads enter MyARI, your follow-up sequence can begin on the schedule you configure - so you're the agent who stays in touch.",
     href: "/realtor-lead-follow-up",
     cta: "Realtor lead follow-up",
   },
@@ -56,7 +56,7 @@ export function LandingSeoTopics() {
           </Link>
           , and{" "}
           <Link href="/pricing" className="font-semibold text-rose-gold-deep hover:underline">
-            ARI CRM pricing
+            MyARI CRM pricing
           </Link>
           .
         </p>

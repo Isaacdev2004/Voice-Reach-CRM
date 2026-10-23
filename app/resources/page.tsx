@@ -34,7 +34,7 @@ export default function ResourcesHubPage() {
           </h1>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
             Practical strategies for agents who want better follow-up, stronger pipelines, and more
-            closed deals - from the team behind ARI CRM.
+            closed deals - from the team behind MyARI CRM.
           </p>
         </div>
       </section>
@@ -102,7 +102,7 @@ export default function ResourcesHubPage() {
           <p className="mt-10 text-center text-[15px] text-slate-text">
             Ready to put these strategies into action?{" "}
             <Link href="/lead-follow-up" className="font-semibold text-rose-gold-deep hover:underline">
-              See how ARI automates real estate lead follow-up
+              See how MyARI automates real estate lead follow-up
             </Link>
             .
           </p>

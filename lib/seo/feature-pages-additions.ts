@@ -6,11 +6,11 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Ringless Voicemail for Real Estate Agents",
     description:
-      "Send ringless voicemail drops to real estate leads with ARI - personalized voice messages in automated campaigns without interrupting prospects.",
+      "Send ringless voicemail drops to real estate leads with MyARI - personalized voice messages in automated campaigns without interrupting prospects.",
     h1: "A More Personal Touch",
     eyebrow: "Ringless voicemail",
     intro:
-      "Voicemail cuts through when texts get ignored. ARI delivers ringless voicemail (RVM) as part of your follow-up sequences - with scripts and AI voice you control.",
+      "Voicemail cuts through when texts get ignored. MyARI delivers ringless voicemail (RVM) as part of your follow-up sequences - with scripts and AI voice you control.",
     sections: [
       {
         h2: "Voice follow-up without the cold call",
@@ -47,7 +47,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Voice Script Studio for Real Estate Campaigns",
     description:
-      "Write, generate, and approve voice scripts for ringless voicemail in ARI Voice Studio - edit scripts per campaign step and preview before send.",
+      "Write, generate, and approve voice scripts for ringless voicemail in MyARI Voice Studio - edit scripts per campaign step and preview before send.",
     h1: "Your Voice, Beautifully Prepared",
     eyebrow: "Voice Studio",
     intro:
@@ -87,11 +87,11 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Real Estate Campaign Builder & Automation Sequences",
     description:
-      "Build multi-step real estate campaigns in ARI - SMS, email, and ringless voicemail sequences with day-by-day previews and assign leads in one click.",
+      "Build multi-step real estate campaigns in MyARI - SMS, email, and ringless voicemail sequences with day-by-day previews and assign leads in one click.",
     h1: "Thoughtful Outreach, On Autopilot",
     eyebrow: "Campaign builder",
     intro:
-      "Design follow-up once: day 0 text, day 1 email, day 3 voicemail, day 7 check-in. ARI's campaign builder shows each step, previews RVM days, and assigns contacts when you're ready to launch.",
+      "Design follow-up once: day 0 text, day 1 email, day 3 voicemail, day 7 check-in. MyARI's campaign builder shows each step, previews RVM days, and assigns contacts when you're ready to launch.",
     sections: [
       {
         h2: "Visual sequences, real channels",
@@ -127,7 +127,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Agent tools",
     title: "Client Notes & Strategy for Real Estate Agents",
     description:
-      "Capture showing notes, buyer preferences, and follow-up strategy in ARI - linked to contacts so context is ready before every call.",
+      "Capture showing notes, buyer preferences, and follow-up strategy in MyARI - linked to contacts so context is ready before every call.",
     h1: "Every Detail, Beautifully Organized",
     eyebrow: "Notes & strategy",
     intro:
@@ -171,7 +171,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     h1: "Confidence Behind Every Number",
     eyebrow: "Mortgage calculator",
     intro:
-      "Answer \"What would my payment be?\" on the spot. ARI's mortgage calculator provides estimates only - not lender quotes. Rates may come from configured market feeds when available; taxes and insurance are editable assumptions.",
+      "Answer \"What would my payment be?\" on the spot. MyARI's mortgage calculator provides estimates only - not lender quotes. Rates may come from configured market feeds when available; taxes and insurance are editable assumptions.",
     sections: [
       {
         h2: "Payment math during the conversation",
@@ -193,7 +193,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       },
     ],
     highlights: [
-      { title: "On-demand estimates", body: "No leaving ARI for a separate calculator site." },
+      { title: "On-demand estimates", body: "No leaving MyARI for a separate calculator site." },
       { title: "Client-ready numbers", body: "Share payment ranges in follow-up messages." },
       { title: "Rate awareness", body: "Reference current rate environment in consults." },
       { title: "Buyer conversations", body: "Move lookers toward qualified decisions." },
@@ -207,7 +207,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Agent tools",
     title: "Property Finder for Buyer Lead Follow-Up",
     description:
-      "Save buyer area and budget in ARI, generate property search links, and send curated listing follow-up tied to each contact.",
+      "Save buyer area and budget in MyARI, generate property search links, and send curated listing follow-up tied to each contact.",
     h1: "A Smarter Way to Guide Buyers",
     eyebrow: "Property Finder",
     intro:
@@ -247,11 +247,11 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "CRM",
     title: "Calendar, Tasks & Showing Reminders for Agents",
     description:
-      "Manage showings, follow-up tasks, and Google Calendar sync in ARI - see what is due today and tie every task to a contact.",
+      "Manage showings, follow-up tasks, and Google Calendar sync in MyARI - see what is due today and tie every task to a contact.",
     h1: "Calendar & Tasks So Nothing Gets Missed",
     eyebrow: "Calendar & tasks",
     intro:
-      "Appointments, call-backs, and showing prep live in one place. ARI Calendar and Tasks connect to your contacts - with Google Calendar sync when you connect Google in Settings.",
+      "Appointments, call-backs, and showing prep live in one place. MyARI Calendar and Tasks connect to your contacts - with Google Calendar sync when you connect Google in Settings.",
     sections: [
       {
         h2: "Your day in one view",
@@ -287,11 +287,11 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Agent tools",
     title: "AI Assistant for Real Estate Follow-Up Copy",
     description:
-      "Draft SMS, email, and voice scripts with ARI's AI Assistant - powered by Claude to help agents write follow-up faster.",
+      "Draft SMS, email, and voice scripts with MyARI's AI Assistant - powered by Claude to help agents write follow-up faster.",
     h1: "AI Assist for Scripts, Emails & Texts",
     eyebrow: "AI Assistant",
     intro:
-      "Writer's block kills follow-up speed. ARI's built-in AI Assistant helps draft SMS, email, and voice scripts you can edit and drop into campaigns - so you launch outreach faster without sounding generic.",
+      "Writer's block kills follow-up speed. MyARI's built-in AI Assistant helps draft SMS, email, and voice scripts you can edit and drop into campaigns - so you launch outreach faster without sounding generic.",
     sections: [
       {
         h2: "Draft copy in seconds",
@@ -327,7 +327,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "CRM",
     title: "Real Estate CRM Analytics & Activity Tracking",
     description:
-      "Track campaign performance, contact engagement, and outreach activity in ARI Analytics - see what's working in your follow-up.",
+      "Track campaign performance, contact engagement, and outreach activity in MyARI Analytics - see what's working in your follow-up.",
     h1: "Analytics That Show What's Working",
     eyebrow: "Analytics",
     intro:
@@ -367,11 +367,11 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Automation Workflows & Rules for Real Estate",
     description:
-      "Configure automation rules in ARI to trigger follow-up actions based on lead behavior, pipeline stage, and timing.",
+      "Configure automation rules in MyARI to trigger follow-up actions based on lead behavior, pipeline stage, and timing.",
     h1: "Automation Rules Beyond Basic Sequences",
     eyebrow: "Automation workflows",
     intro:
-      "Campaigns handle scheduled outreach. Automation workflows add rules - when a lead moves stages, goes quiet, or hits a milestone, ARI can trigger the next action automatically.",
+      "Campaigns handle scheduled outreach. Automation workflows add rules - when a lead moves stages, goes quiet, or hits a milestone, MyARI can trigger the next action automatically.",
     sections: [
       {
         h2: "Rules that match your process",
@@ -382,7 +382,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "Less manual babysitting",
         paragraphs: [
-          "Set the logic once and let ARI enforce consistency across your pipeline - so every lead gets the same high standard of follow-up even when you're slammed.",
+          "Set the logic once and let MyARI enforce consistency across your pipeline - so every lead gets the same high standard of follow-up even when you're slammed.",
         ],
       },
     ],
@@ -401,11 +401,11 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Integrations",
     title: "Dotloop Integration for Real Estate Transactions",
     description:
-      "Connect Dotloop to ARI to align transaction workflows with your CRM pipeline - OAuth secure connection from Settings.",
+      "Connect Dotloop to MyARI to align transaction workflows with your CRM pipeline - OAuth secure connection from Settings.",
     h1: "Dotloop Connected to Your CRM",
     eyebrow: "Dotloop integration",
     intro:
-      "Leads live in ARI; transactions live in Dotloop. Connect your Dotloop account from Settings so transaction and contact workflows stay aligned as deals move from nurture to under contract.",
+      "Leads live in MyARI; transactions live in Dotloop. Connect your Dotloop account from Settings so transaction and contact workflows stay aligned as deals move from nurture to under contract.",
     sections: [
       {
         h2: "Secure OAuth connection",
@@ -416,7 +416,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "CRM + transactions in one workflow",
         paragraphs: [
-          "ARI focuses on lead follow-up and pipeline; Dotloop remains the system of record for loops and documents. The integration bridges prospecting and closing without duplicate data entry.",
+          "MyARI focuses on lead follow-up and pipeline; Dotloop remains the system of record for loops and documents. The integration bridges prospecting and closing without duplicate data entry.",
         ],
       },
     ],
@@ -435,7 +435,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Integrations",
     title: "Google Calendar Sync for Real Estate Agents",
     description:
-      "Sync Google Calendar with ARI - connect in Settings and keep showings, tasks, and follow-up appointments aligned.",
+      "Sync Google Calendar with MyARI - connect in Settings and keep showings, tasks, and follow-up appointments aligned.",
     h1: "Google Calendar Sync Built In",
     eyebrow: "Google Calendar",
     intro:
@@ -444,7 +444,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "Connect in one minute",
         paragraphs: [
-          "OAuth sign-in from Workspace Settings - authorize once and ARI can create and reflect calendar events tied to your workflow.",
+          "OAuth sign-in from Workspace Settings - authorize once and MyARI can create and reflect calendar events tied to your workflow.",
         ],
       },
       {
@@ -469,7 +469,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Client Email Updates & Newsletter Campaigns",
     description:
-      "Send market updates, newsletters, and nurture emails to real estate clients through ARI email campaigns - draft with AI, add to sequences, or send to segments.",
+      "Send market updates, newsletters, and nurture emails to real estate clients through MyARI email campaigns - draft with AI, add to sequences, or send to segments.",
     h1: "Email Updates & Newsletters for Your Database",
     eyebrow: "Email campaigns",
     intro:

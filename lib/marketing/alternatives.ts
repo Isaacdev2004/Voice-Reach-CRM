@@ -1,6 +1,6 @@
 /** Homepage comparison — targets "alternative to Follow Up Boss / kvCORE" intent. */
 export const CRM_ALTERNATIVES = {
-  headline: "Why agents choose ARI over Follow Up Boss or kvCORE",
+  headline: "Why agents choose MyARI over Follow Up Boss or kvCORE",
   subhead:
     "Built for agents who want follow-up done for them — with white-glove setup included, not another empty CRM to configure alone.",
   rows: [

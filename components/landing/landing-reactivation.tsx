@@ -13,7 +13,7 @@ export function LandingReactivation() {
           Before you buy another lead, work the ones you already have.
         </h2>
         <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
-          ARI helps you segment and re-engage dormant leads with automated SMS, email, and
+          MyARI helps you segment and re-engage dormant leads with automated SMS, email, and
           voicemail - turning your existing database into new conversations without buying more
           leads. Consent-aware controls help you reach out responsibly.
         </p>

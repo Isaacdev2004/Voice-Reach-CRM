@@ -108,7 +108,7 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
 
         {(article.citations ?? RESOURCE_EDITORIAL.defaultCitations).length ? (
           <aside className="landing-shell mx-auto mt-12 max-w-[44rem] public-reading-column rounded-2xl border border-outline-variant/15 bg-cream p-6 md:p-8">
-            <h2 className="font-serif text-[20px] font-semibold text-ink">Sources &amp; further reading</h2>
+            <h2 className="font-serif text-[20px] font-semibold text-ink">Further reading (external)</h2>
             <ul className="mt-4 space-y-2 text-[15px] text-slate-text">
               {(article.citations ?? RESOURCE_EDITORIAL.defaultCitations).map((c) => (
                 <li key={c.label}>
@@ -126,7 +126,7 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
         ) : null}
 
         <aside className="landing-shell mx-auto mt-12 max-w-[44rem] public-reading-column rounded-2xl border border-outline-variant/15 bg-ivory p-6 md:p-8">
-          <h2 className="font-serif text-[20px] font-semibold text-ink">Related from ARI</h2>
+          <h2 className="font-serif text-[20px] font-semibold text-ink">Related from MyARI</h2>
           <ul className="mt-4 space-y-2">
             {article.productLinks.map((link) => (
               <li key={link.href}>

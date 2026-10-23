@@ -48,7 +48,7 @@ export function LandingPageHero() {
                 className="luxury-hover inline-flex items-center gap-2 rounded-full border border-outline-variant/25 bg-ivory/80 px-5 py-3.5 text-[15px] font-semibold text-ink transition-colors hover:border-rose-gold/40 hover:bg-ivory md:text-[16px]"
               >
                 <Icon name="play_circle" className="text-[22px] text-rose-gold-deep" />
-                See How ARI Works
+                See How MyARI Works
               </a>
             </div>
           </HeroEntrance>

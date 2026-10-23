@@ -43,23 +43,23 @@ export const SITE_OFFER = {
     active: true,
     pricingNote: "Founding-member pricing while seats last",
     memberBenefit:
-      "Founding 100 members receive founding-member pricing while they remain eligible, plus a direct feedback channel to the ARI team.",
+      "Founding 100 members receive founding-member pricing while they remain eligible, plus a direct feedback channel to the MyARI team.",
   },
   plans: {
     allPlansInclude:
-      "All plans include ARI CRM, pipeline management, tasks, and compliance-aware tools. Multi-step campaign automation and lead reactivation begin on Growth.",
+      "All plans include MyARI CRM, pipeline management, tasks, and compliance-aware tools. Multi-step campaign automation and lead reactivation begin on Growth.",
   },
   leadIntake: {
     /** Canonical public statement - Zillow/Realtor.com do not sync automatically today. */
     portalIntake:
-      "Zillow, Realtor.com, and other portal leads enter ARI through CSV export import or manual entry - not automatic portal sync. After a contact exists in ARI and is enrolled in a campaign, automated follow-up runs on the schedule you configure.",
+      "Zillow, Realtor.com, and other portal leads enter MyARI through CSV export import or manual entry - not automatic portal sync. After a contact exists in MyARI and is enrolled in a campaign, automated follow-up runs on the schedule you configure.",
     /** Use instead of "instant" or "real-time" unless a specific integration supports it. */
     qualified:
-      "When a lead enters ARI through CSV import, manual entry, or a supported workflow, your follow-up sequence can begin on the schedule you configure.",
+      "When a lead enters MyARI through CSV import, manual entry, or a supported workflow, your follow-up sequence can begin on the schedule you configure.",
     smsTiming:
       "Automated SMS can send within minutes after a contact is added to a campaign - while you are in showings or with clients.",
     enrollmentFlow:
-      "Lead source → import or create contact in ARI → enroll in campaign → automated follow-up on your schedule → you handle replies.",
+      "Lead source → import or create contact in MyARI → enroll in campaign → automated follow-up on your schedule → you handle replies.",
   },
   aiDataUse: {
     summary:
@@ -134,7 +134,7 @@ export function integrationsLegalBullets(): string[] {
 
 /** Comparison table for /real-estate-crm (audit Section 8). */
 export const CRM_COMPARISON_TABLE = {
-  headers: ["Capability", "Spreadsheet / Notes", "Traditional CRM", "ARI"],
+  headers: ["Capability", "Spreadsheet / Notes", "Traditional CRM", "MyARI"],
   rows: [
     { capability: "Store contacts", spreadsheet: "Yes", traditional: "Yes", ari: "Yes" },
     { capability: "Track pipeline", spreadsheet: "Limited", traditional: "Usually", ari: "Yes" },

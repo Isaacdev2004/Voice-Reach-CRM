@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { PRODUCT_CAPTURES } from "@/lib/marketing/product-captures";
 const views = [
   {
     label: "Dashboard",
@@ -52,7 +53,7 @@ const views = [
     body: "The reporting interface shown here summarizes available delivery events. Provider support determines which metrics are available.",
     href: "/features/analytics",
   },
-];
+] as const;
 export function ProductShowcase() {
   const [index, setIndex] = useState(0);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -105,8 +106,8 @@ export function ProductShowcase() {
           <Image
             src={`/brand/product-captures/${view.image}.webp`}
             alt={`Actual MyARI ${view.image} workspace with synthetic demo records`}
-            width={1440}
-            height={1100}
+            width={PRODUCT_CAPTURES[view.image].width}
+            height={PRODUCT_CAPTURES[view.image].height}
             sizes="(max-width:767px) 92vw, 65vw"
           />
           <figcaption>

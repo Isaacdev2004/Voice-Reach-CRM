@@ -34,13 +34,13 @@ export function LandingProductProof() {
       <div className="landing-shell">
         <div className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rose-gold-deep md:text-[12px]">
-            See how ARI works
+            See how MyARI works
           </p>
           <h2 className="mt-3 font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
             {SITE_OFFER.primaryPromise}
           </h2>
           <p className="mx-auto mt-4 max-w-[40rem] text-[16px] leading-relaxed text-slate-text md:text-[17px]">
-            ARI is a {SITE_OFFER.positioning.primary} - not just another contact database. Organize
+            MyARI is a {SITE_OFFER.positioning.primary} - not just another contact database. Organize
             leads, automate repetitive outreach, and step in when a real conversation matters.
           </p>
         </div>

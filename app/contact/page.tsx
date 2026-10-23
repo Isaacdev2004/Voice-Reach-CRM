@@ -9,7 +9,7 @@ import { PRODUCT_NAV_LINKS } from "@/lib/seo/marketing-nav";
 export const metadata: Metadata = pageMetadata({
   title: "Contact & Support",
   description:
-    "Contact ARI CRM for onboarding help, billing questions, or brokerage walkthroughs. Email hello@myari.io or send a message - white-glove setup included on every plan.",
+    "Contact MyARI CRM for onboarding help, billing questions, or brokerage walkthroughs. Email hello@myari.io or send a message - white-glove setup included on every plan.",
   path: "/contact",
 });
 

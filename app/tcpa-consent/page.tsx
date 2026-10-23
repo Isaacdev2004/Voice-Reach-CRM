@@ -6,8 +6,8 @@ import { LEGAL_POLICY_META } from "@/lib/legal/policy-meta";
 import { LEGAL_RELATED } from "@/lib/legal/links";
 
 export const metadata: Metadata = {
-  title: "TCPA Consent & Do-Not-Call Policy | ARI",
-  description: `TCPA consent, documentation, and opt-out requirements for ARI customers. Operated by ${LEGAL_ENTITY_DBA}.`,
+  title: "TCPA Consent & Do-Not-Call Policy | MyARI",
+  description: `TCPA consent, documentation, and opt-out requirements for MyARI customers. Operated by ${LEGAL_ENTITY_DBA}.`,
   alternates: { canonical: "/tcpa-consent" },
   robots: { index: true, follow: true },
 };

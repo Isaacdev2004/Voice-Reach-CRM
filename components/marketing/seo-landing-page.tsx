@@ -152,13 +152,13 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
             <h2 className="text-center font-serif text-[26px] font-semibold text-ink md:text-[32px]">
 
-              ARI vs. the way most agents follow up today
+              MyARI vs. the way most agents follow up today
 
             </h2>
 
             <p className="mx-auto mt-3 max-w-[40rem] text-center text-[15px] text-slate-text">
 
-              Most tools help you remember information about a lead. ARI is designed to help you do
+              Most tools help you remember information about a lead. MyARI is designed to help you do
 
               something with the lead.
 
