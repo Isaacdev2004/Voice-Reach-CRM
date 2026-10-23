@@ -1,3 +1,4 @@
+import { ownedConsentRecords } from "@/lib/contacts/owned-consent";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
@@ -20,7 +21,7 @@ async function loadContact(ownerId: string, id: string) {
   if (error) return { error, contact: null };
   if (!data) return { error: null, contact: null };
 
-  const records = Array.isArray(data.consent_records) ? [...data.consent_records] : [];
+  const records = ownedConsentRecords<{owner_id?: string; contact_id?: string; created_at?: string}>(Array.isArray(data.consent_records) ? data.consent_records : [], ownerId, id);
   records.sort((a, b) => {
     const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
     const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;

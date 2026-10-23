@@ -31,6 +31,12 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   }
 
   if (parsed.kind !== undefined) updates.kind = parsed.kind;
+  if (parsed.contactId) {
+    const { data: contact, error } = await supabaseAdmin.from("contacts").select("id")
+      .eq("owner_id", ownerId).eq("id", parsed.contactId).maybeSingle();
+    if (error) return apiError("Unable to verify contact. Please retry.", { status: 503 });
+    if (!contact) return apiError("Contact not found", { status: 404 });
+  }
   if (parsed.contactId !== undefined) updates.contact_id = parsed.contactId;
 
   const { data, error } = await supabaseAdmin
