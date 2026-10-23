@@ -51,7 +51,7 @@ const CORE_FEATURE_PAGES = {
     title: "Automated Follow-Up for Real Estate Agents",
     description:
       "ARI automated follow-up runs SMS, email, and ringless voicemail sequences so every real estate lead gets a timely response - even when you're in showings.",
-    h1: "Automated Follow-Up That Keeps Leads Warm",
+    h1: "Stay Connected, Effortlessly",
     eyebrow: "Automated follow-up",
     intro:
       "Build automated follow-up sequences across SMS, email, and ringless voicemail - all inside ARI.",
@@ -97,7 +97,7 @@ const CORE_FEATURE_PAGES = {
     category: "CRM",
     title: "Real Estate Lead Management Software",
     description:
-      "Organize every real estate lead in one CRM - import from Zillow, CSV, and open houses with notes, tags, and full communication history.",
+      "Organize every real estate lead in one CRM - import CSV exports from lead sources or add contacts manually with notes, tags, and full communication history.",
     h1: "Lead Management Built for Real Estate",
     eyebrow: "Lead management",
     intro:
@@ -144,7 +144,7 @@ const CORE_FEATURE_PAGES = {
     title: "Automated Text Follow-Up for Realtors",
     description:
       "Send automated SMS follow-up to real estate leads with ARI - timely responses, drip sequences, and compliance-aware tools for TCPA-aware texting.",
-    h1: "Text Automation That Reaches Leads Fast",
+    h1: "Conversations That Start Faster",
     eyebrow: "SMS automation",
     intro:
       "Text is the fastest way to reach modern buyers and sellers. ARI automates SMS follow-up so you respond in minutes - not hours - with compliance-aware controls for responsible outreach.",
@@ -188,7 +188,7 @@ const CORE_FEATURE_PAGES = {
     title: "Automated Email Follow-Up for Real Estate",
     description:
       "Automate real estate email follow-up with ARI - nurture sequences, market updates, and re-engagement emails tied to your CRM pipeline.",
-    h1: "Email Automation for Longer-Form Nurture",
+    h1: "Relationships Worth Nurturing",
     eyebrow: "Email automation",
     intro:
       "Some leads need more than a text. ARI email automation delivers thoughtful nurture sequences, market touches, and re-engagement emails on schedule.",
@@ -278,7 +278,7 @@ const CORE_FEATURE_PAGES = {
     title: "Lead Reactivation Feature for Real Estate CRM",
     description:
       "Re-engage dormant real estate leads with ARI's lead reactivation feature - segmented SMS, email, and voicemail campaigns that restart conversations.",
-    h1: "Lead Reactivation Built Into Your CRM",
+    h1: "Reconnect With Opportunity",
     eyebrow: "Lead reactivation",
     intro:
       "Your old leads aren't dead - they're waiting for the right message. ARI's reactivation tools segment dormant contacts and run structured re-engagement campaigns.",
@@ -354,7 +354,7 @@ const CORE_FEATURE_PAGES = {
       },
     ],
     highlights: [
-      { title: "Smart tasks", body: "Auto-created when leads reply or stall." },
+      { title: "Smart tasks", body: "Review tasks and follow-up suggestions alongside contact activity." },
       { title: "Priority inbox", body: "See who needs attention today." },
       { title: "Pipeline alerts", body: "Stage-change notifications for your team." },
       { title: "Calendar sync", body: "Google Calendar integration for appointments." },

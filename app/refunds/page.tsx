@@ -8,6 +8,7 @@ import { LEGAL_RELATED } from "@/lib/legal/links";
 export const metadata: Metadata = {
   title: "Refund & Cancellation Policy | ARI",
   description: `Billing cancellations and refund policy for ARI, operated by ${LEGAL_ENTITY_DBA}.`,
+  alternates: { canonical: "/refunds" },
   robots: { index: true, follow: true },
 };
 

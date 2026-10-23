@@ -10,7 +10,9 @@ const BodySchema = z.object({
 });
 
 function resendConfigured() {
-  return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.RESEND_FROM_EMAIL?.trim());
+  return Boolean(
+    process.env.RESEND_API_KEY?.trim() && process.env.RESEND_FROM_EMAIL?.trim(),
+  );
 }
 
 export const POST = withApiHandler(async (request) => {
@@ -34,24 +36,34 @@ export const POST = withApiHandler(async (request) => {
     body.message,
   ].join("\n");
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [to],
-      reply_to: body.email,
-      subject: `[ARI Contact] ${body.subject}`,
-      text,
-    }),
-  });
-
+  let response: Response;
+  try {
+    response = await fetch("https://api.resend.com/emails", {
+      signal: AbortSignal.timeout(10000),
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [to],
+        reply_to: body.email,
+        subject: `[ARI Contact] ${body.subject}`,
+        text,
+      }),
+    });
+  } catch {
+    return apiError(
+      "Contact delivery could not be confirmed. Please email us directly at hello@myari.io.",
+      { status: 502 },
+    );
+  }
   if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    return apiError(`Could not send message. ${detail.slice(0, 120)}`, { status: 502 });
+    return apiError(
+      "Could not send your message. Please try again or email hello@myari.io.",
+      { status: 502 },
+    );
   }
 
   return apiOk({ ok: true });

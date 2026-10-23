@@ -1,0 +1,290 @@
+[
+  {
+    "route": "/",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/real-estate-crm",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/lead-follow-up",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/realtor-lead-follow-up",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/lead-reactivation",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/crm-for-small-business",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/pricing",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/playbook",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/contact",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/resources",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/lead-management",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/pipeline-management",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/automated-follow-up",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/campaign-builder",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/text-automation",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/email-automation",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/client-email-updates",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/ringless-voicemail",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/voice-studio",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/lead-reactivation",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/calendar-and-tasks",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/notes-and-strategy",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/property-finder",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/mortgage-calculator",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/ai-assistant",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/analytics",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/notifications",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/automation-workflows",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/google-calendar",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/features/dotloop-integration",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/resources/ultimate-real-estate-lead-follow-up-guide",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/resources/best-crm-features-for-real-estate-agents",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/resources/how-to-reactivate-old-real-estate-leads",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/resources/how-many-times-follow-up-real-estate-lead",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/resources/10-lead-follow-up-texts-that-start-conversations",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/resources/how-to-follow-up-facebook-real-estate-leads",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/resources/real-estate-crm-vs-spreadsheet",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/resources/why-real-estate-leads-go-cold",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/resources/how-quickly-should-realtors-respond-to-leads",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/resources/30-day-real-estate-lead-follow-up-plan",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/privacy",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/terms",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/tcpa-consent",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/acceptable-use",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/refunds",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/dpa",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  },
+  {
+    "route": "/sms-consent",
+    "status": 200,
+    "h1": 1,
+    "canonical": true
+  }
+]

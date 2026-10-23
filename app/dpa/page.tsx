@@ -8,6 +8,7 @@ import { LEGAL_RELATED } from "@/lib/legal/links";
 export const metadata: Metadata = {
   title: "Data Processing Agreement | ARI",
   description: `Data Processing Agreement (DPA) for ARI, operated by ${LEGAL_ENTITY_DBA}.`,
+  alternates: { canonical: "/dpa" },
   robots: { index: true, follow: true },
 };
 

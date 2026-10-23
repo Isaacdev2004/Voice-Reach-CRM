@@ -10,24 +10,31 @@ type ContactFormProps = {
 
 type FormStatus = "idle" | "submitting" | "success" | "error";
 
-export function ContactForm({ defaultSubject = "ARI inquiry" }: ContactFormProps) {
+export function ContactForm({
+  defaultSubject = "ARI inquiry",
+}: ContactFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState(defaultSubject);
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<FormStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [fallbackEmail, setFallbackEmail] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("submitting");
     setErrorMessage("");
+    setFallbackEmail(null);
 
     const isBrokerageDemo = subject.toLowerCase().includes("brokerage");
-    trackMarketingEvent(isBrokerageDemo ? "brokerage_demo_request" : "contact_form_submit", {
-      location: "contact-form",
-      subject,
-    });
+    trackMarketingEvent(
+      isBrokerageDemo ? "brokerage_demo_request" : "contact_form_submit",
+      {
+        location: "contact-form",
+        subject,
+      },
+    );
 
     try {
       const response = await fetch("/api/contact", {
@@ -50,16 +57,26 @@ export function ContactForm({ defaultSubject = "ARI inquiry" }: ContactFormProps
       }
 
       if (response.status === 503) {
-        const body = [`Name: ${name}`, `Email: ${email}`, "", message].join("\n");
+        const body = [`Name: ${name}`, `Email: ${email}`, "", message].join(
+          "\n",
+        );
         const mailto = `mailto:${SITE_OFFER.supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.location.href = mailto;
+        setStatus("error");
+        setErrorMessage(
+          "Our contact service is temporarily unavailable. Your message has not been sent. You can send it using your email app or the email link below.",
+        );
+        setFallbackEmail(mailto);
         return;
       }
 
-      setErrorMessage(json.error || "Something went wrong. Please email us directly.");
+      setErrorMessage(
+        json.error || "Something went wrong. Please email us directly.",
+      );
       setStatus("error");
     } catch {
-      setErrorMessage(`Could not send. Email us at ${SITE_OFFER.supportEmail}.`);
+      setErrorMessage(
+        `Could not send. Email us at ${SITE_OFFER.supportEmail}.`,
+      );
       setStatus("error");
     }
   }
@@ -71,9 +88,11 @@ export function ContactForm({ defaultSubject = "ARI inquiry" }: ContactFormProps
         role="status"
         aria-live="polite"
       >
-        <p className="font-serif text-[22px] font-semibold text-ink">Message sent</p>
+        <p className="font-serif text-[22px] font-semibold text-ink">
+          Message sent
+        </p>
         <p className="mt-2 text-[15px] text-slate-text">
-          Thanks - we typically reply within one business day to {SITE_OFFER.supportEmail}.
+          Thanks — we typically reply within one business day.
         </p>
         <button
           type="button"
@@ -92,9 +111,12 @@ export function ContactForm({ defaultSubject = "ARI inquiry" }: ContactFormProps
       className="mt-10 space-y-5 rounded-2xl border border-outline-variant/15 bg-ivory p-8"
     >
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-widest text-taupe">Send a message</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-taupe">
+          Send a message
+        </p>
         <p className="mt-2 text-[15px] text-slate-text">
-          For onboarding, billing, or brokerage walkthroughs - we typically reply within one business day.
+          For onboarding, billing, or brokerage walkthroughs - we typically
+          reply within one business day.
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -135,7 +157,9 @@ export function ContactForm({ defaultSubject = "ARI inquiry" }: ContactFormProps
         >
           <option value="ARI inquiry">General inquiry</option>
           <option value="ARI onboarding help">Onboarding help</option>
-          <option value="ARI brokerage demo">Brokerage demo / Team pricing</option>
+          <option value="ARI brokerage demo">
+            Brokerage demo / Team pricing
+          </option>
           <option value="ARI billing question">Billing question</option>
         </select>
       </label>
@@ -156,6 +180,14 @@ export function ContactForm({ defaultSubject = "ARI inquiry" }: ContactFormProps
         <p className="text-[14px] text-red-700" role="alert">
           {errorMessage}
         </p>
+      ) : null}
+      {fallbackEmail ? (
+        <a
+          className="inline-flex text-[14px] font-semibold text-rose-gold-deep underline"
+          href={fallbackEmail}
+        >
+          Open email app
+        </a>
       ) : null}
       <button
         type="submit"

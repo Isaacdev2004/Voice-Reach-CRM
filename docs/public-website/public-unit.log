@@ -1,0 +1,6 @@
+
+> voicereach-backend-starter@0.1.0 test:public-marketing
+> node --import tsx scripts/public-marketing.test.ts && node scripts/public-contact.test.cjs
+
+Public marketing: 36 navigation/footer destinations and 48 indexable routes valid; metadata, image files, feature coverage and unchanged trial source verified.
+Contact delivery: confirmed success, provider failure, timeout, validation, missing configuration and safe error messages passed. All provider requests mocked.

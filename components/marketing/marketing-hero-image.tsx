@@ -10,7 +10,7 @@ type MarketingHeroImageProps = {
   imageClassName?: string;
 };
 
-/** Sharp UI mockups for the public site — native PNG size, no JPG banner upscaling. */
+/** Real application captures for public product showcases; synthetic demonstration records. */
 export function MarketingHeroImage({
   image,
   priority,
@@ -30,13 +30,20 @@ export function MarketingHeroImage({
         width={image.width}
         height={image.height}
         priority={priority}
-        unoptimized
         sizes="(max-width: 768px) 100vw, (max-width: 1280px) 52vw, 760px"
-        className={cn("h-auto w-full object-cover object-top", imageClassName)}
+        className={cn(
+          "h-auto max-h-[460px] w-full object-cover object-top",
+          imageClassName,
+        )}
         style={
-          image.objectPosition ? { objectPosition: image.objectPosition } : undefined
+          image.objectPosition
+            ? { objectPosition: image.objectPosition }
+            : undefined
         }
       />
+      <p className="border-t border-outline-variant/15 bg-ivory px-4 py-2 text-[11px] text-slate-text">
+        Actual MyARI application capture · Synthetic demonstration data
+      </p>
     </div>
   );
 }

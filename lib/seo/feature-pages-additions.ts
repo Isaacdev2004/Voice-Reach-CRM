@@ -7,7 +7,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     title: "Ringless Voicemail for Real Estate Agents",
     description:
       "Send ringless voicemail drops to real estate leads with ARI - personalized voice messages in automated campaigns without interrupting prospects.",
-    h1: "Ringless Voicemail That Gets Heard",
+    h1: "A More Personal Touch",
     eyebrow: "Ringless voicemail",
     intro:
       "Voicemail cuts through when texts get ignored. ARI delivers ringless voicemail (RVM) as part of your follow-up sequences - with scripts and AI voice you control.",
@@ -48,7 +48,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     title: "Voice Script Studio for Real Estate Campaigns",
     description:
       "Write, generate, and approve voice scripts for ringless voicemail in ARI Voice Studio - edit scripts per campaign step and preview before send.",
-    h1: "Voice Scripts & AI Audio for Every Campaign Step",
+    h1: "Your Voice, Beautifully Prepared",
     eyebrow: "Voice Studio",
     intro:
       "Your voicemail should sound like you - not a robot reading a bad template. Voice Studio lets you write scripts, generate audio, approve takes, and attach them to specific automation steps.",
@@ -88,7 +88,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     title: "Real Estate Campaign Builder & Automation Sequences",
     description:
       "Build multi-step real estate campaigns in ARI - SMS, email, and ringless voicemail sequences with day-by-day previews and assign leads in one click.",
-    h1: "Campaign Sequences That Run While You Work",
+    h1: "Thoughtful Outreach, On Autopilot",
     eyebrow: "Campaign builder",
     intro:
       "Design follow-up once: day 0 text, day 1 email, day 3 voicemail, day 7 check-in. ARI's campaign builder shows each step, previews RVM days, and assigns contacts when you're ready to launch.",
@@ -128,7 +128,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     title: "Client Notes & Strategy for Real Estate Agents",
     description:
       "Capture showing notes, buyer preferences, and follow-up strategy in ARI - linked to contacts so context is ready before every call.",
-    h1: "Notes & Strategy Linked to Every Contact",
+    h1: "Every Detail, Beautifully Organized",
     eyebrow: "Notes & strategy",
     intro:
       "Stop digging through texts and random apps for what a buyer said at a showing. Notes & Strategy stores takeaways, preferences, and plan-of-action notes on the contact record - or as general strategy notes for your business.",
@@ -167,8 +167,8 @@ export const ADDITIONAL_FEATURE_PAGES = {
     category: "Agent tools",
     title: "Mortgage Calculator for Real Estate Agents",
     description:
-      "Run buyer payment estimates in ARI with live rate context - share monthly payment breakdowns with clients during showings and follow-up.",
-    h1: "Mortgage Calculator Built Into Your CRM",
+      "Run buyer payment estimates in MyARI with editable assumptions and available market-rate context. Compare monthly payment breakdowns during client conversations.",
+    h1: "Confidence Behind Every Number",
     eyebrow: "Mortgage calculator",
     intro:
       "Answer \"What would my payment be?\" on the spot. ARI's mortgage calculator provides estimates only - not lender quotes. Rates may come from configured market feeds when available; taxes and insurance are editable assumptions.",
@@ -208,7 +208,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     title: "Property Finder for Buyer Lead Follow-Up",
     description:
       "Save buyer area and budget in ARI, generate property search links, and send curated listing follow-up tied to each contact.",
-    h1: "Property Finder Linked to Your Buyers",
+    h1: "A Smarter Way to Guide Buyers",
     eyebrow: "Property Finder",
     intro:
       "Know where each buyer wants to live and what they can spend. Property Finder stores preferred area and budget on the contact, builds search links, and helps you send relevant listing follow-up fast.",
@@ -222,7 +222,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
       {
         h2: "Search links you can send in seconds",
         paragraphs: [
-          "Generate a property search link from saved criteria (opens an external listing search site in the buyer's browser), copy it, and drop it into an SMS, email, or campaign step - perfect for post-showing follow-up or weekly listing updates.",
+          "Generate a Zillow search link from saved criteria (opens an external site; MyARI does not provide a live MLS feed), copy it, and drop it into an SMS, email, or campaign step - perfect for post-showing follow-up or weekly listing updates.",
         ],
         bullets: [
           "Preferred area and budget per contact",
@@ -331,7 +331,7 @@ export const ADDITIONAL_FEATURE_PAGES = {
     h1: "Analytics That Show What's Working",
     eyebrow: "Analytics",
     intro:
-      "Follow-up without feedback is guessing. ARI Analytics and Activity Logs show sends, engagement, and pipeline movement - so you know which campaigns and sources deserve more attention.",
+      "Follow-up without feedback is guessing. MyARI Analytics and Activity Logs show recorded outreach and available engagement events. Provider support determines which metrics are available; a recorded send does not establish delivery.",
     sections: [
       {
         h2: "Campaign and channel visibility",
