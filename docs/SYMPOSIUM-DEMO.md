@@ -47,3 +47,7 @@ Full narration: see product walkthrough script in team docs / chat history.
 1. Set `VOICE_WEBHOOK_SECRET` on production if using Slybroadcast dispo URL.
 2. Confirm `APP_BASE_URL` matches your Vercel domain (Twilio signatures).
 3. Audit Supabase **RLS/grants** in dashboard (see `docs/SECURITY-RLS.md`).
+
+### Financing Studio demo
+
+Use synthetic contacts and manually verified test amounts. Show calculation assumptions, report preview and local export. Apply the Financing migration to the demo/staging database before demonstrating saved reports/partners. Do not claim live valuations, official title pricing, guaranteed rates or verified legal compliance. Keep outbound messaging off.

@@ -536,7 +536,7 @@ export function DashboardHeaderProvider({
               },
             },
             {
-              label: "Mortgage",
+              label: "Financing & Closing",
               icon: "calculate",
               action: () => {
                 setQuickCreateOpen(false);

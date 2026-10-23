@@ -1,0 +1,451 @@
+.financing-studio {
+  --fc-border: #e9e2d9;
+  --fc-bronze: #996b46;
+  color: #292520;
+  min-width: 0;
+  padding-top: 10px;
+  display: grid;
+  gap: 14px;
+  font-size: 13px;
+}
+.financing-studio * {
+  box-sizing: border-box;
+  min-width: 0;
+}
+.financing-studio h2 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 23px;
+  line-height: 1.25;
+  margin: 0;
+}
+.financing-studio h3 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 19px;
+  margin: 10px 0;
+}
+.financing-studio h4 {
+  font-size: 15px;
+  margin: 0;
+}
+.financing-studio p {
+  line-height: 1.6;
+  margin: 6px 0;
+  color: #625e58;
+}
+.fc-card {
+  border: 1px solid #eee8e0;
+  background: #fffefbf5;
+  border-radius: 19px;
+  padding: 20px;
+  box-shadow: 0 5px 20px #45301b05;
+}
+.fc-tabs,
+.fc-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.fc-tabs {
+  background: #fffdf9;
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid var(--fc-border);
+}
+.financing-studio button,
+.fc-actions a {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--fc-border);
+  border-radius: 24px;
+  background: #fffdf9;
+  padding: 9px 15px;
+  min-height: 37px;
+  color: #77563d;
+  font-size: 12px;
+  line-height: 1.4;
+  transition:
+    background 0.15s,
+    box-shadow 0.15s;
+}
+.financing-studio button:hover,
+.fc-actions a:hover {
+  background: #f3eee6;
+}
+.financing-studio .fc-primary,
+.fc-tabs button[aria-current],
+.fc-subtabs button[aria-pressed="true"] {
+  background: #a77b58;
+  color: white;
+  border-color: #a77b58;
+  box-shadow: 0 3px 6px #a77b5812;
+}
+.financing-studio button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.financing-studio
+  :is(button, a, input, textarea, select, summary):focus-visible {
+  outline: 2px solid #996b46;
+  outline-offset: 3px;
+}
+.fc-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.fc-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.17em;
+  color: #996b46;
+  font-weight: 600;
+}
+.fc-muted {
+  font-size: 12px !important;
+  color: #716960 !important;
+}
+.fc-context-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 12px;
+}
+.fc-input-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 15px 0;
+}
+.fc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #716960;
+}
+.fc-field input,
+.fc-field select,
+.fc-field textarea {
+  width: 100%;
+  border: 1px solid var(--fc-border);
+  background: #fffdfa;
+  border-radius: 10px;
+  min-height: 39px;
+  padding: 8px 11px;
+  color: #292520;
+  font-size: 13px;
+}
+.fc-field textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+.fc-context-details {
+  margin-top: 14px;
+  border-top: 1px solid var(--fc-border);
+  padding-top: 12px;
+}
+.fc-context-details summary,
+.fc-offer summary,
+.fc-fees summary {
+  cursor: pointer;
+  color: #77563d;
+  font-weight: 500;
+}
+.fc-fees {
+  border-top: 1px solid var(--fc-border);
+  margin-top: 18px;
+  padding-top: 14px;
+}
+.fc-fees summary span {
+  font-size: 11px;
+  color: #716960;
+  margin-left: 10px;
+}
+.fc-fees > p {
+  font-size: 12px;
+}
+.fc-fee-row {
+  display: grid;
+  grid-template-columns: 1.2fr 0.65fr 1fr 1.2fr 0.8fr 30px;
+  gap: 9px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3eee6;
+  align-items: end;
+}
+.fc-fee-row button {
+  padding: 6px;
+  min-height: 39px;
+}
+.fc-alert {
+  border: 1px solid #ead9c3;
+  background: #faf4eb;
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: #6d5138;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.fc-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 10px 0;
+}
+.fc-total {
+  display: block;
+  font-family: var(--font-serif), Georgia, serif;
+  color: #996b46;
+  font-size: 42px;
+  font-weight: 500;
+  margin: 10px 0;
+}
+.fc-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #f3eee6;
+  color: #996b46;
+  flex-shrink: 0;
+}
+.fc-result-lines {
+  max-width: 760px;
+}
+.fc-result-lines > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 9px 0;
+  border-bottom: 1px solid #f3eee6;
+}
+.fc-result-lines b {
+  white-space: nowrap;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.fc-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 16px 0;
+  color: #625e58;
+  font-size: 12px;
+}
+.fc-check input {
+  accent-color: #a77b58;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.fc-disclosure {
+  font-size: 11px;
+  color: #716960;
+  padding-top: 14px;
+  border-top: 1px solid var(--fc-border);
+}
+.fc-partners,
+.fc-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.fc-partner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid var(--fc-border);
+  border-radius: 14px;
+  padding: 16px;
+}
+.fc-partner small {
+  margin-left: 8px;
+  background: #f3eee6;
+  border-radius: 14px;
+  padding: 3px 8px;
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+}
+.fc-empty {
+  padding: 24px;
+  border: 1px dashed var(--fc-border);
+  border-radius: 14px;
+}
+.fc-resource-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.fc-resource-grid a {
+  border: 1px solid var(--fc-border);
+  border-radius: 14px;
+  padding: 18px;
+}
+.fc-resource-grid a > span {
+  color: #996b46;
+}
+.fc-offer {
+  padding: 15px;
+  border: 1px solid var(--fc-border);
+  border-radius: 13px;
+  margin-top: 12px;
+}
+.fc-report-library article {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--fc-border);
+}
+.fc-report-preview {
+  background: #f8f5ef;
+  border: 1px solid var(--fc-border);
+  border-radius: 12px;
+  padding: 24px;
+  overflow-wrap: anywhere;
+}
+.fc-report-preview img {
+  max-width: 100px;
+  max-height: 70px;
+  object-fit: contain;
+  display: inline-block;
+  margin: 0 12px 15px 0;
+}
+.fc-report-preview h2 {
+  font-family: Georgia, serif;
+  font-size: 24px;
+}
+.fc-report-preview p {
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 4px 0;
+}
+.financing-studio .luxury-page {
+  padding-top: 0;
+}
+.financing-studio .luxury-card {
+  padding: 20px;
+}
+.financing-studio .luxury-page h2 {
+  font-size: 21px;
+}
+.financing-studio .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 14px;
+}
+.financing-studio .luxury-page > .grid {
+  gap: 14px;
+}
+.financing-studio [hidden] {
+  display: none !important;
+}
+@media (min-width: 1100px) {
+  .financing-studio #mortgage-market {
+    order: 3;
+  }
+  .financing-studio .luxury-page > .grid > div:first-child {
+    display: flex;
+    flex-direction: column;
+  }
+  .financing-studio #mortgage-loan-details {
+    order: 0;
+  }
+  .financing-studio #mortgage-scenarios {
+    order: 1;
+  }
+}
+@media (max-width: 1000px) {
+  .fc-input-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fc-fee-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fc-context-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .fc-context-grid > :last-child {
+    grid-column: 1/-1;
+  }
+  .fc-resource-grid {
+    grid-template-columns: 1fr;
+  }
+  .fc-fee-row button {
+    width: 35px;
+  }
+}
+@media (max-width: 600px) {
+  .fc-card {
+    padding: 15px;
+    border-radius: 15px;
+  }
+  .fc-section-heading {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .fc-input-grid,
+  .fc-context-grid,
+  .fc-partners {
+    grid-template-columns: 1fr;
+  }
+  .fc-tabs button {
+    flex: 1 1 45%;
+    font-size: 11px;
+  }
+  .fc-total {
+    font-size: 34px;
+  }
+  .fc-report-library article {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .fc-fee-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .fc-fees summary span {
+    display: block;
+    margin: 5px 0;
+  }
+  .fc-actions a,
+  .fc-actions button {
+    max-width: 100%;
+  }
+  .fc-result-lines > div {
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .fc-result-lines span {
+    overflow-wrap: anywhere;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .financing-studio * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+.fc-workflow {
+  padding: 15px 20px;
+}
+.fc-workflow .fc-eyebrow {
+  display: none;
+}
+.fc-workflow h2 {
+  font-size: 20px;
+}
+.fc-workflow .fc-section-heading {
+  margin-bottom: 9px;
+}
+.fc-workflow .fc-context-details {
+  margin-top: 9px;
+  padding-top: 8px;
+}
+.financing-studio .fc-mortgage-summary {
+  background: #fffefa;
+}
+.financing-studio .fc-mortgage-summary > p:nth-child(2) {
+  margin: 10px 0;
+  font-size: 42px;
+}

@@ -1,5 +1,2 @@
-import { MortgageCalculatorPage } from "@/components/pages/stitch/MortgageCalculatorPage";
-
-export default function MortgageRoutePage() {
-  return <MortgageCalculatorPage />;
-}
+import {FinancingStudio} from "@/components/financing/financing-studio";
+export default function MortgageRoutePage(){return <FinancingStudio/>;}

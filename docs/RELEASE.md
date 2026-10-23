@@ -29,3 +29,7 @@
 - Enable **branch protection** on `main` (see `docs/GITHUB-SETUP.md`).
 - Never commit `.env` or service role keys.
 - Codex should open PRs only; human merges after CI.
+
+### Financing & Closing Studio (review branch)
+
+Adds closing calculators, owner-scoped lender/title management, original report exports and connected client follow-up at the preserved `/dashboard/mortgage` route. Requires review/application of the new Financing migration in staging before saved reports/partners work. Manual fees remain estimates; no title API or live sharing is enabled. See `docs/financing-studio/REVIEW.md` for scope, tests, limitations and compliance/provider approvals. Not deployed by this task.

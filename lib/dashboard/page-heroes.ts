@@ -70,6 +70,7 @@ const HERO_FILES: Record<
   "calendar.jpg": BANNER_2172,
   "calendar-faith.jpg": BANNER_2172,
   "mortgage.jpg": BANNER_2172,
+  "financing-interior.png": {w:2172,h:724},
   "notes.jpg": BANNER_2172,
   "tasks.jpg": BANNER_2172,
   "voice-scripts.jpg": BANNER_2172,
@@ -142,14 +143,14 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     imageObjectPosition: "38% 42%",
   },
   "/dashboard/mortgage": {
-    ...hero("mortgage.jpg"),
+    ...hero("financing-interior.png"),
     ...DASHBOARD_HERO_COMPACT,
-    eyebrow: "Mortgage",
+    eyebrow: "Financing & Closing",
     title: "Clarity behind every number.",
     subtitle:
       "Explore financing scenarios and guide clients with greater confidence.",
-    imageAlt: "Insightful planning and rates motif",
-    imageObjectPosition: "18% center",
+    imageAlt: "Sunlit cream living room with warm limestone and garden windows",
+    imageObjectPosition: "70% center",
   },
   "/dashboard/notes": {
     ...hero("notes.jpg"),

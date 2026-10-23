@@ -349,6 +349,17 @@ export async function readContactActivity(
         detail:
           typeof a.metadata.notes === "string" ? a.metadata.notes : undefined,
       });
+    } else if (a.action === "FINANCING_REPORT_SAVED") {
+      items.push({
+        id: "financing:" + a.id,
+        type: "update",
+        title: "Financing estimate saved",
+        at: a.created_at,
+        status: "Saved",
+        detail:
+          typeof a.metadata.title === "string" ? a.metadata.title : undefined,
+        href: "/dashboard/mortgage?contactId=" + encodeURIComponent(contact),
+      });
     } else if (a.action === "CONTACT_UPDATED") {
       const fields = Array.isArray(a.metadata.fields) ? a.metadata.fields : [];
       items.push({

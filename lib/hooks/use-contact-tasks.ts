@@ -33,9 +33,9 @@ export function useContactTasks(contactId: string | undefined) {
     setError(null);
     const envelope = await safeFetch<{ tasks: ContactTask[] }>(`/api/contacts/${contactId}/tasks`);
     setLoading(false);
-    if (envelope.success) setTasks(envelope.data.tasks);
+    if (envelope.success && Array.isArray(envelope.data.tasks)) setTasks(envelope.data.tasks);
     else {
-      setError(envelope.error);
+      setError("Follow-up tasks could not be loaded. Please retry.");
       setTasks([]);
     }
   }, [contactId, enabled]);
