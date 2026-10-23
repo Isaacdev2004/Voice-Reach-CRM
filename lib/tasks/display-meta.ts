@@ -27,7 +27,10 @@ export function taskPriority(task: {
   title: string;
   due_at?: string | null;
   completed?: boolean;
+  priority?: string | null;
 }): TaskPriority {
+  if (task.priority === "high" || task.priority === "low") return task.priority;
+  if (task.priority === "normal" || task.priority === "medium") return "medium";
   if (task.due_at && !task.completed) {
     const due = new Date(task.due_at);
     const now = new Date();

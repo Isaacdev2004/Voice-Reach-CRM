@@ -105,7 +105,8 @@ function PropertyFinderWorkspace({ownerId}: {ownerId?:string}) {
     if (!ownerId || loading || error || restored.current) return;
     restored.current = true;
     try {
-      const previous = restoredPropertyClient(sessionStorage,ownerId,contacts);
+      const requested = new URLSearchParams(window.location.search).get("contactId");
+      const previous = contacts.find(c => c.id === requested) ?? restoredPropertyClient(sessionStorage,ownerId,contacts);
       if (previous) pickContact(previous.id);
     } catch { /* Optional client memory. */ }
   },[ownerId,loading,error,contacts,pickContact]);

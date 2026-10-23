@@ -157,7 +157,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             />
             <main className={`${mainClass} dashboard-main`}>
               <SetupBanner />
-              {isPropertyFinderRoute || isCampaignLibraryRoute ? (
+              {isPropertyFinderRoute || isCampaignLibraryRoute || normalizedPath === "/dashboard/notes" ? (
                 <div className={DASHBOARD_MAIN_COLUMN}>{children}</div>
               ) : (
                 <div className={DASHBOARD_MAIN_COLUMN}>
