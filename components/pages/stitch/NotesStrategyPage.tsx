@@ -184,7 +184,15 @@ function NotesWorkspace({ owner }: { owner: string }) {
           )),
     )
     .slice(0, 5);
+  const advanced = w.mode === "advanced";
   function meta(update: Partial<NoteMetadata>) {
+    if (!advanced && update.contactIds) {
+      const primary = w.contacts.find((c) => c.id === update.contactIds?.[0]);
+      update = {
+        ...update,
+        propertyContactIds: primary?.property_address ? [primary.id] : [],
+      };
+    }
     setDraft((d) => ({ ...d, metadata: { ...d.metadata, ...update } }));
   }
   async function open(n?: WorkspaceNote) {
@@ -242,6 +250,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
     setMobilePanel("editor");
   }
   async function duplicate(template = false) {
+    if (template && !advanced) return;
     if (!(await w.save())) return;
     const copy = { ...draft };
     if (!(await w.open())) return;
@@ -264,6 +273,10 @@ function NotesWorkspace({ owner }: { owner: string }) {
     );
   }
   async function prepareTask(t?: SuggestedTask, summaryText?: string) {
+    if (!advanced)
+      throw Error(
+        "Note-linked tasks are not available yet. You can create a task from the Tasks tab.",
+      );
     if (summaryText) {
       if (
         !(await w.changeAndSave((d) => ({
@@ -497,6 +510,10 @@ function NotesWorkspace({ owner }: { owner: string }) {
           ].map((c, i) => (
             <button
               key={c}
+              disabled={
+                !advanced &&
+                !["All Notes", "Clients", "Strategy", "Goals"].includes(c)
+              }
               aria-pressed={category === c}
               onClick={() => setCategory(c)}
             >
@@ -535,7 +552,9 @@ function NotesWorkspace({ owner }: { owner: string }) {
             <Icon name="auto_awesome" />
             AI Assist
           </button>
-          <button onClick={() => setPanel("templates")}>Use Template</button>
+          <button disabled={!advanced} onClick={() => setPanel("templates")}>
+            Use Template
+          </button>
         </div>
       </nav>
       <div className="notes-mobile-switch" aria-label="Workspace panels">
@@ -553,6 +572,13 @@ function NotesWorkspace({ owner }: { owner: string }) {
           </button>
         ))}
       </div>
+      {w.mode === "basic" && !w.loadError && (
+        <p className="notes-notice" role="status">
+          Your notes are available. Basic editing and a linked contact are
+          supported; history, tags, multiple associations and note-linked tasks
+          are not available yet.
+        </p>
+      )}
       {w.error && (
         <div role="alert" className="notes-alert">
           {w.error}
@@ -664,7 +690,9 @@ function NotesWorkspace({ owner }: { owner: string }) {
           <p className="notes-count">
             {w.loading
               ? "Loading notes…"
-              : `${filtered.length} ${filtered.length === 1 ? "note" : "notes"}`}
+              : w.loadError
+                ? "Notes unavailable"
+                : `${filtered.length} ${filtered.length === 1 ? "note" : "notes"}`}
           </p>
           {filtered.map((n) => (
             <button
@@ -702,7 +730,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
               </div>
             </button>
           ))}
-          {!w.loading && !filtered.length && (
+          {!w.loading && !w.loadError && !filtered.length && (
             <div className="notes-empty">
               <Icon name="edit_note" />
               <h3>Room for your next idea.</h3>
@@ -727,6 +755,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
               <span>Notes / {draft.metadata.category}</span>
               <div className="notes-actions">
                 <button
+                  disabled={!advanced}
                   aria-label={draft.metadata.pinned ? "Unpin note" : "Pin note"}
                   aria-pressed={draft.metadata.pinned}
                   onClick={() => meta({ pinned: !draft.metadata.pinned })}
@@ -734,7 +763,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
                   <Icon name="star" />
                 </button>
                 <button
-                  disabled={busy || !draft.id}
+                  disabled={busy || !draft.id || !advanced}
                   onClick={() => void versionsOpen()}
                 >
                   History
@@ -780,7 +809,9 @@ function NotesWorkspace({ owner }: { owner: string }) {
                         onChange={(e) =>
                           meta({
                             contactIds: e.target.checked
-                              ? [...draft.metadata.contactIds, c.id]
+                              ? advanced
+                                ? [...draft.metadata.contactIds, c.id]
+                                : [c.id]
                               : draft.metadata.contactIds.filter(
                                   (id) => id !== c.id,
                                 ),
@@ -801,6 +832,12 @@ function NotesWorkspace({ owner }: { owner: string }) {
                     ? `${linkedProperties.length} linked ${linkedProperties.length === 1 ? "property" : "properties"}`
                     : "Link property"}
                 </summary>
+                {!advanced && (
+                  <p>
+                    Link one contact and its saved property together.
+                    Independent property links need the workspace upgrade.
+                  </p>
+                )}
                 <input
                   aria-label="Search saved property addresses"
                   placeholder="Saved address or client…"
@@ -815,15 +852,30 @@ function NotesWorkspace({ owner }: { owner: string }) {
                         checked={draft.metadata.propertyContactIds.includes(
                           c.id,
                         )}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          if (!advanced) {
+                            const current = draft.metadata.contactIds[0];
+                            if (
+                              current &&
+                              (current !== c.id || !e.target.checked) &&
+                              !confirm(
+                                "Basic notes link one contact and its saved property together. Replace or remove the current contact link?",
+                              )
+                            )
+                              return;
+                            meta({
+                              contactIds: e.target.checked ? [c.id] : [],
+                            });
+                            return;
+                          }
                           meta({
                             propertyContactIds: e.target.checked
                               ? [...draft.metadata.propertyContactIds, c.id]
                               : draft.metadata.propertyContactIds.filter(
                                   (id) => id !== c.id,
                                 ),
-                          })
-                        }
+                          });
+                        }}
                       />
                       {c.property_address}
                       <small>{name(c)}</small>
@@ -856,11 +908,15 @@ function NotesWorkspace({ owner }: { owner: string }) {
                   }));
                 }}
               >
-                {CATEGORIES.map((c) => (
+                {CATEGORIES.filter(
+                  (c) =>
+                    advanced || ["General", "Strategy", "Goals"].includes(c),
+                ).map((c) => (
                   <option key={c}>{c}</option>
                 ))}
               </select>
               <input
+                disabled={!advanced}
                 aria-label="Note tags"
                 placeholder="Tags, separated by commas"
                 key={draft.clientKey + draft.revision}
@@ -917,6 +973,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
               @
             </button>
             <button
+              disabled={!advanced}
               aria-label="Dictate"
               className="notes-dictate"
               onClick={() => setPanel("dictation")}
@@ -990,7 +1047,11 @@ function NotesWorkspace({ owner }: { owner: string }) {
                   onClick={() => {
                     meta({
                       contactIds: [
-                        ...new Set([...draft.metadata.contactIds, c.id]),
+                        ...new Set(
+                          advanced
+                            ? [...draft.metadata.contactIds, c.id]
+                            : [c.id],
+                        ),
                       ],
                     });
                     setNotice(`${name(c)} linked by record ID.`);
@@ -1006,7 +1067,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
               {draft.body.length.toLocaleString()} / 30,000 characters
             </span>
             <button
-              disabled={busy || !draft.body.trim()}
+              disabled={busy || !draft.body.trim() || !advanced}
               onClick={() => void prepareTask()}
             >
               Selection → task
@@ -1034,7 +1095,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
             <div className="notes-panel-heading">
               <h3>Related Tasks</h3>
               <button
-                disabled={!draft.body && !draft.title}
+                disabled={(!draft.body && !draft.title) || !advanced}
                 onClick={() => void prepareTask()}
               >
                 + Add Task
@@ -1061,15 +1122,24 @@ function NotesWorkspace({ owner }: { owner: string }) {
                   </span>
                 </Link>
               ))}
-            {!taskRows.some((t) => t.source_note_id === draft.id) && (
+            {!advanced && (
               <p>
-                No tasks linked to this note. Select text or review an AI
-                suggestion to create one.
+                Open <Link href="/dashboard/tasks">Tasks</Link> to manage tasks.
+                Note-linked tasks are not available yet.
               </p>
             )}
+            {advanced &&
+              !taskError &&
+              !taskRows.some((t) => t.source_note_id === draft.id) && (
+                <p>
+                  No tasks linked to this note. Select text or review an AI
+                  suggestion to create one.
+                </p>
+              )}
           </section>
           <section className="notes-surface">
             <RealtorPlanner
+              readOnly={!advanced}
               refreshKey={taskRows.length}
               priorities={draft.metadata.priorityIds}
               onPriorities={(ids) => meta({ priorityIds: ids })}

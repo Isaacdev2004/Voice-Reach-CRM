@@ -34,7 +34,9 @@ const { chromium } = require("playwright"),
     (iconFont
       ? "@font-face{font-family:'Material Symbols Outlined';src:url(/review-icons.ttf)}.material-symbols-outlined{font-family:'Material Symbols Outlined'}"
       : "") +
-    (reviewFonts ? fs.readFileSync(path.join(reviewFonts,"faces.css"),"utf8") : "") +
+    (reviewFonts
+      ? fs.readFileSync(path.join(reviewFonts, "faces.css"), "utf8")
+      : "") +
     fs
       .readdirSync(cssRoot)
       .filter((x) => x.endsWith(".css"))
@@ -81,9 +83,15 @@ const { chromium } = require("playwright"),
       return res.end();
     }
     const local = file.startsWith("/review-fonts/")
-      ? path.join(reviewFonts || path.join(root,".next/static/media"), path.basename(file))
+      ? path.join(
+          reviewFonts || path.join(root, ".next/static/media"),
+          path.basename(file),
+        )
       : path.resolve(root, "public", "." + file);
-    if (!local.startsWith(root + path.sep) && !(reviewFonts && local.startsWith(path.resolve(reviewFonts)+path.sep))) {
+    if (
+      !local.startsWith(root + path.sep) &&
+      !(reviewFonts && local.startsWith(path.resolve(reviewFonts) + path.sep))
+    ) {
       res.statusCode = 403;
       return res.end();
     }
@@ -469,6 +477,157 @@ const { chromium } = require("playwright"),
     });
     await page.close();
     await context.close();
+    reset();
+    state.basic = true;
+    state.failCalendar = true;
+    const legacy = await browser.newPage({
+      viewport: { width: 1440, height: 1050 },
+    });
+    await legacy.goto(origin + "/dashboard/notes");
+    await legacy.locator(".notes-note-preview").first().click();
+    await legacy
+      .getByText("Your notes are available.", { exact: false })
+      .waitFor();
+    assert.equal(
+      await legacy
+        .getByRole("button", { name: "History", exact: true })
+        .isDisabled(),
+      true,
+    );
+    assert.equal(
+      await legacy.getByLabel("Note tags", { exact: true }).isDisabled(),
+      true,
+    );
+    for (const text of ["Legacy note update one.", "Legacy note update two."]) {
+      await legacy.getByLabel("Note content", { exact: true }).fill(text);
+      await legacy
+        .getByRole("button", { name: "Save now", exact: true })
+        .click();
+      await legacy.getByText("Saved", { exact: true }).waitFor();
+      assert.ok(state.notes.some((n) => n.body === text));
+    }
+    await legacy
+      .getByRole("button", { name: "New Note", exact: false })
+      .click();
+    await legacy
+      .getByLabel("Note title", { exact: true })
+      .fill("Basic property association");
+    const newProperty = legacy.locator(".notes-associations details").nth(1);
+    await newProperty.locator("summary").click();
+    await newProperty
+      .getByLabel("Search saved property addresses")
+      .fill("123 Example");
+    await newProperty.getByRole("checkbox").first().check();
+    await legacy.getByRole("button", { name: "Save now", exact: true }).click();
+    assert.equal(
+      state.notes.find((n) => n.title === "Basic property association")
+        .contact_id,
+      "00000000-0000-4000-8000-000000000002",
+    );
+    await newProperty.locator("summary").click();
+    const contactPicker = legacy.locator(".notes-associations details").first();
+    await contactPicker.locator("summary").click();
+    await contactPicker
+      .getByLabel("Search contacts to link")
+      .fill("jordan@example.test");
+    await contactPicker.getByRole("checkbox").first().uncheck();
+    await contactPicker.getByRole("checkbox").first().check();
+    await legacy.getByRole("button", { name: "Save now", exact: true }).click();
+    const propertyPicker = legacy.locator(".notes-associations details").nth(1);
+    await propertyPicker.locator("summary").click();
+    await propertyPicker
+      .getByLabel("Search saved property addresses")
+      .fill("123 Example");
+    assert.equal(
+      await propertyPicker.getByRole("checkbox").first().isEnabled(),
+      true,
+    );
+    await propertyPicker.getByRole("checkbox").first().check();
+    await legacy.getByRole("button", { name: "Save now", exact: true }).click();
+    await legacy.reload();
+    await legacy
+      .locator(".notes-note-preview")
+      .filter({ hasText: "Basic property association" })
+      .click();
+    await legacy
+      .locator(".notes-associations details")
+      .nth(1)
+      .locator("summary")
+      .click();
+    assert.equal(
+      await legacy
+        .locator(".notes-associations details")
+        .nth(1)
+        .getByRole("checkbox")
+        .first()
+        .isChecked(),
+      true,
+    );
+    await legacy.screenshot({
+      path: path.join(output, "compatibility-1440.png"),
+      fullPage: false,
+    });
+    await legacy.close();
+    state.tasks.push({
+      id: "00000000-0000-4000-8000-000000000777",
+      owner_id: "owner_a",
+      contact_id: "00000000-0000-4000-8000-000000000002",
+      title: "Existing task stays visible",
+      due_at: new Date().toISOString(),
+      completed: false,
+    });
+    const mobile = await browser.newPage({
+      viewport: { width: 390, height: 1050 },
+    });
+    await mobile.goto(origin + "/dashboard/notes");
+    await mobile.getByRole("button", { name: "Planner & context" }).click();
+    await mobile
+      .locator(".notes-planner-row")
+      .filter({ hasText: "Existing task stays visible" })
+      .waitFor();
+    await mobile
+      .getByText("Appointments could not be loaded.", { exact: false })
+      .waitFor();
+    assert.equal(
+      await mobile
+        .getByText("No appointments recorded in this view.", { exact: true })
+        .count(),
+      0,
+    );
+    assert.equal(
+      await mobile.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      ),
+      false,
+    );
+    await mobile.screenshot({
+      path: path.join(output, "compatibility-390.png"),
+      fullPage: false,
+    });
+    await mobile.close();
+    state.failLoad = true;
+    const failed = await browser.newPage();
+    await failed.goto(origin + "/dashboard/notes");
+    await failed.getByText("Notes unavailable", { exact: true }).waitFor();
+    assert.equal(
+      await failed
+        .getByText("Room for your next idea.", { exact: true })
+        .count(),
+      0,
+    );
+    assert.equal(await failed.getByText("0 notes", { exact: true }).count(), 0);
+    assert.equal(await failed.getByText("Saved", { exact: true }).count(), 0);
+    await failed.close();
+    results.push({
+      checks: [
+        "basic schema loads existing notes",
+        "two consecutive timestamp-guarded saves",
+        "unavailable advanced features disabled",
+        "tasks survive calendar read failure",
+        "read failures never claim zero notes or Saved",
+        "basic desktop/mobile no overflow",
+      ],
+    });
     fs.writeFileSync(
       path.join(output, "browser-results.json"),
       JSON.stringify(results, null, 2),

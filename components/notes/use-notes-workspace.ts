@@ -6,11 +6,13 @@ import {
   type WorkspaceNote,
   metadataOf,
 } from "@/lib/notes/workspace";
+import type { NotesMode } from "@/lib/notes/compatibility";
 import type { NoteKind } from "@/lib/notes/types";
 export type Draft = {
   id: string | null;
   clientKey: string;
   revision: number;
+  expectedUpdatedAt?: string | null;
   title: string;
   body: string;
   kind: NoteKind;
@@ -30,6 +32,7 @@ export function draftOf(n: WorkspaceNote): Draft {
     id: n.id,
     clientKey: n.client_key,
     revision: n.revision,
+    expectedUpdatedAt: n.updated_at ?? null,
     title: n.title,
     body: n.body,
     kind: n.kind,
@@ -58,13 +61,15 @@ export async function notesRequest<T>(
   const data = await response.json().catch(() => null);
   if (!response.ok || !data || data.success === false) {
     const error = new Error(
-      response.status === 409
+      response.status === 409 && data?.code !== "upgrade_required"
         ? "A newer version exists. Your draft is preserved. Review the server version before continuing."
         : typeof data?.error === "string"
           ? data.error
           : "Unable to complete this action. Please try again.",
     );
-    Object.assign(error, { conflict: response.status === 409 });
+    Object.assign(error, {
+      conflict: response.status === 409 && data?.code !== "upgrade_required",
+    });
     throw error;
   }
   return data as T;
@@ -82,7 +87,9 @@ export function useNotesWorkspace(owner: string) {
     [draft, setDraft] = useState<Draft>(blankDraft),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
-    [status, setStatus] = useState("Saved"),
+    [status, setStatus] = useState("Not saved yet"),
+    [mode, setMode] = useState<NotesMode>("read-only"),
+    [loadError, setLoadError] = useState(false),
     [recovery, setRecovery] = useState<Draft | null>(null);
   const active = useRef(true),
     ref = useRef(draft),
@@ -96,16 +103,24 @@ export function useNotesWorkspace(owner: string) {
       const data = await notesRequest<{
         notes: WorkspaceNote[];
         contacts: NoteContact[];
+        mode?: NotesMode;
       }>("/api/notes/workspace");
       if (!active.current) return;
+      if (!Array.isArray(data.notes) || !Array.isArray(data.contacts))
+        throw Error("Invalid notes response");
       setNotes(data.notes.map((n) => ({ ...n, metadata: metadataOf(n) })));
       setContacts(data.contacts);
+      setMode(data.mode ?? "advanced");
+      setLoadError(false);
       if (!blocked.current) setError("");
     } catch {
-      if (active.current)
+      if (active.current) {
+        setLoadError(true);
+        setStatus("Unable to load notes");
         setError(
-          "Notes could not be loaded. Please retry. Saving requires the Notes workspace database update.",
+          "Unable to load your notes. Your notes have not been deleted. Please retry.",
         );
+      }
     } finally {
       if (active.current) setLoading(false);
     }
@@ -166,10 +181,20 @@ export function useNotesWorkspace(owner: string) {
           saved.current = stamp(snapshot);
           setNotes((rows) => [n, ...rows.filter((r) => r.id !== n.id)]);
           if (ref.current.clientKey === snapshot.clientKey)
-            ref.current = { ...ref.current, id: n.id, revision: n.revision };
+            ref.current = {
+              ...ref.current,
+              id: n.id,
+              revision: n.revision,
+              expectedUpdatedAt: n.updated_at ?? null,
+            };
           setDraft((d) =>
             d.clientKey === snapshot.clientKey
-              ? { ...d, id: n.id, revision: n.revision }
+              ? {
+                  ...d,
+                  id: n.id,
+                  revision: n.revision,
+                  expectedUpdatedAt: n.updated_at ?? null,
+                }
               : d,
           );
           setStatus("Saved");
@@ -280,7 +305,7 @@ export function useNotesWorkspace(owner: string) {
     saved.current = stamp(next);
     ref.current = next;
     setDraft(next);
-    setStatus("Saved");
+    setStatus(n ? "Saved" : "Not saved yet");
     setError("");
     return true;
   }
@@ -350,6 +375,8 @@ export function useNotesWorkspace(owner: string) {
     return save();
   }
   return {
+    mode,
+    loadError,
     getDraft: () => ref.current,
     changeAndSave,
     notes,

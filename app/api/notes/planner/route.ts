@@ -6,11 +6,7 @@ export const GET = withApiHandler(async () => {
   const owner = await requireUserId();
   try {
     return apiOk({
-      tasks: await ownedRows(
-        "contact_tasks",
-        "id, title, contact_id, completed, due_at, source_note_id, priority",
-        owner,
-      ),
+      tasks: await ownedRows("contact_tasks", "*", owner),
     });
   } catch {
     return notesFailure();

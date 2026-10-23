@@ -43,6 +43,11 @@ export const SaveSchema = z
     id: z.string().uuid().nullable().default(null),
     clientKey: z.string().uuid(),
     expectedRevision: z.number().int().nonnegative(),
+    expectedUpdatedAt: z
+      .string()
+      .datetime({ offset: true })
+      .nullable()
+      .optional(),
     title: z.string().trim().max(200),
     body: z.string().max(30000),
     kind: z.enum(["note", "strategy", "goal"]),

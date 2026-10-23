@@ -58,6 +58,9 @@ module.exports = function () {
     requests: [],
     failSave: false,
     conflict: false,
+    basic: false,
+    failLoad: false,
+    failCalendar: false,
   };
   const originalNotes = structuredClone(notes);
   return {
@@ -69,6 +72,9 @@ module.exports = function () {
       state.requests = [];
       state.failSave = false;
       state.conflict = false;
+      state.basic = false;
+      state.failLoad = false;
+      state.failCalendar = false;
     },
     async handle(req, res, url) {
       if (!url.pathname.startsWith("/api/")) return false;
@@ -90,10 +96,56 @@ module.exports = function () {
         res.end(JSON.stringify({ success: status < 400, ...data }));
         return true;
       }
+      const basicNote = (n) => ({
+        ...n,
+        client_key: n.id,
+        revision: 0,
+        metadata: meta({
+          category:
+            n.kind === "goal"
+              ? "Goals"
+              : n.kind === "strategy"
+                ? "Strategy"
+                : "General",
+          contactIds: n.contact_id ? [n.contact_id] : [],
+          propertyContactIds: n.contact_id === contact.id ? [contact.id] : [],
+        }),
+      });
       if (path === "/api/notes/workspace") {
+        if (method === "GET" && state.failLoad)
+          return send({ error: "Synthetic read failure." }, 503);
+        if (method === "POST" && state.basic) {
+          let n = state.notes.find(
+            (n) => n.owner_id === owner && n.id === (body.id ?? body.clientKey),
+          );
+          if (n && body.expectedUpdatedAt !== n.updated_at)
+            return send(
+              { error: "Newer note exists.", code: "note_conflict" },
+              409,
+            );
+          if (!n) {
+            n = {
+              id: body.clientKey,
+              owner_id: owner,
+              created_at: new Date().toISOString(),
+            };
+            state.notes.push(n);
+          }
+          Object.assign(n, {
+            title: body.title,
+            body: body.body,
+            kind: body.kind,
+            contact_id: body.metadata.contactIds[0] ?? null,
+            updated_at: new Date().toISOString(),
+          });
+          return send({ note: basicNote(n), mode: "basic" });
+        }
         if (method === "GET")
           return send({
-            notes: state.notes.filter((n) => n.owner_id === owner),
+            notes: state.notes
+              .filter((n) => n.owner_id === owner)
+              .map((n) => (state.basic ? basicNote(n) : n)),
+            mode: state.basic ? "basic" : "advanced",
             contacts: owner === "owner_a" ? [contact] : [],
           });
         if (state.failSave)
@@ -196,6 +248,8 @@ module.exports = function () {
             draft: "",
           },
         });
+      if (path === "/api/calendar/events" && state.failCalendar)
+        return send({ error: "Unavailable" }, 503);
       if (path === "/api/calendar/events")
         return send({ agenda: [], complete: true, googleError: null });
       if (path === "/api/settings")

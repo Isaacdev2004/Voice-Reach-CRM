@@ -37,7 +37,7 @@ function fixture() {
         let matching=tables[table].filter(row=>filters.every(filter=>filter(row)));
         const count=matching.length;
         if(action==='insert'){
-          matching=(Array.isArray(payload)?payload:[payload]).map(row=>({id:noteId,created_at:'2026-10-22',...row}));tables[table].push(...matching);
+          matching=(Array.isArray(payload)?payload:[payload]).map(row=>({id:noteId,created_at:'2026-10-22',updated_at:'2026-10-22T12:00:00.000Z',...row}));tables[table].push(...matching);
         }else if(action==='update'){for(const row of matching)Object.assign(row,payload);}
         else if(action==='delete')tables[table]=tables[table].filter(row=>!matching.includes(row));
         if(range)matching=matching.slice(range[0],range[1]+1);

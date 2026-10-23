@@ -361,3 +361,148 @@ test("planner day/week/month ranges have exclusive ends and never duplicate cano
     1,
   );
 });
+
+function basicSetup() {
+  const f = setup(),
+    db = f.stubs["@/lib/supabaseAdmin"].supabaseAdmin;
+  const original = db.from.bind(db);
+  db.from = (table) => {
+    const q = original(table),
+      select = q.select.bind(q),
+      then = q.then.bind(q);
+    let columns = "";
+    q.select = (c, ...args) => {
+      columns = c;
+      return select(c, ...args);
+    };
+    q.then = (resolve, reject) =>
+      table === "contact_notes" &&
+      ["metadata", "revision", "client_key"].includes(columns)
+        ? Promise.resolve({
+            data: null,
+            error: { code: "42703", message: "private schema column detail" },
+          }).then(resolve, reject)
+        : then(resolve, reject);
+    return q;
+  };
+  for (const n of f.tables.contact_notes) {
+    delete n.metadata;
+    delete n.revision;
+    delete n.client_key;
+    n.updated_at = "2026-10-22T12:00:00.000Z";
+    n.contact_id = id(2);
+  }
+  return f;
+}
+test("unmigrated schema loads actual owned notes without requiring new columns", async () => {
+  const f = basicSetup();
+  f.tables.contact_notes.push({
+    ...f.tables.contact_notes[0],
+    id: id(99),
+    owner_id: "other",
+  });
+  const r = await f
+    .load("app/api/notes/workspace/route")
+    .GET(new Request("http://localhost"));
+  assert.equal(r.status, 200);
+  const d = await r.json();
+  assert.equal(d.mode, "basic");
+  assert.equal(d.notes.length, 1);
+  assert.equal(d.notes[0].client_key, id(40));
+  assert.deepEqual(d.notes[0].metadata.contactIds, [id(2)]);
+});
+test("basic saves use timestamp CAS, reject stale writes, and preserve subscriber isolation", async () => {
+  const f = basicSetup(),
+    handler = f.load("app/api/notes/workspace/route").POST;
+  const body = {
+    ...saveBody(),
+    id: id(40),
+    clientKey: id(40),
+    expectedUpdatedAt: "2026-10-22T12:00:00.000Z",
+    body: "New actual note content.",
+  };
+  const first = await handler(req(body));
+  assert.equal(first.status, 200);
+  assert.equal((await first.json()).note.body, body.body);
+  assert.equal(
+    (await handler(req({ ...body, body: "Stale content." }))).status,
+    409,
+  );
+  f.actor("other");
+  assert.equal((await handler(req(body))).status, 404);
+  assert.equal(f.tables.contact_notes[0].body, "New actual note content.");
+});
+test("basic creation retries are idempotent; unsupported metadata is never silently discarded", async () => {
+  const f = basicSetup(),
+    handler = f.load("app/api/notes/workspace/route").POST;
+  let r = await handler(req(saveBody()));
+  assert.equal(r.status, 200);
+  r = await handler(req(saveBody()));
+  assert.equal(r.status, 200);
+  assert.equal(f.tables.contact_notes.filter((n) => n.id === id(50)).length, 1);
+  r = await handler(
+    req({
+      ...saveBody(),
+      metadata: { contactIds: [id(2)], tags: ["must preserve"] },
+    }),
+  );
+  assert.equal(r.status, 409);
+  assert.equal((await r.json()).code, "upgrade_required");
+});
+test("schema connection errors never trigger basic-mode fallback", async () => {
+  const f = setup();
+  f.fail("contact_notes");
+  const r = await f
+    .load("app/api/notes/workspace/route")
+    .GET(new Request("http://localhost"));
+  assert.equal(r.status, 503);
+  assert.equal((await r.text()).includes("private"), false);
+});
+test("planner reads existing tasks without projecting upgrade-only columns", async () => {
+  const f = basicSetup();
+  f.tables.contact_tasks.push(
+    {
+      id: id(70),
+      owner_id: owner,
+      title: "Existing task",
+      contact_id: id(2),
+      due_at: null,
+      completed: false,
+    },
+    { id: id(71), owner_id: "other", title: "Private task" },
+  );
+  const r = await f
+    .load("app/api/notes/planner/route")
+    .GET(new Request("http://localhost"));
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).tasks.length, 1);
+});
+test("basic property associations use the actual owned contact key and reject independent or foreign links", async () => {
+  const f = basicSetup(),
+    route = f.load("app/api/notes/workspace/route");
+  const body = {
+    ...saveBody(),
+    metadata: { contactIds: [id(2)], propertyContactIds: [id(2)] },
+  };
+  const r = await route.POST(req(body));
+  assert.equal(r.status, 200);
+  assert.deepEqual((await r.json()).note.metadata.propertyContactIds, [id(2)]);
+  const loaded = await route.GET(new Request("http://localhost"));
+  assert.deepEqual(
+    (await loaded.json()).notes.find((n) => n.id === id(50)).metadata
+      .propertyContactIds,
+    [id(2)],
+  );
+  const invalid = await route.POST(
+    req({
+      ...saveBody(),
+      clientKey: id(51),
+      metadata: { contactIds: [id(2)], propertyContactIds: [id(99)] },
+    }),
+  );
+  assert.equal(invalid.status, 409);
+  assert.equal(
+    f.tables.contact_notes.some((n) => n.id === id(51)),
+    false,
+  );
+});

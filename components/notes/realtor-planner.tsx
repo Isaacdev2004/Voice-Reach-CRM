@@ -18,24 +18,28 @@ export function RealtorPlanner({
   onPriorities,
   onTemplate,
   refreshKey,
+  readOnly = false,
 }: {
   priorities: string[];
   onPriorities: (ids: string[]) => void;
   onTemplate: () => void;
   refreshKey?: number;
+  readOnly?: boolean;
 }) {
   const [view, setView] = useState<"day" | "week" | "month">("day"),
     [day, setDay] = useState(() => new Date().toLocaleDateString("en-CA")),
     [tasks, setTasks] = useState<PlannerTask[]>([]),
     [events, setEvents] = useState<ScheduleItem[]>([]),
     [error, setError] = useState(""),
-    [loading, setLoading] = useState(false);
+    [loading, setLoading] = useState(false),
+    [tasksFailed, setTasksFailed] = useState(false),
+    [eventsFailed, setEventsFailed] = useState(false);
   const range = useMemo(() => plannerRange(day, view), [day, view]);
   useEffect(() => {
     let live = true;
     setLoading(true);
     setError("");
-    Promise.all([
+    Promise.allSettled([
       notesRequest<{ tasks: PlannerTask[]; error?: string }>(
         "/api/notes/planner",
       ),
@@ -54,27 +58,34 @@ export function RealtorPlanner({
     ])
       .then(([t, e]) => {
         if (!live) return;
-        if (t.error) throw Error();
-        setTasks(t.tasks);
-        setEvents(e.agenda ?? []);
+        const tasksOk =
+          t.status === "fulfilled" &&
+          Array.isArray(t.value.tasks) &&
+          !t.value.error;
+        const eventsOk =
+          e.status === "fulfilled" && Array.isArray(e.value.agenda);
+        setTasksFailed(!tasksOk);
+        setEventsFailed(!eventsOk);
+        setTasks(tasksOk && t.status === "fulfilled" ? t.value.tasks : []);
+        setEvents(
+          eventsOk && e.status === "fulfilled" ? (e.value.agenda ?? []) : [],
+        );
+        const messages = [];
+        if (!tasksOk)
+          messages.push("Tasks could not be loaded. Open Tasks to retry.");
+        if (!eventsOk)
+          messages.push(
+            "Appointments could not be loaded. Open Calendar to retry.",
+          );
         if (
-          e.complete === false ||
-          e.googleError ||
-          e.limitations?.length ||
-          e.warnings?.length
+          eventsOk &&
+          e.status === "fulfilled" &&
+          (e.value.complete === false || e.value.googleError)
         )
-          setError(
-            "Some external calendar information could not be verified. Open Calendar for details.",
+          messages.push(
+            "Some external calendar information could not be verified.",
           );
-      })
-      .catch(() => {
-        if (live) {
-          setError(
-            "Planner information is unavailable. Open Tasks or Calendar to retry.",
-          );
-          setTasks([]);
-          setEvents([]);
-        }
+        setError(messages.join(" "));
       })
       .finally(() => {
         if (live) setLoading(false);
@@ -111,7 +122,9 @@ export function RealtorPlanner({
     <section className="notes-planner">
       <div className="notes-panel-heading">
         <h3>AI Realtor Planner</h3>
-        <button onClick={onTemplate}>Templates</button>
+        <button disabled={readOnly} onClick={onTemplate}>
+          Templates
+        </button>
       </div>
       <p>
         Your real appointments and task deadlines. AI suggestions are reviewed
@@ -135,20 +148,20 @@ export function RealtorPlanner({
       {loading && <p role="status">Loading planner…</p>}
       {error && <p role="alert">{error}</p>}
       <h4>Top priorities &amp; deadlines</h4>
-      {!loading && !visible.length && (
+      {!loading && !tasksFailed && !visible.length && (
         <p>No open task deadlines in this view.</p>
       )}
       {visible.slice(0, 12).map((t, i) => (
         <div
           className="notes-planner-row"
           key={t.id}
-          draggable
+          draggable={!readOnly}
           onDragStart={(e) => e.dataTransfer.setData("text/plain", t.id)}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => {
             e.preventDefault();
             const id = e.dataTransfer.getData("text/plain");
-            if (!visible.some((t) => t.id === id)) return;
+            if (readOnly || !visible.some((t) => t.id === id)) return;
             const ids = visible.map((t) => t.id).filter((v) => v !== id);
             ids.splice(i, 0, id);
             onPriorities(ids);
@@ -160,14 +173,14 @@ export function RealtorPlanner({
           </Link>
           <button
             aria-label={`Move ${t.title} up`}
-            disabled={i === 0}
+            disabled={readOnly || i === 0}
             onClick={() => move(t.id, -1)}
           >
             ↑
           </button>
           <button
             aria-label={`Move ${t.title} down`}
-            disabled={i === visible.length - 1}
+            disabled={readOnly || i === visible.length - 1}
             onClick={() => move(t.id, 1)}
           >
             ↓
@@ -175,7 +188,7 @@ export function RealtorPlanner({
         </div>
       ))}
       <h4>Appointments</h4>
-      {!loading && !events.filter((e) => !e.taskId).length && (
+      {!loading && !eventsFailed && !events.filter((e) => !e.taskId).length && (
         <p>No appointments recorded in this view.</p>
       )}
       {events
