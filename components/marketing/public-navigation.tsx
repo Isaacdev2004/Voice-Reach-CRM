@@ -53,7 +53,7 @@ export function PublicNavigation() {
   return (
     <header className="public-header" ref={root}>
       <nav className="landing-shell public-nav" aria-label="Main navigation">
-        <Link href="/" className="public-wordmark" aria-label="MyARI home">
+        <Link href="/" className="public-wordmark" aria-label="MyARI home" onClick={close}>
           <AriLogo height={50} />
           <span>MyARI</span>
         </Link>
@@ -84,8 +84,8 @@ export function PublicNavigation() {
               )}
             </div>
           ))}
-          <Link href="/pricing">Pricing</Link>
-          <Link href="/contact">Contact</Link>
+          <Link href="/pricing" onClick={close}>Pricing</Link>
+          <Link href="/contact" onClick={close}>Contact</Link>
         </div>
         <div className="public-nav-actions">
           <Link className="public-login" href="/sign-in">

@@ -98,7 +98,10 @@ const { chromium } = require("playwright"),
   const results = [];
   try {
     for (const width of [1440, 1920, 1280, 768, 390]) {
-      const page = await browser.newPage({ viewport: { width, height: 1080 } });
+      const page = await browser.newPage({
+        viewport: { width, height: 1080 },
+        deviceScaleFactor: process.env.PUBLIC_DASHBOARD_CAPTURE === "1" ? 2 : 1,
+      });
       const errors = [],
         writes = [];
       page.on("pageerror", (e) => errors.push(e.message));
@@ -410,6 +413,20 @@ const { chromium } = require("playwright"),
         path: path.join(output, `dashboard-${width}.png`),
         fullPage: true,
       });
+      if (process.env.PUBLIC_DASHBOARD_CAPTURE === "1") {
+        assert.deepEqual(errors, []);
+        await page.screenshot({
+          path: path.join(
+            root,
+            "public/brand/product-captures/dashboard-editorial.png",
+          ),
+          fullPage: false,
+        });
+        console.log(
+          "Actual Dashboard viewport captured at 2x with synthetic records and mocked APIs.",
+        );
+        break;
+      }
       // The final action must remain above the bottom edge at the scroll limit,
       // including laptop browser chrome and short mobile viewports.
       if (phase === "after") {

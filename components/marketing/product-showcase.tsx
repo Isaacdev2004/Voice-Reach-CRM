@@ -26,9 +26,9 @@ const views = [
   },
   {
     label: "AI Assistant",
-    image: "voice",
+    image: "assistant",
     title: "A starting point that sounds like you.",
-    body: "Use the script assistant shown here to draft and refine copy. Provider configuration and usage limits apply; review every draft.",
+    body: "Use Ask MyARI to draft and refine copy. Provider configuration and usage limits apply; review every draft.",
     href: "/features/ai-assistant",
   },
   {
@@ -47,9 +47,9 @@ const views = [
   },
   {
     label: "Reporting",
-    image: "dashboard",
+    image: "analytics",
     title: "Clarity from recorded activity.",
-    body: "The Dashboard performance panel shown here summarizes available delivery events. Provider support determines which metrics are available.",
+    body: "The reporting interface shown here summarizes available delivery events. Provider support determines which metrics are available.",
     href: "/features/analytics",
   },
 ];

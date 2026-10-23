@@ -29,7 +29,7 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
   ];
 
   return (
-    <MarketingShell>
+    <MarketingShell contentClassName="public-prose">
       <JsonLd data={schema} />
       <Breadcrumbs
         items={[
@@ -40,8 +40,8 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
       />
 
       <article className="bg-cream pb-12 md:pb-16">
-        <header className="landing-shell mx-auto max-w-[44rem] py-8 md:py-12">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
+        <header className="landing-shell mx-auto max-w-[44rem] public-reading-column py-8 md:py-12">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
             {article.category}
           </p>
           <h1 className="mt-3 font-serif text-[2rem] font-semibold leading-tight text-ink md:text-[2.5rem] lg:text-[2.75rem]">
@@ -50,7 +50,7 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
           <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
             {article.description}
           </p>
-          <p className="mt-4 text-[14px] text-taupe">
+          <p className="mt-4 text-[15px] text-taupe">
             By {article.author ?? RESOURCE_EDITORIAL.author} ·{" "}
             {new Date(article.publishedAt).toLocaleDateString("en-US", {
               month: "long",
@@ -70,12 +70,12 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
             ) : null}{" "}
             · {article.readTimeMinutes} min read
           </p>
-          <p className="mt-2 text-[13px] italic text-taupe">
+          <p className="mt-2 text-[15px] italic text-taupe">
             {article.editorialNote ?? RESOURCE_EDITORIAL.editorialNote}
           </p>
         </header>
 
-        <div className="landing-shell mx-auto max-w-[44rem] space-y-10">
+        <div className="landing-shell mx-auto max-w-[44rem] public-reading-column space-y-10">
           {article.sections.map((section) => (
             <section key={section.h2 ?? section.h3 ?? section.paragraphs?.[0]?.slice(0, 40)}>
               {section.h2 ? (
@@ -107,7 +107,7 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
         </div>
 
         {(article.citations ?? RESOURCE_EDITORIAL.defaultCitations).length ? (
-          <aside className="landing-shell mx-auto mt-12 max-w-[44rem] rounded-2xl border border-outline-variant/15 bg-cream p-6 md:p-8">
+          <aside className="landing-shell mx-auto mt-12 max-w-[44rem] public-reading-column rounded-2xl border border-outline-variant/15 bg-cream p-6 md:p-8">
             <h2 className="font-serif text-[20px] font-semibold text-ink">Sources &amp; further reading</h2>
             <ul className="mt-4 space-y-2 text-[15px] text-slate-text">
               {(article.citations ?? RESOURCE_EDITORIAL.defaultCitations).map((c) => (
@@ -125,7 +125,7 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
           </aside>
         ) : null}
 
-        <aside className="landing-shell mx-auto mt-12 max-w-[44rem] rounded-2xl border border-outline-variant/15 bg-ivory p-6 md:p-8">
+        <aside className="landing-shell mx-auto mt-12 max-w-[44rem] public-reading-column rounded-2xl border border-outline-variant/15 bg-ivory p-6 md:p-8">
           <h2 className="font-serif text-[20px] font-semibold text-ink">Related from ARI</h2>
           <ul className="mt-4 space-y-2">
             {article.productLinks.map((link) => (
@@ -138,7 +138,7 @@ export function ResourceArticlePage({ article }: ResourceArticlePageProps) {
           </ul>
         </aside>
 
-        <div className="landing-shell mx-auto mt-10 max-w-[44rem] text-center">
+        <div className="landing-shell mx-auto mt-10 max-w-[44rem] public-reading-column text-center">
           <StartFreeButton location={`article-${article.slug}`} label={trialCtaLabel()} showArrow />
         </div>
       </article>

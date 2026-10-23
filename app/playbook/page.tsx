@@ -24,11 +24,11 @@ export default function PlaybookPage() {
   const { playbook, trialDays } = SITE_OFFER;
 
   return (
-    <MarketingShell>
-      <section className="hero-gradient py-12 md:py-16">
+    <MarketingShell contentClassName="public-prose">
+      <section className="hero-gradient py-8 md:py-10">
         <div className="landing-shell grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] lg:items-start lg:gap-14">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
               Free resource
             </p>
             <h1 className="mt-3 font-serif text-[2.25rem] font-semibold leading-tight text-ink md:text-[2.75rem]">
@@ -47,11 +47,11 @@ export default function PlaybookPage() {
                 </li>
               ))}
             </ul>
-            <div className="mt-8 flex flex-wrap items-center gap-3 text-[14px] text-taupe">
+            <div className="mt-8 flex flex-wrap items-center gap-3 text-[15px] text-taupe">
               <span>Already convinced?</span>
               <StartFreeButton
                 location="playbook-inline"
-                className="!px-6 !py-2 !text-[13px]"
+                className="!px-6 !py-2 !text-[15px]"
               />
               <span>
                 or{" "}
@@ -65,7 +65,7 @@ export default function PlaybookPage() {
         </div>
       </section>
       <section className="border-t border-outline-variant/10 bg-cream py-10">
-        <div className="landing-shell text-center text-[14px] text-slate-text">
+        <div className="landing-shell text-center text-[15px] text-slate-text">
           {trialDays}-day free trial available when you&apos;re ready · {SITE_OFFER.whiteGlove.shortLine}
         </div>
       </section>

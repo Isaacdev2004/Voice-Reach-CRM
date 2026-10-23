@@ -58,7 +58,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
   return (
 
-    <MarketingShell>
+    <MarketingShell contentClassName="public-prose">
 
       <JsonLd data={schema} />
 
@@ -72,11 +72,11 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
           key={section.h2}
 
-          className={index % 2 === 0 ? "bg-cream py-12 md:py-16" : "bg-ivory py-12 md:py-16"}
+          className={index % 2 === 0 ? "bg-cream py-8 md:py-10" : "bg-ivory py-8 md:py-10"}
 
         >
 
-          <Reveal className="landing-shell mx-auto max-w-[44rem] lg:max-w-[48rem]">
+          <Reveal className="landing-shell mx-auto max-w-[44rem] public-reading-column lg:max-w-[48rem]">
 
             <h2 className="font-serif text-[26px] font-semibold text-ink md:text-[32px] lg:text-[36px]">
 
@@ -128,7 +128,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
                   label={trialCtaLabel()}
 
-                  className="!px-8 !py-3 !text-[14px]"
+                  className="!px-8 !py-3 !text-[15px]"
 
                 />
 
@@ -146,7 +146,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
       {page.comparisonTable ? (
 
-        <section className="bg-cream py-12 md:py-16">
+        <section className="bg-cream py-8 md:py-10">
 
           <div className="landing-shell mx-auto max-w-[52rem]">
 
@@ -166,7 +166,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
             <div className="mt-8 overflow-x-auto rounded-2xl border border-outline-variant/15 bg-ivory">
 
-              <table className="w-full min-w-[640px] text-left text-[14px] md:text-[15px]">
+              <table className="w-full min-w-[640px] text-left text-[15px] md:text-[15px]">
 
                 <thead>
 
@@ -222,7 +222,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
 
 
-      <section className="border-y border-outline-variant/10 bg-ivory py-12 md:py-16">
+      <section className="border-y border-outline-variant/10 bg-ivory py-8 md:py-10">
 
         <div className="landing-shell">
 
@@ -274,7 +274,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
                 href={link.href}
 
-                className="rounded-full border border-outline-variant/20 bg-cream px-4 py-2 text-[14px] font-medium text-ink/80 hover:border-rose-gold/40 hover:text-rose-gold-deep"
+                className="rounded-full border border-outline-variant/20 bg-cream px-4 py-2 text-[15px] font-medium text-ink/80 hover:border-rose-gold/40 hover:text-rose-gold-deep"
 
               >
 
@@ -292,7 +292,7 @@ export function SeoLandingPage({ page }: SeoLandingPageProps) {
 
 
 
-      <section className="hero-gradient py-12 md:py-16">
+      <section className="hero-gradient py-8 md:py-10">
 
         <div className="landing-shell text-center">
 

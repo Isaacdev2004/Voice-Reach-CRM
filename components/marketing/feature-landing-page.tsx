@@ -1,168 +1,245 @@
+import Image from "next/image";
 import Link from "next/link";
-import { MarketingHeroImage } from "@/components/marketing/marketing-hero-image";
-import { MarketingHeroBackdrop } from "@/components/marketing/marketing-hero-backdrop";
-import { HeroEntrance, Reveal, RevealStagger } from "@/components/marketing/motion-reveal";
-import { Breadcrumbs } from "@/components/marketing/breadcrumbs";
-import { JsonLd } from "@/components/marketing/json-ld";
-import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { Breadcrumbs } from "./breadcrumbs";
+import { JsonLd } from "./json-ld";
+import { MarketingShell } from "./marketing-shell";
 import { StartFreeButton } from "@/components/landing/start-free-button";
-import { Icon } from "@/components/ui/icon";
-import { heroImageForFeaturePage } from "@/lib/marketing/feature-page-heroes";
-import { SITE_OFFER, trialCtaLabel, trialSupportLine } from "@/lib/marketing/site-offer";
-import { FEATURE_CTA_HEADLINES } from "@/lib/seo/feature-cta-headlines";
-import { featureHeroObjectPosition } from "@/lib/seo/feature-hero-focus";
-import type { FeaturePageConfig } from "@/lib/seo/feature-pages";
+import { FeatureSymbol } from "./feature-symbol";
+import {
+  FEATURE_SHOWCASES,
+  PILLAR_RELATED,
+} from "@/lib/marketing/feature-showcases";
+import { PRODUCT_CAPTURES } from "@/lib/marketing/product-captures";
+import { SITE_OFFER, trialSupportLine } from "@/lib/marketing/site-offer";
+import {
+  FEATURE_PAGES,
+  type FeaturePageConfig,
+  type FeaturePageSlug,
+} from "@/lib/seo/feature-pages";
 import { breadcrumbSchema, softwareApplicationSchema } from "@/lib/seo/schema";
 
-const COMPLIANCE_FEATURE_SLUGS = new Set([
-  "text-automation",
-  "email-automation",
-  "ringless-voicemail",
-  "voice-studio",
-  "client-email-updates",
-  "campaign-builder",
-  "automated-follow-up",
-  "lead-reactivation",
-]);
-
-type FeatureLandingPageProps = {
-  page: FeaturePageConfig;
-};
-
-export function FeatureLandingPage({ page }: FeatureLandingPageProps) {
-  const baseHero = page.heroImage ?? heroImageForFeaturePage(page.slug);
-  const focus = featureHeroObjectPosition(page.slug);
-  const heroImage =
-    focus && !baseHero.objectPosition
-      ? { ...baseHero, objectPosition: focus }
-      : baseHero;
-  const schema = [
-    softwareApplicationSchema({
-      name: page.title,
-      description: page.description,
-      url: page.path,
-    }),
-    breadcrumbSchema([
-      { name: "Home", path: "/" },
-      { name: "Features", path: "/features" },
-      { name: page.h1, path: page.path },
+export function FeatureLandingPage({ page }: { page: FeaturePageConfig }) {
+  const showcase = FEATURE_SHOWCASES[page.slug],
+    image = PRODUCT_CAPTURES[showcase.capture];
+  const portrait = image.height > image.width;
+  const benefits = page.highlights.slice(0, 3).map((benefit, i) => (
+    <article key={benefit.title}>
+      <span className="feature-benefit-number">0{i + 1}</span>
+      <h3>{benefit.title}</h3>
+      <p>{benefit.body}</p>
+    </article>
+  ));
+  const related = [
+    ...new Set<FeaturePageSlug>([
+      ...PILLAR_RELATED[showcase.pillar],
+      "ai-assistant",
+      "calendar-and-tasks",
     ]),
-  ];
-
+  ]
+    .filter((slug) => slug !== page.slug)
+    .slice(0, 3);
   return (
     <MarketingShell>
-      <JsonLd data={schema} />
-      <Breadcrumbs
-        items={[
-          { label: "Home", href: "/" },
-          { label: "Features", href: "/features" },
-          { label: page.h1 },
+      <JsonLd
+        data={[
+          softwareApplicationSchema({
+            name: page.title,
+            description: page.description,
+            url: page.path,
+          }),
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Features", path: "/features" },
+            { name: page.h1, path: page.path },
+          ]),
         ]}
       />
-
-      <MarketingHeroBackdrop>
-        <div className="landing-shell grid items-center gap-10 py-8 md:grid-cols-2 md:py-12 lg:gap-14">
+      <div
+        className={`feature-detail feature-pillar-${showcase.pillar.toLowerCase()}`}
+      >
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Features", href: "/features" },
+            { label: page.eyebrow },
+          ]}
+        />
+        <section className="feature-editorial-hero landing-shell">
           <div>
-            <HeroEntrance>
-              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
-                {page.category}
-              </p>
-            </HeroEntrance>
-            <HeroEntrance delayMs={90}>
-              <h1 className="font-serif text-[2rem] font-semibold leading-tight text-ink md:text-[2.5rem] lg:text-[2.75rem]">
-                {page.h1}
-              </h1>
-            </HeroEntrance>
-            <HeroEntrance delayMs={160}>
-              <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">{page.intro}</p>
-            </HeroEntrance>
-            <HeroEntrance delayMs={230}>
-              <div className="mt-7 flex flex-wrap gap-4">
-                <StartFreeButton location={`feature-${page.slug}`} label={trialCtaLabel()} showArrow />
-                <Link
-                  href={page.relatedProductHref}
-                  className="luxury-hover inline-flex items-center rounded-full border border-outline-variant/25 px-5 py-3 text-[14px] font-semibold text-ink hover:border-rose-gold/40"
-                >
-                  See {page.relatedProductLabel}
-                </Link>
-              </div>
-            </HeroEntrance>
-          </div>
-          <HeroEntrance delayMs={140}>
-            <div className="marketing-hero-image-float">
-              <MarketingHeroImage image={heroImage} />
-            </div>
-          </HeroEntrance>
-        </div>
-      </MarketingHeroBackdrop>
-
-      {page.sections.map((section, index) => (
-        <section key={section.h2} className={index % 2 === 0 ? "bg-cream py-10 md:py-14" : "bg-ivory py-10 md:py-14"}>
-          <Reveal className="landing-shell mx-auto max-w-[44rem]">
-            <h2 className="font-serif text-[24px] font-semibold text-ink md:text-[28px]">{section.h2}</h2>
-            <div className="mt-4 space-y-4">
-              {section.paragraphs.map((p) => (
-                <p key={p.slice(0, 48)} className="text-[16px] leading-relaxed text-slate-text">
-                  {p}
-                </p>
-              ))}
-            </div>
-            {section.bullets ? (
-              <ul className="mt-5 space-y-2">
-                {section.bullets.map((b) => (
-                  <li key={b} className="flex gap-2 text-[15px] text-slate-text">
-                    <Icon name="check_circle" className="shrink-0 text-rose-gold-deep" />
-                    {b}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </Reveal>
-        </section>
-      ))}
-
-      <section className="border-y border-outline-variant/10 bg-ivory py-10 md:py-12">
-        <RevealStagger className="landing-shell grid gap-5 sm:grid-cols-2 lg:grid-cols-4" stepMs={80}>
-          {page.highlights.map((h) => (
-            <article key={h.title} className="luxury-hover rounded-xl border border-outline-variant/10 bg-cream p-5">
-              <h3 className="font-serif text-[17px] font-semibold text-ink">{h.title}</h3>
-              <p className="mt-2 text-[14px] leading-relaxed text-slate-text">{h.body}</p>
-            </article>
-          ))}
-        </RevealStagger>
-      </section>
-
-      <section className="hero-gradient py-12 text-center md:py-14">
-        <Reveal className="landing-shell mx-auto max-w-[36rem]">
-          <h2 className="font-serif text-[26px] font-semibold text-ink md:text-[32px]">
-            {FEATURE_CTA_HEADLINES[page.slug]}
-          </h2>
-          <p className="mt-3 text-[16px] text-slate-text">
-            Learn how{" "}
-            <Link href={page.relatedProductHref} className="font-semibold text-rose-gold-deep hover:underline">
-              {page.relatedProductLabel}
-            </Link>{" "}
-            works with a {SITE_OFFER.trialDays}-day free trial. No charge until the trial ends.
-          </p>
-          <p className="mt-2 text-[14px] text-taupe">{trialSupportLine()}</p>
-          {COMPLIANCE_FEATURE_SLUGS.has(page.slug) ? (
-            <p className="mt-4 text-[13px] leading-relaxed text-taupe">
-              {SITE_OFFER.compliance.shortNote}{" "}
-              {SITE_OFFER.compliance.policyLinks.map((link, i) => (
-                <span key={link.href}>
-                  {i > 0 ? " · " : null}
-                  <Link href={link.href} className="font-medium text-rose-gold-deep hover:underline">
-                    {link.label}
-                  </Link>
-                </span>
-              ))}
+            <p className="public-eyebrow">
+              {showcase.pillar} / {page.eyebrow}
             </p>
-          ) : null}
-          <div className="mt-6">
-            <StartFreeButton location={`feature-${page.slug}-final`} label={trialCtaLabel()} showArrow />
+            <h1>{page.h1}</h1>
+            <p className="feature-lede">{page.intro}</p>
+            <div className="public-actions">
+              <StartFreeButton
+                location={`feature-${page.slug}`}
+                showArrow
+                className="public-trial-button"
+              />
+              <a className="public-outline-button" href="#workspace">
+                Explore the workspace <span aria-hidden>↓</span>
+              </a>
+            </div>
           </div>
-        </Reveal>
-      </section>
+          <div className="feature-editorial-photo">
+            <Image
+              src={showcase.photo}
+              alt=""
+              fill
+              priority
+              sizes="(max-width:767px) 92vw, 45vw"
+            />
+          </div>
+        </section>
+        <section id="workspace" className="feature-workspace landing-shell">
+          <div className="feature-section-heading">
+            <div>
+              <p className="public-eyebrow">Inside MyARI</p>
+              <h2>{page.eyebrow}, in focus.</h2>
+            </div>
+            <p>
+              Implemented tools. Real interface.
+              <br />
+              Synthetic demonstration records.
+            </p>
+          </div>
+          <div
+            className={
+              portrait
+                ? "feature-workspace-grid"
+                : "feature-workspace-landscape"
+            }
+          >
+            <figure>
+              <Image
+                src={image.src}
+                alt={image.alt}
+                width={image.width}
+                height={image.height}
+                sizes="(max-width:767px) 94vw, (max-width:1440px) 90vw, 1240px"
+              />
+              <figcaption>
+                {showcase.caption}{" "}
+                <span>Demonstration data · Not customer results</span>
+                <a href={image.src} target="_blank" rel="noopener noreferrer">
+                  View full-size capture ↗
+                </a>
+              </figcaption>
+            </figure>
+            {portrait ? (
+              <aside className="feature-portrait-benefits">{benefits}</aside>
+            ) : null}
+          </div>
+          {showcase.note ? (
+            <p className="feature-capability-note">{showcase.note}</p>
+          ) : null}
+        </section>
+        {!portrait && (
+          <section
+            className="feature-benefits landing-shell"
+            aria-label="Key benefits"
+          >
+            {benefits}
+          </section>
+        )}
+        <div className="feature-editorial-sections landing-shell">
+          {page.sections.map((section, i) => (
+            <section key={section.h2}>
+              <div className="feature-section-index">
+                <span>0{i + 1}</span>
+                <p className="public-eyebrow">
+                  {i === 0
+                    ? "Designed around your day"
+                    : "A thoughtful next step"}
+                </p>
+                <h2>{section.h2}</h2>
+              </div>
+              <div>
+                {section.paragraphs.map((p) => (
+                  <p key={p}>{p}</p>
+                ))}
+                {section.bullets ? (
+                  <ul className="feature-checks">
+                    {section.bullets.map((b) => (
+                      <li key={b}>
+                        <FeatureSymbol name="check" />
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            </section>
+          ))}
+        </div>
+        <section className="feature-how-it-works landing-shell">
+          <div>
+            <p className="public-eyebrow">How it works</p>
+            <h2>A clear path to your next step.</h2>
+            {page.highlights[3] ? (
+              <p>
+                {page.highlights[3].title}: {page.highlights[3].body}
+              </p>
+            ) : null}
+          </div>
+          <ol>
+            {showcase.steps.map((step, i) => (
+              <li key={step}>
+                <span>0{i + 1}</span>
+                <p>{step}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+        <section className="feature-related landing-shell">
+          <div className="feature-section-heading">
+            <h2>Better, together.</h2>
+            <Link href="/features" className="public-text-link">
+              Explore all features <span aria-hidden>→</span>
+            </Link>
+          </div>
+          <div>
+            {related.map((slug) => (
+              <Link href={FEATURE_PAGES[slug].path} key={slug}>
+                <p className="public-eyebrow">
+                  {FEATURE_SHOWCASES[slug].pillar}
+                </p>
+                <h3>{FEATURE_PAGES[slug].eyebrow}</h3>
+                <span className="public-text-link">
+                  Take a closer look <span aria-hidden>→</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+        <section className="feature-final-cta">
+          <div className="landing-shell">
+            <div>
+              <p className="public-eyebrow">Made for your next chapter</p>
+              <h2>Make room for more meaningful work.</h2>
+              <p>{trialSupportLine()}</p>
+            </div>
+            <div className="public-actions">
+              <StartFreeButton
+                location={`feature-${page.slug}-final`}
+                showArrow
+                className="public-trial-button"
+              />
+              <Link href="/pricing" className="public-outline-button">
+                Compare plans
+              </Link>
+            </div>
+            <p className="feature-final-note">
+              {SITE_OFFER.trialDays}-day trial. No credit card required.
+              Features and sending allowances vary by plan.{" "}
+              {showcase.pillar === "Outreach"
+                ? SITE_OFFER.compliance.shortNote
+                : ""}
+            </p>
+          </div>
+        </section>
+      </div>
     </MarketingShell>
   );
 }
