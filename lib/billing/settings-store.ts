@@ -1,10 +1,13 @@
+import type { BillingPeriod } from "./billing-period";
 import { writeAuditLog } from "@/lib/audit";
 import { planById, type PlanId } from "@/lib/billing/plans";
 import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
 import type { BillingSettings, UserSettings } from "@/lib/settings/types";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-export async function loadSavedSettings(ownerId: string): Promise<UserSettings | null> {
+export async function loadSavedSettings(
+  ownerId: string,
+): Promise<UserSettings | null> {
   const { data } = await supabaseAdmin
     .from("audit_logs")
     .select("metadata, created_at")
@@ -19,7 +22,9 @@ export async function loadSavedSettings(ownerId: string): Promise<UserSettings |
   return settings ?? null;
 }
 
-export async function loadStripeCustomerId(ownerId: string): Promise<string | null> {
+export async function loadStripeCustomerId(
+  ownerId: string,
+): Promise<string | null> {
   const { data } = await supabaseAdmin
     .from("audit_logs")
     .select("metadata")
@@ -34,7 +39,10 @@ export async function loadStripeCustomerId(ownerId: string): Promise<string | nu
   return customerId ?? null;
 }
 
-export async function saveStripeCustomerId(ownerId: string, customerId: string) {
+export async function saveStripeCustomerId(
+  ownerId: string,
+  customerId: string,
+) {
   await writeAuditLog({
     ownerId,
     action: "STRIPE_CUSTOMER",
@@ -89,7 +97,17 @@ export async function applyBillingPlan(
   return settings;
 }
 
-export function stripePriceIdForPlan(planId: PlanId): string | undefined {
+export function stripePriceIdForPlan(
+  planId: PlanId,
+  billingPeriod: BillingPeriod = "monthly",
+): string | undefined {
+  const annual: Record<PlanId, string | undefined> = {
+    starter: process.env.STRIPE_PRICE_STARTER_YEARLY?.trim(),
+    growth: process.env.STRIPE_PRICE_GROWTH_YEARLY?.trim(),
+    pro: process.env.STRIPE_PRICE_PRO_YEARLY?.trim(),
+    team: process.env.STRIPE_PRICE_TEAM_YEARLY?.trim(),
+  };
+  if (billingPeriod === "yearly") return annual[planId];
   const map: Record<PlanId, string | undefined> = {
     starter: process.env.STRIPE_PRICE_STARTER?.trim(),
     growth: process.env.STRIPE_PRICE_GROWTH?.trim(),

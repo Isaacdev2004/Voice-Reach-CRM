@@ -60,6 +60,9 @@ export type BillingSettings = {
   planId: string;
   planName: string;
   monthlyPrice: number;
+  /** Read from the authenticated subscriber’s Stripe subscription. */
+  billingPeriod?: "monthly" | "yearly";
+  billedAmount?: number;
   voiceMinutesLimit: number;
   voiceMinutesUsed: number;
   /** Set to "active" only after Stripe checkout / subscription webhook */

@@ -1,0 +1,30 @@
+[
+  {
+    "route": "/pricing",
+    "width": 1440,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/pricing",
+    "width": 1280,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/pricing",
+    "width": 768,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/pricing",
+    "width": 390,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  }
+]

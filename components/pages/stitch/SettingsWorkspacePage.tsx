@@ -1334,7 +1334,7 @@ function SettingsSession() {
                 </p>
                 <p className="text-[15px] text-slate-text">
                   {settings.billing.subscriptionStatus === "active"
-                    ? `$${settings.billing.monthlyPrice.toFixed(2)} / month`
+                    ? `$${(settings.billing.billedAmount ?? settings.billing.monthlyPrice).toFixed(2)} / ${settings.billing.billingPeriod === "yearly" ? "year" : "month"}`
                     : "Pay with Stripe to unlock your workspace"}
                 </p>
                 {planUsage ? (
@@ -1607,7 +1607,9 @@ function SettingsSession() {
             </p>
             <p className="text-[14px] text-slate-text">
               {settings.billing.subscriptionStatus === "active"
-                ? `Catalog plan price: $${settings.billing.monthlyPrice} / month. View actual invoices in Stripe.`
+                ? settings.billing.billedAmount !== undefined
+                  ? `Stripe subscription: $${settings.billing.billedAmount} / ${settings.billing.billingPeriod === "yearly" ? "year" : "month"}. View invoices in Stripe.`
+                  : `Catalog plan price: $${settings.billing.monthlyPrice} / month. View actual invoices in Stripe.`
                 : "Complete Stripe checkout to activate"}
             </p>
             <p className="mt-3 text-xs text-taupe">

@@ -2,7 +2,10 @@
 
 import { SignUp, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { activatePendingTrialIfNeeded, stashPlanFromQuery } from "@/lib/billing/activate-trial-client";
+import {
+  activatePendingTrialIfNeeded,
+  stashPlanFromQuery,
+} from "@/lib/billing/activate-trial-client";
 import { clearPendingPlan } from "@/lib/billing/pending-plan";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import { AUTH_AFTER_URL } from "@/lib/clerk-env";
@@ -18,12 +21,13 @@ export function ClerkSignUp() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const planParam = searchParams.get("plan");
+  const billingParam = searchParams.get("billing");
   const attributionSent = useRef(false);
   const trialActivated = useRef(false);
 
   useEffect(() => {
-    stashPlanFromQuery(planParam);
-  }, [planParam]);
+    stashPlanFromQuery(planParam, billingParam);
+  }, [planParam, billingParam]);
 
   // After new sign-up: attach paid session if present
   useEffect(() => {
@@ -31,7 +35,8 @@ export function ClerkSignUp() {
     if (sessionId) {
       window.sessionStorage.setItem("ari_checkout_session_id", sessionId);
     }
-    const id = sessionId || window.sessionStorage.getItem("ari_checkout_session_id");
+    const id =
+      sessionId || window.sessionStorage.getItem("ari_checkout_session_id");
     if (!id || !isSignedIn) return;
 
     void (async () => {
@@ -95,7 +100,9 @@ export function ClerkSignUp() {
   if (isSignedIn) {
     return (
       <div className="w-full rounded-[24px] border border-outline-variant/15 bg-ivory px-6 py-10 text-center shadow-card">
-        <p className="text-[15px] text-slate-text">You&apos;re already signed in. Redirecting…</p>
+        <p className="text-[15px] text-slate-text">
+          You&apos;re already signed in. Redirecting…
+        </p>
         <Link
           href={AUTH_AFTER_URL}
           className="mt-4 inline-block text-[14px] font-medium text-rose-gold-deep hover:underline"
@@ -112,10 +119,13 @@ export function ClerkSignUp() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
           {FOUNDING_100.name} · {FOUNDING_100.trialDays}-day free trial
         </p>
-        <h2 className="mt-2 font-serif text-[28px] font-semibold text-ink">Create your account</h2>
+        <h2 className="mt-2 font-serif text-[28px] font-semibold text-ink">
+          Create your account
+        </h2>
         <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
-          Email and password only — no credit card. Your {FOUNDING_100.trialDays}-day trial starts
-          when you finish signup. We&apos;ll reach out within 24 hours for white-glove setup.
+          Email and password only — no credit card. Your{" "}
+          {FOUNDING_100.trialDays}-day trial starts when you finish signup.
+          We&apos;ll reach out within 24 hours for white-glove setup.
         </p>
       </div>
 
@@ -130,7 +140,10 @@ export function ClerkSignUp() {
 
       <p className="mt-6 text-center text-[14px] text-slate-text">
         Already have an account?{" "}
-        <Link className="font-semibold text-rose-gold-deep hover:underline" href="/sign-in">
+        <Link
+          className="font-semibold text-rose-gold-deep hover:underline"
+          href="/sign-in"
+        >
           Sign in
         </Link>
       </p>

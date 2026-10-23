@@ -1,6 +1,14 @@
 "use client";
 
-import { CHECKOUT_PLAN_OPTIONS, planById, type PlanId } from "@/lib/billing/plans";
+import {
+  billingAmount,
+  normalizeBillingPeriod,
+} from "@/lib/billing/billing-period";
+import {
+  CHECKOUT_PLAN_OPTIONS,
+  planById,
+  type PlanId,
+} from "@/lib/billing/plans";
 import { rememberPendingPlan } from "@/lib/billing/pending-plan";
 import { cn } from "@/lib/cn";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
@@ -14,6 +22,7 @@ function CheckoutInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initial = searchParams.get("plan");
+  const billingPeriod = normalizeBillingPeriod(searchParams.get("billing"));
 
   const [planId, setPlanId] = useState<PlanId>(
     initial && planById(initial) ? (initial as PlanId) : "growth",
@@ -26,9 +35,12 @@ function CheckoutInner() {
   const selected = planById(planId)!;
 
   const continueToSignUp = () => {
-    rememberPendingPlan(planId);
-    trackMarketingEvent("start_trial_click", { planId, location: "checkout-page" });
-    router.push(`/sign-up?plan=${planId}`);
+    rememberPendingPlan(planId, billingPeriod);
+    trackMarketingEvent("start_trial_click", {
+      planId,
+      location: "checkout-page",
+    });
+    router.push(`/sign-up?plan=${planId}&billing=${billingPeriod}`);
   };
 
   return (
@@ -36,11 +48,18 @@ function CheckoutInner() {
       <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
         Step 1 of 2 · Start free trial
       </p>
-      <h1 className="mt-2 font-serif text-[36px] font-semibold text-ink">Choose your plan</h1>
+      <h1 className="mt-2 font-serif text-[36px] font-semibold text-ink">
+        Choose your plan
+      </h1>
       <p className="mt-2 text-[15px] text-slate-text">
-        {SITE_OFFER.trialDays}-day free trial — <strong className="font-semibold text-ink">no credit card</strong>{" "}
-        until the trial ends. Create your account next. {SITE_OFFER.whiteGlove.shortLine}. Not ready?{" "}
-        <Link href={SITE_OFFER.playbook.path} className="font-medium text-rose-gold-deep hover:underline">
+        {SITE_OFFER.trialDays}-day free trial —{" "}
+        <strong className="font-semibold text-ink">no credit card</strong> until
+        the trial ends. Create your account next.{" "}
+        {SITE_OFFER.whiteGlove.shortLine}. Not ready?{" "}
+        <Link
+          href={SITE_OFFER.playbook.path}
+          className="font-medium text-rose-gold-deep hover:underline"
+        >
           Get the free playbook
         </Link>
         .
@@ -59,10 +78,14 @@ function CheckoutInner() {
                 : "border-outline-variant/20 bg-ivory hover:border-rose-gold/40",
             )}
           >
-            <p className="font-serif text-[20px] font-semibold text-ink">{plan.name}</p>
+            <p className="font-serif text-[20px] font-semibold text-ink">
+              {plan.name}
+            </p>
             <p className="mt-1 font-serif text-[28px] text-ink">
-              ${plan.price}
-              <span className="text-[14px] font-normal text-taupe">/mo after trial</span>
+              ${billingAmount(plan.id, billingPeriod)}
+              <span className="text-[14px] font-normal text-taupe">
+                /{billingPeriod === "yearly" ? "yr" : "mo"} after trial
+              </span>
             </p>
             <p className="mt-2 text-[12px] text-taupe">{plan.description}</p>
           </button>
@@ -71,10 +94,13 @@ function CheckoutInner() {
 
       <div className="mt-8 rounded-2xl border border-outline-variant/15 bg-champagne/40 p-6">
         <p className="font-medium text-ink">
-          {selected.name} — ${selected.price}/month after your {SITE_OFFER.trialDays}-day trial
+          {selected.name} — ${billingAmount(selected.id, billingPeriod)}/
+          {billingPeriod === "yearly" ? "year" : "month"} after your{" "}
+          {SITE_OFFER.trialDays}-day trial
         </p>
         <p className="mt-2 text-[14px] text-slate-text">
-          We&apos;ll ask for a payment method when your trial ends (or anytime from Settings → Billing).
+          We&apos;ll ask for a payment method when your trial ends (or anytime
+          from Settings → Billing).
         </p>
         <ul className="mt-3 space-y-1 text-[13px] text-slate-text">
           {selected.features.slice(0, 6).map((f) => (
@@ -100,7 +126,10 @@ function CheckoutInner() {
       </div>
 
       <p className="mt-8 text-center text-[13px] text-taupe">
-        <Link href="/sign-in" className="font-medium text-rose-gold-deep hover:underline">
+        <Link
+          href="/sign-in"
+          className="font-medium text-rose-gold-deep hover:underline"
+        >
           Sign in
         </Link>
         {" · "}
@@ -116,7 +145,9 @@ export default function CheckoutPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center text-taupe">Loading…</div>
+        <div className="flex min-h-screen items-center justify-center text-taupe">
+          Loading…
+        </div>
       }
     >
       <CheckoutInner />
