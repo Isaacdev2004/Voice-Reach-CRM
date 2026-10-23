@@ -101,7 +101,7 @@
 .dashboard-recent-table td span { max-width: 100%; }
 .dashboard-sidebar { width: 240px; background: #fffdfa; border-color: #eee8df; }
 .dashboard-sidebar-brand { display: flex; flex-direction: column; align-items: center; width: 100%; }
-.dashboard-sidebar-brand img { object-position: center; height: 106px !important; }
+.dashboard-sidebar-brand img { object-position: center; height: 122px !important; max-width: 140px; filter: brightness(.78) saturate(.82); }
 .dashboard-sidebar-brand p { color: #776e64; text-align: center; font-size: 11px; }
 .dashboard-nav-item { color: #776e64; margin: 2px 0; border-radius: 13px; font-size: 13px; padding: 11px 14px; gap: 13px; }
 .dashboard-nav-active { background: #956846; color: white; box-shadow: 0 3px 8px #95684614; }
@@ -260,3 +260,5 @@
     padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+@media (max-height: 740px) { .dashboard-sidebar-brand img { height: 108px !important; } }

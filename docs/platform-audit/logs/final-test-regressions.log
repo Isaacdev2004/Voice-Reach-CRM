@@ -1,0 +1,5 @@
+
+> voicereach-backend-starter@0.1.0 test:regressions
+> node --import tsx scripts/verify-regressions.ts
+
+verify-regressions: ok

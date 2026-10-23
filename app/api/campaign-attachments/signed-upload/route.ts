@@ -34,7 +34,7 @@ export const POST = withApiHandler(async (request) => {
   const { data, error } = await supabaseAdmin.storage
     .from(bucket)
     .createSignedUploadUrl(storagePath);
-  if (error) return apiError(error.message, { status: 500 });
+  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
 
   const attachment: CampaignStepAttachment = {
     id: attachmentId,

@@ -407,7 +407,7 @@ export function PartnerWorkspacePage() {
         partner={inviteOpenFor}
         onClose={() => setInviteOpenFor(null)}
         onCreated={() => {
-          showToast("Invitation sent");
+          showToast("Invitation record created. No email was sent.");
           void refresh();
         }}
       />
@@ -581,12 +581,12 @@ function InviteCollaboratorModal({
       open={partner !== null}
       onClose={onClose}
       title={`Invite to ${partner?.name ?? "partner"}`}
-      description="Share campaigns and assets with your partner. Permissions can be changed later."
+      description="Save an invitation record for your partner. Email delivery and recipient acceptance are not connected yet."
       icon="person_add"
       footer={
         <ModalFooterActions
           onCancel={onClose}
-          primaryLabel="Send invite"
+          primaryLabel="Create invitation"
           onPrimary={() => void submit()}
           primaryLoading={saving}
         />

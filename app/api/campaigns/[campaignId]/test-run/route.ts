@@ -54,7 +54,7 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
     .eq("owner_id", ownerId)
     .maybeSingle();
 
-  if (campaignError) return apiError(campaignError.message, { status: 500 });
+  if (campaignError) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
   if (!campaign)
     return apiError("Campaign not found", { status: 404, code: "not_found" });
 
@@ -64,7 +64,7 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
     .eq("campaign_id", campaignId)
     .eq("owner_id", ownerId);
 
-  if (stepsError) return apiError(stepsError.message, { status: 500 });
+  if (stepsError) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
   if (!steps?.length) {
     return apiError(
       "This campaign has no steps yet. Save/activate the sequence from the builder first.",

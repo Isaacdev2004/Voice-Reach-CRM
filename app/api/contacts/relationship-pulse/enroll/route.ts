@@ -35,7 +35,7 @@ export const POST = withApiHandler(async (request: Request) => {
     .eq("id", body.campaignId)
     .maybeSingle();
 
-  if (campErr) return apiError(campErr.message, { status: 500 });
+  if (campErr) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
   if (!campaign) return apiError("Campaign not found.", { status: 404 });
 
   const enrollment = await enrollContacts(ownerId, body.campaignId, { contactIds });

@@ -28,7 +28,7 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     .single();
 
   if (campaignError || !campaign) {
-    return apiError(campaignError?.message || "Campaign not found", {
+    return apiError("Campaign not found", {
       status: 404,
     });
   }
@@ -63,7 +63,7 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     .createSignedUrl(campaign.voice_assets.storage_path, 60 * 60);
 
   if (signedError || !signedAudio?.signedUrl) {
-    return apiError(signedError?.message || "Unable to sign audio URL", {
+    return apiError("Audio preview is unavailable. Please try again.", {
       status: 500,
     });
   }
@@ -75,7 +75,7 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     .eq("owner_id", ownerId);
 
   if (recipientsError)
-    return apiError(recipientsError.message, { status: 500 });
+    return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
 
   await supabaseAdmin
     .from("campaigns")

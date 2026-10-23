@@ -40,6 +40,7 @@ export const POST = withApiHandler(async (request) => {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
+    signal: AbortSignal.timeout(15000),
     body: JSON.stringify({
       from,
       to: [to],
@@ -50,8 +51,7 @@ export const POST = withApiHandler(async (request) => {
   });
 
   if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    return apiError(`Could not send message. ${detail.slice(0, 120)}`, { status: 502 });
+    return apiError("Your message could not be sent. Please try again or email hello@myari.io.", { status: 502 });
   }
 
   return apiOk({ ok: true });

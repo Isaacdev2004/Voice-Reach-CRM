@@ -83,3 +83,8 @@ Dashboard / briefing / Twilio follow-up: see [final audit](DASHBOARD-BRIEFING-TW
 ### Dashboard bottom finish — 2026-10-23
 
 Dashboard finish QA: scroll to the end at 1440/1920/1280/768/390px widths and 700/900px heights. The final recommendation remains fully visible above the bottom edge, with no horizontal overflow. Synthetic screenshots: dashboard-bottom-spacing/desktop.png and mobile.png.
+
+
+### Complete platform audit — 2026-10-23
+
+See [complete platform QA and coverage](platform-audit/REPORT.md). Use synthetic accounts and mocked providers. Do not apply the proposed privilege migration or activate outbound without separate approval. Public SSR checks are not interactive Clerk/provider verification.

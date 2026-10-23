@@ -77,7 +77,7 @@ export const GET = withApiHandler<RouteContext>(async (_request, context) => {
     ]);
 
   if (campaignRes.error)
-    return apiError(campaignRes.error.message, { status: 500 });
+    return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
   if (!campaignRes.data)
     return apiError("Campaign not found", { status: 404, code: "not_found" });
 
@@ -365,7 +365,7 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
       .eq("owner_id", ownerId)
       .select("*, voice_assets(id, owner_id, title, approved, storage_path)")
       .single();
-    if (retry.error) return apiError(retry.error.message, { status: 500 });
+    if (retry.error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
     if (!retry.data) return apiError("Campaign not found", { status: 404 });
     await writeAuditLog({
       ownerId,
@@ -377,7 +377,7 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     return apiOk({ campaign: retry.data, link: linkResult });
   }
 
-  if (error) return apiError(error.message, { status: 500 });
+  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
   if (!data) return apiError("Campaign not found", { status: 404 });
 
   await writeAuditLog({

@@ -1,0 +1,25 @@
+
+> voicereach-backend-starter@0.1.0 smoke
+> node scripts/smoke-test.mjs
+
+
+VoiceReach smoke test — http://127.0.0.1:3211
+────────────────────────────────────────────────────────────────
+PASS  GET  401   /api/contacts                      envelope · has-body · json-ok
+PASS  GET  401   /api/voice-assets                  envelope · has-body · json-ok
+PASS  GET  401   /api/campaigns                     envelope · has-body · json-ok
+PASS  GET  401   /api/automations                   envelope · has-body · json-ok
+PASS  GET  401   /api/automations/rules             envelope · has-body · json-ok
+PASS  GET  401   /api/partners                      envelope · has-body · json-ok
+PASS  GET  401   /api/activity                      envelope · has-body · json-ok
+PASS  GET  401   /api/analytics?range=30d           envelope · has-body · json-ok
+PASS  GET  401   /api/settings                      envelope · has-body · json-ok
+PASS  GET  401   /api/compliance/audit              envelope · has-body · json-ok
+PASS  GET  401   /api/engagement?limit=10           envelope · has-body · json-ok
+PASS  GET  200   /api/webhooks/voice                envelope · has-body · json-ok
+PASS  GET  401   /api/campaigns/runner              envelope · has-body · json-ok
+────────────────────────────────────────────────────────────────
+13 passed · 0 failed
+
+ℹ  No AUTH_COOKIE provided — 401 envelopes are the expected outcome on auth-gated routes.
+   To exercise authenticated GETs, sign in and pass `AUTH_COOKIE="__session=..."`.
