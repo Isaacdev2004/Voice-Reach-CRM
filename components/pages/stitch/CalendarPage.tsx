@@ -15,6 +15,7 @@ import {
 } from "@/lib/calendar/preferences";
 import {
   addCalendarDays,
+  initialCalendarDate,
   describeCalendarInstant,
   navigateCalendarDate,
   dateLabel,
@@ -58,11 +59,16 @@ function CalendarWorkspace() {
   const q = useSearchParams();
   const initialDateQuery = useRef(q.get("date"));
   const [prefs, setPrefs] = useState(DEFAULT_CALENDAR_PREFERENCES),
-    [prefVersion, setPrefVersion] = useState<string | null>(null),
     [ready, setReady] = useState(false),
-    [prefFailed, setPrefFailed] = useState(false);
-  const [date, setDate] = useState(
-    () => zonedParts(new Date(), DEFAULT_CALENDAR_PREFERENCES.timezone).date,
+    [prefFailed, setPrefFailed] = useState(false),
+    [prefStatus, setPrefStatus] = useState<"synced" | "saving" | "unsynced">(
+      "synced",
+    );
+  const [date, setDate] = useState(() =>
+    initialCalendarDate(
+      initialDateQuery.current,
+      DEFAULT_CALENDAR_PREFERENCES.timezone,
+    ),
   );
   const [data, setData] = useState<Snapshot>({
       agenda: [],
@@ -86,23 +92,29 @@ function CalendarWorkspace() {
     [now, setNow] = useState(Date.now());
   const scroll = useRef<HTMLDivElement>(null),
     requestVersion = useRef(0),
-    prefSaving = useRef(false),
+    eventSaving = useRef(false),
+    prefVersion = useRef<string | null>(null),
+    prefQueue = useRef<Promise<unknown>>(Promise.resolve()),
+    prefChange = useRef(0),
+    prefBlocked = useRef(false),
+    alive = useRef(true),
     initialQuery = useRef(false);
   useEffect(() => {
+    alive.current = true;
     const ac = new AbortController();
-    fetch("/api/calendar/preferences", { signal: ac.signal, cache: "no-store" })
+    fetch("/api/calendar/preferences", {
+      signal: AbortSignal.any([ac.signal, AbortSignal.timeout(15000)]),
+      cache: "no-store",
+    })
       .then(async (res) => {
         const d = await res.json();
         if (!res.ok || d.success === false) throw Error();
         if (ac.signal.aborted) return;
-        setPrefs(d.preferences);
-        setPrefVersion(d.version);
+        const parsed = CalendarPreferencesSchema.parse(d.preferences);
+        setPrefs(parsed);
+        prefVersion.current = d.version;
         const requested = initialDateQuery.current;
-        setDate(
-          requested && /^\d{4}-\d{2}-\d{2}$/.test(requested)
-            ? requested
-            : zonedParts(new Date(), d.preferences.timezone).date,
-        );
+        setDate(initialCalendarDate(requested, parsed.timezone));
         if (matchMedia("(max-width:767px)").matches) {
           if (d.version === null)
             setPrefs((p: CalendarPreferences) => ({ ...p, view: "day" }));
@@ -116,23 +128,30 @@ function CalendarWorkspace() {
         }
       })
       .catch(() => {
-        if (!ac.signal.aborted) setPrefFailed(true);
+        if (!ac.signal.aborted) {
+          setPrefFailed(true);
+          setPrefStatus("unsynced");
+        }
       })
       .finally(() => {
         if (!ac.signal.aborted) setReady(true);
       });
-    return () => ac.abort();
+    return () => {
+      alive.current = false;
+      ac.abort();
+    };
   }, []);
+  const displayedView = section === "agenda" ? "agenda" : prefs.view;
   const days = useMemo(
     () =>
-      prefs.view === "month"
+      displayedView === "month"
         ? monthDates(date, prefs.mondayStart)
-        : prefs.view === "day"
+        : displayedView === "day"
           ? [date]
-          : prefs.view === "agenda"
+          : displayedView === "agenda"
             ? Array.from({ length: 30 }, (_, i) => addCalendarDays(date, i))
             : weekDates(date, prefs.mondayStart),
-    [date, prefs.view, prefs.mondayStart],
+    [date, displayedView, prefs.mondayStart],
   );
   const from = days[0],
     until = addCalendarDays(days.at(-1)!, 1);
@@ -193,49 +212,83 @@ function CalendarWorkspace() {
     };
   }, []);
   const savePreferences = useCallback(
-    async (next: CalendarPreferences) => {
-      if (prefSaving.current || prefFailed) return false;
-      prefSaving.current = true;
-      try {
-        const response = await fetch("/api/calendar/preferences", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ preferences: next, version: prefVersion }),
-        });
-        const d = await response.json();
-        if (!response.ok || d.success === false) {
-          const messages: Record<string, string> = {
-            preferences_conflict: "Preferences changed on another device. Reload before saving again.",
-            calendar_setup_required: "Calendar preference saving needs a database update. Your appointments have not been changed.",
-            preferences_unavailable: "Calendar preferences are temporarily unavailable. Please try again.",
-            preferences_unconfirmed: "Saving could not be confirmed. Reload before trying again.",
-          };
-          throw Error(messages[d.code] ?? "Calendar preferences could not be saved. Please try again.");
+    (next: CalendarPreferences): Promise<boolean> => {
+      const parsed = CalendarPreferencesSchema.safeParse(next);
+      if (!parsed.success) return Promise.resolve(false);
+      // Rendering is local and immediate; persistence must never gate navigation.
+      setPrefs(parsed.data);
+      setPrefStatus("saving");
+      const change = ++prefChange.current;
+      const save = async () => {
+        if (!alive.current) return false;
+        if (prefFailed || prefBlocked.current) {
+          setPrefStatus("unsynced");
+          setNotice(
+            "Preferences are not synced. Your local view still works; reload to reconnect before saving.",
+          );
+          return false;
         }
-        if (!CalendarPreferencesSchema.safeParse(d.preferences).success || typeof d.version !== "string")
-          throw Error("Saving could not be confirmed. Reload before trying again.");
-        setPrefs(d.preferences);
-        setPrefVersion(d.version);
-        setNotice("");
-        return true;
-      } catch (error) {
-        setNotice(
-          error instanceof Error && error.message.startsWith("Calendar") || error instanceof Error && /^(Preferences changed|Saving could not)/.test(error.message)
-            ? error.message
-            : "Calendar preferences could not be saved. Please try again.",
-        );
-        return false;
-      } finally {
-        prefSaving.current = false;
-      }
+        try {
+          const response = await fetch("/api/calendar/preferences", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              preferences: parsed.data,
+              version: prefVersion.current,
+            }),
+            signal: AbortSignal.timeout(15000),
+          });
+          const result = await response.json();
+          if (!response.ok || result.success === false) {
+            if (response.status === 409) prefBlocked.current = true;
+            throw Error(
+              response.status === 409
+                ? "Preferences changed on another device. Reload to sync; your local view still works."
+                : "Preferences could not be saved. Your local view still works; retry or reload to reconnect.",
+            );
+          }
+          if (
+            !CalendarPreferencesSchema.safeParse(result.preferences).success ||
+            typeof result.version !== "string"
+          )
+            throw Error();
+          if (!alive.current) return false;
+          prefVersion.current = result.version;
+          // An older response must not replace a newer local view or filter.
+          if (change === prefChange.current) {
+            setNotice("");
+            setPrefStatus("synced");
+          }
+          return true;
+        } catch (error) {
+          if (alive.current) {
+            setPrefStatus("unsynced");
+            setNotice(
+              error instanceof Error && error.message.startsWith("Preferences")
+                ? error.message
+                : "Preferences could not be saved. Your local view still works.",
+            );
+          }
+          return false;
+        }
+      };
+      const pending = prefQueue.current.then(save, save);
+      prefQueue.current = pending;
+      return pending;
     },
-    [prefVersion, prefFailed],
+    [prefFailed],
   );
-  const visible = data.agenda.filter(
-    (i) =>
-      prefs.visibility[i.calendarKey] !== false &&
-      i.title.toLowerCase().includes(search.toLowerCase()),
-  );
+  const visible = data.agenda
+    .filter(
+      (i) =>
+        prefs.visibility[i.calendarKey] !== false &&
+        i.title.toLowerCase().includes(search.toLowerCase()),
+    )
+    .sort(
+      (a, b) =>
+        Date.parse(a.starts_at) - Date.parse(b.starts_at) ||
+        a.id.localeCompare(b.id),
+    );
   const today = zonedParts(new Date(now), prefs.timezone);
   const daily = visible.filter(
     (i) => zonedParts(i.starts_at, prefs.timezone).date === date,
@@ -265,6 +318,7 @@ function CalendarWorkspace() {
       !item.editable ||
       (!item.crmEventId && !item.externalId) ||
       saving ||
+      eventSaving.current ||
       item.allDay
     )
       return;
@@ -278,6 +332,7 @@ function CalendarWorkspace() {
       );
       return;
     }
+    eventSaving.current = true;
     const ticket = ++requestVersion.current;
     const previous = item;
     setSaving(true);
@@ -294,6 +349,7 @@ function CalendarWorkspace() {
           : "/api/calendar/external",
         {
           method: "PATCH",
+          signal: AbortSignal.timeout(15000),
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             startsAt: start,
@@ -310,7 +366,7 @@ function CalendarWorkspace() {
           }),
         },
       );
-      if (!r.ok) throw Error();
+      if (!r.ok || (await r.json()).success === false) throw Error();
       setNotice("Appointment updated.");
       window.dispatchEvent(new Event("myari:activity-changed"));
       refresh();
@@ -321,9 +377,10 @@ function CalendarWorkspace() {
           agenda: d.agenda.map((e) => (e.id === item.id ? previous : e)),
         }));
       setNotice(
-        "The change could not be saved. The previous time has been restored; refresh before retrying.",
+        "Saving could not be confirmed. The previous time has been restored locally; refresh before retrying.",
       );
     } finally {
+      eventSaving.current = false;
       setSaving(false);
     }
   }
@@ -363,6 +420,7 @@ function CalendarWorkspace() {
     node.setPointerCapture(e.pointerId);
     const up = (p: PointerEvent) => {
       node.removeEventListener("pointerup", up);
+      node.removeEventListener("pointercancel", cancel);
       const delta = Math.round((p.clientY - y) / 15) * 15 * 60000;
       const next = Math.max(
         Date.parse(item.starts_at) + 15 * 60000,
@@ -371,6 +429,10 @@ function CalendarWorkspace() {
       if (next !== end)
         void move(item, item.starts_at, new Date(next).toISOString());
     };
+    const cancel = () => {
+      node.removeEventListener("pointerup", up);
+    };
+    node.addEventListener("pointercancel", cancel, { once: true });
     node.addEventListener("pointerup", up, { once: true });
   }
   async function remove(item: ScheduleItem) {
@@ -421,7 +483,7 @@ function CalendarWorkspace() {
           <input
             type="checkbox"
             checked={prefs.visibility[c.key] !== false}
-            disabled={prefFailed}
+            disabled={!ready}
             onChange={(e) =>
               void savePreferences({
                 ...prefs,
@@ -637,7 +699,6 @@ function CalendarWorkspace() {
       </section>
     </div>
   );
-  const displayedView = section === "agenda" ? "agenda" : prefs.view;
   return (
     <div className="calendar-workspace">
       {notice ? (
@@ -733,7 +794,7 @@ function CalendarWorkspace() {
           <button
             key={v}
             aria-pressed={prefs.view === v}
-            disabled={!ready || prefFailed}
+            disabled={!ready}
             onClick={() => {
               setSection("calendar");
               void savePreferences({ ...prefs, view: v });
@@ -774,7 +835,13 @@ function CalendarWorkspace() {
           <div className="calendar-stage-header">
             <span>
               {prefs.timezone}
-              {saving ? " · Saving…" : ""}
+              {saving
+                ? " · Saving appointment…"
+                : prefStatus === "saving"
+                  ? " · Saving preferences…"
+                  : prefStatus === "unsynced"
+                    ? " · Preferences not synced"
+                    : ""}
             </span>
             <input
               aria-label="Search calendar"
@@ -857,7 +924,28 @@ function CalendarWorkspace() {
           ) : displayedView === "month" ? (
             <div className="calendar-month">
               {days.map((day) => (
-                <div key={day} className="calendar-month-day">
+                <div
+                  key={day}
+                  className="calendar-month-day"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    const item = data.agenda.find(
+                      (i) =>
+                        i.id === e.dataTransfer.getData("text/myari-event"),
+                    );
+                    if (item)
+                      drop(
+                        e,
+                        day,
+                        (() => {
+                          const t = zonedParts(item.starts_at, prefs.timezone)
+                            .time.split(":")
+                            .map(Number);
+                          return t[0] * 60 + t[1];
+                        })(),
+                      );
+                  }}
+                >
                   <button
                     aria-label={`Schedule on ${dateLabel(day)}`}
                     onClick={() => create(day)}
@@ -874,6 +962,15 @@ function CalendarWorkspace() {
                       <button
                         key={i.id}
                         className="calendar-month-event"
+                        draggable={
+                          i.editable &&
+                          !i.allDay &&
+                          !!(i.crmEventId || i.externalId) &&
+                          !saving
+                        }
+                        onDragStart={(e) =>
+                          e.dataTransfer.setData("text/myari-event", i.id)
+                        }
                         onClick={() => setSelected(i)}
                       >
                         {i.title}

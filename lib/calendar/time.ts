@@ -152,3 +152,19 @@ export function describeCalendarInstant(
     timeZoneName: "shortOffset",
   });
 }
+
+/** Ignore malformed date links rather than breaking the calendar's range request. */
+export function initialCalendarDate(
+  requested: string | null,
+  timezone: string,
+) {
+  if (requested && /^\d{4}-\d{2}-\d{2}$/.test(requested)) {
+    try {
+      wallTimeToInstant(requested, "12:00", timezone, "earlier");
+      return requested;
+    } catch {
+      /* Fall back to the actual local date. */
+    }
+  }
+  return zonedParts(new Date(), timezone).date;
+}

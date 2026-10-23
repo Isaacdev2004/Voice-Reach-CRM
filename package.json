@@ -41,7 +41,8 @@
     "test:dashboard": "node scripts/dashboard-display.test.cjs && node scripts/dashboard-briefing.test.cjs",
     "test:dashboard-browser": "node scripts/dashboard-review.test.cjs",
     "test:voice-repair-browser": "node scripts/voice-repair-browser.test.cjs",
-    "test:communications": "node scripts/twilio-communications.test.cjs"
+    "test:communications": "node scripts/twilio-communications.test.cjs",
+    "test:calendar-db": "node scripts/calendar-database.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",

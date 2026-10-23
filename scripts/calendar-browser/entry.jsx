@@ -9,6 +9,9 @@ w.__owner = "owner_a";
 w.__requests = [];
 w.__fail = false;
 w.__failMove = false;
+w.__prefDelay = 0;
+w.__failPref = new URLSearchParams(location.search).has("prefFail");
+w.__failPrefRead = new URLSearchParams(location.search).has("prefReadFail");
 w.__prefs = JSON.parse(sessionStorage.getItem("qa-calendar-prefs") || "{}");
 w.__events = JSON.parse(sessionStorage.getItem("qa-calendar-events") || "{}");
 w.__setOwner = (owner) => {
@@ -85,10 +88,18 @@ w.fetch = async (input, init = {}) => {
   const owner = w.__owner;
   if (path === "/api/calendar/preferences") {
     if (method === "PUT") {
+      if (w.__prefDelay)
+        await new Promise((resolve) => setTimeout(resolve, w.__prefDelay));
+      if (w.__failPref)
+        return response(
+          { success: false, code: "preferences_unavailable" },
+          503,
+        );
       w.__prefs[owner] = { preferences: body.preferences, version: id(101) };
       sessionStorage.setItem("qa-calendar-prefs", JSON.stringify(w.__prefs));
       return response(w.__prefs[owner]);
     }
+    if (w.__failPrefRead) return response({ success: false }, 503);
     return response(
       w.__prefs[owner] ?? {
         preferences: {
@@ -268,7 +279,7 @@ w.fetch = async (input, init = {}) => {
       ],
       nextCursor: null,
       limitations: [],
-      timezone:"America/New_York",
+      timezone: "America/New_York",
     });
   if (path.endsWith("/tasks")) return response({ tasks: [] });
   if (path === "/api/health")

@@ -124,6 +124,63 @@ const { chromium } = require("playwright"),
         path: path.join(output, `calendar-${width}.png`),
         fullPage: false,
       });
+      const choose = async (view) =>
+        page.getByRole("button", { name: view, exact: true }).last().click();
+      // Switching is immediate even while the durable save is slow or unavailable.
+      await page.evaluate(() => {
+        window.__prefDelay = 120;
+        window.__failPref = true;
+      });
+      for (const view of ["Day", "Week", "Month", "Agenda", "Day"]) {
+        await choose(view);
+        await page
+          .getByRole("button", { name: view, exact: true })
+          .last()
+          .waitFor();
+        assert.equal(
+          await page
+            .getByRole("button", { name: view, exact: true })
+            .last()
+            .getAttribute("aria-pressed"),
+          "true",
+        );
+        if (view === "Month")
+          assert.equal(await page.locator(".calendar-month-day").count(), 42);
+        if (view === "Agenda") await page.locator(".calendar-agenda").waitFor();
+      }
+      await page
+        .getByText(/Preferences could not be saved/)
+        .first()
+        .waitFor();
+      await page.evaluate(() => {
+        window.__failPref = false;
+        window.__prefDelay = 60;
+      });
+      for (const view of ["Week", "Month", "Agenda", "Day"]) await choose(view);
+      await page.waitForFunction(
+        () => window.__prefs.owner_a?.preferences.view === "day" && !document.body.textContent.includes("Saving preferences"),
+      );
+      await page.reload();
+      await page.waitForFunction(
+        () => document.querySelectorAll(".calendar-grid-head b").length === 1,
+      );
+      // Date navigation follows the rendered period without a refresh.
+      const dateInput = page.locator('.calendar-date input[type="date"]');
+      await dateInput.fill("2026-10-22");
+      await page
+        .getByRole("button", { name: "Next period", exact: true })
+        .click();
+      assert.equal(await dateInput.inputValue(), "2026-10-23");
+      await page
+        .getByRole("button", { name: "Previous period", exact: true })
+        .click();
+      await choose("Week");
+      await page.waitForFunction(
+        () => document.querySelectorAll(".calendar-grid-head b").length === 7,
+      );
+      await page.waitForFunction(
+        () => window.__prefs.owner_a?.preferences.view === "week",
+      );
       await page
         .getByRole("button", { name: "Add Event", exact: false })
         .click();
@@ -247,6 +304,33 @@ const { chromium } = require("playwright"),
         await page.getByRole("button", { name: "Month", exact: true }).click();
         await page.locator(".calendar-month-day").first().waitFor();
         assert.equal(await page.locator(".calendar-month-day").count(), 42);
+        // Month drag moves the same event to another date without duplicating it.
+        const monthEvent = page
+          .locator(".calendar-month-event")
+          .filter({ hasText: "Synthetic appointment" });
+        const dateCell = page
+          .locator(".calendar-month-day")
+          .filter({
+            has: page.getByRole("button", {
+              name: /Schedule on.*23/,
+              exact: false,
+            }),
+          });
+        await monthEvent.dragTo(dateCell.first());
+        await page.waitForFunction(() =>
+          window.__events.owner_a
+            .find((i) => i.title === "Synthetic appointment")
+            .starts_at.startsWith("2026-10-23"),
+        );
+        assert.equal(
+          await page.evaluate(
+            () =>
+              window.__events.owner_a.filter(
+                (i) => i.title === "Synthetic appointment",
+              ).length,
+          ),
+          1,
+        );
         await page.getByRole("button", { name: "Week", exact: true }).click();
         await page.locator(".calendar-event").first().waitFor();
         await page
@@ -307,6 +391,36 @@ const { chromium } = require("playwright"),
         creation: true,
         details: true,
       });
+      await page.close();
+    }
+    for (const width of [1440, 390]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.goto(
+        `http://127.0.0.1:${server.address().port}/dashboard/calendar?date=2026-10-22&prefReadFail=1`,
+      );
+      await page
+        .getByText(/Buyer consultation/, { exact: true })
+        .first()
+        .waitFor();
+      for (const view of ["Day", "Week", "Month", "Agenda"]) {
+        await page
+          .getByRole("button", { name: view, exact: true })
+          .last()
+          .click();
+        assert.equal(
+          await page
+            .getByRole("button", { name: view, exact: true })
+            .last()
+            .getAttribute("aria-pressed"),
+          "true",
+        );
+      }
+      assert.equal(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth > innerWidth,
+        ),
+        false,
+      );
       await page.close();
     }
     for (const width of [1440, 390]) {
