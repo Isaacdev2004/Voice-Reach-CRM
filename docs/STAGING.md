@@ -50,3 +50,5 @@ Notes compatibility correction: basic note reads/edits and a primary contact wit
 ### Financing & Closing Studio
 
 Review [the Financing Studio guide](financing-studio/REVIEW.md) and `20261024000000_financing_studio.sql` before applying to staging. Keep outbound off. Verify two owners, preferred lender/title defaults, saved report snapshots/timeline entries and manual fee assumptions. No production migration was performed by the implementation task.
+
+Reference-layout review: compare Financing and Property Finder at 1440/1536/1920/768/390px using the `reference-layout` screenshot guides. Verify purchase/refinance, the right-column payment/report action, preferred-lender selection, illustrated action cards and saved client preferences. No new migration accompanies the presentation refinement; the original Financing migration is still needed for saved partner/report storage.

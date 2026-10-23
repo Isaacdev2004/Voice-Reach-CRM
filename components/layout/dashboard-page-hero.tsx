@@ -33,7 +33,8 @@ function HeroImagePanel({
 }) {
   const scriptOnImage = config.scriptAccentOnImage && config.scriptAccent;
   const brandOnImage = config.brandQuoteOnImage && config.brandQuote;
-  const compact = config.heroDensity === "compact" || config.heroDensity === "dense";
+  const compact =
+    config.heroDensity === "compact" || config.heroDensity === "dense";
   const dense = config.heroDensity === "dense";
   const blend = config.imageBlend ?? "default";
   const vividBlend = blend === "vivid";
@@ -45,7 +46,9 @@ function HeroImagePanel({
         "relative w-full overflow-hidden bg-champagne",
         isPhoto
           ? cn(
-              dense ? "aspect-[2/1] sm:aspect-[16/9]" : "aspect-[16/10] sm:aspect-[16/9]",
+              dense
+                ? "aspect-[2/1] sm:aspect-[16/9]"
+                : "aspect-[16/10] sm:aspect-[16/9]",
               compact
                 ? cn(
                     "lg:aspect-auto lg:h-full",
@@ -93,6 +96,23 @@ function HeroImagePanel({
         aria-hidden
       />
 
+      {config.imageCallout && (
+        <div className="absolute bottom-5 right-5 z-[2] hidden max-w-[280px] items-start gap-3 rounded-2xl border border-white/70 bg-[#fffaf1]/95 px-5 py-4 shadow-sm sm:flex">
+          <Icon
+            name={config.imageCallout.icon}
+            className="mt-1 shrink-0 text-[24px] text-rose-gold-deep"
+          />
+          <div>
+            <p className="font-serif text-[18px] text-ink">
+              {config.imageCallout.title}
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-slate-text">
+              {config.imageCallout.subtitle}
+            </p>
+          </div>
+        </div>
+      )}
+
       {brandOnImage ? (
         <div className="pointer-events-none absolute right-4 top-4 z-[2] max-w-[240px] text-right sm:right-6 sm:top-6">
           <p className="font-serif text-[13px] italic leading-snug text-ink/90 sm:text-[14px]">
@@ -128,7 +148,11 @@ function HeroImagePanel({
   );
 }
 
-export function DashboardPageHero({ config, className, pathname }: DashboardPageHeroProps) {
+export function DashboardPageHero({
+  config,
+  className,
+  pathname,
+}: DashboardPageHeroProps) {
   const { user } = useUser();
   const hour = new Date().getHours();
   const greeting = timeGreeting(hour);
@@ -242,7 +266,10 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
                 </p>
               ) : null}
               <span
-                className={cn("inline-flex text-rose-gold-deep", compactHero ? "mt-3.5" : "mt-5")}
+                className={cn(
+                  "inline-flex text-rose-gold-deep",
+                  compactHero ? "mt-3.5" : "mt-5",
+                )}
                 aria-hidden
               >
                 <Icon name="auto_awesome" className="text-[20px]" />
@@ -268,7 +295,9 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
             <p
               className={cn(
                 "mt-2.5 whitespace-normal font-hand leading-snug text-rose-gold-deep sm:mt-3",
-                compactHero ? "text-[18px] sm:text-[20px]" : "text-[20px] sm:text-[22px]",
+                compactHero
+                  ? "text-[18px] sm:text-[20px]"
+                  : "text-[20px] sm:text-[22px]",
               )}
             >
               {config.scriptAccent}
@@ -284,7 +313,9 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
               ) : null}
             </blockquote>
           ) : null}
-          {config.brandQuote && !config.brandQuoteOnImage && !config.brandQuoteFooter ? (
+          {config.brandQuote &&
+          !config.brandQuoteOnImage &&
+          !config.brandQuoteFooter ? (
             <div className="mt-4 whitespace-normal border-t border-outline-variant/15 pt-4">
               <p className="font-serif text-[14px] italic leading-snug text-ink/85">
                 &ldquo;{config.brandQuote}&rdquo;
@@ -309,12 +340,17 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
                     href={action.href}
                     className={cn(
                       "inline-flex items-center gap-2 rounded-full bg-rose-gold-deep font-medium text-ivory shadow-sm transition-all hover:opacity-95 active:scale-[0.98] motion-reduce:active:scale-100",
-                      denseHero ? "px-4 py-2 text-[13px]" : "px-5 py-2.5 text-[14px]",
+                      denseHero
+                        ? "px-4 py-2 text-[13px]"
+                        : "px-5 py-2.5 text-[14px]",
                     )}
                   >
                     <Icon name={action.icon} className="text-[18px]" />
                     {action.label}
-                    <Icon name="arrow_forward" className="text-[16px] opacity-80" />
+                    <Icon
+                      name="arrow_forward"
+                      className="text-[16px] opacity-80"
+                    />
                   </Link>
                 ) : (
                   <Link
@@ -322,10 +358,15 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
                     href={action.href}
                     className={cn(
                       "inline-flex items-center gap-2 rounded-full border border-outline-variant/20 bg-transparent font-medium text-taupe transition-colors hover:border-outline-variant/35 hover:bg-champagne/50 hover:text-ink",
-                      denseHero ? "px-4 py-2 text-[13px]" : "px-5 py-2.5 text-[14px]",
+                      denseHero
+                        ? "px-4 py-2 text-[13px]"
+                        : "px-5 py-2.5 text-[14px]",
                     )}
                   >
-                    <Icon name={action.icon} className="text-[18px] text-rose-gold-deep" />
+                    <Icon
+                      name={action.icon}
+                      className="text-[18px] text-rose-gold-deep"
+                    />
                     {action.label}
                   </Link>
                 ),
@@ -346,7 +387,9 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
                     <Icon name={f.icon} className="text-[18px]" />
                   </span>
                   <div className="min-w-0 whitespace-normal">
-                    <p className="text-[13px] font-semibold text-ink">{f.title}</p>
+                    <p className="text-[13px] font-semibold text-ink">
+                      {f.title}
+                    </p>
                     <p className="text-[11px] text-taupe">{f.subtitle}</p>
                   </div>
                 </li>
@@ -362,13 +405,17 @@ export function DashboardPageHero({ config, className, pathname }: DashboardPage
         <div
           className={cn(
             "flex flex-col items-start justify-between gap-1.5 border-t border-outline-variant/10 bg-cream/90 sm:flex-row sm:items-center",
-            compactHero ? "px-6 py-2.5 sm:px-10 lg:px-12" : "px-6 py-4 sm:px-10 lg:px-12",
+            compactHero
+              ? "px-6 py-2.5 sm:px-10 lg:px-12"
+              : "px-6 py-4 sm:px-10 lg:px-12",
           )}
         >
           <p
             className={cn(
               "font-serif italic leading-snug text-ink",
-              compactHero ? "text-[15px] sm:text-[16px]" : "text-[17px] sm:text-[18px]",
+              compactHero
+                ? "text-[15px] sm:text-[16px]"
+                : "text-[17px] sm:text-[18px]",
             )}
           >
             &ldquo;{config.brandQuote}&rdquo;

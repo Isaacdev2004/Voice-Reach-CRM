@@ -54,3 +54,9 @@ test("returning client context is isolated by authenticated owner and checked ag
 test("quick action destinations and campaign routes are preserved without unsupported client query context",()=>{
   assert.deepEqual(PROPERTY_FINDER_ACTION_CARDS.map(card=>card.href),["#client-workspace","#saved-searches","/dashboard/activity","/dashboard/campaigns#campaign-builder"]);
 });
+
+
+test("Property Finder action artwork is unique and stable without changing routes",()=>{
+ assert.equal(new Set(PROPERTY_FINDER_ACTION_CARDS.map(c=>`${c.image}:${c.imageTile}`)).size,4);
+ assert.ok(PROPERTY_FINDER_ACTION_CARDS.every(c=>c.image.startsWith("/brand/")&&Number.isInteger(c.imageTile)));
+});

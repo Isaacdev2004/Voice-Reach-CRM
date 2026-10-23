@@ -113,7 +113,7 @@ const { chromium } = require("playwright"),
   fs.mkdirSync(output, { recursive: true });
   try {
     const origin = `http://127.0.0.1:${server.address().port}`;
-    for (const width of [1440, 1920, 768, 390]) {
+    for (const width of [1440, 1536, 1920, 768, 390]) {
       reset();
       const page = await browser.newPage({ viewport: { width, height: 1050 } }),
         errors = [];
@@ -157,6 +157,37 @@ const { chromium } = require("playwright"),
       await page.getByLabel("Home price", { exact: true }).fill("300000");
       await page.locator("#mortgage-down-payment-input").fill("60000");
       await page.getByLabel("Interest rate", { exact: true }).fill("6");
+      await page
+        .getByLabel("Property tax (annual)", { exact: true })
+        .fill("3600");
+      await page
+        .getByLabel("Home insurance (annual)", { exact: true })
+        .fill("1200");
+      await page.getByLabel("HOA (monthly)", { exact: true }).fill("50");
+      const summary = page.getByRole("region", {
+        name: "Estimated monthly payment breakdown",
+      });
+      await summary.waitFor();
+      assert.match(await summary.innerText(), /1,888.92/);
+      assert.equal(await summary.getByRole("img").count(), 1);
+      if (width >= 1200) {
+        const property = await page.locator(".fc-workflow").boundingBox(),
+          payment = await summary.boundingBox();
+        assert.ok(
+          payment.y <= property.y && property.y - payment.y < 100,
+          "Payment begins beside the section navigation, above property details",
+        );
+        assert.ok(
+          payment.x > property.x + property.width,
+          "Payment is right of property",
+        );
+      }
+      await page
+        .getByRole("button", { name: "Share / create report", exact: true })
+        .click();
+      await page.locator("#financing-estimate-review").waitFor();
+      await page.evaluate(() => window.scrollTo(0, 0));
+
       await page.screenshot({
         path: path.join(output, `mortgage-${width}.png`),
         fullPage: false,
@@ -277,8 +308,30 @@ const { chromium } = require("playwright"),
         .getByRole("button", { name: "Use for report", exact: true })
         .click();
       await page
+        .getByRole("button", { name: "+ Add lender", exact: true })
+        .click();
+      await page
+        .getByLabel("Company name", { exact: true })
+        .fill("Synthetic Lender");
+      await page
+        .getByLabel("Contact person", { exact: true })
+        .fill("QA Lending Contact");
+      await page
+        .getByRole("button", { name: "Save partner", exact: true })
+        .click();
+      await page
+        .getByRole("heading", { name: "Synthetic Lender", exact: true })
+        .waitFor();
+      await page
         .getByRole("button", { name: "Mortgage Calculator", exact: true })
         .click();
+      await page
+        .getByLabel("Calculator preferred lender", { exact: true })
+        .selectOption(state.partners.find((p) => p.kind === "lender").id);
+      assert.match(
+        await page.locator(".fc-lender-details").innerText(),
+        /QA Lending Contact/,
+      );
       await page
         .getByRole("button", { name: "Refinance", exact: true })
         .click();
@@ -337,6 +390,21 @@ const { chromium } = require("playwright"),
       });
       await page.close();
     }
+    const malformedPage = await browser.newPage({
+      viewport: { width: 1440, height: 1050 },
+    });
+    state.malformedRates = true;
+    const malformedErrors = [];
+    malformedPage.on("pageerror", (e) => malformedErrors.push(e.message));
+    await malformedPage.goto(origin + "/dashboard/mortgage");
+    await malformedPage
+      .getByText(
+        "Verified rates are unavailable. Retry or enter a manually sourced rate.",
+        { exact: true },
+      )
+      .waitFor();
+    assert.deepEqual(malformedErrors, []);
+    await malformedPage.close();
     const errorPage = await browser.newPage({
       viewport: { width: 390, height: 844 },
     });
@@ -362,7 +430,7 @@ const { chromium } = require("playwright"),
       JSON.stringify(results, null, 2),
     );
     console.log(
-      "Financing component browser checks passed at 1440, 1920, 768 and 390px; errors remain distinct from empty data.",
+      "Financing component browser checks passed at 1440, 1536, 1920, 768 and 390px; errors remain distinct from empty data.",
     );
   } finally {
     await browser.close();

@@ -39,3 +39,5 @@ Notes original-schema compatibility uses authenticated owner-filtered reads and 
 ### Financing records
 
 `financing_partners` and `financing_reports` are server-only/RLS tables with browser grants revoked. Financing APIs require Clerk authentication and owner filters. Server-calculated report snapshots validate owned contact/property/partner associations, and transaction functions recheck associations under locks. Preferred partners are unique per owner/type. See `docs/financing-studio/REVIEW.md` for isolated PostgreSQL and API tests; production RLS has not been verified by this task.
+
+The subsequent Financing/Property Finder reference-layout changes preserve existing tenant APIs and permissions. Decorative artwork uses bundled static URLs with stable crop assignments and never includes client information or claims to depict a listed/client property. Property Finder browser tests again exercise subscriber switching and confirm prior client information clears.

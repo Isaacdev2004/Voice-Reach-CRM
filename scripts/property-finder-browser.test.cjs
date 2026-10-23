@@ -32,17 +32,21 @@ const root=path.resolve(__dirname,'..');
  const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
  const results=[];
  try{
- for(const width of [1440,1920,768,390]){
+ for(const width of [1440,1536,1920,768,390]){
   console.log('Checking Property Finder at',width);
-  const page=await browser.newPage({viewport:{width,height:1086}});page.setDefaultTimeout(7000);const errors=[];page.on('pageerror',error=>{errors.push(error.message);console.error(error.message);});
+  const page=await browser.newPage({viewport:{width,height:1086},reducedMotion:"reduce"});page.setDefaultTimeout(7000);const errors=[];page.on('pageerror',error=>{errors.push(error.message);console.error(error.message);});
   await page.goto(base+'/dashboard/properties');await page.getByRole('heading',{name:'The right property changes everything.',exact:true}).waitFor();await page.getByRole('button',{name:'Open saved search for Client 01 QA',exact:true}).waitFor();await page.evaluate(()=>document.fonts.ready);
   assert.equal(await page.locator('.pf-eyebrow').first().innerText(),'PROPERTY FINDER');assert.equal(await page.locator('.pf-hero-copy > p').last().innerText(),"Discover homes that match your clients' goals and move their search forward.");
   assert.ok((await page.locator('.pf-hero-photo img').getAttribute('src')).includes('property-dining-room.png'));
   assert.equal(await page.locator('.pf-suggestions img').count(),0);
   assert.equal(await page.locator('.pf-search-controls').getByRole('button',{name:/Beds|Baths|Property Type|More Filters/}).count(),0);
   assert.equal(await page.locator('.pf-saved-card').count(),4);
+  assert.equal(await page.locator('.pf-action-photo').count(),4);assert.equal(await page.locator('.pf-saved-photo').count(),4);
+  const backgrounds=await page.locator('.pf-action-photo').evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).backgroundPosition));assert.equal(new Set(backgrounds).size,4);
+  await page.getByRole('link',{name:/Search Listings Run a tailored search/}).click();await page.waitForFunction(()=>document.activeElement.id==='property-location');assert.equal(await page.evaluate(()=>document.activeElement.id),'property-location');assert.equal(await page.getByRole('tab',{name:'Find Properties',exact:true}).getAttribute('aria-selected'),'true');
+
   assert.deepEqual(await page.locator('.pf-action-card').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('href'))),['#client-workspace','#saved-searches','/dashboard/activity','/dashboard/campaigns#campaign-builder']);
-  await page.screenshot({path:path.join(tmp,`properties-${width}.png`),fullPage:false});await page.screenshot({path:path.join(tmp,`properties-full-${width}.png`),fullPage:true});
+  await page.evaluate(()=>{document.activeElement?.blur();window.scrollTo(0,0);});await page.screenshot({path:path.join(tmp,`properties-${width}.png`),fullPage:false});await page.screenshot({path:path.join(tmp,`properties-full-${width}.png`),fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.getByRole('button',{name:'View all (5)',exact:true}).click();assert.equal(await page.locator('.pf-saved-card').count(),5);await page.getByRole('button',{name:'Show fewer',exact:true}).click();
   await page.getByRole('tab',{name:'Search by Client',exact:true}).click();
@@ -50,7 +54,7 @@ const root=path.resolve(__dirname,'..');
   await clientSearch.fill('Client 01');assert.equal(await page.getByRole('option').count(),1);await page.keyboard.press('Escape');assert.equal(await page.getByRole('listbox').count(),0);
   await clientSearch.fill('5555550102');assert.equal(await page.getByRole('option').count(),1);
   await clientSearch.fill('client2@example.test');await page.keyboard.press('Enter');await page.locator('.pf-client-share h2').filter({hasText:'Client 02 QA'}).waitFor();
-  assert.equal(await page.getByRole('searchbox',{name:'Location, address or ZIP',exact:true}).inputValue(),'Orlando, FL');
+  assert.equal(await page.getByRole('searchbox',{name:'Location, address or ZIP',exact:true}).inputValue(),'Orlando, FL');assert.equal(await page.locator('.pf-client-hero-art').count(),1);
   await page.locator('.pf-price-filter summary').click();assert.equal(await page.getByLabel('Maximum price',{exact:true}).inputValue(),'650000');
   await page.getByLabel('Maximum price',{exact:true}).fill('900,000');await page.getByRole('button',{name:'Done',exact:true}).click();
   await page.getByRole('searchbox',{name:'Location, address or ZIP',exact:true}).fill('Winter Garden, FL');await page.getByRole('button',{name:'Search Properties',exact:true}).click();assert.equal(await page.evaluate(()=>window.__openedSearch),'https://www.zillow.com/homes/for_sale/winter-garden-fl/0-900000_price/');

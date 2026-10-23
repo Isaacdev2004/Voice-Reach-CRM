@@ -32,6 +32,7 @@ export type DashboardPageHeroConfig = {
   titleMode?: "fixed" | "dashboardHome" | "calendarGreeting";
   actions?: DashboardPageHeroAction[];
   features?: DashboardPageHeroFeature[];
+  imageCallout?: DashboardPageHeroFeature;
   editorialQuote?: boolean;
   /** CSS object-position when banner is cover-cropped in the frame (e.g. boat on left). */
   imageObjectPosition?: string;
@@ -70,7 +71,7 @@ const HERO_FILES: Record<
   "calendar.jpg": BANNER_2172,
   "calendar-faith.jpg": BANNER_2172,
   "mortgage.jpg": BANNER_2172,
-  "financing-interior.png": {w:2172,h:724},
+  "financing-interior.png": { w: 2172, h: 724 },
   "notes.jpg": BANNER_2172,
   "tasks.jpg": BANNER_2172,
   "voice-scripts.jpg": BANNER_2172,
@@ -81,12 +82,17 @@ const HERO_FILES: Record<
 };
 
 /** Match Home dashboard: shorter copy column + lighter image fade. */
-const DASHBOARD_HERO_COMPACT: Pick<DashboardPageHeroConfig, "heroDensity" | "imageBlend"> = {
+const DASHBOARD_HERO_COMPACT: Pick<
+  DashboardPageHeroConfig,
+  "heroDensity" | "imageBlend"
+> = {
   heroDensity: "compact",
   imageBlend: "subtle",
 };
 
-function hero(file: string): Pick<
+function hero(
+  file: string,
+): Pick<
   DashboardPageHeroConfig,
   "image" | "imageWidth" | "imageHeight" | "imageLayout"
 > {
@@ -109,7 +115,8 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     heroDensity: "default",
     heroGridClass: "lg:grid-cols-[1.08fr_0.92fr]",
     imageBlend: "subtle",
-    imageAlt: "Sunlit luxury living room with cream furnishings and architectural details",
+    imageAlt:
+      "Sunlit luxury living room with cream furnishings and architectural details",
     imageObjectPosition: "58% 40%",
     actions: [
       {
@@ -118,7 +125,11 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
         icon: "rocket_launch",
         primary: true,
       },
-      { label: "View agenda", href: "/dashboard/calendar", icon: "calendar_today" },
+      {
+        label: "View agenda",
+        href: "/dashboard/calendar",
+        icon: "calendar_today",
+      },
     ],
   },
   "/dashboard/contacts": {
@@ -149,6 +160,12 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     title: "Clarity behind every number.",
     subtitle:
       "Explore financing scenarios and guide clients with greater confidence.",
+    imageCallout: {
+      icon: "real_estate_agent",
+      title: "Empower your clients.",
+      subtitle:
+        "Clear financing estimates, with your branding and preferred partners.",
+    },
     imageAlt: "Sunlit cream living room with warm limestone and garden windows",
     imageObjectPosition: "70% center",
   },
@@ -167,8 +184,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     ...DASHBOARD_HERO_COMPACT,
     eyebrow: "Tasks",
     title: "The details drive the deal.",
-    subtitle:
-      "Stay focused on what matters and keep every opportunity moving.",
+    subtitle: "Stay focused on what matters and keep every opportunity moving.",
     imageAlt: "Desk with laptop and city view at golden hour",
     imageObjectPosition: "32% center",
     actions: [
@@ -191,8 +207,7 @@ export const DASHBOARD_PAGE_HEROES: Record<string, DashboardPageHeroConfig> = {
     image: VOICE_SCRIPTS_HERO_IMAGE,
     eyebrow: "Voice scripts",
     title: "Find the words that move people.",
-    subtitle:
-      "Confident, natural conversations start with the right approach.",
+    subtitle: "Confident, natural conversations start with the right approach.",
     imageAlt: "Professional microphone on a sunlit desk by the coast",
     imageObjectPosition: "52% center",
   },
@@ -272,7 +287,9 @@ export function isPropertyFinderDashboardPath(pathname: string): boolean {
   return p === "/dashboard/properties";
 }
 
-export function getDashboardHeroForPath(pathname: string): DashboardPageHeroConfig | null {
+export function getDashboardHeroForPath(
+  pathname: string,
+): DashboardPageHeroConfig | null {
   if (!pathname.startsWith("/dashboard")) return null;
   if (pathname === "/dashboard/calendar") return null;
   if (isPropertyFinderDashboardPath(pathname)) return null;

@@ -10,16 +10,47 @@ module.exports = () => {
     property_address: "123 Example Lane",
     budget: 300000,
   };
-  const state = { partners: [], reports: [], fail: false };
+  const state = {
+    partners: [],
+    reports: [],
+    fail: false,
+    malformedRates: false,
+  };
   return {
     state,
     reset() {
       state.partners = [];
       state.reports = [];
       state.fail = false;
+      state.malformedRates = false;
       base.reset();
     },
     async handle(req, res, url) {
+      if (url.pathname === "/api/mortgage/market-rates") {
+        const { fixture } = require("../campaign-audit/harness.cjs");
+        const rates = fixture()
+          .load("lib/mortgage/market-rates")
+          .buildMarketRatesFromObservations(
+            [
+              { date: "2026-09-03", rate30: 6.6, rate15: 5.8 },
+              { date: "2026-09-10", rate30: 6.5, rate15: 5.7 },
+              { date: "2026-09-17", rate30: 6.55, rate15: 5.75 },
+              { date: "2026-09-24", rate30: 6.45, rate15: 5.65 },
+              { date: "2026-10-01", rate30: 6.5, rate15: 5.7 },
+              { date: "2026-10-08", rate30: 6.4, rate15: 5.6 },
+              { date: "2026-10-15", rate30: 6.45, rate15: 5.65 },
+              { date: "2026-10-22", rate30: 6.4, rate15: 5.6 },
+            ],
+            "2026-10-23T12:00:00Z",
+            Number(url.searchParams.get("historyMonths")) || 6,
+          );
+        rates.disclaimer =
+          "Synthetic QA observations only. No live rate data was used in these screenshots.";
+        res.setHeader("content-type", "application/json");
+        res.end(JSON.stringify(state.malformedRates ? {} : rates));
+        return true;
+      }
+
       if (
         /^\/api\/contacts\/[^/]+\/tasks$/.test(url.pathname) &&
         req.method === "GET"

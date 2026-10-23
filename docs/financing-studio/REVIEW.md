@@ -62,3 +62,7 @@ See `browser-results.json`, `mortgage-{1440,1920,768,390}.png`, `seller-{1440,19
 - Exported PDF was additionally parsed with `pdftotext`; its synthetic seller net of $142,500.00 matches the calculator preview.
 
 These checks use local/synthetic services. Authenticated staging and production subscriber records were not inspected. No database migration was run outside the isolated test engine.
+
+## Subsequent reference layout correction
+
+See [the reference comparison guide](reference-layout/REVIEW.md): the default calculator now uses the mockup's property/loan/lender composition with combined payment costs and donut, compact rate history and photo callout. All six Studio sections are retained. Updated screenshots include the reference's 1536px width, in addition to 1440/1920/768/390. Property Finder's related photo-backed navigation/client refinements are documented in `docs/property-finder-premium/reference-layout/REVIEW.md`.

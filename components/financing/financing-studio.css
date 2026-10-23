@@ -449,3 +449,575 @@
   margin: 10px 0;
   font-size: 42px;
 }
+/* Reference composition: property and loan workspace left; payment and rates right. */
+.fc-mortgage-workspace {
+  padding-top: 0 !important;
+}
+.fc-mortgage-workspace > .grid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px !important;
+}
+.fc-mortgage-workspace > .grid > div {
+  grid-column: auto !important;
+}
+.fc-mortgage-workspace .fc-mortgage-left {
+  display: block !important;
+}
+.fc-mortgage-workspace .fc-workflow {
+  padding: 18px !important;
+}
+.fc-workflow .fc-section-heading h2 {
+  font-size: 23px;
+}
+.fc-workflow .fc-section-heading > .fc-muted {
+  font-size: 10px !important;
+}
+.fc-mortgage-workspace .fc-context-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.fc-mortgage-workspace .fc-context-grid > :last-child {
+  grid-column: 1/-1;
+}
+.fc-property-summary {
+  display: grid;
+  grid-template-columns: 65px minmax(0, 1.3fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 13px;
+  padding: 16px 0 9px;
+  border-top: 1px solid #eee8e0;
+  margin-top: 12px;
+}
+.fc-property-symbol {
+  height: 70px;
+  display: grid;
+  place-items: center;
+  background: #f3eee6;
+  border-radius: 12px;
+  color: #a77b58;
+}
+.fc-property-symbol .material-symbols-outlined {
+  font-size: 34px;
+}
+.fc-property-summary h3 {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+.fc-property-summary p {
+  font-size: 11px;
+  line-height: 1.45;
+}
+.fc-property-cost-note {
+  border-left: 1px solid #eee8e0;
+  padding-left: 13px;
+}
+.fc-property-cost-note > b {
+  font-size: 12px;
+  font-weight: 500;
+  color: #996b46;
+}
+.fc-source-badge {
+  display: inline-block;
+  border-radius: 12px;
+  background: #f3eee6;
+  color: #77563d;
+  font-size: 10px;
+  padding: 3px 8px;
+}
+.fc-loan-partner-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  margin-top: 14px;
+}
+.fc-loan-partner-grid .luxury-card {
+  height: 100%;
+  padding: 18px !important;
+}
+.fc-loan-partner-grid .mb-5 {
+  margin-bottom: 12px;
+}
+.fc-loan-partner-grid label > span {
+  font-size: 11px;
+  margin-bottom: 5px;
+}
+.fc-loan-partner-grid input {
+  height: 36px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  font-size: 12px;
+}
+.fc-loan-partner-grid .grid {
+  gap: 11px;
+}
+.fc-loan-partner-grid .mt-6 {
+  margin-top: 15px;
+}
+.fc-loan-partner-grid .pt-5 {
+  padding-top: 14px;
+}
+.fc-loan-partner-grid .mt-4 {
+  margin-top: 10px;
+}
+.fc-lender-panel {
+  padding: 17px !important;
+}
+.fc-lender-panel h2 {
+  font-size: 19px !important;
+}
+.fc-lender-panel h2 small {
+  font-family: var(--font-inter), Arial, sans-serif;
+  font-size: 10px;
+  color: #716960;
+}
+.fc-lender-panel p {
+  font-size: 11px;
+}
+.fc-lender-panel button {
+  padding: 7px 10px;
+  font-size: 11px;
+  margin-top: 12px;
+}
+.fc-lender-details {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 15px;
+}
+.fc-lender-details b {
+  font-size: 12px;
+}
+.fc-lender-footnote {
+  border-top: 1px solid #eee8e0;
+  padding-top: 14px;
+  margin-top: 20px;
+  color: #a77b58;
+}
+.fc-lender-footnote p {
+  color: #716960;
+}
+.fc-payment-summary {
+  padding: 18px !important;
+}
+.fc-payment-summary h2 {
+  font-size: 20px !important;
+}
+.fc-payment-summary .fc-section-heading {
+  align-items: center;
+  margin-bottom: 15px;
+}
+.fc-payment-summary .fc-primary {
+  padding: 8px 11px;
+  font-size: 10px;
+  min-height: 32px;
+}
+.fc-payment-summary .fc-primary .material-symbols-outlined {
+  font-size: 15px;
+}
+.fc-payment-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 18px;
+}
+.fc-payment-amount {
+  color: #a06e46;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 35px;
+  line-height: 1.2;
+  white-space: normal;
+}
+.fc-payment-amount > span {
+  font-size: 15px;
+  color: #292520;
+  white-space: nowrap;
+}
+.fc-payment-grid dl {
+  margin-top: 17px;
+  font-size: 11px;
+}
+.fc-payment-grid dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid #f3eee6;
+  padding: 8px 0;
+}
+.fc-payment-grid dt {
+  color: #716960;
+}
+.fc-payment-grid dd {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.fc-payment-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 10px;
+  border-radius: 9px;
+  background: #f8f5ef;
+  color: #77563d;
+  font-size: 11px;
+  margin-top: 13px;
+}
+.fc-payment-total b {
+  font-size: 14px;
+  white-space: nowrap;
+}
+.fc-donut-area {
+  align-self: center;
+}
+.fc-payment-donut {
+  width: 138px;
+  height: 138px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  position: relative;
+}
+.fc-payment-donut > div {
+  position: absolute;
+  inset: 14px;
+  background: #fffefa;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.fc-payment-donut b {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
+}
+.fc-payment-donut span {
+  font-size: 11px;
+  color: #716960;
+}
+.fc-donut-area ul {
+  display: grid;
+  gap: 9px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.fc-donut-area li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  color: #716960;
+}
+.fc-donut-area li i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.fc-donut-area li b {
+  margin-left: auto;
+  color: #292520;
+  font-size: 10px;
+  font-weight: 500;
+}
+.fc-market-compact {
+  display: flex;
+  flex-direction: column;
+  padding: 18px !important;
+}
+.fc-market-compact > div:first-child {
+  order: 0;
+}
+.fc-market-compact > p {
+  font-size: 10px;
+  margin-top: 9px;
+  padding: 5px 0;
+  background: none;
+  border: 0;
+}
+.fc-market-compact .fc-trend-block {
+  order: 1;
+  border: 0;
+  margin-top: 12px;
+  padding-top: 0;
+}
+.fc-market-compact .fc-trend-block h3 {
+  font-size: 15px;
+}
+.fc-market-compact .fc-benchmarks-disclosure {
+  order: 4;
+  border-top: 1px solid #eee8e0;
+  padding-top: 10px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: #77563d;
+}
+.fc-market-compact .fc-outlook-block {
+  order: 3;
+  margin-top: 14px;
+}
+.fc-market-compact > div:nth-of-type(2) {
+  order: 2;
+}
+.fc-market-compact .fc-trend-block svg {
+  height: 105px;
+}
+.fc-market-compact .fc-outlook-block p {
+  font-size: 10px;
+}
+.fc-market-compact .fc-outlook-block > div {
+  padding: 12px;
+}
+.fc-benchmarks-disclosure summary,
+.fc-extended-mortgage summary,
+.fc-scenarios-disclosure summary {
+  cursor: pointer;
+  color: #77563d;
+  font-size: 12px;
+}
+.fc-extended-mortgage,
+.fc-scenarios-disclosure {
+  border: 1px solid #e9e2d9;
+  border-radius: 14px;
+  background: #fffefa;
+  padding: 13px 17px;
+  margin-top: 14px;
+}
+.fc-extended-mortgage > .luxury-card,
+.fc-scenarios-disclosure > .luxury-card {
+  box-shadow: none;
+  margin-top: 10px;
+  padding: 10px !important;
+}
+.fc-mortgage-left > .luxury-card:last-child {
+  margin-top: 14px;
+}
+.fc-mortgage-left > .luxury-card:last-child ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.fc-mortgage-left > .luxury-card:last-child ul li {
+  margin: 0 !important;
+}
+.fc-mortgage-left > .luxury-card:last-child ul a {
+  padding: 10px;
+}
+.fc-mortgage-left > .luxury-card:last-child ul a > span > span:last-child {
+  font-size: 10px;
+}
+.fc-tabs {
+  gap: 4px;
+  padding: 6px;
+}
+.fc-tabs button {
+  padding: 8px 13px;
+  min-height: 33px;
+}
+.fc-subtabs {
+  gap: 5px;
+}
+.fc-subtabs button {
+  padding: 6px 12px;
+  min-height: 30px;
+  font-size: 11px;
+}
+#financing-estimate-review {
+  scroll-margin-top: 95px;
+}
+.fc-lender-panel button .material-symbols-outlined {
+  font-size: 16px;
+}
+@media (min-width: 1600px) {
+  .fc-payment-donut {
+    width: 150px;
+    height: 150px;
+  }
+  .fc-payment-amount {
+    font-size: 40px;
+  }
+  .fc-donut-area li {
+    font-size: 11px;
+  }
+  .fc-payment-grid dl {
+    font-size: 12px;
+  }
+}
+@media (max-width: 1199px) {
+  .fc-loan-partner-grid {
+    grid-template-columns: 1fr;
+  }
+  .fc-lender-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 15px;
+  }
+  .fc-lender-panel h2,
+  .fc-lender-panel > p,
+  .fc-lender-footnote {
+    grid-column: 1/-1;
+  }
+  .fc-lender-panel button {
+    align-self: end;
+    margin-top: 0;
+  }
+  .fc-lender-footnote {
+    margin-top: 5px;
+    padding-top: 8px;
+  }
+  .fc-mortgage-workspace > .grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+  .fc-payment-grid {
+    grid-template-columns: 1fr;
+  }
+  .fc-donut-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 14px;
+  }
+  .fc-payment-summary .fc-section-heading {
+    flex-wrap: wrap;
+  }
+  .fc-property-summary {
+    grid-template-columns: 45px 1fr;
+  }
+  .fc-property-cost-note {
+    grid-column: 1/-1;
+    border-left: 0;
+    padding-left: 0;
+  }
+}
+@media (max-width: 800px) {
+  .fc-mortgage-workspace > .grid {
+    grid-template-columns: 1fr;
+  }
+  .fc-loan-partner-grid {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  }
+  .fc-lender-panel {
+    display: block;
+  }
+  .fc-payment-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+  .fc-donut-area {
+    display: block;
+  }
+  .fc-workflow .fc-section-heading > .fc-muted {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .fc-loan-partner-grid {
+    grid-template-columns: 1fr;
+  }
+  .fc-mortgage-workspace .fc-context-grid {
+    grid-template-columns: 1fr;
+  }
+  .fc-payment-grid {
+    grid-template-columns: 1fr;
+  }
+  .fc-donut-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .fc-payment-donut {
+    width: 125px;
+    height: 125px;
+  }
+  .fc-payment-amount {
+    font-size: 33px;
+  }
+  .fc-mortgage-left > .luxury-card:last-child ul {
+    grid-template-columns: 1fr;
+  }
+  .fc-workflow .fc-section-heading {
+    margin-bottom: 10px;
+  }
+  .fc-property-summary {
+    padding-top: 12px;
+  }
+  .fc-mortgage-workspace .fc-workflow {
+    padding: 15px !important;
+  }
+  .fc-property-cost-note {
+    display: none;
+  }
+  .fc-workflow .fc-context-grid .fc-field > span {
+    font-size: 11px;
+  }
+  .fc-workflow .fc-context-grid input,
+  .fc-workflow .fc-context-grid select {
+    font-size: 12px;
+  }
+  .fc-payment-summary .fc-section-heading {
+    flex-direction: row;
+    gap: 8px;
+  }
+  .fc-payment-summary h2 {
+    font-size: 18px !important;
+  }
+}
+@media (min-width: 1200px) {
+  .fc-mortgage-workspace .fc-context-grid {
+    grid-template-columns: 1fr 1fr 1.15fr;
+  }
+  .fc-mortgage-workspace .fc-context-grid > :last-child {
+    grid-column: auto;
+  }
+  .fc-mortgage-workspace .fc-workflow .fc-property-summary {
+    padding-block: 12px 6px;
+  }
+  .fc-mortgage-workspace .fc-workflow .fc-property-summary p {
+    margin-block: 4px;
+  }
+  .fc-payment-summary .fc-payment-grid dl > div {
+    padding-block: 6px;
+  }
+  .fc-payment-summary .fc-payment-grid dl {
+    margin-top: 12px;
+  }
+  .fc-payment-summary .fc-section-heading {
+    margin-bottom: 12px;
+  }
+  .fc-payment-summary .fc-payment-grid .fc-muted {
+    font-size: 10px !important;
+  }
+}
+html[data-dashboard-route="mortgage"] .dashboard-hero-copy h1 {
+  font-size: clamp(32px, 2.8vw, 43px);
+  line-height: 1.12;
+}
+@media (max-width: 600px) {
+  html[data-dashboard-route="mortgage"] .dashboard-hero-copy h1 {
+    font-size: 32px;
+  }
+}
+@media (min-width: 1300px) {
+  .fc-purchase-active > .fc-tabs {
+    max-width: calc((100% - 14px) * 0.59184);
+  }
+  .fc-purchase-active > .fc-tabs button {
+    font-size: 11px;
+    padding: 8px 9px;
+  }
+  .fc-purchase-active .fc-payment-summary {
+    margin-top: -61px;
+  }
+  .fc-workflow .fc-section-heading .fc-subtabs button {
+    font-size: 10px;
+    padding: 5px 9px;
+    min-height: 27px;
+  }
+}
+@media (max-width: 600px) {
+  .fc-workflow .fc-section-heading .fc-subtabs {
+    margin-top: 4px;
+  }
+}

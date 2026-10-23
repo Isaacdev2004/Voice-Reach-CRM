@@ -87,8 +87,9 @@ const headerConfig: Record<
     fullWidth: true,
   },
   "/dashboard/mortgage": {
-    searchPlaceholder: "Mortgage calculator...",
-    showQuickCreate: false,
+    searchPlaceholder:
+      "Search contacts, properties, campaigns, or ask MyARI...",
+    showQuickCreate: true,
     fullWidth: true,
   },
   "/dashboard/properties": {
@@ -108,6 +109,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   };
   const normalizedPath = normalizeDashboardPath(pathname ?? "");
   const pageHero = getDashboardHeroForPath(normalizedPath);
+  const isMortgageRoute = normalizedPath === "/dashboard/mortgage";
   const isCalendarRoute = normalizedPath === "/dashboard/calendar";
   const isCampaignLibraryRoute = normalizedPath === "/dashboard/campaigns";
   const isPropertyFinderRoute = isPropertyFinderDashboardPath(normalizedPath);
@@ -122,6 +124,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
       root.dataset.dashboardRoute = "campaigns";
     } else if (isCalendarRoute) {
       root.dataset.dashboardRoute = "calendar";
+    } else if (isMortgageRoute) {
+      root.dataset.dashboardRoute = "mortgage";
     } else if (isPropertyFinderRoute) {
       root.dataset.dashboardRoute = "properties";
     } else {
@@ -130,7 +134,12 @@ export function DashboardShell({ children }: DashboardShellProps) {
     return () => {
       delete root.dataset.dashboardRoute;
     };
-  }, [isPropertyFinderRoute, isCampaignLibraryRoute, isCalendarRoute]);
+  }, [
+    isPropertyFinderRoute,
+    isCampaignLibraryRoute,
+    isCalendarRoute,
+    isMortgageRoute,
+  ]);
 
   useEffect(() => {
     document.body.style.overflow = mobileNavOpen ? "hidden" : "";
@@ -152,19 +161,34 @@ export function DashboardShell({ children }: DashboardShellProps) {
           showQuickCreate={config.showQuickCreate ?? true}
           onMenuClick={() => setMobileNavOpen(true)}
         >
-          <div className={normalizedPath === "/dashboard" ? "dashboard-luxury min-h-screen bg-cream text-on-surface" : normalizedPath === "/dashboard/contacts" ? "contacts-luxury min-h-screen bg-cream text-on-surface" : "min-h-screen bg-cream text-on-surface"}>
+          <div
+            className={
+              normalizedPath === "/dashboard"
+                ? "dashboard-luxury min-h-screen bg-cream text-on-surface"
+                : normalizedPath === "/dashboard/contacts"
+                  ? "contacts-luxury min-h-screen bg-cream text-on-surface"
+                  : "min-h-screen bg-cream text-on-surface"
+            }
+          >
             <DashboardSidebar
               mobileOpen={mobileNavOpen}
               onMobileClose={() => setMobileNavOpen(false)}
             />
             <main className={`${mainClass} dashboard-main`}>
               <SetupBanner />
-              {isPropertyFinderRoute || isCampaignLibraryRoute || normalizedPath === "/dashboard/notes" ? (
+              {isPropertyFinderRoute ||
+              isCampaignLibraryRoute ||
+              normalizedPath === "/dashboard/notes" ? (
                 <div className={DASHBOARD_MAIN_COLUMN}>{children}</div>
               ) : (
                 <div className={DASHBOARD_MAIN_COLUMN}>
-                  <div id="dashboard-hero-mount" className={DASHBOARD_HERO_SLOT}>
-                    {normalizedPath === "/dashboard/contacts" ? null : normalizedPath === "/dashboard" ? (
+                  <div
+                    id="dashboard-hero-mount"
+                    className={DASHBOARD_HERO_SLOT}
+                  >
+                    {normalizedPath ===
+                    "/dashboard/contacts" ? null : normalizedPath ===
+                      "/dashboard" ? (
                       <DashboardLuxuryHero />
                     ) : isCalendarRoute ? (
                       <CalendarPageHero />
@@ -180,11 +204,15 @@ export function DashboardShell({ children }: DashboardShellProps) {
               )}
             </main>
           </div>
-          {normalizedPath !== "/dashboard" && normalizedPath !== "/dashboard/contacts" && !isPropertyFinderRoute && !isCampaignLibraryRoute ? <AiFloatingButton /> : null}
+          {normalizedPath !== "/dashboard" &&
+          normalizedPath !== "/dashboard/contacts" &&
+          !isPropertyFinderRoute &&
+          !isCampaignLibraryRoute ? (
+            <AiFloatingButton />
+          ) : null}
           <AiAssistantSidebar />
         </DashboardHeaderProvider>
       </AiAssistantProvider>
     </UpgradePlanProvider>
   );
 }
-

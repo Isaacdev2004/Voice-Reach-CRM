@@ -16,6 +16,22 @@
     "noOverflow": true
   },
   {
+    "width": 1536,
+    "passed": true,
+    "clientSelection": true,
+    "savedProperty": true,
+    "mortgage": true,
+    "seller": true,
+    "reverse": true,
+    "buyer": true,
+    "refinance": true,
+    "offers": true,
+    "partners": true,
+    "pdf": true,
+    "persistence": true,
+    "noOverflow": true
+  },
+  {
     "width": 1920,
     "passed": true,
     "clientSelection": true,

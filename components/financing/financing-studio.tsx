@@ -614,8 +614,228 @@ function Workspace({ owner }: { owner?: string }) {
     );
     setReviewed(false);
   }
+  const propertyWorkspace = (
+    <section className="fc-card fc-workflow">
+      <div className="fc-section-heading">
+        <div>
+          <span className="fc-eyebrow">CLIENT TO CLOSING</span>
+          <h2>Property details</h2>
+        </div>
+        {tab === "Mortgage Calculator" ? (
+          <div className="fc-subtabs">
+            <button
+              type="button"
+              aria-pressed={tool !== "refinance"}
+              onClick={() => {
+                setTool("main");
+                setReviewed(false);
+              }}
+            >
+              Purchase financing
+            </button>
+            <button
+              type="button"
+              aria-pressed={tool === "refinance"}
+              onClick={() => {
+                setTool("refinance");
+                setReviewed(false);
+              }}
+            >
+              Refinance
+            </button>
+          </div>
+        ) : (
+          <span className="fc-muted">Select a client · Choose a property</span>
+        )}
+      </div>
+      {loading ? (
+        <p role="status">Loading your contacts…</p>
+      ) : dataError ? (
+        <p role="alert">
+          Contacts could not be loaded.{" "}
+          <button onClick={() => setRefresh((x) => x + 1)}>Retry</button>
+        </p>
+      ) : (
+        <div className="fc-context-grid">
+          <TextField
+            label="Find client by name, email or phone"
+            value={search}
+            onChange={setSearch}
+          />
+          <label className="fc-field">
+            <span>Selected client</span>
+            <select
+              aria-label="Selected client"
+              value={context.contactId ?? ""}
+              onChange={(e) => pickClient(e.target.value)}
+            >
+              <option value="">No client selected</option>
+              {visibleContacts.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.first_name} {c.last_name} {c.email ? `· ${c.email}` : ""}
+                </option>
+              ))}
+              {client && !visibleContacts.includes(client) && (
+                <option value={client.id}>
+                  {client.first_name} {client.last_name}
+                </option>
+              )}
+            </select>
+          </label>
+          <label className="fc-field">
+            <span>Saved property (from contact records)</span>
+            <select
+              aria-label="Saved property (from contact records)"
+              value={context.propertyContactId ?? ""}
+              onChange={(e) => {
+                const c = contacts.find((c) => c.id === e.target.value);
+                patch({
+                  propertyContactId: c?.id ?? null,
+                  address: c?.property_address ?? context.address,
+                });
+              }}
+            >
+              <option value="">Manual property / not selected</option>
+              {contacts
+                .filter((c) => c.property_address)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.property_address} · {c.first_name}
+                  </option>
+                ))}
+            </select>
+          </label>
+        </div>
+      )}
+      {client && (
+        <p className="fc-muted">
+          {client.first_name} {client.last_name} ·{" "}
+          {client.email || "No email saved"} ·{" "}
+          {client.phone || "No phone saved"}
+          {client.budget != null
+            ? ` · Saved budget preference ${usd(client.budget)}`
+            : ""}
+          {client.preferred_area
+            ? ` · Preferred area: ${client.preferred_area}`
+            : ""}
+        </p>
+      )}
+      <div className="fc-property-summary">
+        <span className="fc-property-symbol">
+          <Icon name="home_work" />
+        </span>
+        <div>
+          <h3>{context.address || "Choose a property to get started."}</h3>
+          <p>
+            {context.propertyContactId
+              ? "Address from your saved contact record"
+              : "Enter a property address in the assumptions below."}
+          </p>
+          <span className="fc-source-badge">
+            {context.propertyContactId ? "Saved address" : "Manual entry"}
+          </span>
+        </div>
+        <div className="fc-property-cost-note">
+          <b>Monthly costs</b>
+          <p>Enter taxes, insurance and HOA in Loan details.</p>
+          <span className="fc-muted">
+            No automatic valuation or fee estimate.
+          </span>
+        </div>
+      </div>
+      <details className="fc-context-details">
+        <summary>Property, partners & report assumptions</summary>
+        <div className="fc-input-grid">
+          <TextField
+            label="Property address (editable)"
+            value={context.address}
+            onChange={(address) => patch({ address, propertyContactId: null })}
+          />
+          <TextField
+            label="State"
+            value={context.state}
+            onChange={(state) => patch({ state })}
+          />
+          <TextField
+            label="County"
+            value={context.county}
+            onChange={(county) => patch({ county })}
+          />
+          <TextField
+            label="Transaction type"
+            value={context.transaction}
+            onChange={(transaction) => patch({ transaction })}
+          />
+          <TextField
+            label="Estimated closing date"
+            type="date"
+            value={context.closingDate}
+            onChange={(closingDate) => patch({ closingDate })}
+          />
+          {(
+            [
+              ["lender", "lenderId", "Preferred lender"],
+              ["title", "titleId", "Preferred title company"],
+            ] as const
+          ).map(([kind, key, label]) => (
+            <label className="fc-field" key={kind}>
+              <span>{label} · optional</span>
+              <select
+                value={context[key] ?? ""}
+                onChange={(e) => patch({ [key]: e.target.value || null })}
+              >
+                <option value="">None selected</option>
+                {partners
+                  .filter((p) => p.kind === kind)
+                  .map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                      {p.preferred ? " · Default" : ""}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          ))}
+          <TextField
+            label="Report title (optional)"
+            value={context.reportTitle}
+            onChange={(reportTitle) => patch({ reportTitle })}
+          />
+          <TextField
+            label="Preparation date"
+            type="date"
+            value={context.preparedDate}
+            onChange={(preparedDate) => patch({ preparedDate })}
+          />
+        </div>
+        <label className="fc-field">
+          <span>Calculation assumptions / exclusions</span>
+          <textarea
+            value={context.assumptions}
+            onChange={(e) => patch({ assumptions: e.target.value })}
+          />
+        </label>
+        <label className="fc-field">
+          <span>
+            Additional reviewed disclosures, licensing / NMLS information
+          </span>
+          <textarea
+            value={context.disclosures}
+            onChange={(e) => patch({ disclosures: e.target.value })}
+          />
+        </label>
+        <p className="fc-muted">
+          No property-price, tax, insurance or official fee integration is
+          connected. Enter and verify those amounts manually. Partner selection
+          is optional.
+        </p>
+      </details>
+    </section>
+  );
   return (
-    <div className="financing-studio">
+    <div
+      className={`financing-studio ${tab === "Mortgage Calculator" && tool === "main" && !storageError && !notice ? "fc-purchase-active" : ""}`}
+    >
       <nav className="fc-tabs" aria-label="Financing sections">
         {tabs.map((t) => (
           <button
@@ -628,178 +848,8 @@ function Workspace({ owner }: { owner?: string }) {
           </button>
         ))}
       </nav>
-      <section className="fc-card fc-workflow">
-        <div className="fc-section-heading">
-          <div>
-            <span className="fc-eyebrow">CLIENT TO CLOSING</span>
-            <h2>One clear path forward.</h2>
-          </div>
-          <span className="fc-muted">
-            Select · Calculate · Review · Follow up
-          </span>
-        </div>
-        {loading ? (
-          <p role="status">Loading your contacts…</p>
-        ) : dataError ? (
-          <p role="alert">
-            Contacts could not be loaded.{" "}
-            <button onClick={() => setRefresh((x) => x + 1)}>Retry</button>
-          </p>
-        ) : (
-          <div className="fc-context-grid">
-            <TextField
-              label="Find client by name, email or phone"
-              value={search}
-              onChange={setSearch}
-            />
-            <label className="fc-field">
-              <span>Selected client</span>
-              <select
-                aria-label="Selected client"
-                value={context.contactId ?? ""}
-                onChange={(e) => pickClient(e.target.value)}
-              >
-                <option value="">No client selected</option>
-                {visibleContacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.first_name} {c.last_name} {c.email ? `· ${c.email}` : ""}
-                  </option>
-                ))}
-                {client && !visibleContacts.includes(client) && (
-                  <option value={client.id}>
-                    {client.first_name} {client.last_name}
-                  </option>
-                )}
-              </select>
-            </label>
-            <label className="fc-field">
-              <span>Saved property (from contact records)</span>
-              <select
-                aria-label="Saved property (from contact records)"
-                value={context.propertyContactId ?? ""}
-                onChange={(e) => {
-                  const c = contacts.find((c) => c.id === e.target.value);
-                  patch({
-                    propertyContactId: c?.id ?? null,
-                    address: c?.property_address ?? context.address,
-                  });
-                }}
-              >
-                <option value="">Manual property / not selected</option>
-                {contacts
-                  .filter((c) => c.property_address)
-                  .map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.property_address} · {c.first_name}
-                    </option>
-                  ))}
-              </select>
-            </label>
-          </div>
-        )}
-        {client && (
-          <p className="fc-muted">
-            {client.first_name} {client.last_name} ·{" "}
-            {client.email || "No email saved"} ·{" "}
-            {client.phone || "No phone saved"}
-            {client.budget != null
-              ? ` · Saved budget preference ${usd(client.budget)}`
-              : ""}
-            {client.preferred_area
-              ? ` · Preferred area: ${client.preferred_area}`
-              : ""}
-          </p>
-        )}
-        <details className="fc-context-details">
-          <summary>Property, partners & report assumptions</summary>
-          <div className="fc-input-grid">
-            <TextField
-              label="Property address (editable)"
-              value={context.address}
-              onChange={(address) =>
-                patch({ address, propertyContactId: null })
-              }
-            />
-            <TextField
-              label="State"
-              value={context.state}
-              onChange={(state) => patch({ state })}
-            />
-            <TextField
-              label="County"
-              value={context.county}
-              onChange={(county) => patch({ county })}
-            />
-            <TextField
-              label="Transaction type"
-              value={context.transaction}
-              onChange={(transaction) => patch({ transaction })}
-            />
-            <TextField
-              label="Estimated closing date"
-              type="date"
-              value={context.closingDate}
-              onChange={(closingDate) => patch({ closingDate })}
-            />
-            {(
-              [
-                ["lender", "lenderId", "Preferred lender"],
-                ["title", "titleId", "Preferred title company"],
-              ] as const
-            ).map(([kind, key, label]) => (
-              <label className="fc-field" key={kind}>
-                <span>{label} · optional</span>
-                <select
-                  value={context[key] ?? ""}
-                  onChange={(e) => patch({ [key]: e.target.value || null })}
-                >
-                  <option value="">None selected</option>
-                  {partners
-                    .filter((p) => p.kind === kind)
-                    .map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                        {p.preferred ? " · Default" : ""}
-                      </option>
-                    ))}
-                </select>
-              </label>
-            ))}
-            <TextField
-              label="Report title (optional)"
-              value={context.reportTitle}
-              onChange={(reportTitle) => patch({ reportTitle })}
-            />
-            <TextField
-              label="Preparation date"
-              type="date"
-              value={context.preparedDate}
-              onChange={(preparedDate) => patch({ preparedDate })}
-            />
-          </div>
-          <label className="fc-field">
-            <span>Calculation assumptions / exclusions</span>
-            <textarea
-              value={context.assumptions}
-              onChange={(e) => patch({ assumptions: e.target.value })}
-            />
-          </label>
-          <label className="fc-field">
-            <span>
-              Additional reviewed disclosures, licensing / NMLS information
-            </span>
-            <textarea
-              value={context.disclosures}
-              onChange={(e) => patch({ disclosures: e.target.value })}
-            />
-          </label>
-          <p className="fc-muted">
-            No property-price, tax, insurance or official fee integration is
-            connected. Enter and verify those amounts manually. Partner
-            selection is optional.
-          </p>
-        </details>
-      </section>
+      {!(tab === "Mortgage Calculator" && tool === "main") && propertyWorkspace}
+
       {storageError && (
         <div className="fc-alert" role="status">
           Saved reports and partners are unavailable. Local calculations and
@@ -815,28 +865,84 @@ function Workspace({ owner }: { owner?: string }) {
       )}
       {tab === "Mortgage Calculator" && (
         <>
-          <div className="fc-subtabs">
-            <button
-              aria-pressed={tool !== "refinance"}
-              onClick={() => {
-                setTool("main");
-                setReviewed(false);
-              }}
-            >
-              Purchase financing
-            </button>
-            <button
-              aria-pressed={tool === "refinance"}
-              onClick={() => {
-                setTool("refinance");
-                setReviewed(false);
-              }}
-            >
-              Refinance
-            </button>
-          </div>
           <div hidden={tool === "refinance"}>
             <MortgageCalculatorPage
+              propertyDetails={propertyWorkspace}
+              partnerPanel={
+                <section className="fc-card fc-lender-panel">
+                  <h2>
+                    Preferred lender <small>(optional)</small>
+                  </h2>
+                  <p>
+                    Your own lending partners, ready for client presentations.
+                  </p>
+                  <label className="fc-field">
+                    <span>Select preferred lender</span>
+                    <select
+                      aria-label="Calculator preferred lender"
+                      value={context.lenderId ?? ""}
+                      onChange={(e) =>
+                        patch({ lenderId: e.target.value || null })
+                      }
+                    >
+                      <option value="">No lender selected</option>
+                      {partners
+                        .filter((p) => p.kind === "lender")
+                        .map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name}
+                            {p.preferred ? " · Default" : ""}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                  {selectedPartners
+                    .filter((p) => p.kind === "lender")
+                    .map((p) => (
+                      <div className="fc-lender-details" key={p.id}>
+                        <span className="fc-icon">
+                          <Icon name="account_balance" />
+                        </span>
+                        <div>
+                          <b>{p.name}</b>
+                          {p.contact && <p>{p.contact}</p>}
+                          {p.phone && <p>{p.phone}</p>}
+                          {p.license && <p>{p.license}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  {!partners.some((p) => p.kind === "lender") && (
+                    <p className="fc-muted">
+                      {storageError
+                        ? "Lender records are unavailable. Retry from Partners."
+                        : "No lenders saved. Add your authorized lending partners."}
+                    </p>
+                  )}
+                  <button onClick={() => changeTab("Partners")}>
+                    <Icon name="manage_accounts" />
+                    Manage lenders
+                  </button>
+                  <div className="fc-lender-footnote">
+                    <Icon name="verified_user" />
+                    <p>
+                      Your choice, always. Partners are optional and rates
+                      require lender confirmation.
+                    </p>
+                  </div>
+                </section>
+              }
+              onReviewReport={() => {
+                document
+                  .getElementById("financing-estimate-review")
+                  ?.scrollIntoView({
+                    behavior: window.matchMedia(
+                      "(prefers-reduced-motion: reduce)",
+                    ).matches
+                      ? "auto"
+                      : "smooth",
+                    block: "start",
+                  });
+              }}
               initialEstimate={mortgageSeed}
               onEstimateChange={mortgageChanged}
             />
@@ -1286,7 +1392,11 @@ function Workspace({ owner }: { owner?: string }) {
         </section>
       )}
       {raw && (
-        <section className="fc-card fc-estimate">
+        <section
+          id="financing-estimate-review"
+          className="fc-card fc-estimate"
+          tabIndex={-1}
+        >
           <div className="fc-section-heading">
             <div>
               <span className="fc-eyebrow">YOUR ESTIMATE</span>
