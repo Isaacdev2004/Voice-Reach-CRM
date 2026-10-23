@@ -85,3 +85,10 @@ See [PUBLIC-HOMEPAGE-CORRECTION.md](./PUBLIC-HOMEPAGE-CORRECTION.md) for before/
 
 ### Public polish and Phase 14 walkthrough
 See [PUBLIC-POLISH-PHASE14.md](./PUBLIC-POLISH-PHASE14.md): branding consistency, compact Pricing, focused synthetic Contacts/Builder images, resource claim/link corrections and accessible lazy-loaded walkthrough. Public production QA runs read-only after a successful main-branch Vercel deployment. Billing/auth/provider credentials and subscriber records are unchanged.
+
+### Pricing compact follow-up (October 23, 2026)
+Public Pricing now presents plan names and prices before supporting copy, with a shorter hero and a single heading/billing-toggle row. No billing, authentication, credentials, or subscriber records changed. Public production video QA uses Google Chrome with media diagnostics.
+
+Analytics preview follow-up: replaced the incomplete capture with the actual interface calculated from 48 synthetic delivery records, including correlated replies. Corrected a confirmed chart layout defect (percentage-height bars had no definite-height parent), reduced date-label crowding, and captured complete charts. Demonstration labeling remains; no production metrics or records changed.
+
+Walkthrough placement follow-up: removed the standalone phone-thumbnail strip and integrated the modal trigger into the Dashboard editorial showcase. Restored the original `/brand/ari-dashboard-hero.png` video cover. Preserved the existing finished video and transcript; refreshing its embedded interfaces requires an editable source or a new recording.

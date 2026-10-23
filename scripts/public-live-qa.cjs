@@ -6,15 +6,45 @@ const { chromium } = require("playwright");
   const origin = "https://www.myari.io",
     out = "artifacts/public-production-qa";
   fs.mkdirSync(out, { recursive: true });
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, channel: "chrome" });
   const results = [];
   try {
+    const media = await fetch(origin + "/videos/ari-demo.mp4", {
+      method: "HEAD",
+      signal: AbortSignal.timeout(15000),
+    });
+    console.log(
+      `Existing video asset: HTTP ${media.status}, ${media.headers.get("content-type")}, ${media.headers.get("content-length")} bytes.`,
+    );
+    assert.equal(media.status, 200, "Existing video file must be reachable");
     for (const width of [1440, 390]) {
       const page = await browser.newPage({
         viewport: { width, height: 1000 },
         reducedMotion: "reduce",
       });
       const errors = [];
+      await page.addInitScript(() => {
+        window.__mediaFailures = [];
+        document.addEventListener(
+          "error",
+          (event) => {
+            if (event.target instanceof HTMLMediaElement)
+              window.__mediaFailures.push({
+                code: event.target.error?.code,
+                message: event.target.error?.message,
+                source: new URL(event.target.currentSrc || location.href)
+                  .pathname,
+              });
+          },
+          true,
+        );
+      });
+      page.on("response", (response) => {
+        if (response.url().includes(".mp4"))
+          console.log(
+            `Video response: ${response.status()} ${new URL(response.url()).pathname} ${response.headers()["content-type"] || ""}`,
+          );
+      });
       page.on("pageerror", (e) => errors.push(e.message));
       for (const route of [
         "/",
@@ -48,7 +78,18 @@ const { chromium } = require("playwright");
             .click();
           const dialog = page.getByRole("dialog");
           await dialog.waitFor();
-          await page.locator("video").evaluate((v) => v.play());
+          try {
+            await page.locator("video").evaluate((v) => v.play());
+          } catch (error) {
+            console.log(
+              "Media diagnostics:",
+              JSON.stringify(await page.evaluate(() => window.__mediaFailures)),
+            );
+            await page.screenshot({
+              path: `${out}/video-failure-${width}.png`,
+            });
+            throw error;
+          }
           await page.waitForFunction(
             () => document.querySelector("video")?.currentTime > 0,
           );

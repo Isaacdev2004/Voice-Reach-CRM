@@ -217,6 +217,18 @@ const { chromium } = require("playwright"),
           if (route === "/pricing") {
             const cards = page.locator("#pricing article");
             assert.equal(await cards.count(), 3);
+            if (width >= 1280) {
+              for (const card of await cards.all()) {
+                const price = await card
+                  .locator(".public-plan-heading + div")
+                  .boundingBox();
+                assert.ok(
+                  price && price.y + price.height < 800,
+                  "Plan price should be visible in the first desktop viewport",
+                );
+              }
+            }
+
             const plans = require("./campaign-audit/harness.cjs")
               .fixture()
               .load("lib/billing/plans.ts")

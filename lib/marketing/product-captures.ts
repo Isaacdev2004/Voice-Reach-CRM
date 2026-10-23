@@ -62,7 +62,7 @@ export const PRODUCT_CAPTURES = {
     src: "/brand/product-captures/analytics.webp",
     alt: "Actual MyARI Analytics reporting with synthetic demo records",
     width: 2592,
-    height: 1600,
+    height: 1980,
     variant: "capture",
   },
   tasks: {
