@@ -147,7 +147,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           showQuickCreate={config.showQuickCreate ?? true}
           onMenuClick={() => setMobileNavOpen(true)}
         >
-          <div className={normalizedPath === "/dashboard" ? "dashboard-luxury min-h-screen bg-cream text-on-surface" : "min-h-screen bg-cream text-on-surface"}>
+          <div className={normalizedPath === "/dashboard" ? "dashboard-luxury min-h-screen bg-cream text-on-surface" : normalizedPath === "/dashboard/contacts" ? "contacts-luxury min-h-screen bg-cream text-on-surface" : "min-h-screen bg-cream text-on-surface"}>
             <DashboardSidebar
               mobileOpen={mobileNavOpen}
               onMobileClose={() => setMobileNavOpen(false)}
@@ -159,7 +159,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               ) : (
                 <div className={DASHBOARD_MAIN_COLUMN}>
                   <div id="dashboard-hero-mount" className={DASHBOARD_HERO_SLOT}>
-                    {normalizedPath === "/dashboard" ? (
+                    {normalizedPath === "/dashboard/contacts" ? null : normalizedPath === "/dashboard" ? (
                       <DashboardLuxuryHero />
                     ) : isCalendarRoute ? (
                       <CalendarPageHero />
@@ -175,7 +175,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               )}
             </main>
           </div>
-          {normalizedPath !== "/dashboard" ? <AiFloatingButton /> : null}
+          {normalizedPath !== "/dashboard" && normalizedPath !== "/dashboard/contacts" ? <AiFloatingButton /> : null}
           <AiAssistantSidebar />
         </DashboardHeaderProvider>
       </AiAssistantProvider>

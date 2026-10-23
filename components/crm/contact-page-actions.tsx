@@ -31,7 +31,7 @@ export function ContactPageActions({ onRefresh, variant = "header" }: ContactPag
           className={`${btnSecondary} w-full justify-center sm:w-auto`}
           onClick={() => setImportOpen(true)}
         >
-          <span className="material-symbols-outlined text-[20px]">upload</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px]">upload</span>
           Import CSV
         </button>
         <button
@@ -39,7 +39,7 @@ export function ContactPageActions({ onRefresh, variant = "header" }: ContactPag
           className={`${btnPrimary} order-first w-full justify-center sm:order-none sm:w-auto`}
           onClick={() => setAddOpen(true)}
         >
-          <span className="material-symbols-outlined text-[20px]">person_add</span>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px]">person_add</span>
           Add contact
         </button>
       </div>

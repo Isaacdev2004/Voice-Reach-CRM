@@ -1,0 +1,30 @@
+[
+  {
+    "width": 1448,
+    "stageClicks": true,
+    "filteredTabCounts": true,
+    "metricClearsFilters": true,
+    "stageChange": true,
+    "bulkStageEdit": true,
+    "errorDoesNotShowZero": true,
+    "retry": true,
+    "tenantSwitchAndStaleResponse": true,
+    "foreignResponseRejected": true,
+    "empty": true,
+    "pageErrors": []
+  },
+  {
+    "width": 390,
+    "stageClicks": true,
+    "filteredTabCounts": true,
+    "metricClearsFilters": true,
+    "stageChange": true,
+    "bulkStageEdit": false,
+    "errorDoesNotShowZero": true,
+    "retry": true,
+    "tenantSwitchAndStaleResponse": true,
+    "foreignResponseRejected": true,
+    "empty": true,
+    "pageErrors": []
+  }
+]

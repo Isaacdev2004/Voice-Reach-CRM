@@ -1,0 +1,62 @@
+[
+  {
+    "width": 1448,
+    "copy": true,
+    "noOverflow": true,
+    "forms": true,
+    "filters": true,
+    "preview": true,
+    "tabs": true,
+    "pageErrors": []
+  },
+  {
+    "width": 1440,
+    "copy": true,
+    "noOverflow": true,
+    "forms": true,
+    "filters": true,
+    "preview": true,
+    "tabs": true,
+    "pageErrors": []
+  },
+  {
+    "width": 1920,
+    "copy": true,
+    "noOverflow": true,
+    "forms": true,
+    "filters": true,
+    "preview": true,
+    "tabs": true,
+    "pageErrors": []
+  },
+  {
+    "width": 768,
+    "copy": true,
+    "noOverflow": true,
+    "forms": true,
+    "filters": true,
+    "preview": true,
+    "tabs": true,
+    "pageErrors": []
+  },
+  {
+    "width": 390,
+    "copy": true,
+    "noOverflow": true,
+    "forms": true,
+    "filters": true,
+    "preview": true,
+    "tabs": true,
+    "pageErrors": []
+  },
+  {
+    "category": true,
+    "stage": true,
+    "compliance": true,
+    "recordedActivity": true,
+    "categoryManager": true
+  },
+  {
+    "emptyAccount": "no sample contacts or invented preview"
+  }
+]

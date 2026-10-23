@@ -1,5 +1,7 @@
 "use client";
 
+import { notifyContactsChanged } from "@/lib/contacts/change-events";
+
 import {
   Modal,
   ModalField,
@@ -160,6 +162,7 @@ export function EditContactModal({
           humanizeDatabaseError((data as { error?: string }).error ?? "Could not update contact"),
         );
       }
+      notifyContactsChanged();
       onSuccess?.();
       onClose();
     } catch (err) {
@@ -182,6 +185,7 @@ export function EditContactModal({
           humanizeDatabaseError((data as { error?: string }).error ?? "Could not delete contact"),
         );
       }
+      notifyContactsChanged();
       onDeleted?.();
       onClose();
       router.push("/dashboard/contacts");

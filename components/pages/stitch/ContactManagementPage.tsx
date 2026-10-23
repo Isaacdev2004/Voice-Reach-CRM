@@ -1,15 +1,21 @@
 "use client";
 
+import { notifyContactsChanged } from "@/lib/contacts/change-events";
+import { contactMetricCounts } from "@/lib/contacts/metrics";
+import { filterContactsByQuery } from "@/lib/contacts/schemas";
+import { filterContactsByCategory } from "@/lib/contacts/categories";
+import { filterContactsBySegment } from "@/lib/contacts/lifecycle";
 import Link from "next/link";
 import { CompliancePanel } from "@/components/crm/compliance-panel";
 import { ComplianceBadge } from "@/components/crm/compliance-badge";
 import { ContactAvatar } from "@/components/crm/contact-avatar";
-import { ContactPageActions } from "@/components/crm/contact-page-actions";
+import { ContactsLuxuryHero } from "@/components/crm/contacts-luxury-hero";
+import { ContactPreviewPanel } from "@/components/crm/contact-preview-panel";
 import { KpiCard } from "@/components/crm/kpi-card";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { Modal, ModalField, ModalFooterActions, modalInputClass } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
-import { DEMO_CONTACT } from "@/lib/crm/mock-data";
+
 import {
   CONTACT_SEGMENT_TABS,
   CONTACT_TYPE_OPTIONS,
@@ -27,10 +33,9 @@ import { useContacts, type ApiContact } from "@/lib/hooks/use-contacts";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
-import { DATABASE_SETUP_HINT } from "@/lib/supabase-errors";
 import type { PulseLaneId, RelationshipPulseResult } from "@/lib/contacts/relationship-pulse";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 type ContactSort = "name-asc" | "name-desc" | "recent";
 
@@ -57,19 +62,8 @@ function consentStatus(contact: ApiContact): "valid" | "pending" | "blocked" | "
   return "pending";
 }
 
-const FALLBACK_ROWS: ApiContact[] = [
-  {
-    id: DEMO_CONTACT.id,
-    first_name: DEMO_CONTACT.firstName,
-    last_name: DEMO_CONTACT.lastName,
-    phone: DEMO_CONTACT.phone ?? "",
-    email: DEMO_CONTACT.email,
-    source: "Referral",
-    consent_records: [{ status: "Yes" }],
-  },
-];
-
 export function ContactManagementPage() {
+  const router = useRouter();
   const headerQuery = useDashboardSearch();
   const searchParams = useSearchParams();
   const initialSegment = (searchParams.get("segment") ?? "all") as ContactSegment;
@@ -83,17 +77,20 @@ export function ContactManagementPage() {
     ...DEFAULT_CONTACT_CATEGORIES,
   ]);
   const [manageCatsOpen, setManageCatsOpen] = useState(false);
-  const { contacts, loading, error, refresh, meta } = useContacts(
-    headerQuery,
-    segment,
-    category,
-  );
-  const rows: ApiContact[] = contacts.length > 0 ? contacts : FALLBACK_ROWS;
+  const { contacts, loading, error, refresh, meta } = useContacts();
+  const rows: ApiContact[] = contacts;
+  const [viewQuery, setViewQuery] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [activityFilter, setActivityFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [complianceFilter, setComplianceFilter] = useState("all");
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const [pulse, setPulse] = useState<RelationshipPulseResult | null>(null);
   const [pulseLoading, setPulseLoading] = useState(true);
   const [activePulseLane, setActivePulseLane] = useState<PulseLaneId | null>(null);
   const [pulseToast, setPulseToast] = useState<string | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  useEffect(() => { setMobileFiltersOpen(window.matchMedia("(min-width: 768px)").matches); }, []);
 
   const loadPulse = useCallback(async () => {
     setPulseLoading(true);
@@ -116,11 +113,23 @@ export function ContactManagementPage() {
     return new Set(lane.contacts.map((c) => c.contactId));
   }, [activePulseLane, pulse]);
 
-  const sortedRows = useMemo(() => {
-    let list = [...rows];
+  const viewRows = useMemo(() => {
+    const scoped = filterContactsByCategory(filterContactsByQuery(rows, headerQuery), category);
+    let list = scoped.filter((contact) =>
+      (activityFilter === "all" || (activityFilter === "none" ? !contact.last_contacted : Boolean(contact.last_contacted) && Date.parse(contact.last_contacted!) >= Date.now() - Number(activityFilter) * 86400000)) &&
+      (sourceFilter === "all" || contact.source === sourceFilter) &&
+      (typeFilter === "all" || contact.type === typeFilter) &&
+      (complianceFilter === "all" || consentStatus(contact) === complianceFilter) &&
+      (!viewQuery.trim() || [contact.first_name, contact.last_name, contact.email, contact.phone, contact.category, contact.source].some(value => value?.toLowerCase().includes(viewQuery.trim().toLowerCase())))
+    );
     if (pulseFilterIds) {
       list = list.filter((c) => pulseFilterIds.has(c.id));
     }
+    return list;
+  }, [rows, headerQuery, category, pulseFilterIds, viewQuery, sourceFilter, typeFilter, complianceFilter, activityFilter]);
+  const viewCounts = contactMetricCounts(viewRows);
+  const sortedRows = useMemo(() => {
+    const list = filterContactsBySegment(viewRows, segment);
     if (sort === "name-asc") {
       list.sort((a, b) => contactSortKey(a).localeCompare(contactSortKey(b)));
     } else if (sort === "name-desc") {
@@ -133,10 +142,11 @@ export function ContactManagementPage() {
       });
     }
     return list;
-  }, [rows, sort, pulseFilterIds]);
-  const total = meta?.total ?? (contacts.length > 0 ? contacts.length : rows.length);
+  }, [viewRows, segment, sort]);
+  const previewContact = sortedRows.find(c => c.id === previewId) ?? sortedRows[0];
+  const total = meta?.total;
 
-  const selectableRows = useMemo<ApiContact[]>(() => (contacts.length > 0 ? contacts : []), [contacts]);
+  const selectableRows = useMemo<ApiContact[]>(() => sortedRows, [sortedRows]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [bulkOpen, setBulkOpen] = useState<null | "consent" | "delete" | "type" | "category">(null);
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
@@ -154,7 +164,7 @@ export function ContactManagementPage() {
     () => Object.entries(selected).filter(([, v]) => v).map(([id]) => id),
     [selected],
   );
-  const allSelected = selectableRows.length > 0 && selectedIds.length === selectableRows.length;
+  const allSelected = selectableRows.length > 0 && selectableRows.every(contact => selected[contact.id]);
 
   const validated = rows.filter((c) => consentStatus(c) === "valid").length;
   const dncCount = rows.filter((c) => c.dnc || consentStatus(c) === "blocked").length;
@@ -173,6 +183,7 @@ export function ContactManagementPage() {
   };
 
   const toggleOne = (id: string) => {
+    setPreviewId(id);
     setSelected((s) => ({ ...s, [id]: !s[id] }));
   };
 
@@ -204,6 +215,7 @@ export function ContactManagementPage() {
     }
     setSelected({});
     closeBulk();
+    notifyContactsChanged();
     void refresh();
     void loadPulse();
   };
@@ -224,6 +236,7 @@ export function ContactManagementPage() {
     }
     setSelected({});
     closeBulk();
+    notifyContactsChanged();
     void refresh();
     void loadPulse();
   };
@@ -251,6 +264,7 @@ export function ContactManagementPage() {
     }
     setSelected({});
     closeBulk();
+    notifyContactsChanged();
     void refresh();
     void loadPulse();
   };
@@ -270,8 +284,15 @@ export function ContactManagementPage() {
       return;
     }
     closeBulk();
+    notifyContactsChanged();
     void refresh();
     void loadPulse();
+  };
+
+  const openMetric = (stage: ContactSegment) => {
+    setCategory("all"); setSegment(stage); setSourceFilter("all"); setTypeFilter("all");
+    setComplianceFilter("all"); setActivityFilter("all"); setViewQuery(""); setActivePulseLane(null); setSelected({});
+    router.replace(`/dashboard/contacts${stage === "all" ? "" : `?segment=${stage}`}`);
   };
 
   return (
@@ -283,7 +304,7 @@ export function ContactManagementPage() {
         onChanged={(next) => {
           setCustomCategories(next);
           void refresh();
-    void loadPulse();
+          void loadPulse();
         }}
       />
       <BulkConsentModal
@@ -325,154 +346,44 @@ export function ContactManagementPage() {
         submitting={bulkSubmitting}
         error={bulkError}
       />
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-        <ContactPageActions
-          onRefresh={() => {
-            refresh();
-            void loadPulse();
-          }}
-        />
+      <ContactsLuxuryHero onRefresh={() => { void refresh(); void loadPulse(); }} />
+      <div className="contacts-kpi-grid">
+        {[
+          { id: "total", segment: "all" as const, label: "Total Contacts", value: total, icon: "group" },
+          { id: "cold", segment: "cold-lead" as const, label: "Cold Leads", value: counts?.coldLead, icon: "handshake" },
+          { id: "active", segment: "active-lead" as const, label: "Active Leads", value: counts?.activeLead, icon: "local_fire_department" },
+          { id: "past", segment: "past-client" as const, label: "Past Clients", value: counts?.pastClient, icon: "verified_user" },
+        ].map(kpi => <button key={kpi.id} type="button" className="contacts-metric-button" disabled={loading || Boolean(error)} onClick={() => openMetric(kpi.segment)} aria-label={`${kpi.label}: ${loading ? "loading" : kpi.value ?? "unavailable"}. Show all matching contacts`}><KpiCard id={kpi.id} label={kpi.label} value={loading ? "…" : kpi.value?.toLocaleString() ?? "—"} icon={kpi.icon} compact luxury /></button>)}
       </div>
-
-      <LuxuryCard padding="md" className="space-y-4">
-        <div className="flex items-center justify-between gap-2 md:hidden">
-          <p className="text-[13px] font-medium text-ink">Filters</p>
-          <button
-            type="button"
-            onClick={() => setMobileFiltersOpen((o) => !o)}
-            className="inline-flex items-center gap-1 rounded-full border border-outline-variant/25 px-3 py-1.5 text-[12px] font-medium text-rose-gold-deep"
-          >
-            {mobileFiltersOpen ? "Hide" : "Show all"}
-            <Icon name={mobileFiltersOpen ? "expand_less" : "expand_more"} className="text-[18px]" />
-          </button>
-        </div>
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-taupe">
-            Category
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setCategory("all")}
-              className={contactFilterPill(category === "all", "category")}
-            >
-              All categories
-              {counts?.all !== undefined ? (
-                <span className={cn("ml-1.5 tabular-nums", category === "all" ? "opacity-90" : "")}>
-                  ({counts.all})
-                </span>
-              ) : null}
-            </button>
-            {categoryTabs.map((name) => {
-              const active = category.toLowerCase() === name.toLowerCase();
-              const count = counts?.byCategory?.[name] ?? counts?.byCategory?.[name.toLowerCase()];
-              return (
-                <button
-                  key={name}
-                  type="button"
-                  onClick={() => setCategory(name)}
-                  className={contactFilterPill(active, "category")}
-                >
-                  {name}
-                  {count !== undefined ? (
-                    <span className={cn("ml-1.5 tabular-nums", active ? "opacity-90" : "")}>
-                      ({count})
-                    </span>
-                  ) : null}
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => setManageCatsOpen(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-dashed border-outline-variant/40 bg-cream/50 px-3 py-1.5 text-[12px] font-medium text-rose-gold-deep hover:bg-champagne sm:px-3.5 sm:py-2 sm:text-[13px]"
-            >
-              <Icon name="add" className="text-[16px]" />
-              Manage categories
-            </button>
-          </div>
-        </div>
-
-        <div className={cn("border-t border-outline-variant/10 pt-4", !mobileFiltersOpen && "max-md:hidden")}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-taupe">
-            Lifecycle stage
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {CONTACT_SEGMENT_TABS.map((tab) => {
-              const count =
-                tab.id === "all"
-                  ? counts?.all
-                  : tab.id === "cold-lead"
-                    ? counts?.coldLead
-                    : tab.id === "active-lead"
-                      ? counts?.activeLead
-                      : counts?.pastClient;
-              const active = segment === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setSegment(tab.id)}
-                  className={contactFilterPill(active, "stage")}
-                  title={tab.description}
-                >
-                  {tab.label}
-                  {count !== undefined ? (
-                    <span className={cn("ml-1.5 tabular-nums", active ? "opacity-90" : "")}>
-                      ({count})
-                    </span>
-                  ) : null}
-                </button>
-              );
+      <p className="contacts-metric-scope">Summary: all contacts in your workspace. Tabs below reflect the current filters.</p>
+      <div className="contacts-workspace">
+        <div className="contacts-toolbar">
+          <div className="contacts-stage-tabs" aria-label="Contact lifecycle">
+            {CONTACT_SEGMENT_TABS.map(tab => {
+              const count = !meta ? undefined : tab.id === "all" ? viewCounts.all : tab.id === "cold-lead" ? viewCounts.coldLead : tab.id === "active-lead" ? viewCounts.activeLead : viewCounts.pastClient;
+              return <button key={tab.id} type="button" aria-pressed={segment === tab.id} onClick={() => setSegment(tab.id)} className={contactFilterPill(segment === tab.id, "stage")}>{tab.id === "all" ? "All Contacts" : tab.id === "cold-lead" ? "Cold Leads" : tab.id === "active-lead" ? "Active Leads" : "Past Clients"}{count !== undefined ? ` (${count})` : ""}</button>;
             })}
           </div>
+          <label className="contacts-view-search"><Icon name="search" className="text-[18px]" /><input aria-label="Search in this view" placeholder="Search in this view…" value={viewQuery} onChange={event => setViewQuery(event.target.value)} /></label>
+          <button type="button" className="contacts-filter-toggle" aria-label="Filters" aria-expanded={mobileFiltersOpen} aria-controls="contacts-filter-controls" onClick={() => setMobileFiltersOpen(value => !value)}><Icon name="filter_list" className="text-[18px]" />Filters</button>
         </div>
-
-        <div className={cn("border-t border-outline-variant/10 pt-4", !mobileFiltersOpen && "max-md:hidden")}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-taupe">Sort by</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setSort("name-asc")}
-              className={contactFilterPill(sort === "name-asc", "sort")}
-            >
-              A–Z
-            </button>
-            <button
-              type="button"
-              onClick={() => setSort("name-desc")}
-              className={contactFilterPill(sort === "name-desc", "sort")}
-            >
-              Z–A
-            </button>
-            <button
-              type="button"
-              onClick={() => setSort("recent")}
-              className={contactFilterPill(sort === "recent", "sort")}
-            >
-              Newest
-            </button>
-          </div>
+        <div id="contacts-filter-controls" className={cn("contacts-filter-row", !mobileFiltersOpen && "contacts-filters-collapsed")}>
+          <label>Category<select aria-label="Category" value={category} onChange={event => setCategory(event.target.value)}><option value="all">All categories</option>{categoryTabs.map(name => <option key={name} value={name}>{name}</option>)}</select></label>
+          <label>Type<select aria-label="Type" value={typeFilter} onChange={event => setTypeFilter(event.target.value)}><option value="all">All types</option>{Array.from(new Set([...CONTACT_TYPE_OPTIONS.map(option => option.value), ...rows.flatMap(contact => contact.type ? [contact.type] : [])])).map(type => <option key={type} value={type}>{type}</option>)}</select></label>
+          <label>Stage<select aria-label="Stage" value={segment} onChange={event => setSegment(event.target.value as ContactSegment)}>{CONTACT_SEGMENT_TABS.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}</select></label>
+          <label>Source<select aria-label="Source" value={sourceFilter} onChange={event => setSourceFilter(event.target.value)}><option value="all">All sources</option>{Array.from(new Set(rows.flatMap(contact => contact.source ? [contact.source] : []))).sort().map(source => <option key={source} value={source}>{source}</option>)}</select></label>
+          <label>Compliance<select aria-label="Compliance" value={complianceFilter} onChange={event => setComplianceFilter(event.target.value)}><option value="all">All records</option><option value="valid">Consent Valid</option><option value="pending">Pending Review</option><option value="blocked">Blocked</option></select></label>
+          <label>Last Activity<select aria-label="Last Activity — recorded contact date" value={activityFilter} onChange={event => setActivityFilter(event.target.value)}><option value="all">Any time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="none">Not recorded</option></select></label>
+          <label>Sort<select aria-label="Sort" value={sort} onChange={event => setSort(event.target.value as ContactSort)}><option value="name-asc">A–Z</option><option value="name-desc">Z–A</option><option value="recent">Newest</option></select></label>
+          <button type="button" className="contacts-manage-categories" aria-label="Manage categories" title="Manage categories" onClick={() => setManageCatsOpen(true)}><span aria-hidden="true"><Icon name="settings" className="text-[17px]" /></span></button>
+          <button type="button" className="contacts-clear" onClick={() => { setCategory("all"); setSegment("all"); setSourceFilter("all"); setTypeFilter("all"); setComplianceFilter("all"); setActivityFilter("all"); setViewQuery(""); setActivePulseLane(null); setSort("name-asc"); }}>Clear all</button>
         </div>
-      </LuxuryCard>
-
       {pulseToast ? (
         <p className="rounded-2xl border border-sage/25 bg-sage-light/40 px-4 py-3 text-[13px] text-emerald-muted">
           {pulseToast}
         </p>
       ) : null}
 
-      <RelationshipPulseSection
-        pulse={pulse}
-        loading={pulseLoading}
-        activeLane={activePulseLane}
-        onSelectLane={setActivePulseLane}
-        onOpenContact={() => undefined}
-        onEnrollSuccess={(msg) => {
-          setPulseToast(msg);
-          window.setTimeout(() => setPulseToast(null), 6000);
-        }}
-      />
 
       {category !== "all" ? (
         <p className="rounded-2xl border border-outline-variant/15 bg-ivory px-4 py-3 text-[14px] text-slate-text">
@@ -487,42 +398,8 @@ export function ContactManagementPage() {
         </p>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-        <KpiCard
-          id="contacts-total"
-          label="Total contacts"
-          value={loading ? "…" : total.toLocaleString()}
-          icon="group"
-          tone="default"
-          compact
-        />
-        <KpiCard
-          id="contacts-consent"
-          label="Consent validated"
-          value={loading ? "…" : `${rows.length ? Math.round((validated / rows.length) * 100) : 0}%`}
-          icon="verified_user"
-          tone="sage"
-          compact
-        />
-        <KpiCard
-          id="contacts-past"
-          label="Past clients"
-          value={loading ? "…" : String(counts?.pastClient ?? "—")}
-          icon="handshake"
-          tone="bronze"
-          compact
-        />
-        <KpiCard
-          id="contacts-cold"
-          label="Cold leads"
-          value={loading ? "…" : String(counts?.coldLead ?? "—")}
-          icon="ac_unit"
-          tone="rose"
-          compact
-        />
-      </div>
 
-      {contacts.length > 0 ? (
+      {selectedIds.length > 0 && !loading && !error ? (
         <div
           className={cn(
             "flex flex-col gap-3 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
@@ -587,43 +464,32 @@ export function ContactManagementPage() {
 
       {error ? (
         <div className="rounded-2xl border border-rose-gold/25 bg-champagne px-4 py-4 text-[14px] text-slate-text">
-          <p className="font-medium text-ink">Database not connected</p>
-          <p className="mt-1">{error}</p>
-          <p className="mt-2 text-[13px] text-taupe">{DATABASE_SETUP_HINT}</p>
+          <p className="font-medium text-ink" role="alert">Contact totals unavailable</p>
+          <p className="mt-1">We couldn&apos;t verify your contact records. Totals are hidden until a complete read succeeds.</p>
+          <button type="button" onClick={() => void refresh()} className="mt-2 text-[13px] font-medium text-rose-gold-deep">Retry contacts</button>
         </div>
       ) : null}
 
-      <LuxuryCard padding="none" className="overflow-hidden">
-        <div className="flex flex-col gap-2 border-b border-outline-variant/15 bg-champagne/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-          <p className="flex items-center gap-2 text-[13px] text-slate-text">
-            <Icon name="favorite" className="text-[17px] text-rose-gold-deep" />
-            Open a row for timeline, signals, tasks, and AI suggestions.
-          </p>
-          <Link
-            href={`/dashboard/contacts/${rows[0]?.id ?? DEMO_CONTACT.id}`}
-            className="text-[12px] font-medium text-rose-gold-deep whitespace-nowrap hover:underline sm:text-[13px]"
-          >
-            Sample profile →
-          </Link>
-        </div>
+      <div className="contacts-data-layout">
+      <LuxuryCard padding="none" className="contacts-table-card overflow-hidden">
         {loading ? (
           <p className="p-8 text-center text-taupe">Loading contacts…</p>
         ) : (
           <>
-            <ContactMobileList
+            <div className="contacts-mobile-rows"><ContactMobileList
               contacts={sortedRows}
               selected={selected}
               onToggle={toggleOne}
               selectable={contacts.length > 0}
               consentStatus={consentStatus}
             />
-            <div className="hidden overflow-x-auto md:block">
-            <table className="w-full min-w-[720px] text-left">
+            </div><div className="contacts-table-scroll hidden overflow-x-auto md:block">
+            <table className="contacts-table w-full text-left">
               <thead className="sticky top-0 z-[1]">
                 <tr className="border-b border-outline-variant/20 bg-cream/95 backdrop-blur-sm">
                   {contacts.length > 0 ? (
                     <th scope="col" className="w-12 px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-4">
-                      <span className="sr-only">Select</span>
+                      <input type="checkbox" aria-label="Select all contacts in this view" checked={allSelected} onChange={toggleAll} />
                     </th>
                   ) : null}
                   <th scope="col" className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
@@ -635,7 +501,7 @@ export function ContactManagementPage() {
                       }
                       title="Sort by name"
                     >
-                      Name
+                      Contact
                       <Icon
                         name={
                           sort === "name-desc"
@@ -655,9 +521,11 @@ export function ContactManagementPage() {
                     Type
                   </th>
                   <th scope="col" className="min-w-[88px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
-                    Source
+                    Stage
                   </th>
-                  <th scope="col" className="min-w-[96px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
+                  <th scope="col" className="contacts-activity-col" title="Recorded last-contact date">Last Activity</th>
+                  <th scope="col" className="contacts-tags-col">Tags</th>
+                  <th scope="col" className="contacts-compliance-col min-w-[96px] px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-taupe sm:px-5">
                     Compliance
                   </th>
                   <th scope="col" className="min-w-[108px] px-4 py-3 sm:px-5" />
@@ -665,20 +533,10 @@ export function ContactManagementPage() {
               </thead>
               <tbody className="divide-y divide-outline-variant/12">
                 {sortedRows.map((contact) => (
-                  <tr key={contact.id} className="transition-colors hover:bg-champagne/35">
+                  <tr key={contact.id} data-previewed={previewContact?.id === contact.id} className="transition-colors hover:bg-champagne/35">
                     {contacts.length > 0 ? (
                       <td className="px-3 py-3 align-middle sm:px-4">
-                        <button
-                          type="button"
-                          onClick={() => toggleOne(contact.id)}
-                          className="rounded-full p-2 hover:bg-champagne"
-                          aria-label={`Select ${contact.first_name}`}
-                        >
-                          <Icon
-                            name={selected[contact.id] ? "check_box" : "check_box_outline_blank"}
-                            className="text-[20px] text-taupe"
-                          />
-                        </button>
+                        <input type="checkbox" checked={Boolean(selected[contact.id])} onChange={() => toggleOne(contact.id)} aria-label={`Select ${contact.first_name}`} />
                       </td>
                     ) : null}
                     <td className="px-4 py-3 sm:px-5">
@@ -727,10 +585,12 @@ export function ContactManagementPage() {
                     </td>
                     <td className="px-4 py-3 align-middle sm:px-5">
                       <span className="inline-flex max-w-[140px] truncate rounded-lg bg-champagne/80 px-2.5 py-1 text-[12px] text-taupe">
-                        {contact.source ?? "—"}
+                        {segmentBadgeLabel(contactSegment(contact.type))}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 align-middle sm:px-5">
+                    <td className="contacts-activity-col">{contact.last_contacted && Number.isFinite(Date.parse(contact.last_contacted)) ? new Date(contact.last_contacted).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : <span className="contacts-unavailable">Not recorded</span>}</td>
+                    <td className="contacts-tags-col">{Array.isArray(contact.tags) && contact.tags.some(tag => typeof tag === "string" && tag.trim()) ? contact.tags.filter(tag => typeof tag === "string" && tag.trim()).map(tag => <span key={tag} className="contacts-neutral-tag">{tag}</span>) : <span className="contacts-unavailable" title="No tags supplied by the current contact feed">—</span>}</td>
+                    <td className="contacts-compliance-col whitespace-nowrap px-4 py-3 align-middle sm:px-5">
                       <ComplianceBadge status={consentStatus(contact)} compact />
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right align-middle sm:px-5">
@@ -740,6 +600,7 @@ export function ContactManagementPage() {
                       >
                         Open profile →
                       </Link>
+                      <button type="button" className="contacts-preview-button" aria-label={`Preview ${contact.first_name} ${contact.last_name ?? ""}`.trim()} aria-pressed={previewContact?.id === contact.id} onClick={() => setPreviewId(contact.id)}><Icon name="visibility" className="text-[17px]" /></button>
                     </td>
                   </tr>
                 ))}
@@ -748,7 +609,27 @@ export function ContactManagementPage() {
             </div>
           </>
         )}
+        {!loading && !error && sortedRows.length === 0 ? <div className="contacts-empty"><Icon name="person_search" className="text-[30px]" /><h2>No contacts in this view</h2><p>Try another search or adjust your filters.</p></div> : null}
       </LuxuryCard>
+      {previewContact && !loading ? <ContactPreviewPanel key={previewContact.id} contact={previewContact} consent={consentStatus(previewContact)} /> : null}
+      </div>
+      <p role="status" className="contacts-view-count">{loading ? "Loading contact totals…" : error ? "Totals unavailable" : `Showing ${sortedRows.length} of ${total} workspace contacts`}</p>
+      {meta ? <p className="contacts-consent-summary">Consent validated: {loading ? "…" : validated} of {rows.length} loaded contacts · Blocked / DNC: {dncCount}</p> : null}
+      </div>
+      <details className="contacts-pulse-disclosure"><summary>Relationship Pulse <span>Signals, follow-ups, and existing outreach tools</span></summary>
+      <RelationshipPulseSection
+        pulse={pulse}
+        loading={pulseLoading}
+        activeLane={activePulseLane}
+        onSelectLane={setActivePulseLane}
+        onOpenContact={() => undefined}
+        onEnrollSuccess={(msg) => {
+          setPulseToast(msg);
+          window.setTimeout(() => setPulseToast(null), 6000);
+        }}
+      />
+
+      </details>
 
       {headerQuery.trim() && contacts.length > 0 ? (
         <p className="text-[14px] text-taupe">
@@ -756,7 +637,7 @@ export function ContactManagementPage() {
         </p>
       ) : null}
 
-      <CompliancePanel databaseUnavailable={Boolean(error)} />
+      <details className="contacts-pulse-disclosure"><summary>Consent & compliance <span>Review records, eligibility, and audit tools</span></summary><CompliancePanel databaseUnavailable={Boolean(error)} /></details>
     </div>
   );
 }

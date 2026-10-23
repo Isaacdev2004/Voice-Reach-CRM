@@ -2,12 +2,18 @@
 
 import { isUuid } from "@/lib/contacts/is-uuid";
 import type { ContactSegment } from "@/lib/contacts/lifecycle";
-import { humanizeDatabaseError } from "@/lib/supabase-errors";
-import { useCallback, useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
+import { validateContactSnapshot, type ContactSnapshot } from "@/lib/contacts/validate-snapshot";
+import { CONTACTS_CHANGED } from "@/lib/contacts/change-events";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type ApiContact = {
   id: string;
   created_at?: string;
+  /** Existing contacts.last_contacted date; not inferred from creation time. */
+  last_contacted?: string | null;
+  /** Optional existing feed data; no tags are synthesized when absent. */
+  tags?: string[] | null;
   first_name: string;
   last_name?: string | null;
   phone: string;
@@ -46,56 +52,62 @@ export function useContacts(
   segment: ContactSegment = "all",
   category: string = "all",
 ) {
-  const [contacts, setContacts] = useState<ApiContact[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [meta, setMeta] = useState<{
-    total: number;
-    filtered: number;
-    counts?: ContactCounts;
-    categories?: string[];
-  } | null>(null);
-
+  const { user, isLoaded, isSignedIn } = useUser();
+  const ownerId = user?.id;
+  const requestKey = JSON.stringify([ownerId, query ?? "", segment, category]);
+  const [state, setState] = useState<{ key: string; data: ContactSnapshot | null; loading: boolean; error: string | null }>({ key: "", data: null, loading: true, error: null });
+  const sequence = useRef(0);
+  const pending = useRef<AbortController | null>(null);
+  const cancel = useCallback(() => { sequence.current++; pending.current?.abort(); }, []);
   const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    const attempt = ++sequence.current;
+    pending.current?.abort();
+    if (!isLoaded || !isSignedIn || !ownerId) {
+      setState({ key: requestKey, data: null, loading: !isLoaded, error: isLoaded ? "Sign in to view your contacts." : null });
+      return;
+    }
+    const controller = new AbortController();
+    pending.current = controller;
+    setState({ key: requestKey, data: null, loading: true, error: null });
     try {
       const params = new URLSearchParams();
-      const q = query?.trim();
-      if (q) params.set("q", q);
+      if (query?.trim()) params.set("q", query.trim());
       if (segment !== "all") params.set("segment", segment);
       if (category !== "all") params.set("category", category);
-      const qs = params.toString();
-      const url = qs ? `/api/contacts?${qs}` : "/api/contacts";
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(
-          humanizeDatabaseError((body as { error?: string }).error ?? "Failed to load contacts"),
-        );
-      }
-      const data = await res.json();
-      setContacts(data.contacts ?? []);
-      setMeta({
-        total: data.total ?? data.contacts?.length ?? 0,
-        filtered: data.filtered ?? data.contacts?.length ?? 0,
-        counts: data.counts,
-        categories: data.categories ?? [],
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load contacts");
-      setContacts([]);
-      setMeta(null);
-    } finally {
-      setLoading(false);
+      const res = await fetch(`/api/contacts${params.size ? `?${params}` : ""}`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]) });
+      if (!res.ok) throw new Error("Contact totals unavailable");
+      const data = validateContactSnapshot(await res.json(), { ownerId, requireAll: !query?.trim() && segment === "all" && category === "all" });
+      if (attempt === sequence.current) setState({ key: requestKey, data, loading: false, error: null });
+    } catch {
+      if (attempt === sequence.current) setState({ key: requestKey, data: null, loading: false, error: "Unable to load accurate contact totals. Please retry." });
     }
-  }, [query, segment, category]);
+  }, [ownerId, isLoaded, isSignedIn, query, segment, category, requestKey]);
 
   useEffect(() => {
     void refresh();
+    return cancel;
+  }, [refresh, cancel]);
+  useEffect(() => {
+    const reload = () => { void refresh(); };
+    const visible = () => { if (document.visibilityState === "visible") reload(); };
+    const storage = (event: StorageEvent) => { if (event.key === CONTACTS_CHANGED) reload(); };
+    window.addEventListener(CONTACTS_CHANGED, reload);
+    window.addEventListener("storage", storage);
+    window.addEventListener("focus", reload);
+    window.addEventListener("pageshow", reload);
+    document.addEventListener("visibilitychange", visible);
+    return () => {
+      window.removeEventListener(CONTACTS_CHANGED, reload);
+      window.removeEventListener("storage", storage);
+      window.removeEventListener("focus", reload);
+      window.removeEventListener("pageshow", reload);
+      document.removeEventListener("visibilitychange", visible);
+    };
   }, [refresh]);
-
-  return { contacts, loading, error, refresh, meta };
+  const current = state.key === requestKey && isLoaded && isSignedIn && ownerId;
+  return { contacts: current ? state.data?.contacts ?? [] : [],
+    meta: current ? state.data : null, loading: current ? state.loading : !isLoaded || Boolean(ownerId),
+    error: current ? state.error : isLoaded && !ownerId ? "Sign in to view your contacts." : null, refresh };
 }
 
 export function useContact(id: string | undefined) {
