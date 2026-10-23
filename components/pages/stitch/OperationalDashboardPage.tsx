@@ -1,4 +1,5 @@
 "use client";
+import { DailyPriorities } from "@/components/activity/daily-priorities";
 
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
@@ -178,6 +179,7 @@ function OwnerDashboard() {
       </div>
 
       <DashboardRecentCampaignsTable />
+      <DailyPriorities />
     </div>
   );
 }

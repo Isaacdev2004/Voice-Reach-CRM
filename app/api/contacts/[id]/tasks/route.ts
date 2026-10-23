@@ -72,6 +72,7 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
   if (body.addToCalendar && body.dueAt) {
     const sync = await syncTaskReminderToCalendar({
       ownerId,
+      taskId:task.id,
       contact,
       taskTitle: body.title,
       dueAt: body.dueAt,
@@ -83,7 +84,8 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
       await supabaseAdmin
         .from("contact_tasks")
         .update({ calendar_event_id: sync.eventId })
-        .eq("id", task.id);
+        .eq("id", task.id)
+        .eq("owner_id", ownerId);
     }
   }
 

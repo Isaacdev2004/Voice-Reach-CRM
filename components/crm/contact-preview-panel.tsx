@@ -3,7 +3,7 @@
 import { useId, useState, useRef } from "react";
 import Link from "next/link";
 import { AiLauncherButton } from "@/components/ai/ai-launcher-button";
-import { EngagementTimeline } from "@/components/engagement/engagement-timeline";
+import { ContactActivityTimeline } from "@/components/activity/contact-activity-timeline";
 import { Icon } from "@/components/ui/icon";
 import type { ApiContact } from "@/lib/hooks/use-contacts";
 import { contactSegment, segmentBadgeLabel } from "@/lib/contacts/lifecycle";
@@ -74,7 +74,7 @@ export function ContactPreviewPanel({ contact, consent }: {
             </div>
           </>
         ) : tab === "Activity" ? (
-          <EngagementTimeline contactId={contact.id} showScore={false} emptyHint="Activity will appear here as engagement is recorded." />
+          <ContactActivityTimeline contactId={contact.id} contactName={name} />
         ) : tab === "Notes" ? (
           <ContactNotesPanel contactId={contact.id} fallback={contact.notes ?? undefined} />
         ) : (

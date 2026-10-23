@@ -7,6 +7,12 @@ const owner = "qa-owner",
   id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 function fixture() {
   const tables = {
+    calendar_events: [],
+    calendar_connections: [],
+    contact_tasks: [],
+    contact_notes: [],
+    calendar_share_links: [],
+    calendar_booking_requests: [],
     campaigns: [],
     campaign_steps: [],
     campaign_recipients: [],
@@ -55,7 +61,7 @@ function fixture() {
           return q;
         },
         eq(k, v) {
-          filters.push((r) => r[k] === v);
+          filters.push((r) => k.includes("->>") ? r[k.split("->>")[0]]?.[k.split("->>")[1]] === v : r[k] === v);
           calls.push({ table, filter: k, value: v });
           return q;
         },
@@ -73,6 +79,7 @@ function fixture() {
           filters.push((r) => r[k] <= v);
           return q;
         },
+        gt(k,v){filters.push(r=>r[k]>v);return q;},
         gte(k, v) {
           filters.push((r) => r[k] >= v);
           return q;
@@ -97,6 +104,7 @@ function fixture() {
           single = true;
           return q;
         },
+        upsert(v){mode="upsert";value=v;return q;},
         insert(v) {
           mode = "insert";
           value = v;
@@ -124,6 +132,7 @@ function fixture() {
               let rows = all.filter((r) => filters.every((f) => f(r)));
               const count = rows.length;
               if (mode === "insert" && table === "outbound_delivery_events" && all.some(r=>r.provider===value.provider&&r.event_key===value.event_key)) return {data:null,error:{code:"23505"},count};
+              if(mode==="upsert"){const existing=all.find(r=>r.owner_id===value.owner_id&&r.provider===value.provider&&r.external_event_id===value.external_event_id);if(existing){Object.assign(existing,value);rows=[existing];}else{mode="insert";}}
               if (mode === "insert") {
                 rows = (Array.isArray(value) ? value : [value]).map((r) => ({
                   id: id(seq++),

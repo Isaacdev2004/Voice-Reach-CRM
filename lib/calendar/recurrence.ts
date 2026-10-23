@@ -1,42 +1,55 @@
 import type { Recurrence } from "./google";
-
-const MAX_OCCURRENCES = 60;
-
-/** Expand a recurring event into local instances (used when Google Calendar is not connected). */
+import {
+  zonedParts,
+  addCalendarDays,
+  wallTimeToInstant,
+  validateInterval,
+} from "./time";
 export function expandRecurrenceOccurrences(options: {
   start: Date;
   end: Date;
   recurrence: Recurrence;
   horizonDays?: number;
-}): { start: Date; end: Date }[] {
-  const { start, end, recurrence } = options;
-  const durationMs = end.getTime() - start.getTime();
-
-  if (recurrence === "none") {
-    return [{ start: new Date(start), end: new Date(end) }];
-  }
-
-  const horizonMs = (options.horizonDays ?? 365) * 24 * 60 * 60 * 1000;
-  const until = start.getTime() + horizonMs;
-  const occurrences: { start: Date; end: Date }[] = [];
-  let cursor = new Date(start);
-
-  while (occurrences.length < MAX_OCCURRENCES && cursor.getTime() <= until) {
-    occurrences.push({
-      start: new Date(cursor),
-      end: new Date(cursor.getTime() + durationMs),
-    });
-
-    const next = new Date(cursor);
-    if (recurrence === "daily") {
-      next.setDate(next.getDate() + 1);
-    } else if (recurrence === "weekly") {
-      next.setDate(next.getDate() + 7);
-    } else {
-      next.setMonth(next.getMonth() + 1);
+  timeZone?: string;
+}) {
+  validateInterval(options.start.toISOString(), options.end.toISOString());
+  const zone = options.timeZone ?? "UTC",
+    first = zonedParts(options.start, zone),
+    duration = +options.end - +options.start,
+    result: {
+      start: Date;
+      end: Date;
+    }[] = [];
+  const horizon = +options.start + (options.horizonDays ?? 365) * 86400000;
+  for (let i = 0; i < 400 && result.length < 60; i++) {
+    let date = first.date;
+    if (i) {
+      if (options.recurrence === "none") break;
+      if (options.recurrence === "monthly") {
+        const d = new Date(first.date + "T12:00Z");
+        const day = d.getUTCDate();
+        d.setUTCDate(1);
+        d.setUTCMonth(d.getUTCMonth() + i);
+        d.setUTCDate(day);
+        if (d.getUTCDate() !== day) continue;
+        date = d.toISOString().slice(0, 10);
+      } else
+        date = addCalendarDays(
+          first.date,
+          i * (options.recurrence === "weekly" ? 7 : 1),
+        );
     }
-    cursor = next;
+    let instant: string;
+    try {
+      instant = i
+        ? wallTimeToInstant(date, first.time, zone, "earlier")
+        : options.start.toISOString();
+    } catch {
+      continue;
+    }
+    const start = new Date(instant);
+    if (+start > horizon) break;
+    result.push({ start, end: new Date(+start + duration) });
   }
-
-  return occurrences;
+  return result;
 }

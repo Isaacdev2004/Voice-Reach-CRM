@@ -10,6 +10,7 @@ type ContactLite = {
 
 export async function syncTaskReminderToCalendar(options: {
   ownerId: string;
+  taskId?: string;
   contact: ContactLite;
   taskTitle: string;
   dueAt: string;
@@ -18,6 +19,7 @@ export async function syncTaskReminderToCalendar(options: {
 }) {
   return syncCallbackStepToCalendar({
     ownerId: options.ownerId,
+    taskId: options.taskId,
     contact: options.contact,
     stepTitle: options.taskTitle,
     stepDescription: options.notes ?? "Task reminder from ARI",

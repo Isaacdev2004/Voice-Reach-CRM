@@ -1,10 +1,10 @@
+import {applyLiveIntegrationStatus} from "@/lib/settings/live-integration-status";
 import { billingForSettingsWrite } from "@/lib/billing/verification";
 import { apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
 import {
-  applyLiveIntegrationStatus,
   mergeIntegrationLists,
 } from "@/lib/settings/merge-integrations";
 import type { UserSettings } from "@/lib/settings/types";

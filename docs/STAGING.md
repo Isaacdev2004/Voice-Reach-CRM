@@ -36,3 +36,7 @@ CRON_SECRET=...            # Vercel cron → /api/campaigns/runner
 - Create one **Simulation** campaign from Templates; do not launch live on stage.
 
 See also `docs/SYMPOSIUM-DEMO.md`.
+
+## Calendar workspace and unified contact activity
+
+Review `docs/calendar-premium/README.md` for the Calendar/Phase 18 setup, isolated QA commands, Google OAuth redirect/scopes/encryption, read-only Apple feeds, and disabled-by-default booking links. Apply `20261023020000_calendar_workspace.sql` in a test database first. Verify actual preference CAS and concurrent booking locks there; local mocked tests do not establish PostgreSQL or live-provider verification. Keep live outbound off. No production rollout is authorized by this implementation.

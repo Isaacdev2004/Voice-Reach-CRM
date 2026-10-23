@@ -15,7 +15,7 @@ import { EditContactModal } from "@/components/crm/edit-contact-modal";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { RelationshipTag } from "@/components/crm/relationship-tag";
 import { Timeline } from "@/components/crm/timeline";
-import { EngagementTimeline } from "@/components/engagement/engagement-timeline";
+import { ContactActivityTimeline } from "@/components/activity/contact-activity-timeline";
 import { Icon } from "@/components/ui/icon";
 import { isUuid } from "@/lib/contacts/is-uuid";
 import { contactProfileFromApi } from "@/lib/crm/mock-data";
@@ -224,12 +224,12 @@ function OwnedRelationshipProfile({ contactId }: RelationshipProfilePageProps) {
             <h2 className="font-serif text-[22px] font-semibold text-ink">Relationship timeline</h2>
             {apiContact ? (
               <span className="rounded-full bg-emerald-muted/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-muted">
-                Live engagement
+                Recorded activity
               </span>
             ) : null}
           </div>
           {apiContact ? (
-            <EngagementTimeline contactId={apiContact.id} />
+            <ContactActivityTimeline contactId={apiContact.id} contactName={`${apiContact.first_name} ${apiContact.last_name ?? ""}`.trim()} />
           ) : (
             <Timeline events={profile.timeline} />
           )}

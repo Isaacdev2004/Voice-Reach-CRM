@@ -19,7 +19,7 @@ export default async function proxy(req: NextRequest, event: NextFetchEvent) {
   }
 
   const { clerkMiddleware, createRouteMatcher } = await import("@clerk/nextjs/server");
-  const isPublicRoute = createRouteMatcher([...PUBLIC_ROUTE_PATTERNS]);
+  const isPublicRoute = createRouteMatcher([...PUBLIC_ROUTE_PATTERNS, "/book/(.*)"]);
   const isApiRoute = createRouteMatcher(["/api/(.*)"]);
 
   const handler = clerkMiddleware(async (auth, request) => {
