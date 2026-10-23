@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./dashboard-luxury.css";
 @import "./contacts-luxury.css";
+@import "./property-finder-premium.css";
 @plugin "@tailwindcss/forms";
 
 @theme {

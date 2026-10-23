@@ -18,6 +18,7 @@ function fixture() {
   };
   const calls = [];
   let failUpdates = false;
+  let missingPreferences = false;
   const database = { from(table) {
     const filters = []; let action = 'select'; let payload; let single = false; let range; let countExact = false;
     const query = {
@@ -31,6 +32,7 @@ function fixture() {
       update(value){action='update';payload=value;return query;},
       delete(){action='delete';return query;},
       then(resolve,reject){return Promise.resolve().then(()=>{
+        if(missingPreferences && action==='update' && Object.keys(payload).some(key=>['preferred_sqft','preferred_beds','preferred_baths','preferred_garage_spaces','preferred_lot_sqft','preferred_property_type'].includes(key)))return {data:null,error:{code:'PGRST204',message:'private schema column detail'}};
         if(failUpdates && action==='update')return {data:null,error:{message:'private database detail'}};
         let matching=tables[table].filter(row=>filters.every(filter=>filter(row)));
         const count=matching.length;
@@ -61,7 +63,7 @@ function fixture() {
     new Function('require','module','exports',code)(localRequire,loadedModule,loadedModule.exports);
     return loadedModule.exports;
   }
-  return {load,tables,calls,failUpdates:()=>{failUpdates=true;}};
+  return {load,tables,calls,failUpdates:()=>{failUpdates=true;},missingPreferences:()=>{missingPreferences=true;}};
 }
 const context = id=>({params:Promise.resolve({id})});
 const request = (url,method='GET',body)=>new Request('http://test'+url,{method,...(body?{headers:{'content-type':'application/json'},body:JSON.stringify(body)}:{})});
@@ -113,4 +115,22 @@ test('actual category counts use the shared category rule; failed rename/remove 
   for(const body of [{action:'rename',from:'Luxury',to:'Investors'},{action:'remove',name:'Luxury'}]){
     const response=await route.POST(request('/api/contacts/categories','POST',body));assert.equal(response.status,503);assert.ok(!JSON.stringify(await response.json()).includes('private database detail'));
   }
+});
+
+test('property preferences persist on the existing contact and cannot write another subscriber or unknown columns',async()=>{
+  const f=fixture();const route=f.load('app/api/contacts/[id]/route.ts');
+  const preferences={squareFeet:1800,beds:3,baths:2.5,garageSpaces:0,lotSquareFeet:5000,propertyType:'Condo'};
+  const save=()=>route.PATCH(request('/api/contacts/'+contactId,'PATCH',{preferredArea:'Winter Park, FL',budget:850000,propertyPreferences:preferences}),context(contactId));
+  assert.equal((await save()).status,200);assert.equal((await save()).status,200);assert.equal(f.tables.contacts.length,2,'saving updates the same row without duplicates');
+  assert.equal(f.tables.contacts[0].preferred_sqft,1800);assert.equal(f.tables.contacts[0].preferred_beds,3);assert.equal(f.tables.contacts[0].preferred_baths,2.5);assert.equal(f.tables.contacts[0].preferred_garage_spaces,0);assert.equal(f.tables.contacts[0].preferred_lot_sqft,5000);assert.equal(f.tables.contacts[0].preferred_property_type,'Condo');
+  assert.equal((await route.PATCH(request('/api/contacts/'+foreignId,'PATCH',{propertyPreferences:preferences}),context(foreignId))).status,404);assert.equal(f.tables.contacts[1].preferred_beds,undefined);
+  assert.equal((await route.PATCH(request('/api/contacts/'+contactId,'PATCH',{propertyPreferences:{beds:-1}}),context(contactId))).status,400);
+  assert.equal((await route.PATCH(request('/api/contacts/'+contactId,'PATCH',{propertyPreferences:{owner_id:'subscriber-b'}}),context(contactId))).status,400);
+  assert.equal((await route.PATCH(request('/api/contacts/'+contactId,'PATCH',{propertyPreferences:{beds:null}}),context(contactId))).status,200);assert.equal(f.tables.contacts[0].preferred_beds,null);assert.equal(f.tables.contacts[0].preferred_baths,2.5);
+});
+
+test('uninstalled optional columns fail safely while old area/budget saves continue to work',async()=>{
+  const f=fixture();f.missingPreferences();const route=f.load('app/api/contacts/[id]/route.ts');
+  let response=await route.PATCH(request('/api/contacts/'+contactId,'PATCH',{preferredArea:'Orlando',budget:500000}),context(contactId));assert.equal(response.status,200);
+  response=await route.PATCH(request('/api/contacts/'+contactId,'PATCH',{preferredArea:'Changed',propertyPreferences:{beds:3}}),context(contactId));assert.equal(response.status,503);const result=await response.json();assert.equal(result.code,'property_preferences_unavailable');assert.ok(!result.error.includes('private schema column detail'));assert.equal(f.tables.contacts[0].preferred_area,'Orlando');
 });

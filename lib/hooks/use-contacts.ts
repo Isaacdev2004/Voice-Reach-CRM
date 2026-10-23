@@ -25,6 +25,12 @@ export type ApiContact = {
   notes?: string | null;
   lead_type?: string | null;
   preferred_area?: string | null;
+  preferred_property_type?: string | null;
+  preferred_sqft?: number | string | null;
+  preferred_beds?: number | string | null;
+  preferred_baths?: number | string | null;
+  preferred_garage_spaces?: number | string | null;
+  preferred_lot_sqft?: number | string | null;
   property_address?: string | null;
   budget?: number | string | null;
   dnc?: boolean;
