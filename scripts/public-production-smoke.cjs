@@ -66,6 +66,28 @@ const { fixture } = require("./campaign-audit/harness.cjs");
         (await fetch(`http://127.0.0.1:${port}${route}`)).status,
         200,
       );
+    for (const [route, status] of [
+      ["/resources/myari-agent-follow-up-playbook.pdf", 404],
+      ["/api/marketing/playbook", 405],
+    ]) {
+      assert.equal(
+        (await fetch(`http://127.0.0.1:${port}${route}`)).status,
+        status,
+        `Private playbook must not be publicly downloadable: ${route}`,
+      );
+    }
+    const trace = JSON.parse(
+      fs.readFileSync(
+        ".next/server/app/api/marketing/playbook/route.js.nft.json",
+        "utf8",
+      ),
+    );
+    assert.ok(
+      trace.files.some((file) =>
+        file.endsWith("/resources/myari-agent-follow-up-playbook.pdf"),
+      ),
+      "Private attachment must be packaged for server delivery",
+    );
     fs.writeFileSync(
       "docs/public-website/production-smoke.json",
       JSON.stringify(results, null, 2),

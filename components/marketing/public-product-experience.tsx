@@ -58,7 +58,7 @@ const tools = [
   {
     title: "Mortgage Calculator",
     slug: "mortgage-calculator",
-    image: "/brand/heroes/settings-office.png",
+    image: "/brand/marketing/financing-desk.webp",
     body: "Explore payment estimates and compare financing scenarios with your clients.",
   },
   {
@@ -83,7 +83,7 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
         <section className="features-hero" aria-labelledby="features-title">
           <Image
             className="features-hero-photo"
-            src="/brand/heroes/financing-interior.png"
+            src="/brand/marketing/public-architectural-hero.webp"
             alt=""
             fill
             priority
@@ -92,13 +92,9 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
           <div className="features-hero-fade" />
           <div className="landing-shell features-hero-inner">
             <div className="features-hero-copy">
-              <p className="public-eyebrow">
-                {home ? "Real estate, beautifully connected" : "Features"}
-              </p>
+              <p className="public-eyebrow">Features</p>
               <h1 id="features-title">
-                Everything you need
-                <br className="wide-break" /> to turn follow-up
-                <br className="wide-break" /> into opportunity.
+                Everything you need to turn follow-up into opportunity.
               </h1>
               <p className="features-hero-description">
                 One beautifully connected workspace to manage relationships,
@@ -115,20 +111,6 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
                 </a>
               </div>
             </div>
-            <figure className="features-device">
-              <div className="features-device-screen">
-                <Image
-                  src="/brand/product-captures/dashboard.webp"
-                  alt="MyARI Dashboard captured with synthetic demonstration records"
-                  width={1440}
-                  height={1253}
-                  sizes="(max-width:767px) 85vw, 43vw"
-                  priority
-                />
-              </div>
-              <div className="features-device-base" />
-              <figcaption>Actual MyARI workspace · Demo data</figcaption>
-            </figure>
             <ul className="features-assurances">
               {[
                 ["layers", "All-in-one platform"],
@@ -157,11 +139,23 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
               move business forward.
             </p>
           </div>
+          {!home && (
+            <nav
+              className="public-pillar-links"
+              aria-label="Explore MyARI by purpose"
+            >
+              <a href="#relationships">Relationships</a>
+              <a href="#outreach">Outreach</a>
+              <a href="#intelligence">Intelligence</a>
+              <a href="#productivity">Productivity</a>
+            </nav>
+          )}
           <div className="features-core-grid">
             {capabilities.map((c) => (
               <Link
                 href={`/features/${c.slug}`}
                 key={c.slug}
+                id={c.slug === "lead-management" ? "relationships" : undefined}
                 className="features-capability"
               >
                 <span className="public-icon-disc">
@@ -181,7 +175,70 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             ))}
           </div>
         </section>
-        <section className="features-followup" aria-labelledby="followup-title">
+        <section
+          className="public-dashboard-editorial landing-shell"
+          aria-labelledby="dashboard-showcase-title"
+        >
+          <figure className="public-application-frame">
+            <div className="public-application-title">
+              <span aria-hidden="true">● ● ●</span>
+              <span>MyARI · Your workspace</span>
+            </div>
+            <a
+              href="/brand/product-captures/dashboard-editorial.webp"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View full-size MyARI Dashboard demonstration"
+            >
+              <Image
+                src="/brand/product-captures/dashboard-editorial.webp"
+                alt="Actual MyARI Dashboard showing contacts, campaigns, daily priorities and marketing insights with synthetic demonstration records"
+                width={2880}
+                height={2160}
+                sizes="(max-width:767px) 94vw, (max-width:1280px) 58vw, 770px"
+              />
+            </a>
+            <figcaption>
+              Actual MyARI Dashboard · Synthetic demonstration data.{" "}
+              <span>View full-size capture ↗</span>
+            </figcaption>
+          </figure>
+          <div className="features-editorial-copy">
+            <p className="public-eyebrow">
+              One beautifully connected workspace
+            </p>
+            <h2 id="dashboard-showcase-title">
+              Your business. Beautifully connected.
+            </h2>
+            <p>
+              Your contacts, campaigns, conversations, and daily
+              priorities—working together in one beautifully organized
+              workspace.
+            </p>
+            <ul className="public-checklist">
+              <li>
+                <FeatureSymbol name="check" />
+                Keep every relationship organized.
+              </li>
+              <li>
+                <FeatureSymbol name="check" />
+                Automate thoughtful outreach.
+              </li>
+              <li>
+                <FeatureSymbol name="check" />
+                Stay focused on your next opportunity.
+              </li>
+            </ul>
+            <Link href="/features" className="public-solid-button">
+              Explore MyARI <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </section>
+        <section
+          id="outreach"
+          className="features-followup"
+          aria-labelledby="followup-title"
+        >
           <div className="landing-shell features-split">
             <figure className="features-contact-capture">
               <Image
@@ -232,7 +289,48 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             </div>
           </div>
         </section>
+        {!home && (
+          <section
+            id="intelligence"
+            className="public-ai-editorial landing-shell"
+          >
+            <div className="features-editorial-copy">
+              <p className="public-eyebrow">
+                Intelligence, with you in control
+              </p>
+              <h2>
+                A thoughtful starting point.
+                <br />A human final say.
+              </h2>
+              <p>
+                Turn a clear brief into an email, SMS or voice-script draft. Ask
+                MyARI helps you find the words; you review the details before
+                they become outreach.
+              </p>
+              <Link href="/features/ai-assistant" className="public-text-link">
+                Explore AI assistance <span aria-hidden>→</span>
+              </Link>
+              <p className="public-fine-print">
+                Drafting requires a configured AI provider. Demo content does
+                not establish a client&apos;s interests or authorize a message.
+              </p>
+            </div>
+            <figure>
+              <Image
+                src="/brand/product-captures/assistant.webp"
+                alt="Actual Ask MyARI email drafting interface with synthetic demonstration content"
+                width={576}
+                height={640}
+                sizes="(max-width:767px) 90vw, 38vw"
+              />
+              <figcaption>
+                Actual Ask MyARI interface · Synthetic demonstration
+              </figcaption>
+            </figure>
+          </section>
+        )}
         <section
+          id="productivity"
           className="features-agent-tools landing-shell"
           aria-labelledby="agent-tools-title"
         >
@@ -298,42 +396,44 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             <ProductShowcase />
           </section>
         )}
-        <section
-          id="how-it-works"
-          className="features-workflow landing-shell"
-          aria-labelledby="workflow-title"
-        >
-          <div>
-            <p className="public-eyebrow">How MyARI works</p>
-            <h2 id="workflow-title">
-              A clearer path from first hello to next step.
-            </h2>
-          </div>
-          <ol>
-            {[
-              {
-                title: "Bring your relationships together",
-                body: "Import contacts by CSV or add them manually, then organize stages, preferences, and notes.",
-              },
-              {
-                title: "Make follow-up intentional",
-                body: "Choose a campaign, review the content and consent, and enroll the contacts you select.",
-              },
-              {
-                title: "Focus on the next conversation",
-                body: "Review recorded activity, available delivery results, and your tasks and appointments.",
-              },
-            ].map((s, i) => (
-              <li key={s.title}>
-                <span>{String(i + 1).padStart(2, "0")}</span>
-                <div>
-                  <h3>{s.title}</h3>
-                  <p>{s.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
+        {!home && (
+          <section
+            id="how-it-works"
+            className="features-workflow landing-shell"
+            aria-labelledby="workflow-title"
+          >
+            <div>
+              <p className="public-eyebrow">How MyARI works</p>
+              <h2 id="workflow-title">
+                A clearer path from first hello to next step.
+              </h2>
+            </div>
+            <ol>
+              {[
+                {
+                  title: "Bring your relationships together",
+                  body: "Import contacts by CSV or add them manually, then organize stages, preferences, and notes.",
+                },
+                {
+                  title: "Make follow-up intentional",
+                  body: "Choose a campaign, review the content and consent, and enroll the contacts you select.",
+                },
+                {
+                  title: "Focus on the next conversation",
+                  body: "Review recorded activity, available delivery results, and your tasks and appointments.",
+                },
+              ].map((s, i) => (
+                <li key={s.title}>
+                  <span>{String(i + 1).padStart(2, "0")}</span>
+                  <div>
+                    <h3>{s.title}</h3>
+                    <p>{s.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
         {home && (
           <section
             className="public-home-questions landing-shell"

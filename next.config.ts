@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  outputFileTracingIncludes: {
+    "/api/marketing/playbook": [
+      "./resources/myari-agent-follow-up-playbook.pdf",
+    ],
+  },
   images: {
     remotePatterns: [
       {

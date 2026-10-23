@@ -18,10 +18,10 @@ export const metadata: Metadata = pageMetadata({
 
 export default function PricingPage() {
   return (
-    <MarketingShell>
-      <section className="hero-gradient py-12 md:py-16">
-        <div className="landing-shell mx-auto max-w-[44rem] text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep md:text-[12px]">
+    <MarketingShell contentClassName="public-prose">
+      <section className="hero-gradient py-8 md:py-10">
+        <div className="landing-shell mx-auto max-w-[44rem] public-reading-column text-center">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep md:text-[12px]">
             Pricing
           </p>
           <h1 className="mt-3 font-serif text-[2.25rem] font-semibold leading-tight text-ink md:text-[2.75rem] lg:text-[3rem]">
@@ -48,7 +48,7 @@ export default function PricingPage() {
       <PlanEntitlementsPanel />
 
       <section className="bg-ivory py-10 md:py-12">
-        <div className="landing-shell mx-auto max-w-[44rem]">
+        <div className="landing-shell mx-auto max-w-[44rem] public-reading-column">
           <h2 className="font-serif text-[24px] font-semibold text-ink md:text-[28px]">
             Which plan is right for you?
           </h2>

@@ -1,5 +1,6 @@
 "use client";
 
+import "@/components/marketing/public-auth-refinement.css";
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { AriLogo } from "@/components/brand/ari-logo";
 import { BRAND_TAGLINE } from "@/lib/brand";
@@ -12,7 +13,7 @@ type AuthShellProps = {
 
 export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[1fr_1fr]">
+    <div className="public-auth-surface grid min-h-screen w-full lg:grid-cols-[1fr_1fr]">
       <AuthBrandPanel mode={mode} />
 
       {/* Right - form */}
@@ -21,7 +22,7 @@ export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
           {/* Mobile brand strip */}
           <div className="mb-8 flex flex-col items-center rounded-2xl border border-outline-variant/15 bg-ivory/80 px-6 py-5 text-center lg:hidden">
             <AriLogo height={44} />
-            <p className="mt-2 max-w-[260px] text-[12px] leading-snug text-taupe">{BRAND_TAGLINE}</p>
+            <p className="mt-2 max-w-[260px] text-[14px] leading-snug text-taupe">{BRAND_TAGLINE}</p>
           </div>
 
           <div className="auth-form-panel mx-auto w-full max-w-[420px]">{children}</div>
@@ -29,13 +30,13 @@ export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
 
         <footer className="flex justify-center gap-6 px-6 pb-8 text-center">
           <a
-            className="text-[12px] text-taupe transition-colors hover:text-rose-gold-deep"
+            className="text-[14px] text-taupe transition-colors hover:text-rose-gold-deep"
             href="/privacy"
           >
             Privacy Policy
           </a>
           <a
-            className="text-[12px] text-taupe transition-colors hover:text-rose-gold-deep"
+            className="text-[14px] text-taupe transition-colors hover:text-rose-gold-deep"
             href="/terms"
           >
             Terms of Service

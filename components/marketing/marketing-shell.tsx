@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AriLogo } from "@/components/brand/ari-logo";
 import { PublicNavigation } from "./public-navigation";
 import "./public-website.css";
+import "./public-site-refinement.css";
 import { PageViewTracker } from "@/components/marketing/page-view-tracker";
 import { BRAND_DOMAIN, BRAND_NAME, BRAND_URL } from "@/lib/brand";
 import {
@@ -15,13 +16,14 @@ import {
 
 type MarketingShellProps = {
   children: ReactNode;
+  contentClassName?: string;
   /** On homepage, show anchor links alongside product pages. */
   variant?: "home" | "default";
 };
 
-export function MarketingShell({ children }: MarketingShellProps) {
+export function MarketingShell({ children, contentClassName="" }: MarketingShellProps) {
   return (
-    <div className="min-h-screen bg-cream text-ink">
+    <div className="public-site min-h-screen bg-cream text-ink">
       <PageViewTracker />
       <a
         href="#main-content"
@@ -31,7 +33,7 @@ export function MarketingShell({ children }: MarketingShellProps) {
       </a>
       <PublicNavigation />
 
-      <main id="main-content" className="public-main">
+      <main id="main-content" className={`public-main ${contentClassName}`}>
         {children}
       </main>
 

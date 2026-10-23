@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { trackMarketingEvent } from "@/lib/marketing/track";
 
 type PlaybookLeadFormProps = {
@@ -8,6 +8,8 @@ type PlaybookLeadFormProps = {
 };
 
 export function PlaybookLeadForm({ className = "" }: PlaybookLeadFormProps) {
+  const requestId = useRef<string | null>(null);
+  const submitting = useRef(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,34 +18,62 @@ export function PlaybookLeadForm({ className = "" }: PlaybookLeadFormProps) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current) return;
+    submitting.current = true;
+    requestId.current ??= crypto.randomUUID();
     setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/marketing/playbook", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({ name, email, requestId: requestId.current }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string; success?: boolean };
-      if (!res.ok) {
-        throw new Error(data.error ?? "Could not submit — try hello@myari.io");
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        success?: boolean;
+        ok?: boolean;
+        delivery?: string;
+      };
+      if (
+        !res.ok ||
+        data.success !== true ||
+        data.ok !== true ||
+        data.delivery !== "accepted"
+      ) {
+        throw new Error(
+          "We couldn’t complete your request. Please try again shortly.",
+        );
       }
-      trackMarketingEvent("contact_form_submit", { location: "playbook", type: "playbook" });
+      trackMarketingEvent("contact_form_submit", {
+        location: "playbook",
+        type: "playbook",
+      });
       setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
+      submitting.current = false;
       setLoading(false);
     }
   };
 
   if (done) {
     return (
-      <div className={`rounded-2xl border border-sage/30 bg-sage/10 px-6 py-8 ${className}`}>
-        <p className="font-serif text-[22px] font-semibold text-ink">You&apos;re on the list.</p>
+      <div
+        className={`rounded-2xl border border-sage/30 bg-sage/10 px-6 py-8 ${className}`}
+      >
+        <p className="font-serif text-[22px] font-semibold text-ink">
+          Your playbook email is queued.
+        </p>
         <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
-          Check your inbox for the playbook link. If it doesn&apos;t arrive in a few minutes, email{" "}
-          <a href="mailto:hello@myari.io" className="font-medium text-rose-gold-deep hover:underline">
+          Your contact details were submitted and your playbook attachment was
+          accepted for email delivery. Check your inbox and spam folder. If it
+          doesn&apos;t arrive in a few minutes, email{" "}
+          <a
+            href="mailto:hello@myari.io"
+            className="font-medium text-rose-gold-deep hover:underline"
+          >
             hello@myari.io
           </a>
           .
@@ -91,7 +121,8 @@ export function PlaybookLeadForm({ className = "" }: PlaybookLeadFormProps) {
         {loading ? "Sending…" : "Send me the playbook"}
       </button>
       <p className="mt-3 text-center text-[12px] text-taupe">
-        No spam. Unsubscribe anytime. Prefer a live walkthrough?{" "}
+        We’ll use these details to email your requested playbook. Prefer a live
+        walkthrough?{" "}
         <a href="/contact" className="text-rose-gold-deep hover:underline">
           Book a demo
         </a>

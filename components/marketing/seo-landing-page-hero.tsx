@@ -16,7 +16,7 @@ type SeoLandingPageHeroProps = {
 export function SeoLandingPageHero({ page }: SeoLandingPageHeroProps) {
   return (
     <MarketingHeroBackdrop>
-      <div className="landing-shell grid items-center gap-10 py-12 md:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] md:py-16 lg:gap-14 lg:py-20">
+      <div className="landing-shell grid items-center gap-10 py-8 md:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] md:py-10 lg:gap-10 lg:py-12">
         <div>
           <HeroEntrance>
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep md:text-[12px]">
@@ -57,7 +57,7 @@ export function SeoLandingPageHero({ page }: SeoLandingPageHeroProps) {
         </div>
 
         <HeroEntrance delayMs={140}>
-          <div className="marketing-hero-image-float">
+          <div className="marketing-hero-product-proof">
             <MarketingHeroImage image={page.heroImage} priority />
           </div>
         </HeroEntrance>

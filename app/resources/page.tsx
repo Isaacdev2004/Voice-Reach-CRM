@@ -23,10 +23,10 @@ export default function ResourcesHubPage() {
   );
 
   return (
-    <MarketingShell>
-      <section className="hero-gradient py-12 md:py-16">
-        <div className="landing-shell mx-auto max-w-[44rem] text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
+    <MarketingShell contentClassName="public-prose">
+      <section className="hero-gradient py-8 md:py-10">
+        <div className="landing-shell mx-auto max-w-[44rem] public-reading-column text-center">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep">
             Resources
           </p>
           <h1 className="mt-3 font-serif text-[2.25rem] font-semibold text-ink md:text-[2.75rem]">
@@ -39,7 +39,7 @@ export default function ResourcesHubPage() {
         </div>
       </section>
 
-      <section className="bg-cream py-10 md:py-14">
+      <section className="bg-cream py-8 md:py-10">
         <div className="landing-shell">
           <h2 className="font-serif text-[24px] font-semibold text-ink md:text-[28px]">
             Cornerstone guides
@@ -51,14 +51,14 @@ export default function ResourcesHubPage() {
                 href={article.path}
                 className="group rounded-2xl border border-rose-gold/20 bg-ivory p-6 hover:border-rose-gold/40"
               >
-                <p className="text-[11px] font-bold uppercase tracking-widest text-rose-gold-deep">
+                <p className="text-[12px] font-bold uppercase tracking-widest text-rose-gold-deep">
                   {article.category}
                 </p>
                 <h3 className="mt-2 font-serif text-[18px] font-semibold text-ink group-hover:text-rose-gold-deep">
                   {article.title}
                 </h3>
-                <p className="mt-2 text-[14px] leading-relaxed text-slate-text">{article.description}</p>
-                <p className="mt-3 text-[13px] text-taupe">
+                <p className="mt-2 text-[15px] leading-relaxed text-slate-text">{article.description}</p>
+                <p className="mt-3 text-[15px] text-taupe">
                   {RESOURCE_EDITORIAL.author} ·{" "}
                   {new Date(article.publishedAt).toLocaleDateString("en-US", {
                     month: "short",
@@ -82,12 +82,12 @@ export default function ResourcesHubPage() {
                   className="flex flex-col gap-1 px-6 py-5 transition-colors hover:bg-cream sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-widest text-taupe">
+                    <p className="text-[12px] font-semibold uppercase tracking-widest text-taupe">
                       {article.category}
                     </p>
                     <h3 className="font-serif text-[17px] font-semibold text-ink">{article.title}</h3>
                   </div>
-                  <span className="shrink-0 text-[13px] text-taupe">
+                  <span className="shrink-0 text-[15px] text-taupe">
                     {new Date(article.publishedAt).toLocaleDateString("en-US", {
                       month: "short",
                       year: "numeric",

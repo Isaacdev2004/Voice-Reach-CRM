@@ -1,0 +1,3 @@
+.public-auth-surface { color: #292723; }
+.public-auth-surface a:focus-visible, .public-auth-surface button:focus-visible { outline: 2px solid #946a47; outline-offset: 4px; }
+.public-auth-surface footer { line-height: 1.6; }

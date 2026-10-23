@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { FEATURE_PAGES, FEATURE_DISPLAY_ORDER } from "../lib/seo/feature-pages";
 import {
   PUBLIC_NAV_GROUPS,
@@ -50,3 +50,24 @@ for (const href of INDEXABLE_PATHS) {
 console.log(
   `Public marketing: ${links.length} navigation/footer destinations and ${INDEXABLE_PATHS.length} indexable routes valid; metadata, image files, feature coverage and unchanged trial source verified.`,
 );
+
+// Public screenshots remain separate from architectural hero imagery.
+const homepage = readFileSync(
+  "components/marketing/public-product-experience.tsx",
+  "utf8",
+);
+assert.ok(!homepage.includes('className="features-device"'));
+assert.ok(
+  homepage.indexOf('className="public-dashboard-editorial') >
+    homepage.indexOf('id="capabilities"'),
+);
+for (const text of [
+  "Your business. Beautifully connected.",
+  "Your contacts, campaigns, conversations, and daily priorities—working together in one beautifully organized workspace.",
+  "Keep every relationship organized.",
+  "Automate thoughtful outreach.",
+  "Stay focused on your next opportunity.",
+])
+  assert.ok(homepage.replace(/\s+/g, " ").includes(text));
+assert.ok(existsSync("public/brand/product-captures/dashboard-editorial.webp"));
+assert.ok(existsSync("public/brand/marketing/public-architectural-hero.webp"));
