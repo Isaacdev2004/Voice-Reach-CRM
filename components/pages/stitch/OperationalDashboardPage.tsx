@@ -27,28 +27,38 @@ function OwnerDashboard() {
   const { contacts, loading, meta, error } = useContacts();
   const [verifiedSent, setVerifiedSent] = useState<number | null>(null);
   const [campaigns, setCampaigns] = useState<CampaignRow[] | null>(null);
+  const [campaignError, setCampaignError] = useState(false);
 
   useEffect(() => {
-    void (async () => {
-      try {
-        const [res, evidenceRes] = await Promise.all([
-          fetch("/api/campaigns"),
-          fetch("/api/analytics?range=all"),
-        ]);
-        if (evidenceRes.ok) {
-          const evidence = await evidenceRes.json();
-          setVerifiedSent(
-            typeof evidence.confirmedSentCampaigns === "number"
-              ? evidence.confirmedSentCampaigns
-              : null,
-          );
-        }
-        const data = await res.json().catch(() => ({}));
-        setCampaigns((data.campaigns ?? []) as CampaignRow[]);
-      } catch {
-        setCampaigns([]);
-      }
-    })();
+    const controller = new AbortController();
+    const options = {
+      cache: "no-store" as const,
+      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]),
+    };
+    void fetch("/api/campaigns/library", options)
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok || data.success === false || !Array.isArray(data.campaigns))
+          throw Error();
+        if (!controller.signal.aborted) setCampaigns(data.campaigns);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setCampaignError(true);
+      });
+    void fetch("/api/analytics?range=all", options)
+      .then(async (res) => {
+        const evidence = await res.json();
+        if (
+          !controller.signal.aborted &&
+          res.ok &&
+          evidence.success !== false &&
+          Number.isSafeInteger(evidence.confirmedSentCampaigns) &&
+          evidence.confirmedSentCampaigns >= 0
+        )
+          setVerifiedSent(evidence.confirmedSentCampaigns);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
   }, []);
 
   const total = meta?.total;
@@ -69,8 +79,9 @@ function OwnerDashboard() {
         ? undefined
         : `${addedThisMonth} current contacts added this month`;
 
-    const campaignDetail =
-      campaigns === null
+    const campaignDetail = campaignError
+      ? "Campaign information unavailable"
+      : campaigns === null
         ? undefined
         : activeCount === 0
           ? "No campaigns in progress"
@@ -140,6 +151,7 @@ function OwnerDashboard() {
     loading,
     total,
     campaigns,
+    campaignError,
     sentCount,
     activeCount,
     launchedThisMonth,
@@ -153,20 +165,26 @@ function OwnerDashboard() {
   return (
     <div className={DASHBOARD_PAGE_BODY}>
       <div className="dashboard-kpi-grid grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-stretch xl:grid-cols-4">
-        {kpis.map((kpi) =>
-          kpi.id === "opportunities" ? (
-            <Link
-              key={kpi.id}
-              href="/dashboard/contacts?segment=active-lead"
-              className="dashboard-opportunity-link"
-              aria-label="Opportunities — view Contacts"
-            >
-              <KpiCard {...kpi} compact luxury />
-            </Link>
-          ) : (
-            <KpiCard key={kpi.id} {...kpi} compact luxury />
-          ),
-        )}
+        {kpis.map((kpi) => (
+          <Link
+            key={kpi.id}
+            href={
+              kpi.id === "contacts"
+                ? "/dashboard/contacts?segment=all"
+                : kpi.id === "campaigns-sent"
+                  ? "/dashboard/analytics?range=all"
+                  : "/dashboard/contacts?segment=active-lead"
+            }
+            className="dashboard-opportunity-link dashboard-kpi-link"
+            aria-label={
+              kpi.id === "opportunities"
+                ? "Opportunities — view Contacts"
+                : `${kpi.label} — view ${kpi.id === "campaigns-sent" ? "all-time analytics" : "Contacts"}`
+            }
+          >
+            <KpiCard {...kpi} compact luxury />
+          </Link>
+        ))}
       </div>
 
       <div className="dashboard-editorial-grid">
@@ -179,7 +197,7 @@ function OwnerDashboard() {
       </div>
 
       <DashboardRecentCampaignsTable />
-      <DailyPriorities />
+      <DailyPriorities dashboard />
     </div>
   );
 }

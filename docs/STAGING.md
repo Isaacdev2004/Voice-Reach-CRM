@@ -62,3 +62,7 @@ Use [Tasks review and screenshots](tasks-workspace/REVIEW.md). Apply the Tasks m
 Use a confirmed non-production Clerk/Supabase/provider setup. Review prerequisites and apply the migrations listed in [the review report](studio-activity-review/REVIEW.md). Run `test:unit`, `test:studio-db` (PGlite), `test:studio-browser`, `test:tasks-browser`, typecheck/lint/build. Keep `ALLOW_LIVE_OUTBOUND` off. Test with synthetic contacts and provider mocks; do not enroll contacts, send messages/calls, charge accounts, rotate keys or modify live schedules.
 
 Verify two separate subscriber sessions, stale-save conflicts, profile photo persistence/provider restrictions, private brand upload access, real signed audio, recording/approval/explicit assignment and real provider status interpretation. Configure only staging Twilio number ownership/callbacks; the call-status endpoint is not a forwarding handler. Capture desktop/mobile results. All actual provider and authenticated staging checks remain pending until this gate is completed. A database update here is applying supplied SQL, not purchasing an upgrade.
+
+## Dashboard typography review
+
+Run `npm run test:dashboard-browser` for synthetic 1440/1920/768/390px captures with writes blocked. Check hero copy/actions, all four KPI destinations, actual campaign enrollment/step counts versus delivery metrics, row navigation, recommendation failure, empty/error priorities and subscriber switching. No live data reconciliation is claimed. [Report](dashboard-typography-review/REVIEW.md).

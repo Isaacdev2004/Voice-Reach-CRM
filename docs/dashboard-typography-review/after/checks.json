@@ -1,0 +1,42 @@
+[
+  {
+    "width": 1440,
+    "hero": 300,
+    "headline": 38,
+    "description": 16,
+    "kpi": 32,
+    "overflow": false,
+    "errors": [],
+    "writesBlocked": 1
+  },
+  {
+    "width": 1920,
+    "hero": 300.65625,
+    "headline": 42,
+    "description": 16,
+    "kpi": 32,
+    "overflow": false,
+    "errors": [],
+    "writesBlocked": 1
+  },
+  {
+    "width": 768,
+    "hero": 300,
+    "headline": 38,
+    "description": 16,
+    "kpi": 32,
+    "overflow": false,
+    "errors": [],
+    "writesBlocked": 1
+  },
+  {
+    "width": 390,
+    "hero": 522.375,
+    "headline": 31.2,
+    "description": 15,
+    "kpi": 30,
+    "overflow": false,
+    "errors": [],
+    "writesBlocked": 1
+  }
+]
