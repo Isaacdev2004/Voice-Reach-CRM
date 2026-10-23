@@ -32,7 +32,6 @@ import type {
 import { DailyPriorities } from "@/components/activity/daily-priorities";
 import { BookingRequestsPanel } from "@/components/calendar/booking-requests-panel";
 import { CalendarLinksPanel } from "@/components/calendar/calendar-links-panel";
-const MINUTE_PX = 0.8;
 type Snapshot = {
   agenda: ScheduleItem[];
   calendars: CalendarInfo[];
@@ -46,6 +45,10 @@ type Editor = {
   contactId?: string;
   item?: ScheduleItem;
 };
+
+/** Matches `.calendar-slot` height (30px per 30-minute row). */
+const MINUTE_PX = 1;
+
 export function CalendarPage() {
   const { user } = useUser();
   return <CalendarWorkspace key={user?.id ?? "signed-out"} />;
@@ -165,8 +168,7 @@ function CalendarWorkspace() {
     return () => clearInterval(timer);
   }, []);
   useEffect(() => {
-    if (scroll.current && !loading)
-      scroll.current.scrollTop = 8 * 60 * MINUTE_PX;
+    if (scroll.current && !loading) scroll.current.scrollTop = 7.5 * 60;
   }, [loading, prefs.view]);
   useEffect(() => {
     if (!ready || initialQuery.current) return;
@@ -346,7 +348,7 @@ function CalendarWorkspace() {
     node.setPointerCapture(e.pointerId);
     const up = (p: PointerEvent) => {
       node.removeEventListener("pointerup", up);
-      const delta = Math.round((p.clientY - y) / (15 * MINUTE_PX)) * 15 * 60000;
+      const delta = Math.round((p.clientY - y) / 15) * 15 * 60000;
       const next = Math.max(
         Date.parse(item.starts_at) + 15 * 60000,
         end + delta,
@@ -398,15 +400,7 @@ function CalendarWorkspace() {
   }
   const left = (
     <div className="calendar-panel">
-      <div className="calendar-source-heading">
-        <h2>All Calendars</h2>
-        <button
-          onClick={() => setPreferencesOpen(true)}
-          aria-label="Open calendar preferences"
-        >
-          <Icon name="settings" />
-        </button>
-      </div>
+      <h2>All Calendars</h2>
       {data.calendars.map((c) => (
         <label key={c.key} className="calendar-side-label">
           <input
@@ -418,17 +412,6 @@ function CalendarWorkspace() {
                 ...prefs,
                 visibility: { ...prefs.visibility, [c.key]: e.target.checked },
               })
-            }
-          />
-          <Icon
-            name={
-              c.key === "task"
-                ? "task_alt"
-                : c.key === "callback"
-                  ? "call"
-                  : c.key === "reminder"
-                    ? "notifications"
-                    : "calendar_month"
             }
           />
           <span>
@@ -451,21 +434,6 @@ function CalendarWorkspace() {
       {!data.calendars.length ? (
         <p>Calendars appear after a successful refresh.</p>
       ) : null}
-      <div className="calendar-stage-header">
-        <span>
-          {prefs.timezone}
-          {saving ? " · Saving…" : ""}
-        </span>
-        <input
-          aria-label="Search calendar"
-          placeholder="Search calendar…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <button onClick={refresh} disabled={loading}>
-          Refresh
-        </button>
-      </div>
       <button
         className="calendar-preference-button"
         onClick={() => setPreferencesOpen(true)}
@@ -474,35 +442,17 @@ function CalendarWorkspace() {
       </button>
     </div>
   );
-  let miniDays = monthDates(date, prefs.mondayStart);
-  while (
-    miniDays.length > 28 &&
-    miniDays.slice(-7).every((d) => d.slice(0, 7) !== date.slice(0, 7))
-  )
-    miniDays = miniDays.slice(0, -7);
+  const miniDays = monthDates(date, prefs.mondayStart);
   const right = (
     <div className="calendar-side-stack">
       <section className="calendar-panel">
         <h2>Calendar Integrations</h2>
         {data.health.map((h) => (
           <div className="calendar-provider" key={h.provider}>
-            <span className="calendar-provider-icon" aria-hidden="true">
-              <Icon
-                name={
-                  h.provider === "Google Calendar" ? "calendar_month" : "event"
-                }
-              />
-            </span>
             <strong>{h.provider}</strong>
-            <p className={h.authorized ? "is-connected" : "is-pending"}>
-              {h.provider === "Apple / iCloud" && !h.authorized
-                ? "Read-only subscription setup"
-                : h.status}
-            </p>
+            <p>{h.status}</p>
             <details>
-              <summary aria-label={`Sync details for ${h.provider}`}>
-                <Icon name="more_horiz" />
-              </summary>
+              <summary>Sync details</summary>
               <small>
                 Read: {h.read ? "available" : "unverified"} · Write:{" "}
                 {h.write ? "available" : "unverified"}
@@ -575,23 +525,7 @@ function CalendarWorkspace() {
         </details>
       </section>
       <section className="calendar-panel">
-        <div className="calendar-mini-heading">
-          <h2>{dateLabel(date, { month: "long", year: "numeric" })}</h2>
-          <div>
-            <button
-              aria-label="Previous mini-calendar month"
-              onClick={() => setDate(navigateCalendarDate(date, "month", -1))}
-            >
-              ‹
-            </button>
-            <button
-              aria-label="Next mini-calendar month"
-              onClick={() => setDate(navigateCalendarDate(date, "month", 1))}
-            >
-              ›
-            </button>
-          </div>
-        </div>
+        <h2>{dateLabel(date, { month: "long", year: "numeric" })}</h2>
         <div className="calendar-mini">
           {(prefs.mondayStart
             ? ["M", "T", "W", "T", "F", "S", "S"]
@@ -612,15 +546,10 @@ function CalendarWorkspace() {
         </div>
       </section>
       <section className="calendar-panel">
-        <div className="calendar-daily-heading">
-          <h2>{date === today.date ? "Upcoming Today" : "Daily agenda"}</h2>
-          <button onClick={() => setSection("agenda")}>View all</button>
-        </div>
-        {date !== today.date ? (
-          <p>{dateLabel(date, { month: "short", day: "numeric" })}</p>
-        ) : null}
+        <h2>Daily agenda</h2>
+        <p>{dateLabel(date, { month: "short", day: "numeric" })}</p>
         {daily.length ? (
-          daily.slice(0, 2).map((i) => (
+          daily.map((i) => (
             <button
               className="calendar-upcoming"
               key={i.id}
@@ -637,31 +566,6 @@ function CalendarWorkspace() {
         ) : (
           <p>No appointments or dated tasks recorded for this day.</p>
         )}
-      </section>
-      <section className="calendar-panel">
-        <h2>Quick Actions</h2>
-        <div className="calendar-actions">
-          <button onClick={() => create()}>
-            <Icon name="event" />
-            Schedule Event
-          </button>
-          <button onClick={() => create(date, prefs.workStart, "task")}>
-            <Icon name="task_alt" />
-            Create Task
-          </button>
-          <button onClick={() => create(date, prefs.workStart, "callback")}>
-            <Icon name="call" />
-            Log Callback
-          </button>
-          <button onClick={() => create(date, prefs.workStart, "reminder")}>
-            <Icon name="notifications" />
-            Add Reminder
-          </button>
-        </div>
-        <p>
-          Callbacks schedule a follow-up. Record completed calls in the contact
-          timeline.
-        </p>
       </section>
       <section className="calendar-panel">
         <h2>Upcoming appointments</h2>
@@ -691,6 +595,31 @@ function CalendarWorkspace() {
       </section>
       <BookingRequestsPanel onChanged={refresh} />
       <DailyPriorities compact timezone={prefs.timezone} />
+      <section className="calendar-panel">
+        <h2>Quick Actions</h2>
+        <div className="calendar-actions">
+          <button onClick={() => create()}>
+            <Icon name="event" />
+            Schedule Event
+          </button>
+          <button onClick={() => create(date, prefs.workStart, "task")}>
+            <Icon name="task_alt" />
+            Create Task
+          </button>
+          <button onClick={() => create(date, prefs.workStart, "callback")}>
+            <Icon name="call" />
+            Log Callback
+          </button>
+          <button onClick={() => create(date, prefs.workStart, "reminder")}>
+            <Icon name="notifications" />
+            Add Reminder
+          </button>
+        </div>
+        <p>
+          Callbacks schedule a follow-up. Record completed calls in the contact
+          timeline.
+        </p>
+      </section>
     </div>
   );
   const displayedView = section === "agenda" ? "agenda" : prefs.view;
@@ -715,34 +644,21 @@ function CalendarWorkspace() {
         </p>
       ) : null}
       <div className="calendar-tools">
-        <div className="calendar-section-tabs">
-          {(["calendar", "agenda", "task", "reminder"] as const).map((s) => (
-            <button
-              key={s}
-              aria-pressed={section === s}
-              onClick={() => setSection(s)}
-            >
-              <Icon
-                name={
-                  s === "task"
-                    ? "task_alt"
-                    : s === "reminder"
-                      ? "notifications"
-                      : s === "agenda"
-                        ? "event_note"
-                        : "calendar_month"
-                }
-              />
-              {s === "task"
-                ? "Tasks"
-                : s === "reminder"
-                  ? "Reminders"
-                  : s === "agenda"
-                    ? "Agenda"
-                    : "Calendar"}
-            </button>
-          ))}
-        </div>
+        {(["calendar", "agenda", "task", "reminder"] as const).map((s) => (
+          <button
+            key={s}
+            aria-pressed={section === s}
+            onClick={() => setSection(s)}
+          >
+            {s === "task"
+              ? "Tasks"
+              : s === "reminder"
+                ? "Reminders"
+                : s === "agenda"
+                  ? "Agenda"
+                  : "Calendar"}
+          </button>
+        ))}
         <div className="calendar-mobile-panels">
           <button
             onClick={() => {
@@ -781,27 +697,14 @@ function CalendarWorkspace() {
           >
             ‹
           </button>
-          <label className="calendar-period-label">
-            <span>
-              {displayedView === "week"
-                ? `${dateLabel(days[0], { month: "short", day: "numeric" })} – ${dateLabel(days[days.length - 1], { month: "short", day: "numeric", year: "numeric" })}`
-                : displayedView === "month"
-                  ? dateLabel(date, { month: "long", year: "numeric" })
-                  : dateLabel(date, {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-            </span>
-            <input
-              aria-label="Calendar date"
-              type="date"
-              value={date}
-              onChange={(e) => {
-                if (e.target.value) setDate(e.target.value);
-              }}
-            />
-          </label>
+          <input
+            aria-label="Calendar date"
+            type="date"
+            value={date}
+            onChange={(e) => {
+              if (e.target.value) setDate(e.target.value);
+            }}
+          />
           <button
             aria-label="Next period"
             onClick={() =>
@@ -811,24 +714,22 @@ function CalendarWorkspace() {
             ›
           </button>
         </div>
-        <div className="calendar-view-controls">
-          {(["day", "week", "month"] as const).map((v) => (
-            <button
-              key={v}
-              aria-pressed={prefs.view === v}
-              disabled={!ready || prefFailed}
-              onClick={() => {
-                setSection("calendar");
-                void savePreferences({ ...prefs, view: v });
-              }}
-            >
-              {v[0].toUpperCase() + v.slice(1)}
-            </button>
-          ))}
-          <button className="calendar-primary" onClick={() => create()}>
-            ＋ Add Event
+        {(["day", "week", "month", "agenda"] as const).map((v) => (
+          <button
+            key={v}
+            aria-pressed={prefs.view === v}
+            disabled={!ready || prefFailed}
+            onClick={() => {
+              setSection("calendar");
+              void savePreferences({ ...prefs, view: v });
+            }}
+          >
+            {v[0].toUpperCase() + v.slice(1)}
           </button>
-        </div>
+        ))}
+        <button className="calendar-primary" onClick={() => create()}>
+          ＋ Add Event
+        </button>
         <div className="calendar-sidebar-toggle">
           <button
             onClick={() =>
@@ -855,6 +756,21 @@ function CalendarWorkspace() {
           <aside className="calendar-left-desktop">{left}</aside>
         ) : null}
         <section className="calendar-stage" aria-label="Scheduling workspace">
+          <div className="calendar-stage-header">
+            <span>
+              {prefs.timezone}
+              {saving ? " · Saving…" : ""}
+            </span>
+            <input
+              aria-label="Search calendar"
+              placeholder="Search calendar…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <button onClick={refresh} disabled={loading}>
+              Refresh
+            </button>
+          </div>
           {loading ? (
             <div className="calendar-empty" role="status">
               Loading your calendar…
@@ -1043,7 +959,7 @@ function CalendarWorkspace() {
                           <button
                             key={slot}
                             className="calendar-slot"
-                            style={{ top: slot * 30 * MINUTE_PX }}
+                            style={{ top: slot * 30 }}
                             aria-label={`Schedule ${day} ${String(Math.floor(slot / 2)).padStart(2, "0")}:${slot % 2 ? "30" : "00"}`}
                             onClick={() =>
                               create(
