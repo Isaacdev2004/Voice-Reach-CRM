@@ -405,3 +405,30 @@
   border: 0;
 }
 .vs-workspace .vs-voice-strip>div:first-child{background:#f8f4ec;border-color:#e9e2d9;color:#716960}
+/* Create mode is a production workspace; the approved library hero is unchanged. */
+.vs-create-page { gap:12px; }
+.vs-compact-brand { padding:4px 0 10px; border-bottom:1px solid #e9e2d9; }
+.vs-compact-brand > p:first-child { font-size:10px; letter-spacing:.18em; color:#956744; margin-bottom:5px; }
+.vs-compact-brand h1 { font-family:var(--font-serif,Georgia),Georgia,serif; font-size:24px; line-height:1.2; }
+.vs-compact-brand > p:last-child { font-size:13px; line-height:1.5; color:#716960; margin-top:5px; }
+.vs-workspace .vs-layout { grid-template-columns:minmax(0,1fr) minmax(290px,340px); gap:14px; }
+.vs-library-column { grid-column:1/-1; }
+.vs-workspace [hidden] { display:none!important; }
+.vs-library-column .vs-library { max-height:260px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+.vs-workspace #vs-script { min-height:230px; font-size:14px; line-height:1.75; }
+.vs-save-state { font-size:12px; color:#716960; margin:0 0 10px; }
+.vs-context-tabs,.vs-quick-prompts { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:13px; }
+.vs-workspace .vs-context-tabs button { padding:7px 10px; }
+.vs-context-tabs [aria-pressed=true] { background:#f3eee6!important; color:#805638; }
+.vs-workspace .vs-quick-prompts button { border-radius:9px; padding:6px 8px; font-size:11px; text-align:left; }
+.vs-alert .vs-actions { margin-top:8px; }
+.vs-workspace .vs-heading { position:sticky; top:0; z-index:20; background:#faf7f1f5; padding:10px 0; margin-bottom:6px; }
+.vs-unsaved-audio { border:1px solid #d5b997; padding:12px; border-radius:10px; margin:10px 0; background:#faf4ea; }
+.vs-transcript-compare { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:12px 0; }
+.vs-transcript-compare pre { white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; font-size:12px; line-height:1.6; padding:10px; background:#f8f5ef; border-radius:10px; }
+@media(min-width:1700px) { .vs-workspace[data-library-open=true] .vs-layout { grid-template-columns:240px minmax(0,1fr) 340px; } .vs-library-column { grid-column:auto; } .vs-library-column .vs-library { display:block; max-height:650px; } }
+@media(max-width:1099px) { .vs-workspace .vs-layout { grid-template-columns:minmax(0,1fr); } .vs-library-column .vs-library { grid-template-columns:repeat(2,minmax(0,1fr)); } .vs-heading { align-items:flex-start; flex-wrap:wrap; } .vs-heading .vs-actions { width:100%; } .vs-workspace .vs-heading { position:static; } }
+@media(max-width:599px) { .vs-library-column .vs-library,.vs-transcript-compare { grid-template-columns:minmax(0,1fr); } .vs-heading h2 { font-size:24px; } .vs-workspace #vs-script { min-height:210px; } .vs-steps { gap:5px; padding:8px; } .vs-workspace .vs-steps button { padding:6px 8px; font-size:11px; } }
+
+.vs-transcription-details > summary { cursor:pointer; font-family:var(--font-serif,Georgia),Georgia,serif; font-size:18px; color:#292520; }
+.vs-transcription-details[open] > summary { margin-bottom:12px; }

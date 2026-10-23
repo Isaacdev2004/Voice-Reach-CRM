@@ -933,3 +933,21 @@ test("booking availability fails closed if provider authorization records cannot
   );
   assert.equal(f.payloads.length, 0);
 });
+
+test("preference save distinguishes missing RPC, outage, and unconfirmed persistence without leaking internals", async () => {
+  for (const [result, code] of [
+    [{ data: null, error: { code: "PGRST202", message: "private database detail" } }, "calendar_setup_required"],
+    [{ data: null, error: { code: "08006", message: "private database detail" } }, "preferences_unavailable"],
+    [{ data: null, error: null }, "preferences_unconfirmed"],
+  ]) {
+    const f = fixture();
+    f.stubs["@/lib/supabaseAdmin"].supabaseAdmin.rpc = async () => result;
+    const response = await f.load("app/api/calendar/preferences/route").PUT(new Request("http://localhost/api/calendar/preferences", {
+      method: "PUT", body: JSON.stringify({ preferences: {}, version: null }),
+    }));
+    assert.equal(response.status, 503);
+    const body = await response.json();
+    assert.equal(body.code, code);
+    assert.equal(JSON.stringify(body).includes("private database detail"), false);
+  }
+});

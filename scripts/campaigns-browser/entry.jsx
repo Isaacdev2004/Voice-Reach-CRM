@@ -77,7 +77,7 @@ w.__steps = Object.fromEntries(
       {
         id: id(101 + i * 2),
         step_order: 2,
-        type: "sms",
+        type: "voicemail",
         title: "Personal follow-up",
         description:
           "Let me know how your search is progressing. Reply STOP to opt out.",

@@ -46,12 +46,19 @@ export const PUT = withApiHandler(async (request) => {
     p_preferences: body.preferences,
     p_expected: body.version,
   });
-  if (saved.error)
+  if (saved.error) {
+    const conflict = saved.error.message.includes("stale");
+    const setupRequired = ["42883", "PGRST202"].includes(saved.error.code);
     return apiError(
-      saved.error.message.includes("stale")
+      conflict
         ? "Preferences changed on another device. Reload before saving."
-        : "Preferences could not be saved. Calendar setup may be required.",
-      { status: saved.error.message.includes("stale") ? 409 : 503 },
+        : setupRequired
+          ? "Calendar preference saving needs a database update. Your appointments have not been changed."
+          : "Calendar preferences are temporarily unavailable. Please try again.",
+      { status: conflict ? 409 : 503, code: conflict ? "preferences_conflict" : setupRequired ? "calendar_setup_required" : "preferences_unavailable" },
     );
+  }
+  if (!z.string().uuid().safeParse(saved.data).success)
+    return apiError("Calendar preference saving could not be confirmed. Please reload before retrying.", { status: 503, code: "preferences_unconfirmed" });
   return apiOk({ preferences: body.preferences, version: saved.data });
 });

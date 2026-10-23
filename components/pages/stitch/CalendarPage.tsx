@@ -10,6 +10,7 @@ import { CalendarEventEditor } from "@/components/calendar/calendar-event-editor
 import { CalendarPreferencesDialog } from "@/components/calendar/calendar-preferences-dialog";
 import {
   DEFAULT_CALENDAR_PREFERENCES,
+  CalendarPreferencesSchema,
   type CalendarPreferences,
 } from "@/lib/calendar/preferences";
 import {
@@ -201,13 +202,26 @@ function CalendarWorkspace() {
           body: JSON.stringify({ preferences: next, version: prefVersion }),
         });
         const d = await response.json();
-        if (!response.ok || d.success === false) throw Error();
+        if (!response.ok || d.success === false) {
+          const messages: Record<string, string> = {
+            preferences_conflict: "Preferences changed on another device. Reload before saving again.",
+            calendar_setup_required: "Calendar preference saving needs a database update. Your appointments have not been changed.",
+            preferences_unavailable: "Calendar preferences are temporarily unavailable. Please try again.",
+            preferences_unconfirmed: "Saving could not be confirmed. Reload before trying again.",
+          };
+          throw Error(messages[d.code] ?? "Calendar preferences could not be saved. Please try again.");
+        }
+        if (!CalendarPreferencesSchema.safeParse(d.preferences).success || typeof d.version !== "string")
+          throw Error("Saving could not be confirmed. Reload before trying again.");
         setPrefs(d.preferences);
         setPrefVersion(d.version);
+        setNotice("");
         return true;
-      } catch {
+      } catch (error) {
         setNotice(
-          "Preferences could not be saved. Reload before trying again if another device changed them.",
+          error instanceof Error && error.message.startsWith("Calendar") || error instanceof Error && /^(Preferences changed|Saving could not)/.test(error.message)
+            ? error.message
+            : "Calendar preferences could not be saved. Please try again.",
         );
         return false;
       } finally {

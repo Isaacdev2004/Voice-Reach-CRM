@@ -1,0 +1,128 @@
+[
+  {
+    "width": 1440,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "cloud draft save and server acknowledgement",
+      "autosave",
+      "refresh and reopening persistence",
+      "failed-save recovery",
+      "concurrent editing conflict and save as copy",
+      "AI review before applying and action requirements",
+      "authorized transcript review",
+      "exact-step confirmed assignment",
+      "subscriber isolation",
+      "compact create mode and collapsible library",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 1536,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "cloud draft save and server acknowledgement",
+      "autosave",
+      "refresh and reopening persistence",
+      "failed-save recovery",
+      "concurrent editing conflict and save as copy",
+      "AI review before applying and action requirements",
+      "authorized transcript review",
+      "exact-step confirmed assignment",
+      "subscriber isolation",
+      "compact create mode and collapsible library",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 1920,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "cloud draft save and server acknowledgement",
+      "autosave",
+      "refresh and reopening persistence",
+      "failed-save recovery",
+      "concurrent editing conflict and save as copy",
+      "AI review before applying and action requirements",
+      "authorized transcript review",
+      "exact-step confirmed assignment",
+      "subscriber isolation",
+      "compact create mode and collapsible library",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 1280,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "cloud draft save and server acknowledgement",
+      "autosave",
+      "refresh and reopening persistence",
+      "failed-save recovery",
+      "concurrent editing conflict and save as copy",
+      "AI review before applying and action requirements",
+      "authorized transcript review",
+      "exact-step confirmed assignment",
+      "subscriber isolation",
+      "compact create mode and collapsible library",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 1100,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "cloud draft save and server acknowledgement",
+      "autosave",
+      "refresh and reopening persistence",
+      "failed-save recovery",
+      "concurrent editing conflict and save as copy",
+      "AI review before applying and action requirements",
+      "authorized transcript review",
+      "exact-step confirmed assignment",
+      "subscriber isolation",
+      "compact create mode and collapsible library",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 768,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "cloud draft save and server acknowledgement",
+      "autosave",
+      "refresh and reopening persistence",
+      "failed-save recovery",
+      "concurrent editing conflict and save as copy",
+      "AI review before applying and action requirements",
+      "authorized transcript review",
+      "exact-step confirmed assignment",
+      "subscriber isolation",
+      "compact create mode and collapsible library",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 390,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "cloud draft save and server acknowledgement",
+      "autosave",
+      "refresh and reopening persistence",
+      "failed-save recovery",
+      "concurrent editing conflict and save as copy",
+      "AI review before applying and action requirements",
+      "authorized transcript review",
+      "exact-step confirmed assignment",
+      "subscriber isolation",
+      "compact create mode and collapsible library",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  }
+]

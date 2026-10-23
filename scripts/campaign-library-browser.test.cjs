@@ -243,6 +243,23 @@ const root = path.resolve(__dirname, "..");
       await drawer
         .getByRole("heading", { name: "Market introduction", exact: true })
         .waitFor();
+      const testTrigger = drawer.getByRole("button", { name: "Test Voice Script", exact: true });
+      await testTrigger.click();
+      const voiceDialog = page.getByRole("dialog", { name: "Test Voice Script", exact: true });
+      await voiceDialog.waitFor();
+      assert.equal(await voiceDialog.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return el.contains(document.elementFromPoint(r.right - 25, r.top + 25));
+      }), true, "Voice dialog must be above campaign drawer");
+      for (let i = 0; i < 12; i++) {
+        await page.keyboard.press("Tab");
+        assert.equal(await voiceDialog.evaluate(el => el.contains(document.activeElement)), true);
+      }
+      await page.keyboard.press("Escape");
+      await voiceDialog.waitFor({ state: "detached" });
+      assert.equal(await drawer.isVisible(), true);
+      assert.equal(await testTrigger.evaluate(el => document.activeElement === el), true);
+      assert.equal(await page.evaluate(() => document.body.style.overflow), "hidden");
       await drawer.locator("summary").first().click();
       await drawer.getByText(/Hello.*saved message/).waitFor();
       await page.screenshot({

@@ -35,6 +35,7 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
   const meta = row.metadata ?? {};
 
   switch (row.action) {
+    case "VOICE_SCRIPT_DRAFT_DOCUMENT": return null; // Private draft persistence, not a business event.
     case "PROPERTY_SEARCH_ACTION":
       return entry(row, {
         category: "contacts", icon: "home_work", tone: "default",

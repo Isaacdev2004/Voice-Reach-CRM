@@ -34,12 +34,13 @@
     "test:tasks": "node --import tsx scripts/tasks.test.ts && node scripts/tasks-routes.test.cjs",
     "test:tasks-db": "node scripts/tasks-database.test.cjs",
     "test:tasks-browser": "node scripts/tasks-browser.test.cjs",
-    "test:studio-audit": "node scripts/studio-audit.test.cjs",
+    "test:studio-audit": "node scripts/studio-audit.test.cjs && node scripts/voice-drafts.test.cjs",
     "test:settings-audit": "node scripts/settings-audit.test.cjs",
     "test:studio-db": "node scripts/studio-database.test.cjs",
     "test:studio-browser": "node scripts/studio-browser.test.cjs",
     "test:dashboard": "node scripts/dashboard-display.test.cjs",
-    "test:dashboard-browser": "node scripts/dashboard-review.test.cjs"
+    "test:dashboard-browser": "node scripts/dashboard-review.test.cjs",
+    "test:voice-repair-browser": "node scripts/voice-repair-browser.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",

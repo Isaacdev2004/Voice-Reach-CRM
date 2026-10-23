@@ -1,4 +1,6 @@
 "use client";
+import { RecordingTranscript } from "./recording-transcript";
+import { useVoiceDrafts } from "@/lib/voice-studio/use-voice-drafts";
 import { AudioWaveform } from "@/components/voice-studio/audio-waveform";
 
 import { useUser } from "@clerk/nextjs";
@@ -19,14 +21,13 @@ import { isUuid } from "@/lib/contacts/is-uuid";
 import { useCampaignOptions } from "@/lib/hooks/use-campaign-options";
 import { useVoiceAssets, type VoiceAsset } from "@/lib/hooks/use-voice-assets";
 import {
-  DEFAULT_VOICE_SCRIPT,
   formatDuration,
   removeLocalRecording,
   type LocalRecording,
 } from "@/lib/voice-studio/storage";
 import { uploadVoiceRecording } from "@/lib/voice-studio/upload";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type RecState = "idle" | "recording" | "paused";
 
@@ -43,7 +44,14 @@ export function VoiceStudioWorkspace({
   const { options: campaigns, loading: campaignsLoading } =
     useCampaignOptions();
 
-  const [scriptText, setScriptText] = useState("");
+  const draftController = useVoiceDrafts(user?.id,initialAsset?{title:initialAsset.title,script:initialAsset.studio_metadata?.script,scriptId:isUuid(initialAsset.script_id)?initialAsset.script_id:undefined}:undefined);
+  const {draft,drafts,phase,cloudError,localError}=draftController;
+  const scriptText=draft.script,title=draft.title,draftId=draft.id;
+  const setScriptText=(script:string)=>draftController.edit({script});
+  const setTitle=(title:string)=>draftController.edit({title});
+  const savingDraft=phase==="saving";
+  const [libraryOpen,setLibraryOpen]=useState(false);
+  const [contextTab,setContextTab]=useState<"ai"|"voice">("ai");
   const [campaignId, setCampaignId] = useState("");
   const [recState, setRecState] = useState<RecState>("idle");
   const [elapsed, setElapsed] = useState(0);
@@ -63,8 +71,6 @@ export function VoiceStudioWorkspace({
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const [title, setTitle] = useState("Untitled voice script");
-  const [draftId, setDraftId] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [stepId, setStepId] = useState("");
@@ -80,55 +86,23 @@ export function VoiceStudioWorkspace({
   const [consent, setConsent] = useState(false);
   const [stage, setStage] = useState(0);
   const [measured, setMeasured] = useState<number | null>(null);
-  const [savingDraft, setSavingDraft] = useState(false);
-  const [drafts, setDrafts] = useState<
-    { id: string; title: string; script: string; archived: boolean }[]
-  >([]);
-  const [cloudError, setCloudError] = useState("");
   const [aiInstruction, setAiInstruction] = useState("");
   const [aiProposal, setAiProposal] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
+  const [capabilities,setCapabilities]=useState<{writingConfigured:boolean;transcriptionConfigured:boolean}|null>(null);
+  const aiBase=useRef<{id:string;script:string}|null>(null);
+  const draftSnapshot=useRef(draft);draftSnapshot.current=draft;
+  const [pendingScript,setPendingScript]=useState("");
+  const recordingScript=useRef("");
+  const recordingDraftId=useRef("");
+  useEffect(()=>{const controller=new AbortController();fetch("/api/voice-studio/capabilities",{cache:"no-store",signal:controller.signal}).then(async r=>{const data=await r.json();if(!r.ok || data.success!==true)throw Error();if(!controller.signal.aborted)setCapabilities({writingConfigured:data.writingConfigured===true,transcriptionConfigured:data.transcriptionConfigured===true});}).catch(()=>{});return()=>controller.abort();},[]);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const selected = assets.find((a) => a.id === activeAssetId) ?? null;
   const selectedCampaign = campaigns.find((c) => c.id === campaignId);
   const selectedStep = steps.find((s) => s.id === stepId);
-  const loadDrafts = useCallback(async () => {
-    try {
-      const r = await fetch("/api/voice-studio/drafts");
-      const j = await r.json();
-      if (!r.ok) throw new Error();
-      setDrafts(j.drafts ?? []);
-      setCloudError("");
-    } catch {
-      setCloudError(
-        "Cloud script drafts are unavailable. Your work remains in this session; retry saving when service is restored.",
-      );
-    }
-  }, []);
-  const saveDraft = async () => {
-    if (!title.trim()) return;
-    setSavingDraft(true);
-    try {
-      const id = draftId || crypto.randomUUID();
-      const r = await fetch("/api/voice-studio/drafts", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, title: title.trim(), script: scriptText }),
-      });
-      if (!r.ok) throw new Error();
-      setDraftId(id);
-      await loadDrafts();
-      showToast("Script draft saved. Approved recordings are unchanged.");
-    } catch {
-      showToast(
-        "Could not save to your library. Keep this page open and retry.",
-        "error",
-      );
-    } finally {
-      setSavingDraft(false);
-    }
-  };
+  const saveDraft = () => draftController.save();
   const reviewAi = async () => {
+    const snapshot={id:draftId,script:scriptText};aiBase.current=snapshot;
     setAiBusy(true);
     setAiProposal("");
     try {
@@ -141,7 +115,8 @@ export function VoiceStudioWorkspace({
         }),
       });
       const j = await r.json();
-      if (!r.ok || !j.script) throw new Error();
+      if (!r.ok || j.success!==true || typeof j.script!=="string" || !j.script.trim() || j.script.length>5000) throw new Error();
+      if(draftSnapshot.current.id!==snapshot.id)return;
       setAiProposal(j.script);
     } catch {
       showToast(
@@ -165,20 +140,9 @@ export function VoiceStudioWorkspace({
   };
 
   useEffect(() => {
-    setScriptText(
-      initialAsset?.studio_metadata?.script ?? DEFAULT_VOICE_SCRIPT,
-    );
-    setDraftId(
-      initialAsset?.id && isUuid(initialAsset.script_id)
-        ? initialAsset.script_id
-        : "",
-    );
-    setTitle(initialAsset?.title ?? "Untitled voice script");
     setActiveAssetId(initialAsset?.id || null);
     setCampaignId("");
-    setDrafts([]);
-    void loadDrafts();
-  }, [user?.id, loadDrafts, initialAsset]);
+  }, [initialAsset]);
   useEffect(() => {
     let cancelled = false;
     setSteps([]);
@@ -228,6 +192,13 @@ export function VoiceStudioWorkspace({
     };
   }, [recState]);
 
+  useEffect(()=>{
+    if(!pendingBlob && recState==="idle")return;
+    const warn=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue="";};
+    const guard=(event:MouseEvent)=>{const link=(event.target as Element)?.closest?.("a[href]") as HTMLAnchorElement|null;if(!link || link.target==="_blank" || event.ctrlKey || event.metaKey)return;const next=new URL(link.href,location.href);if(next.pathname===location.pathname && next.origin===location.origin)return;if(!window.confirm("This recording has not been saved. Download or save it before leaving. Leave anyway?")){event.preventDefault();event.stopPropagation();}};
+    window.addEventListener("beforeunload",warn);document.addEventListener("click",guard,true);return()=>{window.removeEventListener("beforeunload",warn);document.removeEventListener("click",guard,true);};
+  },[pendingBlob,recState]);
+
   const stopStream = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
@@ -249,6 +220,7 @@ export function VoiceStudioWorkspace({
       return;
     }
     try {
+      recordingScript.current=scriptText;recordingDraftId.current=draftId;
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const mime = ["audio/webm", "audio/mp4", "audio/ogg"].find((t) =>
@@ -265,7 +237,7 @@ export function VoiceStudioWorkspace({
       };
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: mime });
-        setPendingBlob(blob);
+        setPendingBlob(blob);setPendingScript(recordingScript.current);
         setSaveTitle(`Recording ${new Date().toLocaleDateString()}`);
         setSaveOpen(true);
         stopStream();
@@ -304,7 +276,7 @@ export function VoiceStudioWorkspace({
   const handleSaveRecording = async () => {
     if (!pendingBlob || !saveTitle.trim()) return;
     setUploading(true);
-    const scriptId = draftId || "studio-default";
+    const scriptId = recordingDraftId.current || draftId;
     try {
       const asset = await uploadVoiceRecording(
         pendingBlob,
@@ -316,10 +288,10 @@ export function VoiceStudioWorkspace({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          studioMetadata: { script: scriptText, source: "human" },
+          studioMetadata: { script: pendingScript, source: "human" },
         }),
       })
-        .then((r) => r.ok)
+        .then(async r => {const data=await r.json();return r.ok && data.success===true && data.voiceAsset?.id===asset.id && data.voiceAsset?.studio_metadata?.script===pendingScript;})
         .catch(() => false);
       await refresh();
       showToast(
@@ -453,7 +425,7 @@ export function VoiceStudioWorkspace({
       !a.studio_metadata?.archived,
   );
   return (
-    <div className="vs-workspace">
+    <div className="vs-workspace" data-library-open={libraryOpen} data-protect-leave={Boolean((localError && phase!=="saved") || pendingBlob || recState!=="idle")}>
       {toast && <AppToast message={toast.message} tone={toast.tone} />}
       <header className="vs-heading">
         <div>
@@ -464,10 +436,12 @@ export function VoiceStudioWorkspace({
           </p>
         </div>
         <div className="vs-actions">
+          <button type="button" aria-expanded={libraryOpen} aria-controls="vs-library-panel" onClick={()=>setLibraryOpen(value=>!value)}>{libraryOpen?"Hide library":"Show library"}</button>
+          <button type="button" onClick={()=>{const blob=new Blob([`${title}\n\n${scriptText}`],{type:"text/plain"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="myari-voice-script.txt";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}}>Download draft</button>
           <button
             type="button"
             onClick={() => void saveDraft()}
-            disabled={savingDraft}
+            disabled={savingDraft || !title.trim() || phase==="loading" || phase==="conflict"}
           >
             {savingDraft ? "Saving…" : "Save draft"}
           </button>
@@ -481,6 +455,7 @@ export function VoiceStudioWorkspace({
           />
         </div>
       </header>
+      <div className="vs-save-state" role="status" aria-live="polite">{phase==="saved"?"Script draft saved to cloud.":phase==="saving"?"Saving draft…":phase==="loading"?"Checking cloud drafts…":phase==="conflict"?"Draft conflict — your edits are preserved.":phase==="failed"?"Cloud save failed — retry or download your draft.":"Unsaved changes · autosave pending"}</div>
       <nav className="vs-steps" aria-label="Script workflow">
         {[
           "Write script",
@@ -508,27 +483,19 @@ export function VoiceStudioWorkspace({
       {cloudError && (
         <div role="status" className="vs-alert">
           {cloudError}
+          <div className="vs-actions"><button type="button" onClick={()=>void draftController.loadDrafts()}>Retry cloud library</button><button type="button" disabled={savingDraft} onClick={()=>draftController.newDraft(true)}>Save as new draft</button>{phase==="conflict"?<button type="button" onClick={()=>void draftController.reloadCloud()}>Reload cloud version</button>:null}</div>
         </div>
       )}
+      {localError?<p role="alert" className="vs-alert">{localError}</p>:null}
       <div className="vs-layout">
-        <aside className="vs-column">
+        <aside className="vs-column vs-library-column" id="vs-library-panel" hidden={!libraryOpen}>
           <section className="vs-card">
             <div className="vs-titlebar">
               <h3>Script library</h3>
               <button
                 type="button"
                 onClick={() => {
-                  if (
-                    scriptText !== DEFAULT_VOICE_SCRIPT &&
-                    !window.confirm(
-                      "Start a new draft? Save your current work first.",
-                    )
-                  )
-                    return;
-                  setActiveAssetId(null);
-                  setDraftId("");
-                  setTitle("Untitled voice script");
-                  setScriptText("");
+                  draftController.newDraft();
                 }}
               >
                 + New
@@ -577,16 +544,14 @@ export function VoiceStudioWorkspace({
                       className="vs-library-item"
                       aria-pressed={draftId === d.id && !activeAssetId}
                       onClick={() => {
-                        setDraftId(d.id);
-                        setTitle(d.title);
-                        setScriptText(d.script);
+                        draftController.select(d);
                         setActiveAssetId(null);
                       }}
                     >
                       <Icon name="description" />
                       <span>
-                        <strong>{d.title}</strong>
-                        <small>Script draft · no recording</small>
+                        <strong>{d.title || "Untitled recovery draft"}</strong>
+                        <small>{d.recovery?"Device recovery draft":"Cloud script draft"} · no recording</small>
                       </span>
                     </button>
                   ))}
@@ -598,8 +563,9 @@ export function VoiceStudioWorkspace({
                   aria-pressed={activeAssetId === a.id}
                   onClick={() => {
                     setActiveAssetId(a.id);
-                    setTitle(a.title);
-                    setScriptText(a.studio_metadata?.script ?? "");
+                    const related=drafts.find(d=>d.id===a.script_id);
+                    if(related)draftController.select(related);
+                    else{draftController.newDraft();draftController.edit({title:a.title,script:a.studio_metadata?.script ?? ""});}
                     setMeasured(null);
                   }}
                 >
@@ -646,9 +612,10 @@ export function VoiceStudioWorkspace({
                 <button
                   type="button"
                   key={a}
+                  disabled={aiBusy || !capabilities?.writingConfigured || !scriptText.trim()}
                   onClick={() => {
-                    setAiInstruction(a);
-                    document.getElementById("vs-ai")?.focus();
+                    setAiInstruction(a === "Translate" ? "Translate into [choose target language] while preserving facts." : a === "Personalize" ? "Personalize using [provide authorized client details]; keep unknown details as placeholders." : a);
+                    setContextTab("ai");requestAnimationFrame(()=>document.getElementById("vs-ai")?.focus());
                   }}
                 >
                   {a}
@@ -678,11 +645,9 @@ export function VoiceStudioWorkspace({
                 onChange={(e) => {
                   const el = editorRef.current;
                   const n = el?.selectionStart ?? scriptText.length;
-                  setScriptText(
-                    scriptText.slice(0, n) +
-                      e.target.value +
-                      scriptText.slice(n),
-                  );
+                  const next=scriptText.slice(0,n)+e.target.value+scriptText.slice(n);
+                  if(next.length>5000){showToast("Scripts can contain up to 5,000 characters. Shorten the draft before inserting a variable.","error");return;}
+                  setScriptText(next);
                   el?.focus();
                 }}
               >
@@ -744,11 +709,12 @@ export function VoiceStudioWorkspace({
                   : "Select a recording to measure its duration."}
               </p>
             </div>
+            {pendingBlob && !saveOpen?<div className="vs-unsaved-audio"><p>Your unsaved recording is retained on this page.</p><div className="vs-actions"><button type="button" onClick={()=>setSaveOpen(true)}>Retry save recording</button><button type="button" onClick={()=>{const url=URL.createObjectURL(pendingBlob);const a=document.createElement("a");a.href=url;a.download=`myari-recording.${pendingBlob.type.includes("mp4")?"m4a":pendingBlob.type.includes("ogg")?"ogg":"webm"}`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}}>Download recording</button><button type="button" onClick={()=>{if(window.confirm("Discard this unsaved recording?"))setPendingBlob(null);}}>Discard recording</button></div></div>:null}
             <div className="vs-record-controls">
               <button
                 type="button"
                 className="vs-primary"
-                disabled={uploading || (!consent && recState === "idle")}
+                disabled={uploading || Boolean(pendingBlob) || (!consent && recState === "idle")}
                 onClick={() =>
                   void (recState === "idle"
                     ? startRecording()
@@ -788,16 +754,17 @@ export function VoiceStudioWorkspace({
               separate recording version.
             </p>
           </section>
+          {selected?<RecordingTranscript key={selected.id} asset={selected} available={capabilities?.transcriptionConfigured ?? null}/>:null}
           <section className="vs-card" id="vs-stage-2">
             <h3>Recording versions</h3>
             {assets
-              .filter((a) => a.script_id === (draftId || "studio-default"))
+              .filter((a) => a.script_id === draftId || Boolean(selected && a.script_id === selected.script_id))
               .map((a) => (
                 <div key={a.id} className="vs-titlebar">
                   <span>
                     {a.title} <small>{a.approved ? "Approved" : "Draft"}</small>
                   </span>
-                  <button type="button" onClick={() => setActiveAssetId(a.id)}>
+                  <button type="button" onClick={() => {setActiveAssetId(a.id);setMeasured(null);}}>
                     Select
                   </button>
                 </div>
@@ -827,12 +794,16 @@ export function VoiceStudioWorkspace({
           </section>
         </main>
         <aside className="vs-column">
-          <section className="vs-card">
+          <section className="vs-card vs-context-panel">
+            <nav className="vs-context-tabs" aria-label="Writing and voice tools"><button type="button" aria-pressed={contextTab==="ai"} onClick={()=>setContextTab("ai")}>AI writing</button><button type="button" aria-pressed={contextTab==="voice"} onClick={()=>setContextTab("voice")}>Voice settings</button></nav>
+            <div hidden={contextTab!=="ai"}>
             <h3>AI Script Assistant</h3>
             <p>
               Create, refine and optimize your script. Review every suggestion
               before applying.
             </p>
+            {!capabilities?.writingConfigured?<p>{capabilities===null?"AI availability could not yet be verified. Reload to retry.":"AI writing is unavailable. Continue writing or recording; your work is preserved."}</p>:null}
+            <div className="vs-quick-prompts">{["Re-engage a cold buyer lead without assuming recent contact.","Follow up after a showing; leave missing property details as placeholders.","Check in with a past client without inventing an anniversary.","Invite a seller to discuss their next steps without promises."].map(prompt=><button key={prompt} type="button" disabled={aiBusy} onClick={()=>setAiInstruction(prompt)}>{prompt.split(";")[0].split(" without")[0]}</button>)}</div>
             <textarea
               id="vs-ai"
               rows={3}
@@ -843,7 +814,7 @@ export function VoiceStudioWorkspace({
             <button
               className="vs-primary"
               type="button"
-              disabled={aiBusy || !aiInstruction.trim()}
+              disabled={aiBusy || !capabilities?.writingConfigured || !aiInstruction.trim() || aiInstruction.includes("[choose target language]") || aiInstruction.includes("[provide authorized client details]")}
               onClick={() => void reviewAi()}
             >
               {aiBusy ? "Preparing suggestion…" : "Generate script"}
@@ -853,6 +824,7 @@ export function VoiceStudioWorkspace({
                 <h4>Review proposed text</h4>
                 <textarea
                   aria-label="AI proposed script"
+                  maxLength={5000}
                   rows={6}
                   value={aiProposal}
                   onChange={(e) => setAiProposal(e.target.value)}
@@ -864,6 +836,8 @@ export function VoiceStudioWorkspace({
                 <button
                   type="button"
                   onClick={() => {
+                    if(aiBase.current?.id!==draftId){setAiProposal("");showToast("Select the original draft and generate a new suggestion.","error");return;}
+                    if(aiBase.current?.script!==scriptText && !window.confirm("Your script changed after this suggestion was requested. Replace the current draft with the reviewed suggestion?"))return;
                     setScriptText(aiProposal);
                     setAiProposal("");
                   }}
@@ -875,15 +849,17 @@ export function VoiceStudioWorkspace({
                 </button>
               </>
             )}
-          </section>
-          <section className="vs-card">
+            </div>
+            <div hidden={contextTab!=="voice"}>
             <h3>Voice settings</h3>
             <VoiceCloningStrip
               embedded
               scriptText={scriptText}
+              scriptId={draftId}
               assets={assets}
-              onGenerated={() => void refresh()}
+              onGenerated={asset => {if(asset)setActiveAssetId(asset.id);void refresh();}}
             />
+            </div>
           </section>
           <section className="vs-card" id="vs-stage-4">
             <h3>Campaign assignment</h3>
@@ -922,12 +898,14 @@ export function VoiceStudioWorkspace({
                 ))}
               </select>
             </label>
+            {selectedStep && (selectedStep.voice_asset_id || selectedStep.conditions?.voiceAssetId)?<p>This step already has a recording. Assigning another version requires confirmation.</p>:null}
             {campaignId && !steps.length && (
               <p>
                 No available voicemail steps. Open the campaign to review its
                 sequence.
               </p>
             )}
+            <label>Approved recording version<select aria-label="Approved recording version" value={selected?.approved?selected.id:""} onChange={event=>{setActiveAssetId(event.target.value);setMeasured(null);}}><option value="">Select approved version…</option>{assets.filter(asset=>asset.approved).map(asset=><option value={asset.id} key={asset.id}>{asset.title} · {new Date(asset.created_at).toLocaleDateString()}</option>)}</select></label>
             <TestVoiceScript
               asset={selected}
               script={selected?.studio_metadata?.script ?? ""}
@@ -986,7 +964,6 @@ export function VoiceStudioWorkspace({
         open={saveOpen}
         onClose={() => {
           setSaveOpen(false);
-          setPendingBlob(null);
         }}
         title="Save recording"
         description="Name your take before adding it to the library."
@@ -996,7 +973,6 @@ export function VoiceStudioWorkspace({
           <ModalFooterActions
             onCancel={() => {
               setSaveOpen(false);
-              setPendingBlob(null);
             }}
             primaryLabel={uploading ? "Saving…" : "Save recording"}
             onPrimary={handleSaveRecording}

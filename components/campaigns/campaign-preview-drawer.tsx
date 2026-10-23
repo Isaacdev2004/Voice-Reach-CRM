@@ -82,6 +82,8 @@ export function CampaignPreviewDrawer({
     document.body.style.overflow = "hidden";
     panel.current?.focus();
     const key = (e: KeyboardEvent) => {
+      const dialogs = document.querySelectorAll('[role="dialog"]');
+      if (dialogs.item(dialogs.length - 1) !== panel.current) return;
       if (e.key === "Escape") {
         e.preventDefault();
         onClose();

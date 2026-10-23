@@ -234,7 +234,7 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   if (body.voiceAssetId) {
     const assignedCampaign = await supabaseAdmin
       .from("campaigns")
-      .select("live_launched")
+      .select("live_launched,provider,voice_asset_id")
       .eq("owner_id", ownerId)
       .eq("id", campaignId)
       .maybeSingle();
@@ -246,6 +246,13 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
       return apiError("Confirm the recording change for this live campaign.", {
         status: 409,
       });
+    if(body.stepId){
+      const existingStep=await supabaseAdmin.from("campaign_steps").select("id,type,voice_asset_id,conditions").eq("owner_id",ownerId).eq("campaign_id",campaignId).eq("id",body.stepId).maybeSingle();
+      if(existingStep.error)return apiError("The campaign step could not be verified.",{status:503});
+      if(!existingStep.data || existingStep.data.type!=="voicemail")return apiError("Select a voicemail step on this campaign.",{status:400});
+      const previous=existingStep.data.voice_asset_id || existingStep.data.conditions?.voiceAssetId;
+      if(previous && previous!==body.voiceAssetId && !body.assignmentConfirmed)return apiError("Confirm replacing the recording on this campaign step.",{status:409});
+    }else if(assignedCampaign.data.voice_asset_id && assignedCampaign.data.voice_asset_id!==body.voiceAssetId && !body.assignmentConfirmed)return apiError("Confirm replacing this campaign recording.",{status:409});
     const { data: asset, error: assetError } = await supabaseAdmin
       .from("voice_assets")
       .select("id, approved, storage_path")
@@ -253,12 +260,13 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
       .eq("owner_id", ownerId)
       .maybeSingle();
 
-    if (assetError) return apiError(assetError.message, { status: 500 });
+    if (assetError) return apiError("Recording could not be verified.", { status: 503 });
     if (!asset) return apiError("Voice asset not found", { status: 404 });
     if (!asset.storage_path?.startsWith(`${ownerId}/`))
       return apiError("Recording storage could not be verified.", {
         status: 400,
       });
+    if(assignedCampaign.data.provider==="slybroadcast" && !/\.(mp3|wav|m4a)$/i.test(asset.storage_path))return apiError("This provider requires MP3, WAV or M4A audio. Keep this version and upload a compatible recording before assigning it.",{status:400});
     if (!asset.approved) {
       return apiError(
         "Approve the voice recording before linking it to a campaign.",
