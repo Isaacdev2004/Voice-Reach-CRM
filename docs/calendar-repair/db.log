@@ -1,0 +1,5 @@
+
+> voicereach-backend-starter@0.1.0 test:calendar-db
+> node scripts/calendar-database.test.cjs
+
+Calendar migration: idempotent install, owner-separated documents, one-winner concurrent RPC/CAS, compatible API revisions, browser RPC denial passed.

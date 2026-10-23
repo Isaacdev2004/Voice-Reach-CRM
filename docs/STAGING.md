@@ -83,3 +83,8 @@ Dashboard / briefing / Twilio follow-up: see [final audit](DASHBOARD-BRIEFING-TW
 ### Dashboard bottom finish — 2026-10-23
 
 Dashboard finish QA: scroll to the end at 1440/1920/1280/768/390px widths and 700/900px heights. The final recommendation remains fully visible above the bottom edge, with no horizontal overflow. Synthetic screenshots: dashboard-bottom-spacing/desktop.png and mobile.png.
+
+
+## Calendar functionality repair — 2026-10-23
+
+See [Calendar repair report](CALENDAR-FUNCTIONALITY-REPAIR.md). Calendar view changes are immediate and independent of cloud saves. Preferences use owner-scoped existing storage with revision checks; the optional compatibility SQL was tested only in isolation and must not be applied to production automatically. Review using synthetic events; no real communications or production appointment edits are needed. Google connection status must be verified per subscriber, never assumed.

@@ -593,32 +593,47 @@ test("all-day recurrence remains midnight-to-midnight through DST; invalid all-d
   assert.equal(event.ends_at, "2026-03-09T04:00:00.000Z");
   assert.equal(event.metadata.endDate, "2026-03-09");
 });
-test("preference writes carry authenticated owner and expected version; stale saves do not silently succeed", async () => {
+test("preference documents persist without RPC and preserve tenant/revision checks", async () => {
   const f = fixture();
-  let args;
-  f.stubs["@/lib/supabaseAdmin"].supabaseAdmin.rpc = async (name, p) => {
-    args = { name, ...p };
-    return p.p_expected === id(10)
-      ? { data: id(11), error: null }
-      : { data: null, error: { message: "stale preferences" } };
+  f.stubs["@/lib/supabaseAdmin"].supabaseAdmin.rpc = async () => {
+    throw Error("Missing RPC must not be called");
   };
   const route = f.load("app/api/calendar/preferences/route");
-  const input = {
-    preferences: { view: "week", timezone: "America/New_York" },
-    version: id(10),
-  };
-  const req = () =>
-    new Request("http://localhost/api/calendar/preferences", {
-      method: "PUT",
-      body: JSON.stringify(input),
-    });
-  assert.equal((await route.PUT(req())).status, 200);
-  assert.equal(args.p_owner, owner);
-  assert.equal(args.p_expected, id(10));
+  const put = (preferences, version) =>
+    route.PUT(
+      new Request("http://localhost/api/calendar/preferences", {
+        method: "PUT",
+        body: JSON.stringify({ preferences, version }),
+      }),
+    );
+  const first = await put({ view: "day" }, null);
+  assert.equal(first.status, 200);
+  const saved = await first.json();
+  assert.equal((await (await route.GET()).json()).preferences.view, "day");
+  assert.equal((await put({ view: "month" }, null)).status, 409);
+  assert.equal(
+    (await put({ view: "agenda", timezone: "Asia/Tokyo" }, saved.version))
+      .status,
+    200,
+  );
+  assert.equal(
+    (
+      await f
+        .load("lib/calendar/load-preferences")
+        .loadCalendarPreferences(owner)
+    ).timezone,
+    "Asia/Tokyo",
+  );
   f.actor("other-owner");
-  input.version = null;
-  assert.equal((await route.PUT(req())).status, 409);
-  assert.equal(args.p_owner, "other-owner");
+  assert.equal((await (await route.GET()).json()).version, null);
+  assert.equal((await put({ view: "week" }, saved.version)).status, 409);
+  assert.equal((await put({ view: "week" }, null)).status, 200);
+  assert.equal(
+    f.tables.audit_logs.filter(
+      (r) => r.action === "CALENDAR_PREFERENCES_DOCUMENT",
+    ).length,
+    2,
+  );
 });
 test("booking uses real busy intervals and pending holds, supports only configured working hours and honors notice", async () => {
   const f = setup();
@@ -910,44 +925,67 @@ test("booking availability fails closed if provider authorization records cannot
   const f = setup();
   f.fail("calendar_connections");
   await assert.rejects(
-    f
-      .load("lib/calendar/booking")
-      .bookingSlots(
-        {
-          id: id(70),
-          owner_id: owner,
-          kind: "booking",
-          config: {
-            timezone: "America/New_York",
-            duration: 60,
-            workStart: "09:00",
-            workEnd: "12:00",
-            noticeMinutes: 60,
-          },
-          active: true,
+    f.load("lib/calendar/booking").bookingSlots(
+      {
+        id: id(70),
+        owner_id: owner,
+        kind: "booking",
+        config: {
+          timezone: "America/New_York",
+          duration: 60,
+          workStart: "09:00",
+          workEnd: "12:00",
+          noticeMinutes: 60,
         },
-        "2026-10-26",
-        new Date("2026-10-23T12:00Z"),
-      ),
+        active: true,
+      },
+      "2026-10-26",
+      new Date("2026-10-23T12:00Z"),
+    ),
     /EXTERNAL_UNVERIFIED/,
   );
   assert.equal(f.payloads.length, 0);
 });
 
-test("preference save distinguishes missing RPC, outage, and unconfirmed persistence without leaking internals", async () => {
-  for (const [result, code] of [
-    [{ data: null, error: { code: "PGRST202", message: "private database detail" } }, "calendar_setup_required"],
-    [{ data: null, error: { code: "08006", message: "private database detail" } }, "preferences_unavailable"],
-    [{ data: null, error: null }, "preferences_unconfirmed"],
-  ]) {
-    const f = fixture();
-    f.stubs["@/lib/supabaseAdmin"].supabaseAdmin.rpc = async () => result;
-    const response = await f.load("app/api/calendar/preferences/route").PUT(new Request("http://localhost/api/calendar/preferences", {
-      method: "PUT", body: JSON.stringify({ preferences: {}, version: null }),
-    }));
-    assert.equal(response.status, 503);
-    const body = await response.json();
-    assert.equal(body.code, code);
-    assert.equal(JSON.stringify(body).includes("private database detail"), false);
+test("preference storage outages return safe errors and never confirm persistence", async () => {
+  const f = fixture();
+  f.fail("audit_logs");
+  const route = f.load("app/api/calendar/preferences/route");
+  const response = await route.PUT(
+    new Request("http://localhost/api/calendar/preferences", {
+      method: "PUT",
+      body: JSON.stringify({ preferences: {}, version: null }),
+    }),
+  );
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).code, "preferences_unavailable");
+  assert.equal(f.tables.audit_logs.length, 0);
+});
+
+test("blank Google redirect override falls back to the configured application callback", () => {
+  const old = process.env.GOOGLE_OAUTH_REDIRECT_URI,
+    base = process.env.APP_BASE_URL;
+  try {
+    process.env.GOOGLE_OAUTH_REDIRECT_URI = "  ";
+    process.env.APP_BASE_URL = "https://calendar.example.test";
+    assert.equal(
+      fixture().load("lib/calendar/google").googleRedirectUri(),
+      "https://calendar.example.test/api/integrations/google/callback",
+    );
+  } finally {
+    if (old === undefined) delete process.env.GOOGLE_OAUTH_REDIRECT_URI;
+    else process.env.GOOGLE_OAUTH_REDIRECT_URI = old;
+    if (base === undefined) delete process.env.APP_BASE_URL;
+    else process.env.APP_BASE_URL = base;
   }
+});
+
+test("invalid date links fall back safely while valid selected dates survive preference failures", () => {
+  const { initialCalendarDate } = fixture().load("lib/calendar/time");
+  assert.equal(
+    initialCalendarDate("2026-10-22", "America/New_York"),
+    "2026-10-22",
+  );
+  assert.match(initialCalendarDate("2026-02-30", "UTC"), /^\d{4}-\d{2}-\d{2}$/);
+  assert.notEqual(initialCalendarDate("2026-02-30", "UTC"), "2026-02-30");
 });

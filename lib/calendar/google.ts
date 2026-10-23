@@ -30,7 +30,7 @@ export function isGoogleCalendarConfigured() {
 }
 export function googleRedirectUri() {
   return (
-    process.env.GOOGLE_OAUTH_REDIRECT_URI?.trim().replace(/\/$/, "") ??
+    process.env.GOOGLE_OAUTH_REDIRECT_URI?.trim().replace(/\/$/, "") ||
     `${process.env.APP_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:3000"}/api/integrations/google/callback`
   );
 }

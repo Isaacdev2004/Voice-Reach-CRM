@@ -40,6 +40,7 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
     case "TWILIO_CALL_EVENT":
       if (!["completed", "busy", "no-answer", "failed", "canceled"].includes(String(meta.status))) return null;
       return entry(row, { category:"engagement", icon:"call", tone:["busy","no-answer","failed"].includes(String(meta.status)) ? "warning" : "default", title:"Twilio call event recorded", body: `${String(meta.status ?? "unknown")} · Call-leg status; human answer is not inferred.`, href:row.entity_id ? `/dashboard/contacts/${row.entity_id}` : "/dashboard/activity", metadata:{status:meta.status,duration:meta.duration,direction:meta.direction} });
+    case "CALENDAR_PREFERENCES_DOCUMENT":
     case "DASHBOARD_PRIVATE": return null;
     case "DASHBOARD_BRIEFING_READY":
       return entry(row, { category: "system", icon: "auto_awesome", tone: "default", title: "Your daily business briefing is ready.", body: "Open your dashboard to review verified priorities.", href: "/dashboard#morning-briefing" });
