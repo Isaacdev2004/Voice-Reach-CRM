@@ -535,7 +535,11 @@ function AssistantSession({ owner }: { owner?: string }) {
               value={(edits[p.id] ?? p.payload).body}
               readOnly={p.status !== "proposed"}
               maxLength={
-                p.payload.kind === "sms_draft" ? 320 : ["task", "reminder"].includes(p.payload.kind) ? 2000 : 5000
+                p.payload.kind === "sms_draft"
+                  ? 320
+                  : ["task", "reminder"].includes(p.payload.kind)
+                    ? 2000
+                    : 5000
               }
               onChange={(e) => {
                 setConfirm(undefined);

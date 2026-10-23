@@ -568,3 +568,4 @@ test("transaction progress uses only actual owner-matched milestone tasks", asyn
   assert.equal(r.rows[0].progress.missing, 1);
   assert.equal(r.rows[0].progress.milestones.length, 1);
 });
+test('daily briefing chat tool returns the same owner-scoped evidence and supporting links',async()=>{const f=fixture();f.tables.task_transactions=[];f.tables.contact_tasks=[{id:id(1),owner_id:owner,title:'Own overdue follow-up',completed:false,due_at:new Date(Date.now()-86400000).toISOString()},{id:id(2),owner_id:'foreign',title:'Private overdue task',completed:false,due_at:new Date(Date.now()-86400000).toISOString()}];const {runReadTool}=f.load('lib/ai/assistant/tools.ts'),refs=[];const r=await runReadTool(owner,'daily_briefing',{},refs);assert.equal(r.sections[0].matchingCount,1);assert.equal(r.sections[0].items[0].id,id(1));assert.equal(refs.some(v=>v.id===id(2)),false);assert.ok(r.limitations.some(v=>/Unanswered/.test(v)));});

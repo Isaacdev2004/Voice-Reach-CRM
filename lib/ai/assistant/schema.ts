@@ -34,7 +34,11 @@ export const ActionSchema = z
   })
   .strict()
   .superRefine((v, ctx) => {
-    if(v.kind==="sms_draft"&&v.body.length>320)ctx.addIssue({code:"custom",message:"SMS drafts must be at most 320 characters"});
+    if (v.kind === "sms_draft" && v.body.length > 320)
+      ctx.addIssue({
+        code: "custom",
+        message: "SMS drafts must be at most 320 characters",
+      });
     if (["task", "reminder"].includes(v.kind) && v.body.length > 2000)
       ctx.addIssue({ code: "custom", message: "Task notes are too long" });
     if (v.kind === "email_draft" && !v.subject?.trim())

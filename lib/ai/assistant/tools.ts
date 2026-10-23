@@ -1,3 +1,4 @@
+import { readBusinessBriefing } from "./briefing-server";
 import { readContactSnapshot } from "@/lib/contacts/read-snapshot";
 import { readDelivery } from "@/lib/delivery/store";
 import { summarizeDelivery } from "@/lib/delivery/metrics";
@@ -152,6 +153,12 @@ toolDefinitions.push({
     additionalProperties: false,
   },
 });
+toolDefinitions.push({
+  name: "daily_briefing",
+  description:
+    "Evidence-based business briefing: overdue/due tasks, upcoming appointments, campaign events, delivery failure events and recorded transaction closing dates. Unanswered messages are explicitly unverified.",
+  input_schema: { type: "object", properties: {}, additionalProperties: false },
+});
 export const ToolNameSchema = z.enum(
   Object.keys(specs) as [ToolName, ...ToolName[]],
 );
@@ -162,6 +169,14 @@ export async function runReadTool(
   references: Reference[],
 ) {
   if (!owner) throw Error("Unauthorized");
+  if (name === "daily_briefing") {
+    z.object({}).strict().parse(input);
+    const briefing = await readBusinessBriefing(owner);
+    for (const section of briefing.sections)
+      for (const item of section.items)
+        references.push({ id: item.id, label: item.title, href: item.href });
+    return briefing;
+  }
   const a = args.parse(input);
   if (["search_contacts", "properties", "opportunities"].includes(name)) {
     try {

@@ -1,6 +1,6 @@
 # Ask MyARI — authorized CRM assistant review
 
-Implemented on `feature/authorized-crm-assistant`, building on the pending premium Studio/Activity/Settings work. No configured database migration, production record update, real provider request, communication, campaign activation, merge, or deployment was performed.
+Implemented on `feature/authorized-crm-assistant`, updated against current `main`, including the merged premium Studio/Activity/Settings work and newer Calendar fixes. No configured database migration, production record update, real provider request, communication, campaign activation, merge, or deployment was performed.
 
 ## 1. Existing Claude architecture
 
@@ -66,7 +66,7 @@ Mortgage assistance reads **saved financing reports** through its authorized too
 
 ## 7. Optional daily business briefing
 
-On-demand, evidence-based briefing has no scheduled background job or automatic provider call. It reads due/overdue tasks, appointments in the next 24 hours, recent failure events, campaign engagement events, and transaction checklists/recorded closing dates, with counts, limits, source links and separate source outage states. No legal deadline or activity is inferred. This deterministic evidence view costs no Claude request.
+On-demand, evidence-based briefing has no scheduled background job or automatic provider call. It reads due/overdue tasks, appointments in the next 24 hours, recent failure events, campaign engagement events, and transaction checklists/recorded closing dates, with counts, limits, source links and separate source outage states. No legal deadline or activity is inferred. Opening this deterministic evidence view costs no Claude request. A read-only `daily_briefing` tool also lets Claude summarize the same evidence with supporting record IDs during a chat request.
 
 **Unanswered messages remain explicitly unverified:** existing communications do not reliably correlate every inbound message with a subsequent outbound reply. The briefing directs users to the actual inbox instead of inventing an unanswered count. Expected closing dates are not legal deadlines. Checklist views contain full milestone progress; the assistant does not infer completion from a saved stage label.
 
@@ -108,9 +108,24 @@ See `browser-results.json`. These captures demonstrate the actual drawer over an
 
 ### Principal changed files
 
-- `lib/ai/assistant/{schema,tools,claude,privacy,briefing,http}.ts`
+- `lib/ai/assistant/{schema,tools,claude,privacy,briefing,briefing-server,http}.ts`
 - `app/api/ai/assistant/{route.ts,actions/route.ts,briefing/route.ts}`
 - `components/ai/{crm-assistant-drawer.tsx,crm-assistant.css,ai-assistant-sidebar.tsx,ai-assistant-context.tsx,legacy-draft-generator.tsx}`
 - Stable-ID context registration in Contacts, Campaigns, Tasks, Notes, Property Finder, Financing and Voice Studio; record-refresh listeners in Tasks/Notes.
 - `components/crm/ai-assistant-shell.tsx`, legacy `app/api/ai/generate/route.ts`, `lib/ai/{generate,prompts}.ts`.
 - New private SQL migration; assistant unit/database/browser tests and scripts; review artifacts; release/staging/security/demo documentation.
+
+### Final local results
+
+| Check | Result |
+|---|---|
+| Production build | Passed |
+| TypeScript (`npx tsc --noEmit`, after build generation) | Passed |
+| ESLint | Passed: zero errors, seven existing unrelated warnings |
+| Full `test:unit` suite | Passed, including 19 new assistant regression cases |
+| Isolated PostgreSQL assistant tests | Passed, with Notes/Tasks migration guards and service-role permissions |
+| Security and regression scripts | Passed |
+| Actual-component browser checks | Passed at 1440/1920/768/390px |
+| Authenticated staging / live Claude / production subscriber data | Not verified; release gates remain |
+
+The checks above reflect the branch after integrating current main. Type checking and production builds are run sequentially because both use generated `.next/types` artifacts. Browser captures use isolated synthetic data. No production rollout is authorized by these results.
