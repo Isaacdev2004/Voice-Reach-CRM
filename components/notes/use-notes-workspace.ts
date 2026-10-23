@@ -125,6 +125,7 @@ export function useNotesWorkspace(owner: string) {
       if (active.current) setLoading(false);
     }
   }, []);
+  useEffect(()=>{const reload=()=>{void load();};window.addEventListener("myari-assistant-record-saved",reload);return()=>window.removeEventListener("myari-assistant-record-saved",reload);},[load]);
   useEffect(() => {
     active.current = true;
     void load();

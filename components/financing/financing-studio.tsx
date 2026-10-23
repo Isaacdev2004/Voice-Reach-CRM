@@ -1,4 +1,5 @@
 "use client";
+import { useAiRecordContext } from "@/components/ai/ai-assistant-context";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
@@ -341,6 +342,7 @@ function Workspace({ owner }: { owner?: string }) {
     > | null>(null),
     [partnerError, setPartnerError] = useState("");
   const [restored, setRestored] = useState(false);
+  useAiRecordContext({page:"/dashboard/mortgage",contactId:context.contactId??undefined});
   useEffect(() => {
     if (!owner) return;
     let active = true;

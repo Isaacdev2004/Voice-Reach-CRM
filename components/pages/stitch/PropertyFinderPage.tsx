@@ -1,4 +1,5 @@
 "use client";
+import { useAiRecordContext } from "@/components/ai/ai-assistant-context";
 
 import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -85,6 +86,7 @@ function PropertyFinderWorkspace({ownerId}: {ownerId?:string}) {
   }),[tasks,contacts]);
 
   const contact = contacts.find(row => row.id === selectedId) ?? null;
+  useAiRecordContext({page:"/dashboard/properties",contactId:contact?.id});
   const parsedBudget = propertyBudget(budget);
   const parsedPreferences = parsePropertyPreferences(preferences);
   const budgetNumber = parsedBudget.value;

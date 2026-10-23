@@ -1,0 +1,70 @@
+[
+  {
+    "width": 1440,
+    "passed": true,
+    "checks": [
+      "selected owned context",
+      "propose without mutation",
+      "explicit confirm",
+      "unsaved work",
+      "conversation reload",
+      "failure privacy",
+      "stable retry",
+      "cross-tab context",
+      "account switch",
+      "no overflow",
+      "Escape"
+    ]
+  },
+  {
+    "width": 1920,
+    "passed": true,
+    "checks": [
+      "selected owned context",
+      "propose without mutation",
+      "explicit confirm",
+      "unsaved work",
+      "conversation reload",
+      "failure privacy",
+      "stable retry",
+      "cross-tab context",
+      "account switch",
+      "no overflow",
+      "Escape"
+    ]
+  },
+  {
+    "width": 768,
+    "passed": true,
+    "checks": [
+      "selected owned context",
+      "propose without mutation",
+      "explicit confirm",
+      "unsaved work",
+      "conversation reload",
+      "failure privacy",
+      "stable retry",
+      "cross-tab context",
+      "account switch",
+      "no overflow",
+      "Escape"
+    ]
+  },
+  {
+    "width": 390,
+    "passed": true,
+    "checks": [
+      "selected owned context",
+      "propose without mutation",
+      "explicit confirm",
+      "unsaved work",
+      "conversation reload",
+      "failure privacy",
+      "stable retry",
+      "cross-tab context",
+      "account switch",
+      "no overflow",
+      "Escape"
+    ]
+  }
+]

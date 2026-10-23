@@ -1,7 +1,4 @@
-/**
- * AI prompt scaffolds. Connect to OpenAI/Claude/ElevenLabs/Tavus/HeyGen later
- * by replacing the body of generate() in lib/ai/generate.ts.
- */
+/** Existing task-specific prompts used by the Anthropic drafting endpoint. */
 
 export type AiTaskType =
   | "email_writer"

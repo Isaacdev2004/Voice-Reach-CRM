@@ -1,4 +1,5 @@
 "use client";
+import { useAiRecordContext } from "@/components/ai/ai-assistant-context";
 import {
   allocateCampaignArt,
   campaignCover,
@@ -104,6 +105,7 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
   const [view, setView] = useState("grid");
   const [pins, setPins] = useState<string[]>([]);
   const [selected, setSelected] = useState<LibraryCampaign | null>(null);
+  useAiRecordContext({page:"/dashboard/campaigns",campaignId:selected?.id});
   const [notice, setNotice] = useState("");
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState("");

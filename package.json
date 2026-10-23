@@ -11,7 +11,7 @@
     "smoke": "node scripts/smoke-test.mjs",
     "test:contacts-metrics": "node --import tsx scripts/contacts-metrics.test.ts",
     "test:security": "node scripts/verify-audit-fixes.mjs",
-    "test:unit": "node --import tsx scripts/verify-unit.ts && npm run test:contacts-metrics && npm run test:contacts-workspace && npm run test:property-finder && npm run test:campaign-library && npm run test:campaign-audit && npm run test:delivery && npm run test:calendar && npm run test:notes && npm run test:financing && npm run test:tasks && npm run test:studio-audit && npm run test:settings-audit",
+    "test:unit": "node --import tsx scripts/verify-unit.ts && npm run test:contacts-metrics && npm run test:contacts-workspace && npm run test:property-finder && npm run test:campaign-library && npm run test:campaign-audit && npm run test:delivery && npm run test:calendar && npm run test:notes && npm run test:financing && npm run test:tasks && npm run test:studio-audit && npm run test:settings-audit && npm run test:assistant",
     "test:regressions": "node --import tsx scripts/verify-regressions.ts",
     "test:contacts-workspace": "node --import tsx scripts/contacts-workspace.test.ts && node scripts/contacts-routes.test.cjs",
     "test:contacts-browser": "node scripts/contacts-browser.test.cjs",
@@ -37,7 +37,10 @@
     "test:studio-audit": "node scripts/studio-audit.test.cjs",
     "test:settings-audit": "node scripts/settings-audit.test.cjs",
     "test:studio-db": "node scripts/studio-database.test.cjs",
-    "test:studio-browser": "node scripts/studio-browser.test.cjs"
+    "test:studio-browser": "node scripts/studio-browser.test.cjs",
+    "test:assistant": "node scripts/ai-assistant.test.cjs",
+    "test:assistant-db": "node scripts/ai-assistant-database.test.cjs",
+    "test:assistant-browser": "node scripts/ai-assistant-browser.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",
