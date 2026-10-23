@@ -54,7 +54,10 @@ const root = path.resolve(__dirname, "..");
       url.pathname === "/_next/image"
         ? url.searchParams.get("url")
         : url.pathname;
-    if(pathname==='/favicon.ico'){res.writeHead(204);return res.end();}
+    if (pathname === "/favicon.ico") {
+      res.writeHead(204);
+      return res.end();
+    }
     if (pathname === "/review-icons.ttf" && iconFont) {
       res.setHeader("content-type", "font/ttf");
       return res.end(fs.readFileSync(iconFont));
@@ -106,7 +109,9 @@ const root = path.resolve(__dirname, "..");
       const errors = [];
       page.setDefaultTimeout(12000);
       page.on("pageerror", (err) => errors.push(err.message));
-      page.on('console',msg=>{if(msg.type()==='error')errors.push(`console: ${msg.text()}`);});
+      page.on("console", (msg) => {
+        if (msg.type() === "error") errors.push(`console: ${msg.text()}`);
+      });
       console.log("Checking viewport", width);
       await page.goto(base + "/dashboard/campaigns");
       await page
@@ -522,9 +527,18 @@ const root = path.resolve(__dirname, "..");
       await stepModal
         .getByPlaceholder("e.g. Follow-up email")
         .fill("QA email subject");
+      await stepModal.locator("textarea").fill("Hi {{first_name}}, would you like to discuss your home search? Reply whenever convenient.");
       await stepModal
         .getByRole("button", { name: "Add to sequence", exact: true })
         .click();
+      await page.getByRole("button", { name: "Preview personalized messages", exact: true }).click();
+      const personalized = page.getByRole("dialog", { name: "Personalized message preview", exact: true });
+      await personalized.getByLabel("Preview for contact").selectOption("00000000-0000-4000-8000-000000000500");
+      await personalized.getByRole("button", { name: "Preview messages", exact: true }).click();
+      await personalized.getByText("Subject: QA email subject", { exact: true }).waitFor();
+      await personalized.getByText("Hi Actual, would you like to discuss your home search? Reply whenever convenient.", { exact: true }).waitFor();
+      await page.screenshot({ path: path.join(tmp, `personalized-message-${width}.png`), fullPage: false });
+      await page.keyboard.press("Escape");
       await page.getByRole("button", { name: /Save as template/ }).click();
       await page
         .getByRole("button", { name: "Preview Custom Builder QA", exact: true })
@@ -550,6 +564,7 @@ const root = path.resolve(__dirname, "..");
         confirmationWithoutExecution: true,
         simulationDraftImportDuplicate: true,
         existingCustomBuilder: true,
+        personalizedMessagePreview: true,
         templatePreview: true,
         tenantIsolation: true,
         errorAndEmpty: true,

@@ -1,0 +1,144 @@
+
+> voicereach-backend-starter@0.1.0 build
+> next build --webpack
+
+▲ Next.js 16.2.6 (webpack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 20.8s
+  Running TypeScript ...
+  Finished TypeScript in 9.4s ...
+  Collecting page data using 2 workers ...
+  Generating static pages using 2 workers (0/93) ...
+  Generating static pages using 2 workers (23/93) 
+  Generating static pages using 2 workers (46/93) 
+  Generating static pages using 2 workers (69/93) 
+✓ Generating static pages using 2 workers (93/93) in 239ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /acceptable-use
+├ ƒ /api/activity
+├ ƒ /api/ai/generate
+├ ƒ /api/analytics
+├ ƒ /api/automations
+├ ƒ /api/automations/rules
+├ ƒ /api/billing/add-payment-method
+├ ƒ /api/billing/checkout
+├ ƒ /api/billing/checkout-public
+├ ƒ /api/billing/claim
+├ ƒ /api/billing/portal
+├ ƒ /api/billing/start-trial
+├ ƒ /api/calendar/events
+├ ƒ /api/calendar/events/[eventId]
+├ ƒ /api/campaign-attachments/signed-upload
+├ ƒ /api/campaigns
+├ ƒ /api/campaigns/[campaignId]
+├ ƒ /api/campaigns/[campaignId]/recipients
+├ ƒ /api/campaigns/[campaignId]/run-due
+├ ƒ /api/campaigns/[campaignId]/send
+├ ƒ /api/campaigns/[campaignId]/test-run
+├ ƒ /api/campaigns/builder
+├ ƒ /api/campaigns/from-template
+├ ƒ /api/campaigns/library
+├ ƒ /api/campaigns/library/[campaignId]
+├ ƒ /api/campaigns/preview
+├ ƒ /api/campaigns/runner
+├ ƒ /api/compliance/audit
+├ ƒ /api/contact
+├ ƒ /api/contacts
+├ ƒ /api/contacts/[id]
+├ ƒ /api/contacts/[id]/tasks
+├ ƒ /api/contacts/[id]/tasks/[taskId]
+├ ƒ /api/contacts/bulk
+├ ƒ /api/contacts/categories
+├ ƒ /api/contacts/import
+├ ƒ /api/contacts/relationship-pulse
+├ ƒ /api/contacts/relationship-pulse/enroll
+├ ƒ /api/delivery
+├ ƒ /api/delivery/reconcile
+├ ƒ /api/engagement
+├ ƒ /api/health
+├ ƒ /api/health/db
+├ ƒ /api/integrations/dotloop/callback
+├ ƒ /api/integrations/dotloop/connect
+├ ƒ /api/integrations/dotloop/status
+├ ƒ /api/integrations/google/authorize
+├ ƒ /api/integrations/google/callback
+├ ƒ /api/integrations/google/status
+├ ƒ /api/integrations/status
+├ ƒ /api/marketing/attribution
+├ ƒ /api/marketing/playbook
+├ ƒ /api/mortgage/market-rates
+├ ƒ /api/mortgage/rates
+├ ƒ /api/notes
+├ ƒ /api/notes/[id]
+├ ƒ /api/partners
+├ ƒ /api/partners/invitations
+├ ƒ /api/partners/shared-assets
+├ ƒ /api/providers/status
+├ ƒ /api/settings
+├ ƒ /api/tasks
+├ ƒ /api/voice-assets
+├ ƒ /api/voice-assets/[id]
+├ ƒ /api/voice-assets/approve
+├ ƒ /api/voice-assets/clone
+├ ƒ /api/voice-assets/profiles
+├ ƒ /api/voice-assets/signed-upload
+├ ƒ /api/voice-assets/synthesize
+├ ƒ /api/webhooks/delivery/[provider]
+├ ƒ /api/webhooks/stripe
+├ ƒ /api/webhooks/twilio/sms
+├ ƒ /api/webhooks/voice
+├ ƒ /checkout
+├ ƒ /contact
+├ ƒ /crm-for-small-business
+├ ƒ /dashboard
+├ ƒ /dashboard/activity
+├ ƒ /dashboard/analytics
+├ ƒ /dashboard/automations
+├ ƒ /dashboard/automations/rules
+├ ƒ /dashboard/calendar
+├ ƒ /dashboard/campaigns
+├ ƒ /dashboard/campaigns/[campaignId]
+├ ƒ /dashboard/contacts
+├ ƒ /dashboard/contacts/[id]
+├ ƒ /dashboard/delivery
+├ ƒ /dashboard/mortgage
+├ ƒ /dashboard/notes
+├ ƒ /dashboard/partners
+├ ƒ /dashboard/properties
+├ ƒ /dashboard/settings
+├ ƒ /dashboard/tasks
+├ ƒ /dashboard/voice-scripts
+├ ƒ /dpa
+├ ƒ /features
+├ ƒ /features/[slug]
+├ ○ /icon.png
+├ ƒ /lead-follow-up
+├ ƒ /lead-reactivation
+├ ƒ /playbook
+├ ƒ /pricing
+├ ƒ /privacy
+├ ƒ /real-estate-crm
+├ ƒ /realtor-lead-follow-up
+├ ƒ /refunds
+├ ƒ /resources
+├ ƒ /resources/[slug]
+├ ○ /robots.txt
+├ ƒ /sign-in/[[...sign-in]]
+├ ƒ /sign-up/[[...sign-up]]
+├ ○ /sitemap.xml
+├ ƒ /sms-consent
+├ ƒ /tcpa-consent
+└ ƒ /terms
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

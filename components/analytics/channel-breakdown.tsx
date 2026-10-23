@@ -11,8 +11,8 @@ export function ChannelBreakdown({ channels }: ChannelBreakdownProps) {
   if (channels.length === 0) {
     return (
       <p className="text-[13px] leading-relaxed text-slate-text">
-        No outbound sends recorded for this period. Channel mix appears after campaign steps are
-        delivered.
+        No outbound sends recorded for this period. Channel mix appears after
+        campaign steps are delivered.
       </p>
     );
   }
@@ -23,17 +23,23 @@ export function ChannelBreakdown({ channels }: ChannelBreakdownProps) {
         <div key={ch.id}>
           <div className="mb-1.5 flex items-center justify-between text-[14px]">
             <span className="flex items-center gap-2 text-ink">
-              <Icon name={ch.icon} className="text-[18px] text-rose-gold-deep" />
+              <Icon
+                name={ch.icon}
+                className="text-[18px] text-rose-gold-deep"
+              />
               {ch.channel}
             </span>
             <span className="text-taupe">
-              {ch.sent.toLocaleString()} · {ch.rate}%
+              {ch.sent.toLocaleString()} observed sent ·{" "}
+              {ch.rate === null
+                ? "Rate unavailable"
+                : `${ch.rate.toFixed(1)}% delivered`}
             </span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-champagne">
             <div
               className="h-full rounded-full bg-gradient-to-r from-rose-gold to-sage"
-              style={{ width: `${ch.rate}%` }}
+              style={{ width: `${ch.rate ?? 0}%` }}
             />
           </div>
         </div>

@@ -4,6 +4,7 @@ import type { ApiContact } from "@/lib/hooks/use-contacts";
 export type CampaignRow = {
   status: string;
   created_at?: string;
+  confirmedSent?: boolean;
 };
 
 const SENT_STATUSES = new Set(["sent", "partial", "sending"]);
@@ -57,7 +58,7 @@ export function monthOverMonthContactChange(contacts: ApiContact[]): string | un
 }
 
 export function countSentCampaigns(campaigns: CampaignRow[]): number {
-  return campaigns.filter((c) => SENT_STATUSES.has(c.status)).length;
+  return campaigns.filter((c) => c.confirmedSent === true).length;
 }
 
 export function countActiveCampaigns(campaigns: CampaignRow[]): number {

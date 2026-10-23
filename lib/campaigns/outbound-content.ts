@@ -11,8 +11,10 @@ function asString(value: unknown): string | null {
 export function looksLikeStructuredAiPayload(text: string): boolean {
   const t = text.trim();
   if (!t) return false;
-  if (t.startsWith("```") || t.startsWith("{")) return true;
-  if (/^Subject:\s*.+\n/i.test(t) && t.includes('"recommendation"')) return true;
+  if (t.startsWith("```") || t.startsWith("{") || /^\[\s*[{\"]/.test(t))
+    return true;
+  if (/^Subject:\s*.+\n/i.test(t) && t.includes('"recommendation"'))
+    return true;
   return (
     /"recommendation"\s*:/.test(t) ||
     /"suggestedChannel"\s*:/.test(t) ||
@@ -53,6 +55,12 @@ export function normalizeOutboundContent(
     };
   }
 
+  if (/^\[\s*[{\"]/.test(trimmed))
+    return {
+      body: trimmed,
+      subject: channel === "email" ? titleFallback.trim() || null : null,
+      extractedFromJson: false,
+    };
   const parsed = parseJsonFromLlm(trimmed);
   if (!parsed) {
     return {
@@ -76,15 +84,11 @@ export function normalizeOutboundContent(
     if (body && !body.trim().startsWith("{")) {
       return { body, subject, extractedFromJson: true };
     }
-
   }
 
   if (channel === "sms") {
     const body =
-      asString(parsed.body) ??
-      asString(parsed.message) ??
-      asString(parsed.sms) ??
-      asString(parsed.recommendation);
+      asString(parsed.body) ?? asString(parsed.message) ?? asString(parsed.sms);
     if (body) return { body, subject: null, extractedFromJson: true };
   }
 
@@ -92,8 +96,7 @@ export function normalizeOutboundContent(
     const body =
       asString(parsed.script) ??
       asString(parsed.body) ??
-      asString(parsed.message) ??
-      asString(parsed.recommendation);
+      asString(parsed.message);
     if (body) return { body, subject: null, extractedFromJson: true };
   }
 
@@ -105,18 +108,16 @@ export function normalizeOutboundContent(
 }
 
 /** Block send when content is still clearly raw JSON after normalization. */
-export function shouldBlockRawJsonSend(body: string, subject?: string | null): boolean {
-  const combined = `${subject ?? ""}\n${body}`.trim();
-  if (!combined) return true;
-  if (combined.startsWith("```")) return true;
-  if (/^\{\s*"/.test(combined) && /"recommendation"|"suggestedChannel"/.test(combined)) {
-    return true;
-  }
-  if (parseJsonFromLlm(combined) && looksLikeStructuredAiPayload(combined)) {
-    const p = parseJsonFromLlm(combined)!;
-    if (asString(p.recommendation) && !asString(p.body) && !asString(p.subject)) {
-      return true;
-    }
-  }
-  return false;
+export function shouldBlockRawJsonSend(
+  body: string,
+  subject?: string | null,
+): boolean {
+  if (!body.trim()) return true;
+  return [body, subject ?? ""].some(
+    (text) =>
+      !!text.trim() &&
+      (looksLikeStructuredAiPayload(text) ||
+        /^\s*\[\s*[{\"]/.test(text) ||
+        /```|\[object Object\]|\bundefined\b|\bnull\b/i.test(text)),
+  );
 }

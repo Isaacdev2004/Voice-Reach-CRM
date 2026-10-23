@@ -1,0 +1,61 @@
+{
+  "fixtureOnly": true,
+  "results": [
+    {
+      "width": 1440,
+      "pagination": true,
+      "combinedFilters": true,
+      "searchAndClear": true,
+      "detailsAndTimeline": true,
+      "keyboardClose": true,
+      "ownerSwitch": true,
+      "errorAndEmpty": true,
+      "noPageOverflow": true,
+      "approvedMockReconciliation": true,
+      "noSendsOrLiveCalls": true,
+      "pageErrors": []
+    },
+    {
+      "width": 1920,
+      "pagination": true,
+      "combinedFilters": true,
+      "searchAndClear": true,
+      "detailsAndTimeline": true,
+      "keyboardClose": true,
+      "ownerSwitch": true,
+      "errorAndEmpty": true,
+      "noPageOverflow": true,
+      "approvedMockReconciliation": false,
+      "noSendsOrLiveCalls": true,
+      "pageErrors": []
+    },
+    {
+      "width": 768,
+      "pagination": true,
+      "combinedFilters": true,
+      "searchAndClear": true,
+      "detailsAndTimeline": true,
+      "keyboardClose": true,
+      "ownerSwitch": true,
+      "errorAndEmpty": true,
+      "noPageOverflow": true,
+      "approvedMockReconciliation": false,
+      "noSendsOrLiveCalls": true,
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "pagination": true,
+      "combinedFilters": true,
+      "searchAndClear": true,
+      "detailsAndTimeline": true,
+      "keyboardClose": true,
+      "ownerSwitch": true,
+      "errorAndEmpty": true,
+      "noPageOverflow": true,
+      "approvedMockReconciliation": false,
+      "noSendsOrLiveCalls": true,
+      "pageErrors": []
+    }
+  ]
+}

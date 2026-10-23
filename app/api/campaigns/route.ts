@@ -29,6 +29,27 @@ export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const body = BodySchema.parse(await request.json());
 
+  const ids = [...new Set(body.contactIds)];
+  const { data: ownedContacts, error: ownershipError } = await supabaseAdmin
+    .from("contacts")
+    .select("id")
+    .eq("owner_id", ownerId)
+    .in("id", ids);
+  if (ownershipError || ownedContacts?.length !== ids.length)
+    return apiError("One or more contacts are unavailable.", { status: 404 });
+  if (body.voiceAssetId) {
+    const { data: voice } = await supabaseAdmin
+      .from("voice_assets")
+      .select("id,approved")
+      .eq("owner_id", ownerId)
+      .eq("id", body.voiceAssetId)
+      .maybeSingle();
+    if (!voice?.approved)
+      return apiError("Choose an approved recording from your workspace.", {
+        status: 403,
+      });
+  }
+
   const { data: campaign, error: campaignError } = await supabaseAdmin
     .from("campaigns")
     .insert({
@@ -44,7 +65,7 @@ export const POST = withApiHandler(async (request) => {
 
   if (campaignError) return apiError(campaignError.message, { status: 500 });
 
-  const recipients = body.contactIds.map((contactId) => ({
+  const recipients = ids.map((contactId) => ({
     owner_id: ownerId,
     campaign_id: campaign.id,
     contact_id: contactId,
@@ -53,7 +74,8 @@ export const POST = withApiHandler(async (request) => {
   const { error: recipientsError } = await supabaseAdmin
     .from("campaign_recipients")
     .insert(recipients);
-  if (recipientsError) return apiError(recipientsError.message, { status: 500 });
+  if (recipientsError)
+    return apiError(recipientsError.message, { status: 500 });
 
   await writeAuditLog({
     ownerId,

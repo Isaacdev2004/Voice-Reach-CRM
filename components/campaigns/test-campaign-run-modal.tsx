@@ -18,7 +18,11 @@ type ProviderStatus = {
   configured: { voicemail: boolean; sms: boolean; email: boolean };
   canSendLive: boolean;
   liveOutboundAllowed?: boolean;
-  missing: { voicemail: string | null; sms: string | null; email: string | null };
+  missing: {
+    voicemail: string | null;
+    sms: string | null;
+    email: string | null;
+  };
 };
 
 type TestCampaignRunModalProps = {
@@ -43,19 +47,36 @@ export function TestCampaignRunModal({
   const [providers, setProviders] = useState<ProviderStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [running, setRunning] = useState(false);
+  const [previews, setPreviews] = useState<
+    Array<{
+      contactId: string;
+      steps: Array<{
+        stepId: string;
+        title: string;
+        body: string;
+        subject: string | null;
+        ok: boolean;
+        issues: string[];
+      }>;
+    }>
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [mode, setMode] = useState<"mock" | "live">("mock");
   const [showEnrolledOnly, setShowEnrolledOnly] = useState(false);
 
-  const enrolledSet = useMemo(() => new Set(enrolledContactIds), [enrolledContactIds]);
+  const enrolledSet = useMemo(
+    () => new Set(enrolledContactIds),
+    [enrolledContactIds],
+  );
 
   useEffect(() => {
     if (!open) return;
     setSelectedIds(new Set(enrolledContactIds));
     setSearch("");
     setError(null);
+    setPreviews([]);
     setMode("mock");
     setShowEnrolledOnly(enrolledContactIds.length > 0);
     (async () => {
@@ -80,7 +101,9 @@ export function TestCampaignRunModal({
     const q = search.trim().toLowerCase();
     if (!q) return listPool;
     return listPool.filter((c) => {
-      const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim().toLowerCase();
+      const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`
+        .trim()
+        .toLowerCase();
       return (
         name.includes(q) ||
         (c.phone ?? "").toLowerCase().includes(q) ||
@@ -131,17 +154,21 @@ export function TestCampaignRunModal({
     }
     setRunning(true);
     setError(null);
-    const envelope = await safeFetch<{ message: string }>(
-      `/api/campaigns/${campaignId}/test-run`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contactIds: [...selectedIds], mode }),
-      },
-    );
+    const envelope = await safeFetch<{
+      message: string;
+      previews?: typeof previews;
+    }>(`/api/campaigns/${campaignId}/test-run`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contactIds: [...selectedIds], mode }),
+    });
     setRunning(false);
     if (!envelope.success) {
       setError(envelope.error);
+      return;
+    }
+    if (envelope.data.previews) {
+      setPreviews(envelope.data.previews);
       return;
     }
     onDone(envelope.data.message);
@@ -173,6 +200,31 @@ export function TestCampaignRunModal({
       }
     >
       <div className="space-y-4">
+        {previews.map((p) => (
+          <section
+            key={p.contactId}
+            className="rounded-xl border border-outline-variant/20 p-3"
+          >
+            <h3 className="font-serif text-xl">Personalized content preview</h3>
+            {p.steps.map((s) => (
+              <div
+                key={s.stepId}
+                className="mt-3 border-t border-outline-variant/20 pt-3"
+              >
+                <strong>{s.title}</strong>
+                {s.ok && s.subject ? <p>Subject: {s.subject}</p> : null}
+                <p className="whitespace-pre-wrap text-sm">
+                  {s.ok ? s.body : "Not ready to send."}
+                </p>
+                {s.issues.map((issue) => (
+                  <p key={issue} className="text-sm text-error">
+                    {issue}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </section>
+        ))}
         <div className="grid gap-2 sm:grid-cols-2">
           <button
             type="button"
@@ -186,7 +238,8 @@ export function TestCampaignRunModal({
           >
             <p className="font-medium text-ink">Simulation</p>
             <p className="mt-1 text-taupe">
-              Marks steps complete in MyARI - does <strong>not</strong> text or call the phone.
+              Shows personalized copy only. Does <strong>not</strong> change
+              contacts, consent, campaign status or scheduled steps.
             </p>
           </button>
           <button
@@ -201,7 +254,8 @@ export function TestCampaignRunModal({
           >
             <p className="font-medium text-ink">Live send</p>
             <p className="mt-1 text-taupe">
-              Actually delivers via Twilio / Slybroadcast / Resend when configured.
+              Actually delivers via Twilio / Slybroadcast / Resend when
+              configured.
             </p>
           </button>
         </div>
@@ -235,14 +289,18 @@ export function TestCampaignRunModal({
                 )}
               </li>
             </ul>
-            {mode === "live" && providers && providers.liveOutboundAllowed === false ? (
+            {mode === "live" &&
+            providers &&
+            providers.liveOutboundAllowed === false ? (
               <p className="mt-2 text-amber-900">
-                Live outbound is paused while MyARI is in demo mode. Simulation still works.
+                Live outbound is paused while MyARI is in demo mode. Simulation
+                still works.
               </p>
             ) : null}
             {mode === "live" && !providers.canSendLive ? (
               <p className="mt-2 text-error">
-                Add at least one provider’s env vars in Vercel before live send will work.
+                Add at least one provider’s env vars in Vercel before live send
+                will work.
               </p>
             ) : null}
           </div>
@@ -254,9 +312,10 @@ export function TestCampaignRunModal({
           <>
             {enrolledContactIds.length > 0 ? (
               <p className="rounded-xl border border-emerald-muted/25 bg-emerald-muted/10 px-3 py-2 text-[13px] text-ink">
-                <span className="font-medium">{enrolledContactIds.length}</span> contact
-                {enrolledContactIds.length === 1 ? "" : "s"} already on this campaign — pre-selected.
-                You can send without searching again.
+                <span className="font-medium">{enrolledContactIds.length}</span>{" "}
+                contact
+                {enrolledContactIds.length === 1 ? "" : "s"} already on this
+                campaign — pre-selected. You can send without searching again.
               </p>
             ) : null}
             <div className="flex flex-wrap gap-2">
@@ -295,7 +354,9 @@ export function TestCampaignRunModal({
                       : "border-outline-variant/30 text-ink hover:bg-champagne",
                   )}
                 >
-                  {showEnrolledOnly ? "Showing campaign only" : "Show all contacts"}
+                  {showEnrolledOnly
+                    ? "Showing campaign only"
+                    : "Show all contacts"}
                 </button>
               ) : null}
             </div>
@@ -308,7 +369,9 @@ export function TestCampaignRunModal({
             />
             <ul className="max-h-56 space-y-1 overflow-y-auto">
               {filtered.map((c) => {
-                const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "Contact";
+                const name =
+                  `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() ||
+                  "Contact";
                 const checked = selectedIds.has(c.id);
                 return (
                   <li key={c.id}>
@@ -331,7 +394,9 @@ export function TestCampaignRunModal({
                         {checked ? "✓" : ""}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block font-medium text-ink">{name}</span>
+                        <span className="block font-medium text-ink">
+                          {name}
+                        </span>
                         <span className="block truncate text-[12px] text-taupe">
                           {c.phone ?? c.email ?? " - "}
                         </span>
@@ -352,8 +417,12 @@ export function TestCampaignRunModal({
 
         {selectedIds.size > 0 ? (
           <p className="flex items-center gap-2 text-[12px] text-taupe">
-            <Icon name="check_circle" className="text-[16px] text-emerald-muted" />
-            {selectedIds.size} contact{selectedIds.size === 1 ? "" : "s"} selected
+            <Icon
+              name="check_circle"
+              className="text-[16px] text-emerald-muted"
+            />
+            {selectedIds.size} contact{selectedIds.size === 1 ? "" : "s"}{" "}
+            selected
           </p>
         ) : null}
       </div>

@@ -168,7 +168,7 @@ export function MarketingPulse() {
         }
 
         const engagementKpi = kpis.find((k) => k.id === "conversion" || /engagement rate/i.test(k.label ?? ""));
-        setResponseLift(engagementDisplay(engagementKpi, analyticsRes.ok && Boolean(analytics.fromLiveData)));
+        setResponseLift(engagementKpi?.value === "Unavailable" ? null : engagementDisplay(engagementKpi, analyticsRes.ok && Boolean(analytics.fromLiveData)));
       } catch {
         // keep defaults
       }

@@ -32,9 +32,9 @@ const TYPE_ALIASES: Record<string, CampaignStepType> = {
   video: "avatar_video",
   avatar_video: "avatar_video",
   avatar: "avatar_video",
-  task: "callback",
+  task: "task",
   callback: "callback",
-  wait: "email",
+  wait: "wait",
   retargeting: "retargeting",
 };
 
@@ -53,12 +53,30 @@ function newStepId(order: number): string {
 /**
  * Maps validated `campaign_idea` AI output into a campaign builder blueprint (draft).
  */
-export function campaignBlueprintFromAiIdea(output: Record<string, unknown>): AiCampaignBlueprint | null {
+export function campaignBlueprintFromAiIdea(
+  output: Record<string, unknown>,
+): AiCampaignBlueprint | null {
   const name = typeof output.name === "string" ? output.name.trim() : "";
   if (!name) return null;
-  const description = typeof output.description === "string" ? output.description.trim() : "";
+  const description =
+    typeof output.description === "string" ? output.description.trim() : "";
   const rawSteps = Array.isArray(output.steps) ? output.steps : [];
-  if (rawSteps.length === 0) return null;
+  if (
+    rawSteps.length === 0 ||
+    rawSteps.some(
+      (raw) =>
+        !raw ||
+        typeof raw !== "object" ||
+        !TYPE_ALIASES[
+          String((raw as Record<string, unknown>).type ?? "")
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, "_")
+        ] ||
+        typeof (raw as Record<string, unknown>).description !== "string",
+    )
+  )
+    return null;
 
   const steps = rawSteps.map((raw, index) => {
     const step = raw as Record<string, unknown>;
@@ -71,7 +89,8 @@ export function campaignBlueprintFromAiIdea(output: Record<string, unknown>): Ai
       id: newStepId(order),
       order,
       type: normalizeStepType(step.type),
-      title: String(step.title ?? `Step ${order}`).trim(),
+      title:
+        typeof step.title === "string" ? step.title.trim() : `Step ${order}`,
       description: String(step.description ?? "").trim(),
       dayLabel,
       timeLabel: "9:00 AM",

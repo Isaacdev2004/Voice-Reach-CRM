@@ -81,7 +81,7 @@ export async function recordEngagementEvent(params: {
           patch.lead_status = "engaged_no_tour";
         }
       }
-      await supabaseAdmin.from("contacts").update(patch).eq("id", params.contactId);
+      await supabaseAdmin.from("contacts").update(patch).eq("id", params.contactId).eq("owner_id", params.ownerId);
 
       if (nextScore >= 5 && (contact.tour_count ?? 0) === 0) {
         await evaluateTriggers({

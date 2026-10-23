@@ -1,85 +1,44 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { buildAnalyticsSnapshot } from "@/lib/analytics/compute";
-import type { AnalyticsRange } from "@/lib/analytics/types";
 import { requireUserId } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { ownedRows } from "@/lib/delivery/owned-rows";
+import { readDelivery } from "@/lib/delivery/store";
 import { z } from "zod";
-
-const QuerySchema = z.object({
-  range: z.enum(["7d", "30d", "90d", "all"]).optional().default("30d"),
-});
-
 export const GET = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
-  const { searchParams } = new URL(request.url);
-  const { range } = QuerySchema.parse({ range: searchParams.get("range") ?? "30d" });
-
-  const [contactsRes, campaignsRes, recipientsRes, engagementRes, stepRunsRes] =
-    await Promise.all([
-    supabaseAdmin
-      .from("contacts")
-      .select("id, dnc, consent_records(status)")
-      .eq("owner_id", ownerId),
-    supabaseAdmin
-      .from("campaigns")
-      .select("id, name, status, provider, created_at")
-      .eq("owner_id", ownerId)
-      .order("created_at", { ascending: false }),
-    supabaseAdmin
-      .from("campaign_recipients")
-      .select("id, campaign_id, delivery_status, updated_at, created_at")
-      .eq("owner_id", ownerId)
-      .order("updated_at", { ascending: false })
-      .limit(5000),
-    supabaseAdmin
-      .from("engagement_events")
-      .select("event_type, channel, score, occurred_at")
-      .eq("owner_id", ownerId)
-      .order("occurred_at", { ascending: false })
-      .limit(2000),
-    supabaseAdmin
-      .from("campaign_step_runs")
-      .select("status, executed_at, campaign_steps(type)")
-      .eq("owner_id", ownerId)
-      .eq("status", "sent")
-      .order("executed_at", { ascending: false })
-      .limit(5000),
-  ]);
-
-  if (contactsRes.error) return apiError(contactsRes.error.message, { status: 500 });
-  if (campaignsRes.error) return apiError(campaignsRes.error.message, { status: 500 });
-  if (recipientsRes.error) return apiError(recipientsRes.error.message, { status: 500 });
-  if (stepRunsRes.error) return apiError(stepRunsRes.error.message, { status: 500 });
-
-  const snapshot = buildAnalyticsSnapshot({
-    range: range as AnalyticsRange,
-    contacts: contactsRes.data ?? [],
-    campaigns: campaignsRes.data ?? [],
-    recipients: recipientsRes.data ?? [],
-    engagementEvents: engagementRes.data ?? [],
-    stepRuns: stepRunsRes.data ?? [],
-  });
-
-  if (engagementRes.error) return apiError(engagementRes.error.message, { status: 500 });
-  const periodStart = new Date();
-  periodStart.setDate(periodStart.getDate() - (range === "7d" ? 7 : range === "30d" ? 30 : 90));
-  periodStart.setHours(0, 0, 0, 0);
-  const engagement = (engagementRes.data ?? []).filter((event) =>
-    range === "all" || new Date(event.occurred_at) >= periodStart,
-  );
-  const engagementSummary = {
-    total: engagement.length,
-    byEvent: engagement.reduce<Record<string, number>>((acc, e) => {
-      acc[e.event_type] = (acc[e.event_type] ?? 0) + 1;
-      return acc;
-    }, {}),
-    averageScore:
-      engagement.length === 0
-        ? 0
-        : Math.round(
-            (engagement.reduce((s, e) => s + (e.score ?? 0), 0) / engagement.length) * 10,
-          ) / 10,
-  };
-
-  return apiOk({ ...snapshot, engagement: engagementSummary });
+  const range = z
+    .enum(["7d", "30d", "90d", "all"])
+    .parse(new URL(request.url).searchParams.get("range") ?? "30d");
+  try {
+    const [contacts, campaigns, evidence] = await Promise.all([
+      ownedRows<{ id: string }>("contacts", "id", ownerId),
+      ownedRows<{ id: string; name: string; status: string }>(
+        "campaigns",
+        "id, name, status",
+        ownerId,
+      ),
+      readDelivery(ownerId),
+    ]);
+    return apiOk({
+      ...buildAnalyticsSnapshot({
+        range,
+        contacts,
+        campaigns,
+        records: evidence.records,
+      }),
+      confirmedSentCampaigns: new Set(
+        evidence.records
+          .filter((r) => r.events.some((e) => e.event_type === "sent"))
+          .map((r) => r.campaign_id)
+          .filter(Boolean),
+      ).size,
+      coverage: evidence.coverage,
+      health: evidence.health,
+    });
+  } catch {
+    return apiError(
+      "Analytics evidence is unavailable. Delivery tracking must be configured before these metrics can be verified.",
+      { status: 503 },
+    );
+  }
 });

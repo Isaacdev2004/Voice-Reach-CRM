@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { CampaignPerformanceTable } from "@/components/analytics/campaign-performance-table";
 import { ChannelBreakdown } from "@/components/analytics/channel-breakdown";
 import { ConversionFunnel } from "@/components/analytics/conversion-funnel";
@@ -30,6 +31,10 @@ const RANGE_OPTIONS: { value: AnalyticsRange; label: string }[] = [
 ];
 
 export function AdvancedAnalyticsPage() {
+  const { user } = useUser();
+  return <OwnerAnalytics key={user?.id ?? "signed-out"} />;
+}
+function OwnerAnalytics() {
   const [range, setRange] = useState<AnalyticsRange>("30d");
   const [snapshot, setSnapshot] = useState<AnalyticsSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,6 +53,7 @@ export function AdvancedAnalyticsPage() {
 
   const load = useCallback(async (r: AnalyticsRange) => {
     setLoading(true);
+    setSnapshot(null);
     setLoadError(null);
     try {
       const data = await fetchAnalytics(r);
@@ -103,7 +109,8 @@ export function AdvancedAnalyticsPage() {
     }
   };
 
-  const rangeLabel = RANGE_OPTIONS.find((o) => o.value === range)?.label ?? "Last 30 days";
+  const rangeLabel =
+    RANGE_OPTIONS.find((o) => o.value === range)?.label ?? "Last 30 days";
 
   return (
     <div className={DASHBOARD_PAGE_BODY}>
@@ -111,19 +118,26 @@ export function AdvancedAnalyticsPage() {
         <div
           className={cn(
             "fixed bottom-6 right-6 z-[150] flex max-w-sm items-center gap-2 rounded-xl border px-4 py-3 shadow-card",
-            toast.tone === "success" ? "border-emerald-muted/30 bg-ivory" : "border-error/30",
+            toast.tone === "success"
+              ? "border-emerald-muted/30 bg-ivory"
+              : "border-error/30",
           )}
           role="status"
         >
           <Icon
             name={toast.tone === "success" ? "check_circle" : "error"}
-            className={toast.tone === "success" ? "text-emerald-muted" : "text-error"}
+            className={
+              toast.tone === "success" ? "text-emerald-muted" : "text-error"
+            }
           />
           <span className="text-[14px] text-ink">{toast.message}</span>
         </div>
       ) : null}
 
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
+        <Link href="/dashboard/delivery" className="cl-button">
+          Delivery Audit Log
+        </Link>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -164,7 +178,8 @@ export function AdvancedAnalyticsPage() {
                       }}
                       className={cn(
                         "w-full px-4 py-2.5 text-left text-[14px] hover:bg-champagne",
-                        range === opt.value && "bg-rose-gold/10 font-medium text-rose-gold-deep",
+                        range === opt.value &&
+                          "bg-rose-gold/10 font-medium text-rose-gold-deep",
                       )}
                     >
                       {opt.label}
@@ -206,8 +221,12 @@ export function AdvancedAnalyticsPage() {
         <LuxuryCard padding="md" className="border-bronze/20 bg-champagne/50">
           <p className="flex items-center gap-2 text-[14px] text-slate-text">
             <Icon name="info" className="text-rose-gold-deep" />
-            Showing benchmark data - add contacts and run campaigns to see live metrics.
-            <Link href="/dashboard/contacts" className="font-medium text-rose-gold-deep hover:underline">
+            Provider delivery evidence is unavailable. No benchmark values are
+            substituted.
+            <Link
+              href="/dashboard/contacts"
+              className="font-medium text-rose-gold-deep hover:underline"
+            >
               Add contacts
             </Link>
           </p>
@@ -234,20 +253,28 @@ export function AdvancedAnalyticsPage() {
 
           <div className="flex flex-wrap gap-4 text-[13px] text-taupe">
             <span>
-              <strong className="text-ink">{snapshot.totals.contacts.toLocaleString()}</strong>{" "}
+              <strong className="text-ink">
+                {snapshot.totals.contacts.toLocaleString()}
+              </strong>{" "}
               contacts
             </span>
             <span>·</span>
             <span>
-              <strong className="text-ink">{snapshot.totals.campaigns}</strong> campaigns
+              <strong className="text-ink">{snapshot.totals.campaigns}</strong>{" "}
+              campaigns
             </span>
             <span>·</span>
             <span>
-              <strong className="text-ink">{snapshot.totals.outreach.toLocaleString()}</strong>{" "}
+              <strong className="text-ink">
+                {snapshot.totals.outreach.toLocaleString()}
+              </strong>{" "}
               outreach records
             </span>
             <span>·</span>
-            <Link href="/dashboard/activity" className="font-medium text-rose-gold-deep hover:underline">
+            <Link
+              href="/dashboard/activity"
+              className="font-medium text-rose-gold-deep hover:underline"
+            >
               View activity log →
             </Link>
           </div>
@@ -255,7 +282,9 @@ export function AdvancedAnalyticsPage() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <LuxuryCard padding="lg" className="lg:col-span-2">
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="font-serif text-[22px] font-semibold text-ink">Performance trends</h2>
+                <h2 className="font-serif text-[22px] font-semibold text-ink">
+                  Performance trends
+                </h2>
                 <div className="flex items-center gap-4 text-[12px] text-taupe">
                   <span className="flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-full bg-sage" />
@@ -271,25 +300,32 @@ export function AdvancedAnalyticsPage() {
             </LuxuryCard>
 
             <LuxuryCard padding="lg">
-              <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">Provider split</h2>
+              <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">
+                Provider split
+              </h2>
               <ProviderSplitChart providers={snapshot.providers} />
             </LuxuryCard>
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <LuxuryCard padding="lg">
-              <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">Conversion funnel</h2>
+              <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">
+                Conversion funnel
+              </h2>
               <ConversionFunnel stages={snapshot.funnel} />
             </LuxuryCard>
 
             <LuxuryCard padding="lg">
-              <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">Channel breakdown</h2>
+              <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">
+                Channel breakdown
+              </h2>
               <ChannelBreakdown channels={snapshot.channels} />
               <Link
                 href="/dashboard/campaigns"
                 className="mt-6 inline-flex items-center gap-1 text-[14px] font-medium text-rose-gold-deep"
               >
-                Open campaign builder <Icon name="arrow_forward" className="text-[16px]" />
+                Open campaign builder{" "}
+                <Icon name="arrow_forward" className="text-[16px]" />
               </Link>
             </LuxuryCard>
           </div>

@@ -1,49 +1,51 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { isGoogleCalendarConfigured } from "@/lib/calendar/google";
+import { tokenEncryptionConfigured } from "@/lib/calendar/token-crypto";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-
 export const GET = withApiHandler(async () => {
-  const ownerId = await requireUserId();
-
-  const { data, error } = await supabaseAdmin
+  const owner = await requireUserId();
+  const c = await supabaseAdmin
     .from("calendar_connections")
-    .select("account_email, calendar_id, updated_at")
-    .eq("owner_id", ownerId)
+    .select("account_email, calendar_id")
+    .eq("owner_id", owner)
     .eq("provider", "google")
     .maybeSingle();
-
-  if (error) {
-    const missingTable = error.message.includes("calendar_connections");
-    return apiOk({
-      configured: isGoogleCalendarConfigured(),
-      connected: false,
-      accountEmail: null,
-      calendarId: null,
-      lastUpdated: null,
-      setupError: missingTable
-        ? "Database table missing - run supabase/schema-calendar.sql in Supabase."
-        : error.message,
+  if (c.error)
+    return apiError("Calendar connection status is unavailable.", {
+      status: 503,
     });
-  }
-
+  const s = await supabaseAdmin
+    .from("audit_logs")
+    .select("created_at")
+    .eq("owner_id", owner)
+    .eq("entity_type", "calendar_sync")
+    .eq("action", "CALENDAR_SYNC_SUCCEEDED")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
   return apiOk({
-    configured: isGoogleCalendarConfigured(),
-    connected: Boolean(data),
-    accountEmail: data?.account_email ?? null,
-    calendarId: data?.calendar_id ?? null,
-    lastUpdated: data?.updated_at ?? null,
+    configured: isGoogleCalendarConfigured() && tokenEncryptionConfigured(),
+    connected: !!c.data,
+    authorized: !!c.data,
+    syncVerified: false,
+    accountEmail: c.data?.account_email ?? null,
+    calendarId: c.data?.calendar_id ?? null,
+    lastUpdated: s.data?.created_at ?? null,
+    lastSuccessfulSync: s.data?.created_at ?? null,
+    status: c.data
+      ? "Authorized; open Calendar to verify synchronization"
+      : "Not connected",
   });
 });
-
 export const DELETE = withApiHandler(async () => {
-  const ownerId = await requireUserId();
-  const { error } = await supabaseAdmin
+  const owner = await requireUserId();
+  const r = await supabaseAdmin
     .from("calendar_connections")
     .delete()
-    .eq("owner_id", ownerId)
+    .eq("owner_id", owner)
     .eq("provider", "google");
-
-  if (error) return apiError(error.message, { status: 500 });
+  if (r.error)
+    return apiError("Calendar could not be disconnected.", { status: 503 });
   return apiOk({ disconnected: true });
 });

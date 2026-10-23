@@ -50,7 +50,10 @@ export const POST = withApiHandler(async (request) => {
       raw = {};
     }
   } else {
-    raw = Object.fromEntries(new URLSearchParams(bodyText)) as Record<string, string>;
+    raw = Object.fromEntries(new URLSearchParams(bodyText)) as Record<
+      string,
+      string
+    >;
   }
 
   const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
@@ -66,7 +69,9 @@ export const POST = withApiHandler(async (request) => {
       return new NextResponse("Invalid Twilio signature", { status: 403 });
     }
   } else if (process.env.NODE_ENV === "production") {
-    return new NextResponse("Twilio webhook auth not configured", { status: 503 });
+    return new NextResponse("Twilio webhook auth not configured", {
+      status: 503,
+    });
   }
 
   const from = String(raw.From ?? raw.from ?? "");
@@ -90,13 +95,18 @@ export const POST = withApiHandler(async (request) => {
   }
 
   try {
-    await supabaseAdmin.from("provider_webhooks").insert({
+    const logged = await supabaseAdmin.from("provider_webhooks").insert({
       provider: "twilio",
       external_id: messageSid || null,
       event_type: "inbound_sms",
       raw,
       processed: false,
     });
+    if (logged.error?.code === "23505")
+      return new NextResponse("<Response></Response>", {
+        status: 200,
+        headers: { "Content-Type": "text/xml" },
+      });
   } catch {
     /* ignore webhook log failures */
   }
@@ -133,7 +143,14 @@ export const POST = withApiHandler(async (request) => {
     });
   }
 
-  const isStop = ["STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "END", "QUIT"].includes(keyword);
+  const isStop = [
+    "STOP",
+    "STOPALL",
+    "UNSUBSCRIBE",
+    "CANCEL",
+    "END",
+    "QUIT",
+  ].includes(keyword);
   const isHelp = keyword === "HELP" || keyword === "INFO";
   const isStart = ["START", "YES", "UNSTOP"].includes(keyword);
 
@@ -149,7 +166,8 @@ export const POST = withApiHandler(async (request) => {
           sequence_active: null,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", contact.id);
+        .eq("id", contact.id)
+        .eq("owner_id", contact.owner_id);
 
       await recordEngagementEvent({
         ownerId: contact.owner_id,
@@ -177,24 +195,9 @@ export const POST = withApiHandler(async (request) => {
       twimlMessage =
         "You are unsubscribed and will no longer receive texts from this number. Reply HELP for help.";
     } else if (isStart) {
-      await supabaseAdmin
-        .from("contacts")
-        .update({
-          dnc: false,
-          opt_out_requested: false,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", contact.id);
-
-      await writeAuditLog({
-        ownerId: contact.owner_id,
-        action: "SMS_OPT_IN",
-        entityType: "contact",
-        entityId: contact.id,
-        metadata: { from, body, messageSid },
-      }).catch(() => undefined);
-
-      twimlMessage = "You have been re-subscribed to messages. Reply STOP to opt out.";
+      // START is not permission to erase an agent DNC flag or create consent evidence.
+      twimlMessage =
+        "Your request was received. Contact your agent to review messaging consent. Reply STOP to opt out.";
     } else if (isHelp) {
       twimlMessage =
         "ARI CRM help: Reply STOP to opt out of texts. For support contact your agent. Msg&data rates may apply.";
@@ -233,7 +236,8 @@ export const POST = withApiHandler(async (request) => {
 
 export const GET = withApiHandler(async () =>
   apiOk({
-    message: "Twilio inbound SMS webhook. Configure Messaging 'A message comes in' to this URL.",
+    message:
+      "Twilio inbound SMS webhook. Configure Messaging 'A message comes in' to this URL.",
   }),
 );
 

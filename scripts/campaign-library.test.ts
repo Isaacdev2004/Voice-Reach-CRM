@@ -111,10 +111,10 @@ const data: LibraryPreview = {
   performanceAvailable: true,
 };
 assert.deepEqual(performanceSummary(data), {
-  sent: 1,
-  delivered: 1,
-  opened: 1,
-  replied: 0,
+  sent: null,
+  delivered: null,
+  opened: null,
+  replied: null,
   completed: 0,
 });
 assert.equal(
@@ -122,7 +122,7 @@ assert.equal(
     ...data,
     campaign: { ...data.campaign, provider: "mock" },
   }).sent,
-  0,
+  null,
 );
 assert.equal(
   recipientProgress(data.recipients[0], data).next,

@@ -14,7 +14,7 @@ export async function claimStepRunForExecution(
     })
     .eq("id", runId)
     .eq("owner_id", ownerId)
-    .eq("status", "scheduled")
+    .eq("status", "scheduled").lte("scheduled_at",new Date().toISOString())
     .select("id")
     .maybeSingle();
 
@@ -35,5 +35,6 @@ export async function releaseStepRunToScheduled(
       ...(patch?.scheduled_at ? { scheduled_at: patch.scheduled_at } : {}),
     })
     .eq("id", runId)
-    .eq("owner_id", ownerId);
+    .eq("owner_id", ownerId)
+    .eq("status", "running");
 }

@@ -20,7 +20,11 @@ import {
   getStepTypeOption,
   parseDayNumber,
 } from "@/lib/crm/campaign-steps";
-import type { CampaignStep, CampaignStepAttachment, CampaignStepType } from "@/lib/crm/types";
+import type {
+  CampaignStep,
+  CampaignStepAttachment,
+  CampaignStepType,
+} from "@/lib/crm/types";
 import { useEffect, useRef, useState } from "react";
 
 type EditCampaignStepModalProps = {
@@ -66,7 +70,8 @@ export function EditCampaignStepModal({
   if (!step) return null;
 
   const supportsAttachments = type === "sms" || type === "email";
-  const maxAttachments = type === "sms" ? SMS_MAX_ATTACHMENTS : EMAIL_MAX_ATTACHMENTS;
+  const maxAttachments =
+    type === "sms" ? SMS_MAX_ATTACHMENTS : EMAIL_MAX_ATTACHMENTS;
   const accept =
     type === "sms"
       ? SMS_MMS_MIME_TYPES.join(",")
@@ -79,10 +84,16 @@ export function EditCampaignStepModal({
       ...step,
       type,
       title: title.trim(),
-      description: description.trim() || getStepTypeOption(type).defaultDescription,
+      description:
+        description.trim() || getStepTypeOption(type).defaultDescription,
       dayLabel: `Day ${Math.max(1, day)}`,
+      delayMinutes:
+        `Day ${Math.max(1, day)}` === step.dayLabel
+          ? step.delayMinutes
+          : undefined,
       timeLabel: timeLabel.trim() || "9:00 AM",
-      attachments: supportsAttachments && attachments.length ? attachments : undefined,
+      attachments:
+        supportsAttachments && attachments.length ? attachments : undefined,
     });
     onClose();
   };
@@ -104,9 +115,14 @@ export function EditCampaignStepModal({
     setUploading(true);
     setUploadError(null);
     try {
-      const uploaded = await uploadCampaignAttachment(file, type === "sms" ? "sms" : "email");
+      const uploaded = await uploadCampaignAttachment(
+        file,
+        type === "sms" ? "sms" : "email",
+      );
       setAttachments((prev) =>
-        type === "sms" ? [uploaded] : [...prev, uploaded].slice(0, EMAIL_MAX_ATTACHMENTS),
+        type === "sms"
+          ? [uploaded]
+          : [...prev, uploaded].slice(0, EMAIL_MAX_ATTACHMENTS),
       );
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");
@@ -132,9 +148,15 @@ export function EditCampaignStepModal({
         />
       }
     >
-      <form id="edit-campaign-step-form" onSubmit={handleSubmit} className="space-y-6">
+      <form
+        id="edit-campaign-step-form"
+        onSubmit={handleSubmit}
+        className="space-y-6"
+      >
         <div>
-          <p className={cn("mb-3 text-[13px] font-medium text-taupe")}>Touchpoint type</p>
+          <p className={cn("mb-3 text-[13px] font-medium text-taupe")}>
+            Touchpoint type
+          </p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {CAMPAIGN_STEP_TYPES.map((option) => (
               <button
@@ -148,8 +170,13 @@ export function EditCampaignStepModal({
                     : "border-outline-variant/25 bg-cream/40 text-taupe hover:border-rose-gold/30",
                 )}
               >
-                <Icon name={option.icon} className="text-[24px] text-rose-gold-deep" />
-                <span className="text-[12px] font-medium leading-tight">{option.label}</span>
+                <Icon
+                  name={option.icon}
+                  className="text-[24px] text-rose-gold-deep"
+                />
+                <span className="text-[12px] font-medium leading-tight">
+                  {option.label}
+                </span>
               </button>
             ))}
           </div>
@@ -223,15 +250,24 @@ export function EditCampaignStepModal({
                     className="flex items-center justify-between gap-3 rounded-lg bg-ivory px-3 py-2 text-[13px]"
                   >
                     <span className="flex min-w-0 items-center gap-2 text-ink">
-                      <Icon name="attach_file" className="shrink-0 text-[18px] text-rose-gold-deep" />
+                      <Icon
+                        name="attach_file"
+                        className="shrink-0 text-[18px] text-rose-gold-deep"
+                      />
                       <span className="truncate">{file.fileName}</span>
                       {file.sizeBytes ? (
-                        <span className="shrink-0 text-taupe">({formatFileSize(file.sizeBytes)})</span>
+                        <span className="shrink-0 text-taupe">
+                          ({formatFileSize(file.sizeBytes)})
+                        </span>
                       ) : null}
                     </span>
                     <button
                       type="button"
-                      onClick={() => setAttachments((prev) => prev.filter((a) => a.id !== file.id))}
+                      onClick={() =>
+                        setAttachments((prev) =>
+                          prev.filter((a) => a.id !== file.id),
+                        )
+                      }
                       className="shrink-0 text-[12px] font-medium text-taupe hover:text-error"
                     >
                       Remove
@@ -268,11 +304,22 @@ export function EditCampaignStepModal({
 
         <p className="rounded-xl bg-champagne/50 px-4 py-3 text-[13px] text-taupe">
           Use{" "}
-          <code className="rounded bg-ivory px-1 text-[12px]">{"{{first_name}}"}</code>,{" "}
-          <code className="rounded bg-ivory px-1 text-[12px]">{"{{property_address}}"}</code>,{" "}
-          <code className="rounded bg-ivory px-1 text-[12px]">{"{{area}}"}</code>,{" "}
-          <code className="rounded bg-ivory px-1 text-[12px]">{"{{agent_name}}"}</code> - they autofill
-          when the campaign runs.
+          <code className="rounded bg-ivory px-1 text-[12px]">
+            {"{{first_name}}"}
+          </code>
+          ,{" "}
+          <code className="rounded bg-ivory px-1 text-[12px]">
+            {"{{property_address}}"}
+          </code>
+          ,{" "}
+          <code className="rounded bg-ivory px-1 text-[12px]">
+            {"{{area}}"}
+          </code>
+          ,{" "}
+          <code className="rounded bg-ivory px-1 text-[12px]">
+            {"{{agent_name}}"}
+          </code>{" "}
+          - they autofill when the campaign runs.
         </p>
       </form>
     </Modal>

@@ -7,7 +7,10 @@ import { EngagementTimeline } from "@/components/engagement/engagement-timeline"
 import { Icon } from "@/components/ui/icon";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
-import { categoriesUsedOnContacts, contactMatchesCategory } from "@/lib/contacts/categories";
+import {
+  categoriesUsedOnContacts,
+  contactMatchesCategory,
+} from "@/lib/contacts/categories";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -34,7 +37,14 @@ type Campaign = {
 type Step = {
   id: string;
   step_order: number;
-  type: "voicemail" | "sms" | "email" | "avatar_video" | "task" | "callback" | "wait";
+  type:
+    | "voicemail"
+    | "sms"
+    | "email"
+    | "avatar_video"
+    | "task"
+    | "callback"
+    | "wait";
   title: string;
   description: string;
   delay_minutes: number;
@@ -104,11 +114,17 @@ type ApiData = {
   recipients: Recipient[];
   runs: StepRun[];
   blockedReport: BlockedRecipient[];
+  deliveryMetrics?: {
+    messages: number;
+    delivered: number;
+    failed: number;
+    deliveryRate: number | null;
+  } | null;
   counts: {
     total: number;
     eligible: number;
     blocked: number;
-    sent: number;
+    sent: number | null;
     failed: number;
     notSent: number;
   };
@@ -166,7 +182,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
   const [liveOutboundAllowed, setLiveOutboundAllowed] = useState(false);
   const [addPeopleOpen, setAddPeopleOpen] = useState(false);
   const [testRunOpen, setTestRunOpen] = useState(false);
-  const [selectedRecipientIds, setSelectedRecipientIds] = useState<Set<string>>(new Set());
+  const [selectedRecipientIds, setSelectedRecipientIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [removingRecipients, setRemovingRecipients] = useState(false);
 
   const showToast = (message: string, tone: Toast["tone"] = "success") => {
@@ -192,9 +210,10 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
 
   useEffect(() => {
     void (async () => {
-      const envelope = await safeFetch<{ liveOutboundAllowed?: boolean; canSendLive?: boolean }>(
-        "/api/providers/status",
-      );
+      const envelope = await safeFetch<{
+        liveOutboundAllowed?: boolean;
+        canSendLive?: boolean;
+      }>("/api/providers/status");
       if (envelope.success) {
         setLiveOutboundAllowed(Boolean(envelope.data.liveOutboundAllowed));
       }
@@ -222,13 +241,16 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     }
 
     setModeSaving(true);
-    const envelope = await safeFetch<{ campaign: Campaign }>(`/api/campaigns/${campaignId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        provider: next === "mock" ? "mock" : "slybroadcast",
-      }),
-    });
+    const envelope = await safeFetch<{ campaign: Campaign }>(
+      `/api/campaigns/${campaignId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider: next === "mock" ? "mock" : "slybroadcast",
+        }),
+      },
+    );
     setModeSaving(false);
     if (envelope.success) {
       showToast(
@@ -268,11 +290,14 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     }
 
     setLaunchSaving(true);
-    const envelope = await safeFetch<{ campaign: Campaign }>(`/api/campaigns/${campaignId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ liveLaunched }),
-    });
+    const envelope = await safeFetch<{ campaign: Campaign }>(
+      `/api/campaigns/${campaignId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ liveLaunched }),
+      },
+    );
     setLaunchSaving(false);
     if (envelope.success) {
       showToast(
@@ -348,7 +373,8 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     });
     setTickingRunner(false);
     if (envelope.success) {
-      const processed = envelope.data.processed ?? envelope.data.executed?.length ?? 0;
+      const processed =
+        envelope.data.processed ?? envelope.data.executed?.length ?? 0;
       const inactive = envelope.data.inactive;
       const summary = envelope.data.summary;
       let detail = `Processed ${processed} step run${processed === 1 ? "" : "s"}`;
@@ -369,8 +395,13 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
         !summary?.deferredNotLaunched &&
         !summary?.deferredQuietHours
       ) {
-        detail += " · no status change (check other campaigns’ old scheduled runs)";
-      } else if (processed === 0 && scheduleInsight.waiting > 0 && scheduleInsight.dueNow === 0) {
+        detail +=
+          " · no status change (check other campaigns’ old scheduled runs)";
+      } else if (
+        processed === 0 &&
+        scheduleInsight.waiting > 0 &&
+        scheduleInsight.dueNow === 0
+      ) {
         detail += " · next steps are scheduled for later (see Step runs)";
       }
       if (inactive) {
@@ -389,7 +420,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     () =>
       recipients
         .map((r) => {
-          const contact = Array.isArray(r.contacts) ? r.contacts[0] : r.contacts;
+          const contact = Array.isArray(r.contacts)
+            ? r.contacts[0]
+            : r.contacts;
           return contact?.id;
         })
         .filter((id): id is string => Boolean(id)),
@@ -401,7 +434,8 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
       recipients.map((r) => {
         const contact = Array.isArray(r.contacts) ? r.contacts[0] : r.contacts;
         const name = contact
-          ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() || "Contact"
+          ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() ||
+            "Contact"
           : "Contact";
         const category =
           contact?.category?.trim() ||
@@ -428,7 +462,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     () =>
       categoriesUsedOnContacts(
         recipients.map((r) => {
-          const contact = Array.isArray(r.contacts) ? r.contacts[0] : r.contacts;
+          const contact = Array.isArray(r.contacts)
+            ? r.contacts[0]
+            : r.contacts;
           return { category: contact?.category, type: contact?.type };
         }),
       ),
@@ -455,7 +491,10 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     }
   };
 
-  const removeRecipients = async (body: Record<string, unknown>, confirmMessage: string) => {
+  const removeRecipients = async (
+    body: Record<string, unknown>,
+    confirmMessage: string,
+  ) => {
     if (!window.confirm(confirmMessage)) return;
     setRemovingRecipients(true);
     const envelope = await safeFetch<{ removed: number; message: string }>(
@@ -508,8 +547,12 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     const runRows = data?.runs ?? [];
     const now = Date.now();
     const scheduled = runRows.filter((r) => r.status === "scheduled");
-    const dueNow = scheduled.filter((r) => new Date(r.scheduled_at).getTime() <= now);
-    const future = scheduled.filter((r) => new Date(r.scheduled_at).getTime() > now);
+    const dueNow = scheduled.filter(
+      (r) => new Date(r.scheduled_at).getTime() <= now,
+    );
+    const future = scheduled.filter(
+      (r) => new Date(r.scheduled_at).getTime() > now,
+    );
     const nextMs =
       future.length > 0
         ? Math.min(...future.map((r) => new Date(r.scheduled_at).getTime()))
@@ -543,10 +586,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
   }
 
   const { campaign, steps, runs, blockedReport, counts, runCounts } = data;
-  const deliveryRate =
-    counts.total === 0
-      ? 0
-      : Math.round((counts.sent / counts.total) * 100);
+  const deliveryRate = data.deliveryMetrics?.deliveryRate;
 
   return (
     <div className="luxury-page p-8 max-w-[1400px] w-full mx-auto space-y-8">
@@ -554,13 +594,17 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
         <div
           className={cn(
             "fixed bottom-6 right-6 z-[150] flex max-w-sm items-center gap-2 rounded-xl border px-4 py-3 shadow-card",
-            toast.tone === "success" ? "border-emerald-muted/30 bg-ivory" : "border-error/30 bg-ivory",
+            toast.tone === "success"
+              ? "border-emerald-muted/30 bg-ivory"
+              : "border-error/30 bg-ivory",
           )}
           role="status"
         >
           <Icon
             name={toast.tone === "success" ? "check_circle" : "error"}
-            className={toast.tone === "success" ? "text-emerald-muted" : "text-error"}
+            className={
+              toast.tone === "success" ? "text-emerald-muted" : "text-error"
+            }
           />
           <span className="text-[14px] text-ink">{toast.message}</span>
         </div>
@@ -605,22 +649,26 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
               </span>
             )}
           </div>
-          <h1 className="mt-2 font-serif text-[36px] font-semibold text-ink">{campaign.name}</h1>
+          <h1 className="mt-2 font-serif text-[36px] font-semibold text-ink">
+            {campaign.name}
+          </h1>
           <p className="mt-1 text-[13px] text-taupe">
-            Created {new Date(campaign.created_at).toLocaleDateString()} · last updated{" "}
-            {new Date(campaign.updated_at).toLocaleString()}
+            Created {new Date(campaign.created_at).toLocaleDateString()} · last
+            updated {new Date(campaign.updated_at).toLocaleString()}
           </p>
           {!liveOutboundAllowed ? (
             <p className="mt-3 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-950">
-              Live outbound is paused for demo safety. The auto-scheduler will not deliver real
-              voicemails or SMS. Use Simulation, or set{" "}
-              <span className="font-medium">ALLOW_LIVE_OUTBOUND=true</span> in Vercel when ready to
-              go live.
+              Live outbound is paused for demo safety. The auto-scheduler will
+              not deliver real voicemails or SMS. Use Simulation, or set{" "}
+              <span className="font-medium">ALLOW_LIVE_OUTBOUND=true</span> in
+              Vercel when ready to go live.
             </p>
           ) : null}
           {data?.diagnostics?.hint ? (
             <p className="mt-3 max-w-2xl rounded-xl border border-rose-gold/30 bg-rose-gold/5 px-3 py-2 text-[13px] text-ink">
-              <span className="font-medium text-rose-gold-deep">Send pipeline: </span>
+              <span className="font-medium text-rose-gold-deep">
+                Send pipeline:{" "}
+              </span>
               {data.diagnostics.hint}
               {data.diagnostics.scheduledDueNow > 0 ? (
                 <span className="text-taupe">
@@ -731,7 +779,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
       </header>
 
       {(() => {
-        const voiceReady = Boolean(campaign.voice_asset_id && campaign.voice_assets?.approved !== false);
+        const voiceReady = Boolean(
+          campaign.voice_asset_id && campaign.voice_assets?.approved !== false,
+        );
         const peopleReady = counts.total > 0;
         const consentReady = counts.eligible > 0;
         const liveReady = campaign.provider !== "mock";
@@ -747,7 +797,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
           {
             ok: peopleReady,
             label: "People enrolled",
-            hint: peopleReady ? `${counts.total} on this campaign` : "Add contacts before sending.",
+            hint: peopleReady
+              ? `${counts.total} on this campaign`
+              : "Add contacts before sending.",
           },
           {
             ok: consentReady,
@@ -787,7 +839,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
           <LuxuryCard padding="lg">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h2 className="font-serif text-[22px] font-semibold text-ink">Live-send checklist</h2>
+                <h2 className="font-serif text-[22px] font-semibold text-ink">
+                  Live-send checklist
+                </h2>
                 <p className="mt-1 text-[13px] text-taupe">
                   {readyCount}/{items.length} ready
                   {campaign.script_id?.startsWith("template-cold-lead")
@@ -807,7 +861,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                     className={item.ok ? "text-emerald-muted" : "text-taupe"}
                   />
                   <div>
-                    <p className="text-[14px] font-medium text-ink">{item.label}</p>
+                    <p className="text-[14px] font-medium text-ink">
+                      {item.label}
+                    </p>
                     <p className="mt-0.5 text-[12px] text-taupe">{item.hint}</p>
                     {!item.ok && item.href ? (
                       <Link
@@ -828,11 +884,39 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
       <section className="grid grid-cols-2 gap-4 md:grid-cols-6">
         {[
           { label: "Recipients", value: counts.total, icon: "groups" },
-          { label: "Eligible", value: counts.eligible, icon: "verified_user", tone: "emerald" },
-          { label: "Blocked", value: counts.blocked, icon: "block", tone: "error" },
-          { label: "Sent", value: counts.sent, icon: "check_circle", tone: "emerald" },
-          { label: "Failed", value: counts.failed, icon: "error", tone: "error" },
-          { label: "Delivery %", value: `${deliveryRate}%`, icon: "trending_up", tone: "rose" },
+          {
+            label: "Eligible",
+            value: counts.eligible,
+            icon: "verified_user",
+            tone: "emerald",
+          },
+          {
+            label: "Blocked",
+            value: counts.blocked,
+            icon: "block",
+            tone: "error",
+          },
+          {
+            label: "Provider-confirmed sent",
+            value: counts.sent ?? "Unavailable",
+            icon: "check_circle",
+            tone: "emerald",
+          },
+          {
+            label: "Failed messages",
+            value: data.deliveryMetrics?.failed ?? "Unavailable",
+            icon: "error",
+            tone: "error",
+          },
+          {
+            label: "Delivery %",
+            value:
+              deliveryRate == null
+                ? "Unavailable"
+                : `${deliveryRate.toFixed(1)}%`,
+            icon: "trending_up",
+            tone: "rose",
+          },
         ].map((stat) => (
           <LuxuryCard key={stat.label} padding="sm" className="text-center">
             <Icon
@@ -845,8 +929,12 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                 !stat.tone && "text-taupe",
               )}
             />
-            <p className="mt-2 font-serif text-[22px] font-semibold text-ink">{stat.value}</p>
-            <p className="text-[11px] uppercase tracking-wider text-taupe">{stat.label}</p>
+            <p className="mt-2 font-serif text-[22px] font-semibold text-ink">
+              {stat.value}
+            </p>
+            <p className="text-[11px] uppercase tracking-wider text-taupe">
+              {stat.label}
+            </p>
           </LuxuryCard>
         ))}
       </section>
@@ -854,7 +942,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
       <LuxuryCard padding="lg">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-serif text-[22px] font-semibold text-ink">People on this campaign</h2>
+            <h2 className="font-serif text-[22px] font-semibold text-ink">
+              People on this campaign
+            </h2>
             <p className="mt-1 text-[13px] text-taupe">
               {counts.total === 0
                 ? "No one enrolled yet - add contacts to start outreach."
@@ -883,14 +973,20 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                 className="inline-flex items-center gap-2 rounded-full border border-outline-variant/20 bg-ivory px-4 py-2 text-[13px] font-medium text-ink hover:bg-champagne disabled:opacity-50"
               >
                 <Icon
-                  name={allRecipientsSelected ? "check_box" : "check_box_outline_blank"}
+                  name={
+                    allRecipientsSelected
+                      ? "check_box"
+                      : "check_box_outline_blank"
+                  }
                   className="text-[18px]"
                 />
                 {allRecipientsSelected ? "Unselect all" : "Select all"}
               </button>
               <span className="text-[13px] text-taupe">
                 Selected:{" "}
-                <span className="font-medium text-ink">{selectedRecipientIds.size}</span>
+                <span className="font-medium text-ink">
+                  {selectedRecipientIds.size}
+                </span>
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -930,10 +1026,12 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
 
         {peopleRows.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-outline-variant/30 bg-cream/50 px-6 py-10 text-center">
-            <p className="font-serif text-[20px] font-semibold text-ink">No people yet</p>
+            <p className="font-serif text-[20px] font-semibold text-ink">
+              No people yet
+            </p>
             <p className="mx-auto mt-2 max-w-md text-[14px] text-slate-text">
-              This saved campaign has no recipients. Add contacts here - they must have valid
-              consent to be eligible.
+              This saved campaign has no recipients. Add contacts here - they
+              must have valid consent to be eligible.
             </p>
             <button
               type="button"
@@ -949,7 +1047,10 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             <table className="w-full text-left text-[13px]">
               <thead>
                 <tr className="border-b border-outline-variant/15 text-[11px] uppercase tracking-wider text-taupe">
-                  <th className="w-10 py-2 pr-2 font-medium" aria-label="Select" />
+                  <th
+                    className="w-10 py-2 pr-2 font-medium"
+                    aria-label="Select"
+                  />
                   <th className="py-2 pr-3 font-medium">Name</th>
                   <th className="py-2 pr-3 font-medium">Category</th>
                   <th className="py-2 pr-3 font-medium">Phone / Email</th>
@@ -995,9 +1096,15 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                         <span className="font-medium text-ink">{row.name}</span>
                       )}
                     </td>
-                    <td className="py-3 pr-3 text-slate-text">{row.category || " - "}</td>
-                    <td className="py-3 pr-3 text-taupe">{row.phone || row.email || " - "}</td>
-                    <td className="py-3 pr-3 capitalize text-slate-text">{row.eligibility}</td>
+                    <td className="py-3 pr-3 text-slate-text">
+                      {row.category || " - "}
+                    </td>
+                    <td className="py-3 pr-3 text-taupe">
+                      {row.phone || row.email || " - "}
+                    </td>
+                    <td className="py-3 pr-3 capitalize text-slate-text">
+                      {row.eligibility}
+                    </td>
                     <td className="py-3 capitalize text-slate-text">
                       {row.delivery.replace(/_/g, " ")}
                     </td>
@@ -1016,16 +1123,22 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
               Blocked recipient report
             </h2>
             <span className="rounded-full bg-cream px-2.5 py-0.5 text-[11px] font-medium text-taupe">
-              {blockedReport.length} {blockedReport.length === 1 ? "recipient" : "recipients"}
+              {blockedReport.length}{" "}
+              {blockedReport.length === 1 ? "recipient" : "recipients"}
             </span>
           </div>
           {blockedReport.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-emerald-muted/30 bg-sage-light/40 p-6 text-center">
-              <Icon name="verified_user" className="text-[32px] text-emerald-muted" />
-              <p className="mt-2 text-[14px] font-medium text-ink">No blocked recipients</p>
+              <Icon
+                name="verified_user"
+                className="text-[32px] text-emerald-muted"
+              />
+              <p className="mt-2 text-[14px] font-medium text-ink">
+                No blocked recipients
+              </p>
               <p className="mt-1 text-[13px] text-slate-text">
-                All enrolled contacts passed compliance checks. Audit logs capture every
-                eligibility decision.
+                All enrolled contacts passed compliance checks. Audit logs
+                capture every eligibility decision.
               </p>
             </div>
           ) : (
@@ -1056,7 +1169,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                         ) : (
                           <span className="font-medium text-ink">{r.name}</span>
                         )}
-                        <p className="text-[11px] text-taupe">{r.phone || r.email}</p>
+                        <p className="text-[11px] text-taupe">
+                          {r.phone || r.email}
+                        </p>
                       </td>
                       <td className="py-3 pr-3">
                         <div className="flex flex-wrap gap-1">
@@ -1082,7 +1197,8 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                         </div>
                       </td>
                       <td className="py-3 pr-3 text-[12px] capitalize text-slate-text">
-                        {r.deliveryStatus === "blocked" || r.eligibilityStatus === "blocked"
+                        {r.deliveryStatus === "blocked" ||
+                        r.eligibilityStatus === "blocked"
                           ? "Blocked"
                           : r.deliveryStatus.replace("_", " ")}
                       </td>
@@ -1098,11 +1214,21 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
         </LuxuryCard>
 
         <LuxuryCard padding="lg">
-          <h2 className="mb-4 font-serif text-[20px] font-semibold text-ink">Step runs</h2>
+          <h2 className="mb-4 font-serif text-[20px] font-semibold text-ink">
+            Step runs
+          </h2>
           <ul className="space-y-2 text-[13px]">
             {[
-              { label: "Scheduled", value: runCounts.scheduled, tone: "bronze" },
-              { label: "Sent", value: runCounts.sent, tone: "emerald" },
+              {
+                label: "Scheduled",
+                value: runCounts.scheduled,
+                tone: "bronze",
+              },
+              {
+                label: "Worker processed",
+                value: runCounts.sent,
+                tone: "emerald",
+              },
               { label: "Failed", value: runCounts.failed, tone: "error" },
               { label: "Blocked", value: runCounts.blocked, tone: "error" },
               { label: "Skipped", value: runCounts.skipped, tone: "taupe" },
@@ -1128,8 +1254,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
           </ul>
           {scheduleInsight.dueNow > 0 ? (
             <p className="mt-3 text-[13px] text-emerald-muted">
-              {scheduleInsight.dueNow} step run{scheduleInsight.dueNow === 1 ? "" : "s"} due now —
-              use Run scheduler or wait for cron.
+              {scheduleInsight.dueNow} step run
+              {scheduleInsight.dueNow === 1 ? "" : "s"} due now — use Run
+              scheduler or wait for cron.
             </p>
           ) : scheduleInsight.waiting > 0 && scheduleInsight.nextMs ? (
             <p className="mt-3 text-[13px] text-amber-950">
@@ -1143,16 +1270,19 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             </p>
           ) : null}
           <p className="mt-4 text-[12px] text-taupe">
-            Press <span className="font-medium text-ink">Run scheduler</span> to fire any due runs
-            immediately. For an instant test, use <span className="font-medium text-ink">Run sequence</span>{" "}
-            (Live) — it reschedules selected contacts to send now.
+            Press <span className="font-medium text-ink">Run scheduler</span> to
+            fire any due runs immediately. For an instant test, use{" "}
+            <span className="font-medium text-ink">Run sequence</span> (Live) —
+            it reschedules selected contacts to send now.
           </p>
         </LuxuryCard>
       </div>
 
       <LuxuryCard padding="lg">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-serif text-[22px] font-semibold text-ink">Sequence</h2>
+          <h2 className="font-serif text-[22px] font-semibold text-ink">
+            Sequence
+          </h2>
           <Link
             href={`/dashboard/campaigns?edit=${campaignId}#campaign-builder`}
             className="text-[13px] font-medium text-rose-gold-deep hover:underline"
@@ -1162,7 +1292,8 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
         </div>
         {steps.length === 0 ? (
           <p className="text-[13px] text-taupe">
-            No persisted steps. The builder will save steps when you activate or save as template.
+            No persisted steps. The builder will save steps when you activate or
+            save as template.
           </p>
         ) : (
           <ul className="space-y-2">
@@ -1188,9 +1319,13 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
                       {step.type === "voicemail"
                         ? step.voice_asset_id || step.conditions?.voiceAssetId
                           ? " · voice linked"
-                          : campaign.voice_asset_id && step.step_order === Math.min(
-                              ...steps.filter((s) => s.type === "voicemail").map((s) => s.step_order),
-                            )
+                          : campaign.voice_asset_id &&
+                              step.step_order ===
+                                Math.min(
+                                  ...steps
+                                    .filter((s) => s.type === "voicemail")
+                                    .map((s) => s.step_order),
+                                )
                             ? " · uses campaign default voice"
                             : " · needs its own voice"
                         : ""}
@@ -1215,7 +1350,9 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
 
       <LuxuryCard padding="lg">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-serif text-[22px] font-semibold text-ink">Engagement timeline</h2>
+          <h2 className="font-serif text-[22px] font-semibold text-ink">
+            Engagement timeline
+          </h2>
           <span className="rounded-full bg-emerald-muted/15 px-2.5 py-0.5 text-[11px] font-medium text-emerald-muted">
             Live
           </span>

@@ -1,4 +1,5 @@
 import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
+import { readDelivery } from "@/lib/delivery/store";
 import { requireUserId } from "@/lib/auth";
 import { recordEngagementEvent } from "@/lib/engagement/record";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -43,7 +44,7 @@ export const GET = withApiHandler(async (request) => {
 
   let query = supabaseAdmin
     .from("engagement_events")
-    .select("*, contacts(first_name, last_name)")
+    .select("*, contacts(owner_id, first_name, last_name)")
     .eq("owner_id", ownerId)
     .order("occurred_at", { ascending: false })
     .limit(params.limit);
@@ -52,7 +53,10 @@ export const GET = withApiHandler(async (request) => {
   if (params.campaignId) query = query.eq("campaign_id", params.campaignId);
 
   const { data, error } = await query;
-  if (error) return apiError(error.message, { status: 500 });
+  if (error)
+    return apiError("Contact activity is temporarily unavailable.", {
+      status: 503,
+    });
 
   const totalScore =
     params.contactId &&
@@ -63,15 +67,94 @@ export const GET = withApiHandler(async (request) => {
       .eq("contact_id", params.contactId)
       .then((r) => (r.data ?? []).reduce((s, row) => s + (row.score ?? 0), 0)));
 
+  const evidence = await readDelivery(ownerId).catch(() => null);
+  const actual =
+    evidence?.records
+      .filter(
+        (r) =>
+          (!params.contactId || r.contact_id === params.contactId) &&
+          (!params.campaignId || r.campaign_id === params.campaignId),
+      )
+      .flatMap((r) =>
+        r.events
+          .filter((e) =>
+            [
+              "delivered",
+              "opened",
+              "clicked",
+              "replied",
+              "opt_out",
+              "failed",
+            ].includes(e.event_type),
+          )
+          .map((e) => ({
+            id: e.id,
+            contact_id: r.contact_id,
+            campaign_id: r.campaign_id,
+            step_id: r.step_id,
+            event_type: e.event_type,
+            channel: r.channel,
+            score: 0,
+            occurred_at: e.occurred_at ?? e.received_at,
+            metadata: {
+              provider: r.provider,
+              evidence: "verified",
+              timestampKind: e.occurred_at ? "provider" : "received",
+            },
+          })),
+      ) ?? [];
+  const historical = (data ?? [])
+    .filter(
+      (e) =>
+        (e.metadata as { evidence?: string } | null)?.evidence !== "verified",
+    )
+    .map((e) => ({
+      ...e,
+      contacts:
+        (Array.isArray(e.contacts) ? e.contacts[0] : e.contacts)?.owner_id ===
+        ownerId
+          ? e.contacts
+          : null,
+      metadata: {
+        evidence: "unverified",
+        provider:
+          (e.metadata as { provider?: string } | null)?.provider === "mock"
+            ? "mock"
+            : undefined,
+      },
+    }));
+  const events = [...actual, ...historical]
+    .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))
+    .slice(0, params.limit);
   return apiSuccess({
-    events: data ?? [],
-    score: typeof totalScore === "number" ? Math.max(0, Math.min(100, totalScore)) : null,
+    events,
+    score:
+      typeof totalScore === "number"
+        ? Math.max(0, Math.min(100, totalScore))
+        : null,
   });
 });
 
 export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const body = PostSchema.parse(await request.json());
+  for (const [table, id] of [
+    ["contacts", body.contactId],
+    ["campaigns", body.campaignId],
+    ["campaign_steps", body.stepId],
+  ] as const) {
+    if (!id) continue;
+    const owned = await supabaseAdmin
+      .from(table)
+      .select("id")
+      .eq("id", id)
+      .eq("owner_id", ownerId)
+      .maybeSingle();
+    if (owned.error)
+      return apiError("Activity could not be saved.", { status: 503 });
+    if (!owned.data)
+      return apiError("Related record not found.", { status: 404 });
+  }
   const event = await recordEngagementEvent({
     ownerId,
     contactId: body.contactId ?? null,
@@ -79,7 +162,7 @@ export const POST = withApiHandler(async (request) => {
     stepId: body.stepId ?? null,
     eventType: body.eventType,
     channel: body.channel,
-    metadata: body.metadata,
+    metadata: { ...body.metadata, evidence: "manual" },
   });
   return apiSuccess({ event });
 });

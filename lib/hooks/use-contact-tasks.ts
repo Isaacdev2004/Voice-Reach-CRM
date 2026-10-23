@@ -59,6 +59,7 @@ export function useContactTasks(contactId: string | undefined) {
       body: JSON.stringify(input),
     });
     if (!envelope.success) throw new Error(envelope.error);
+    window.dispatchEvent(new Event("myari:activity-changed"));
     await refresh();
     return envelope.data.task;
   };
@@ -83,6 +84,7 @@ export function useContactTasks(contactId: string | undefined) {
       },
     );
     if (!envelope.success) throw new Error(envelope.error);
+    window.dispatchEvent(new Event("myari:activity-changed"));
     await refresh();
     return envelope.data.task;
   };
@@ -94,6 +96,7 @@ export function useContactTasks(contactId: string | undefined) {
       { method: "DELETE" },
     );
     if (!envelope.success) throw new Error(envelope.error);
+    window.dispatchEvent(new Event("myari:activity-changed"));
     await refresh();
   };
 

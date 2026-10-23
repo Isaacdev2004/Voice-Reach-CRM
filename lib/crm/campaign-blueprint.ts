@@ -1,9 +1,14 @@
 import { attachmentsFromConditions } from "@/lib/campaigns/attachments";
-import type { CampaignDefinition, CampaignStep, CampaignStepStatus } from "./types";
+import type {
+  CampaignDefinition,
+  CampaignStep,
+  CampaignStepStatus,
+} from "./types";
 
 type DbCampaignStep = {
   id: string;
   step_order: number;
+  delay_minutes?: number;
   type: string;
   title: string;
   description?: string | null;
@@ -21,7 +26,9 @@ type DbCampaign = {
   script_id?: string | null;
 };
 
-function mapDbStepStatus(status: string | null | undefined): CampaignStepStatus {
+function mapDbStepStatus(
+  status: string | null | undefined,
+): CampaignStepStatus {
   if (status === "sent") return "sent";
   if (status === "active") return "active";
   if (status === "paused") return "pending";
@@ -33,7 +40,8 @@ export function dbStepsToCampaignSteps(
   voiceLookup?: Map<string, { title: string; playbackUrl?: string | null }>,
 ): CampaignStep[] {
   return rows.map((row) => {
-    const voiceAssetId = row.voice_asset_id ?? row.conditions?.voiceAssetId ?? null;
+    const voiceAssetId =
+      row.voice_asset_id ?? row.conditions?.voiceAssetId ?? null;
     const voiceMeta = voiceAssetId ? voiceLookup?.get(voiceAssetId) : undefined;
     return {
       id: row.id,
@@ -41,6 +49,7 @@ export function dbStepsToCampaignSteps(
       type: row.type as CampaignStep["type"],
       title: row.title,
       description: row.description ?? "",
+      delayMinutes: row.delay_minutes,
       dayLabel: row.day_label ?? `Day ${row.step_order}`,
       timeLabel: row.time_label ?? "9:00 AM",
       status: mapDbStepStatus(row.status),
@@ -55,7 +64,9 @@ export function dbStepsToCampaignSteps(
 export function campaignFromApi(
   record: DbCampaign,
   steps: DbCampaignStep[],
-  overrides?: Partial<Pick<CampaignDefinition, "description" | "audience" | "goals">>,
+  overrides?: Partial<
+    Pick<CampaignDefinition, "description" | "audience" | "goals">
+  >,
 ): CampaignDefinition {
   const campaignSteps = dbStepsToCampaignSteps(steps);
   const maxDay = campaignSteps.reduce((max, s) => {

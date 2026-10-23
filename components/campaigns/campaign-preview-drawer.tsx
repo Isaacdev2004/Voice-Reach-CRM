@@ -386,9 +386,9 @@ export function CampaignPreviewDrawer({
                   <>
                     <h3>Recorded campaign activity</h3>
                     <p className="cl-muted">
-                      Sent counts executed live step runs. Delivery, opens and
-                      replies count recorded events, not unique contacts. Queued
-                      and simulated sends are excluded from Sent.
+                      Metrics count unique logical messages from delivery
+                      evidence. Queued, accepted and simulated messages are not
+                      confirmed delivery.
                     </p>
                     <dl className="cl-performance">
                       {(
@@ -402,7 +402,7 @@ export function CampaignPreviewDrawer({
                       ).map((key) => (
                         <div key={key}>
                           <dt>
-                            {key === "completed" ? "Completed sequences" : key}
+                            {key === "completed" ? "Executed sequences" : key}
                           </dt>
                           <dd>
                             {!data.performanceAvailable &&
@@ -416,14 +416,15 @@ export function CampaignPreviewDrawer({
                     </dl>
                     {!data.performanceAvailable ? (
                       <p role="status">
-                        Engagement measurements are temporarily unavailable.
+                        Provider delivery evidence is not available for this
+                        campaign.
                       </p>
                     ) : !data.engagement.length ? (
                       <p>No engagement events recorded yet.</p>
                     ) : null}
                     <p className="cl-muted">
-                      Completed sequences have a sent or skipped run for every
-                      current step.{" "}
+                      Executed sequences have a worker-processed run for every
+                      step. This does not prove delivery.{" "}
                       {data.campaign.provider === "mock"
                         ? "This campaign uses simulation."
                         : ""}

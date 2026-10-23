@@ -1,470 +1,1333 @@
 "use client";
-
-import { CalendarQuickActions } from "@/components/calendar/calendar-quick-actions";
-import { CalendarUpcomingList } from "@/components/calendar/calendar-upcoming-list";
-import { useCalendarReminders } from "@/components/calendar/use-calendar-reminders";
-import {
-  AddCalendarEventModal,
-  type CalendarEventEdit,
-} from "@/components/crm/add-calendar-event-modal";
-import { CalendarDayPanel, type DayPanelEvent } from "@/components/crm/calendar-day-panel";
-import { KpiSpark } from "@/components/crm/kpi-spark";
-import { AppToast } from "@/components/ui/app-toast";
-import { InAppBrowserBanner } from "@/components/auth/in-app-browser-banner";
-import { LuxuryCard } from "@/components/crm/luxury-card";
-import { MonthCalendar, type CalendarViewMode } from "@/components/crm/month-calendar";
-import { Icon } from "@/components/ui/icon";
-import { connectGoogleCalendar } from "@/lib/connect-google-calendar";
-import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
-import { cn } from "@/lib/cn";
+import "@/components/calendar/calendar-workspace.css";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useUser } from "@clerk/nextjs";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-
-type AgendaItem = DayPanelEvent;
-
-function formatWhen(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-function monthParam(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  return `${y}-${m}`;
-}
-
-function sameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-function addDays(date: Date, days: number) {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
-}
-
-function startOfWeek(date: Date) {
-  const d = new Date(date);
-  d.setDate(d.getDate() - d.getDay());
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function endOfWeek(date: Date) {
-  const d = startOfWeek(date);
-  d.setDate(d.getDate() + 7);
-  return d;
-}
-
+import { Modal } from "@/components/crm/modal";
+import { Icon } from "@/components/ui/icon";
+import { CalendarEventEditor } from "@/components/calendar/calendar-event-editor";
+import { CalendarPreferencesDialog } from "@/components/calendar/calendar-preferences-dialog";
+import {
+  DEFAULT_CALENDAR_PREFERENCES,
+  type CalendarPreferences,
+} from "@/lib/calendar/preferences";
+import {
+  addCalendarDays,
+  describeCalendarInstant,
+  navigateCalendarDate,
+  dateLabel,
+  formatClock,
+  monthDates,
+  weekDates,
+  zonedParts,
+  wallTimeToInstant,
+} from "@/lib/calendar/time";
+import { placeIntervals, conflictsFor } from "@/lib/calendar/conflicts";
+import type {
+  ScheduleItem,
+  CalendarInfo,
+  CalendarHealth,
+} from "@/lib/calendar/model";
+import { DailyPriorities } from "@/components/activity/daily-priorities";
+import { BookingRequestsPanel } from "@/components/calendar/booking-requests-panel";
+import { CalendarLinksPanel } from "@/components/calendar/calendar-links-panel";
+const MINUTE_PX = 0.8;
+type Snapshot = {
+  agenda: ScheduleItem[];
+  calendars: CalendarInfo[];
+  health: CalendarHealth[];
+  authorized: boolean;
+};
+type Editor = {
+  date: string;
+  time: string;
+  kind?: "crm" | "callback" | "reminder" | "task";
+  contactId?: string;
+  item?: ScheduleItem;
+};
 export function CalendarPage() {
-  const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [connected, setConnected] = useState(false);
-  const [accountEmail, setAccountEmail] = useState<string | null>(null);
-  const [agenda, setAgenda] = useState<AgendaItem[]>([]);
-  const [counts, setCounts] = useState({ google: 0, crm: 0, tasks: 0 });
-  const [error, setError] = useState<string | null>(null);
-  const [viewDate, setViewDate] = useState(() => new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(() => new Date());
-  const [addEventOpen, setAddEventOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<CalendarEventEdit | null>(null);
-  const [connectHint, setConnectHint] = useState<string | null>(null);
-  const [mobileDayView, setMobileDayView] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [calendarView, setCalendarView] = useState<CalendarViewMode>("month");
-
-  const load = useCallback(
-    async (isRefresh = false) => {
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
-      try {
-        const res = await fetch(
-          `/api/calendar/events?month=${monthParam(viewDate)}&months=2`,
-          { cache: "no-store" },
+  const { user } = useUser();
+  return <CalendarWorkspace key={user?.id ?? "signed-out"} />;
+}
+function CalendarWorkspace() {
+  const q = useSearchParams();
+  const initialDateQuery = useRef(q.get("date"));
+  const [prefs, setPrefs] = useState(DEFAULT_CALENDAR_PREFERENCES),
+    [prefVersion, setPrefVersion] = useState<string | null>(null),
+    [ready, setReady] = useState(false),
+    [prefFailed, setPrefFailed] = useState(false);
+  const [date, setDate] = useState(
+    () => zonedParts(new Date(), DEFAULT_CALENDAR_PREFERENCES.timezone).date,
+  );
+  const [data, setData] = useState<Snapshot>({
+      agenda: [],
+      calendars: [],
+      health: [],
+      authorized: false,
+    }),
+    [loading, setLoading] = useState(true),
+    [error, setError] = useState(""),
+    [notice, setNotice] = useState(""),
+    [revision, setRevision] = useState(0),
+    [preferencesOpen, setPreferencesOpen] = useState(false),
+    [panel, setPanel] = useState<"calendars" | "details" | null>(null),
+    [selected, setSelected] = useState<ScheduleItem | null>(null),
+    [editor, setEditor] = useState<Editor | null>(null),
+    [section, setSection] = useState<
+      "calendar" | "agenda" | "task" | "reminder"
+    >("calendar"),
+    [search, setSearch] = useState(""),
+    [saving, setSaving] = useState(false),
+    [now, setNow] = useState(Date.now());
+  const scroll = useRef<HTMLDivElement>(null),
+    requestVersion = useRef(0),
+    prefSaving = useRef(false),
+    initialQuery = useRef(false);
+  useEffect(() => {
+    const ac = new AbortController();
+    fetch("/api/calendar/preferences", { signal: ac.signal, cache: "no-store" })
+      .then(async (res) => {
+        const d = await res.json();
+        if (!res.ok || d.success === false) throw Error();
+        if (ac.signal.aborted) return;
+        setPrefs(d.preferences);
+        setPrefVersion(d.version);
+        const requested = initialDateQuery.current;
+        setDate(
+          requested && /^\d{4}-\d{2}-\d{2}$/.test(requested)
+            ? requested
+            : zonedParts(new Date(), d.preferences.timezone).date,
         );
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Could not load calendar");
-        setConnected(Boolean(data.connected));
-        setAccountEmail(data.accountEmail ?? null);
-        setAgenda(data.agenda ?? []);
-        setCounts(data.counts ?? { google: 0, crm: 0, tasks: 0 });
-        const errors = [data.googleError, data.eventsError, data.tasksError].filter(Boolean);
-        setError(errors[0] ?? null);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not load calendar");
-        setAgenda([]);
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    },
-    [viewDate],
+        if (matchMedia("(max-width:767px)").matches) {
+          if (d.version === null)
+            setPrefs((p: CalendarPreferences) => ({ ...p, view: "day" }));
+          setPanel(
+            d.preferences.mobileLeftOpen
+              ? "calendars"
+              : d.preferences.mobileRightOpen
+                ? "details"
+                : null,
+          );
+        }
+      })
+      .catch(() => {
+        if (!ac.signal.aborted) setPrefFailed(true);
+      })
+      .finally(() => {
+        if (!ac.signal.aborted) setReady(true);
+      });
+    return () => ac.abort();
+  }, []);
+  const days = useMemo(
+    () =>
+      prefs.view === "month"
+        ? monthDates(date, prefs.mondayStart)
+        : prefs.view === "day"
+          ? [date]
+          : prefs.view === "agenda"
+            ? Array.from({ length: 30 }, (_, i) => addCalendarDays(date, i))
+            : weekDates(date, prefs.mondayStart),
+    [date, prefs.view, prefs.mondayStart],
   );
-
+  const from = days[0],
+    until = addCalendarDays(days.at(-1)!, 1);
   useEffect(() => {
-    void load();
-  }, [load]);
-
+    if (!ready) return;
+    const controller = new AbortController();
+    setLoading(true);
+    setError("");
+    fetch(
+      `/api/calendar/events?${new URLSearchParams({ from: wallTimeToInstant(from, "00:00", prefs.timezone, "earlier"), to: wallTimeToInstant(until, "00:00", prefs.timezone, "earlier") })}`,
+      { signal: controller.signal, cache: "no-store" },
+    )
+      .then(async (r) => {
+        const d = await r.json();
+        if (!r.ok || d.success === false || !Array.isArray(d.agenda))
+          throw Error();
+        if (!controller.signal.aborted) setData(d);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setData({ agenda: [], calendars: [], health: [], authorized: false });
+          setError(
+            "Calendar information could not be loaded. Refresh to try again.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [ready, from, until, prefs.timezone, revision]);
   useEffect(() => {
-    if (searchParams.get("new") === "event") setAddEventOpen(true);
-  }, [searchParams]);
-
-  const upcomingAgenda = useMemo(() => {
-    const now = Date.now();
-    return agenda.filter((item) => new Date(item.starts_at).getTime() >= now);
-  }, [agenda]);
-
-  const selectedDayEvents = useMemo(() => {
-    if (!selectedDate) return [];
-    return agenda.filter((item) => sameDay(new Date(item.starts_at), selectedDate));
-  }, [agenda, selectedDate]);
-
-  const weekEvents = useMemo(() => {
-    if (!selectedDate) return [];
-    const start = startOfWeek(selectedDate);
-    const end = endOfWeek(selectedDate);
-    return agenda.filter((item) => {
-      const t = new Date(item.starts_at).getTime();
-      return t >= start.getTime() && t < end.getTime();
-    });
-  }, [agenda, selectedDate]);
-
-  const totalEvents = agenda.length;
-  const eventsThisWeek = useMemo(() => {
-    const now = new Date();
-    const end = addDays(now, 7);
-    return agenda.filter((item) => {
-      const t = new Date(item.starts_at);
-      return t >= now && t <= end;
-    }).length;
-  }, [agenda]);
-
-  const shiftSelectedDay = useCallback((delta: number) => {
-    setSelectedDate((prev) => (prev ? addDays(prev, delta) : new Date()));
+    const timer = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(timer);
   }, []);
-
-  const { activeReminder, dismissReminder } = useCalendarReminders(upcomingAgenda);
-
-  const openCreateEvent = useCallback(() => {
-    setEditingEvent(null);
-    setAddEventOpen(true);
+  useEffect(() => {
+    if (scroll.current && !loading)
+      scroll.current.scrollTop = 8 * 60 * MINUTE_PX;
+  }, [loading, prefs.view]);
+  useEffect(() => {
+    if (!ready || initialQuery.current) return;
+    initialQuery.current = true;
+    if (q.get("new") === "event")
+      setEditor({
+        date,
+        time: prefs.workStart,
+        contactId: q.get("contactId") ?? undefined,
+      });
+  }, [ready, q, date, prefs.workStart]);
+  const refresh = () => setRevision((r) => r + 1);
+  useEffect(() => {
+    const reload = () => setRevision((r) => r + 1);
+    window.addEventListener("focus", reload);
+    window.addEventListener("myari:activity-changed", reload);
+    return () => {
+      window.removeEventListener("focus", reload);
+      window.removeEventListener("myari:activity-changed", reload);
+    };
   }, []);
-
-  const openEditEvent = useCallback((event: DayPanelEvent) => {
-    if (!event.crmEventId) return;
-    setEditingEvent({
-      crmEventId: event.crmEventId,
-      title: event.title,
-      starts_at: event.starts_at,
-      ends_at: event.ends_at,
-      description: event.description ?? null,
-      meetingLink: event.meetingLink ?? null,
-    });
-    setAddEventOpen(true);
-  }, []);
-
-  const handleDeleteEvent = useCallback(
-    async (event: DayPanelEvent) => {
-      if (!event.crmEventId) return;
-      if (!window.confirm(`Delete "${event.title}"?`)) return;
-
-      setActionError(null);
+  const savePreferences = useCallback(
+    async (next: CalendarPreferences) => {
+      if (prefSaving.current || prefFailed) return false;
+      prefSaving.current = true;
       try {
-        const res = await fetch(`/api/calendar/events/${event.crmEventId}`, { method: "DELETE" });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Could not delete event");
-        await load(true);
-      } catch (e) {
-        setActionError(e instanceof Error ? e.message : "Could not delete event");
+        const response = await fetch("/api/calendar/preferences", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ preferences: next, version: prefVersion }),
+        });
+        const d = await response.json();
+        if (!response.ok || d.success === false) throw Error();
+        setPrefs(d.preferences);
+        setPrefVersion(d.version);
+        return true;
+      } catch {
+        setNotice(
+          "Preferences could not be saved. Reload before trying again if another device changed them.",
+        );
+        return false;
+      } finally {
+        prefSaving.current = false;
       }
     },
-    [load],
+    [prefVersion, prefFailed],
   );
-
-  const handleDayClick = useCallback((day: Date) => {
-    setSelectedDate(day);
-    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
-      setMobileDayView(true);
+  const visible = data.agenda.filter(
+    (i) =>
+      prefs.visibility[i.calendarKey] !== false &&
+      i.title.toLowerCase().includes(search.toLowerCase()),
+  );
+  const today = zonedParts(new Date(now), prefs.timezone);
+  const daily = visible.filter(
+    (i) => zonedParts(i.starts_at, prefs.timezone).date === date,
+  );
+  const upcoming = visible
+    .filter((i) => Date.parse(i.starts_at) >= now)
+    .slice(0, 4);
+  useEffect(() => {
+    if (!prefs.inAppReminders || loading) return;
+    const due = data.agenda.find(
+      (i) =>
+        ["reminder", "callback", "task"].includes(i.source) &&
+        Date.parse(i.starts_at) >= now &&
+        Date.parse(i.starts_at) <= now + 15 * 60000,
+    );
+    if (due) setNotice(`Upcoming ${due.source}: ${due.title}`);
+  }, [prefs.inAppReminders, loading, data.agenda, now]);
+  function create(
+    day = date,
+    time = prefs.workStart,
+    kind: Editor["kind"] = "crm",
+  ) {
+    setEditor({ date: day, time, kind });
+  }
+  async function move(item: ScheduleItem, start: string, end: string) {
+    if (
+      !item.editable ||
+      (!item.crmEventId && !item.externalId) ||
+      saving ||
+      item.allDay
+    )
+      return;
+    const conflicts = conflictsFor(data.agenda, start, end, {
+      excludeId: item.id,
+      ...prefs,
+    });
+    if (conflicts.length) {
+      setNotice(
+        "This move overlaps an appointment or configured buffer. Use Edit to review and explicitly allow a conflict.",
+      );
+      return;
     }
-  }, []);
-
-  const connectGoogle = () => {
-    const result = connectGoogleCalendar();
-    if (result.blocked) {
-      setConnectHint(
-        "Google Calendar can’t connect inside this browser. Open MyARI in Safari or Chrome, then try again.",
+    const ticket = ++requestVersion.current;
+    const previous = item;
+    setSaving(true);
+    setData((d) => ({
+      ...d,
+      agenda: d.agenda.map((e) =>
+        e.id === item.id ? { ...e, starts_at: start, ends_at: end } : e,
+      ),
+    }));
+    try {
+      const r = await fetch(
+        item.crmEventId
+          ? `/api/calendar/events/${item.crmEventId}`
+          : "/api/calendar/external",
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            startsAt: start,
+            endsAt: end,
+            version: item.version,
+            etag: item.etag,
+            timeZone: prefs.timezone,
+            ...(!item.crmEventId
+              ? {
+                  calendarId: item.externalCalendarId,
+                  eventId: item.externalId,
+                }
+              : {}),
+          }),
+        },
+      );
+      if (!r.ok) throw Error();
+      setNotice("Appointment updated.");
+      window.dispatchEvent(new Event("myari:activity-changed"));
+      refresh();
+    } catch {
+      if (ticket === requestVersion.current)
+        setData((d) => ({
+          ...d,
+          agenda: d.agenda.map((e) => (e.id === item.id ? previous : e)),
+        }));
+      setNotice(
+        "The change could not be saved. The previous time has been restored; refresh before retrying.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+  function drop(e: React.DragEvent, day: string, minute: number) {
+    e.preventDefault();
+    const item = data.agenda.find(
+      (i) => i.id === e.dataTransfer.getData("text/myari-event"),
+    );
+    if (!item) return;
+    try {
+      const start = wallTimeToInstant(
+        day,
+        `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`,
+        prefs.timezone,
+      );
+      void move(
+        item,
+        start,
+        new Date(
+          Date.parse(start) +
+            Date.parse(item.ends_at) -
+            Date.parse(item.starts_at),
+        ).toISOString(),
+      );
+    } catch {
+      setNotice(
+        "This time is ambiguous or unavailable due to daylight saving. Use Edit to choose an occurrence.",
       );
     }
-  };
-
-  return (
-    <div className={DASHBOARD_PAGE_BODY}>
-      {!connected ? <InAppBrowserBanner context="google-calendar" /> : null}
-
-      {connectHint ? (
-        <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[14px] text-amber-900">
-          {connectHint}
-        </p>
-      ) : null}
-
-      {actionError ? (
-        <p className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
-          {actionError}
-        </p>
-      ) : null}
-
-      {activeReminder ? (
-        <div className="relative z-[200]">
-          <AppToast
-            message={`Starting in 15 minutes: ${activeReminder.title}`}
-            tone="success"
+  }
+  function resize(e: React.PointerEvent, item: ScheduleItem) {
+    e.preventDefault();
+    e.stopPropagation();
+    const y = e.clientY;
+    const end = Date.parse(item.ends_at);
+    const node = e.currentTarget as HTMLElement;
+    node.setPointerCapture(e.pointerId);
+    const up = (p: PointerEvent) => {
+      node.removeEventListener("pointerup", up);
+      const delta = Math.round((p.clientY - y) / (15 * MINUTE_PX)) * 15 * 60000;
+      const next = Math.max(
+        Date.parse(item.starts_at) + 15 * 60000,
+        end + delta,
+      );
+      if (next !== end)
+        void move(item, item.starts_at, new Date(next).toISOString());
+    };
+    node.addEventListener("pointerup", up, { once: true });
+  }
+  async function remove(item: ScheduleItem) {
+    if (
+      !confirm(
+        "Delete this appointment? No messages or invitations will be sent.",
+      )
+    )
+      return;
+    setSaving(true);
+    try {
+      const r = await fetch(
+        item.crmEventId
+          ? `/api/calendar/events/${item.crmEventId}?${new URLSearchParams({ version: item.version ?? "", ...(item.etag ? { etag: item.etag } : {}) })}`
+          : "/api/calendar/external",
+        {
+          method: "DELETE",
+          ...(!item.crmEventId
+            ? {
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  calendarId: item.externalCalendarId,
+                  eventId: item.externalId,
+                  etag: item.etag,
+                }),
+              }
+            : {}),
+        },
+      );
+      if (!r.ok) throw Error();
+      setSelected(null);
+      refresh();
+      setNotice("Appointment deleted.");
+      window.dispatchEvent(new Event("myari:activity-changed"));
+    } catch {
+      setNotice(
+        "This appointment could not be deleted. Its local record has been preserved. Refresh and try again.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+  const left = (
+    <div className="calendar-panel">
+      <div className="calendar-source-heading">
+        <h2>All Calendars</h2>
+        <button
+          onClick={() => setPreferencesOpen(true)}
+          aria-label="Open calendar preferences"
+        >
+          <Icon name="settings" />
+        </button>
+      </div>
+      {data.calendars.map((c) => (
+        <label key={c.key} className="calendar-side-label">
+          <input
+            type="checkbox"
+            checked={prefs.visibility[c.key] !== false}
+            disabled={prefFailed}
+            onChange={(e) =>
+              void savePreferences({
+                ...prefs,
+                visibility: { ...prefs.visibility, [c.key]: e.target.checked },
+              })
+            }
           />
+          <Icon
+            name={
+              c.key === "task"
+                ? "task_alt"
+                : c.key === "callback"
+                  ? "call"
+                  : c.key === "reminder"
+                    ? "notifications"
+                    : "calendar_month"
+            }
+          />
+          <span>
+            {c.name}
+            {!c.write ? <small> · read only</small> : null}
+          </span>
+          <input
+            type="color"
+            aria-label={`Color for ${c.name}`}
+            value={prefs.colors[c.key] ?? c.color}
+            onChange={(e) =>
+              void savePreferences({
+                ...prefs,
+                colors: { ...prefs.colors, [c.key]: e.target.value },
+              })
+            }
+          />
+        </label>
+      ))}
+      {!data.calendars.length ? (
+        <p>Calendars appear after a successful refresh.</p>
+      ) : null}
+      <div className="calendar-stage-header">
+        <span>
+          {prefs.timezone}
+          {saving ? " · Saving…" : ""}
+        </span>
+        <input
+          aria-label="Search calendar"
+          placeholder="Search calendar…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <button onClick={refresh} disabled={loading}>
+          Refresh
+        </button>
+      </div>
+      <button
+        className="calendar-preference-button"
+        onClick={() => setPreferencesOpen(true)}
+      >
+        Calendar preferences
+      </button>
+    </div>
+  );
+  let miniDays = monthDates(date, prefs.mondayStart);
+  while (
+    miniDays.length > 28 &&
+    miniDays.slice(-7).every((d) => d.slice(0, 7) !== date.slice(0, 7))
+  )
+    miniDays = miniDays.slice(0, -7);
+  const right = (
+    <div className="calendar-side-stack">
+      <section className="calendar-panel">
+        <h2>Calendar Integrations</h2>
+        {data.health.map((h) => (
+          <div className="calendar-provider" key={h.provider}>
+            <span className="calendar-provider-icon" aria-hidden="true">
+              <Icon
+                name={
+                  h.provider === "Google Calendar" ? "calendar_month" : "event"
+                }
+              />
+            </span>
+            <strong>{h.provider}</strong>
+            <p className={h.authorized ? "is-connected" : "is-pending"}>
+              {h.provider === "Apple / iCloud" && !h.authorized
+                ? "Read-only subscription setup"
+                : h.status}
+            </p>
+            <details>
+              <summary aria-label={`Sync details for ${h.provider}`}>
+                <Icon name="more_horiz" />
+              </summary>
+              <small>
+                Read: {h.read ? "available" : "unverified"} · Write:{" "}
+                {h.write ? "available" : "unverified"}
+              </small>
+              <small>
+                Last attempt:{" "}
+                {h.lastAttempt
+                  ? new Date(h.lastAttempt).toLocaleString("en-US", {
+                      timeZone: prefs.timezone,
+                    })
+                  : "Not recorded"}
+              </small>
+              <small>
+                Last success:{" "}
+                {h.lastSuccess
+                  ? new Date(h.lastSuccess).toLocaleString("en-US", {
+                      timeZone: prefs.timezone,
+                    })
+                  : "Not recorded"}
+              </small>
+              {h.error ? <p role="alert">{h.error}</p> : null}
+              <small>{h.mode}</small>
+              {h.provider === "Google Calendar"
+                ? data.calendars
+                    .filter((c) => c.provider === "google")
+                    .map((c) => (
+                      <div
+                        key={c.key}
+                        className="mt-2 border-t border-[#eee7de] pt-2"
+                      >
+                        <strong>{c.name}</strong>
+                        <small>
+                          {c.status ?? "Unverified"} ·{" "}
+                          {c.read ? "read" : "no read"} /{" "}
+                          {c.write ? "write" : "read only"}
+                        </small>
+                        <small>
+                          Last attempt:{" "}
+                          {c.lastAttempt
+                            ? new Date(c.lastAttempt).toLocaleString(
+                                undefined,
+                                { timeZone: prefs.timezone },
+                              )
+                            : "Not recorded"}
+                        </small>
+                        <small>
+                          Last successful read:{" "}
+                          {c.lastSuccess
+                            ? new Date(c.lastSuccess).toLocaleString(
+                                undefined,
+                                { timeZone: prefs.timezone },
+                              )
+                            : "Not recorded"}
+                        </small>
+                        {c.error ? <p role="alert">{c.error}</p> : null}
+                      </div>
+                    ))
+                : null}
+            </details>
+            {h.provider === "Google Calendar" ? (
+              <a href="/api/integrations/google/authorize">
+                {h.authorized ? "Reconnect Google" : "Connect Google"}
+              </a>
+            ) : null}
+          </div>
+        ))}
+        <details className="calendar-provider-setup">
+          <summary>Booking links & Apple subscriptions</summary>
+          <CalendarLinksPanel prefs={prefs} />
+        </details>
+      </section>
+      <section className="calendar-panel">
+        <div className="calendar-mini-heading">
+          <h2>{dateLabel(date, { month: "long", year: "numeric" })}</h2>
+          <div>
+            <button
+              aria-label="Previous mini-calendar month"
+              onClick={() => setDate(navigateCalendarDate(date, "month", -1))}
+            >
+              ‹
+            </button>
+            <button
+              aria-label="Next mini-calendar month"
+              onClick={() => setDate(navigateCalendarDate(date, "month", 1))}
+            >
+              ›
+            </button>
+          </div>
+        </div>
+        <div className="calendar-mini">
+          {(prefs.mondayStart
+            ? ["M", "T", "W", "T", "F", "S", "S"]
+            : ["S", "M", "T", "W", "T", "F", "S"]
+          ).map((d, i) => (
+            <span key={i}>{d}</span>
+          ))}
+          {miniDays.map((d) => (
+            <button
+              key={d}
+              aria-label={dateLabel(d)}
+              aria-pressed={d === date}
+              onClick={() => setDate(d)}
+            >
+              {+d.slice(-2)}
+            </button>
+          ))}
+        </div>
+      </section>
+      <section className="calendar-panel">
+        <div className="calendar-daily-heading">
+          <h2>{date === today.date ? "Upcoming Today" : "Daily agenda"}</h2>
+          <button onClick={() => setSection("agenda")}>View all</button>
+        </div>
+        {date !== today.date ? (
+          <p>{dateLabel(date, { month: "short", day: "numeric" })}</p>
+        ) : null}
+        {daily.length ? (
+          daily.slice(0, 2).map((i) => (
+            <button
+              className="calendar-upcoming"
+              key={i.id}
+              onClick={() => setSelected(i)}
+            >
+              <small>
+                {i.allDay
+                  ? "All day"
+                  : formatClock(i.starts_at, prefs.timezone, prefs.hour24)}
+              </small>
+              {i.title}
+            </button>
+          ))
+        ) : (
+          <p>No appointments or dated tasks recorded for this day.</p>
+        )}
+      </section>
+      <section className="calendar-panel">
+        <h2>Quick Actions</h2>
+        <div className="calendar-actions">
+          <button onClick={() => create()}>
+            <Icon name="event" />
+            Schedule Event
+          </button>
+          <button onClick={() => create(date, prefs.workStart, "task")}>
+            <Icon name="task_alt" />
+            Create Task
+          </button>
+          <button onClick={() => create(date, prefs.workStart, "callback")}>
+            <Icon name="call" />
+            Log Callback
+          </button>
+          <button onClick={() => create(date, prefs.workStart, "reminder")}>
+            <Icon name="notifications" />
+            Add Reminder
+          </button>
+        </div>
+        <p>
+          Callbacks schedule a follow-up. Record completed calls in the contact
+          timeline.
+        </p>
+      </section>
+      <section className="calendar-panel">
+        <h2>Upcoming appointments</h2>
+        {upcoming.length ? (
+          upcoming.map((i) => (
+            <button
+              className="calendar-upcoming"
+              key={i.id}
+              onClick={() => setSelected(i)}
+            >
+              {i.title}
+              <small>
+                {dateLabel(zonedParts(i.starts_at, prefs.timezone).date, {
+                  month: "short",
+                  day: "numeric",
+                })}{" "}
+                ·{" "}
+                {i.allDay
+                  ? "All day"
+                  : formatClock(i.starts_at, prefs.timezone, prefs.hour24)}
+              </small>
+            </button>
+          ))
+        ) : (
+          <p>No upcoming items in this calendar range.</p>
+        )}
+      </section>
+      <BookingRequestsPanel onChanged={refresh} />
+      <DailyPriorities compact timezone={prefs.timezone} />
+    </div>
+  );
+  const displayedView = section === "agenda" ? "agenda" : prefs.view;
+  return (
+    <div className="calendar-workspace">
+      {notice ? (
+        <div className="calendar-notice" role="status">
+          {notice}
           <button
-            type="button"
-            onClick={dismissReminder}
-            className="fixed left-1/2 top-[4.5rem] z-[201] -translate-x-1/2 text-[12px] font-medium text-taupe hover:text-ink"
+            className="float-right"
+            onClick={() => setNotice("")}
+            aria-label="Dismiss notice"
           >
-            Dismiss
+            ×
           </button>
         </div>
       ) : null}
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {[
-          {
-            label: "Total events",
-            value: loading ? "…" : String(totalEvents),
-            detail: eventsThisWeek > 0 ? `+${eventsThisWeek} this week` : "Nothing this week",
-            spark: "line" as const,
-            trendUp: true,
-            icon: "event",
-            tone: "bg-sage-light text-emerald-muted",
-          },
-          {
-            label: "Open tasks",
-            value: loading ? "…" : String(counts.tasks),
-            detail: counts.tasks > 0 ? "On your calendar" : "No task due dates",
-            spark: "line" as const,
-            trendUp: false,
-            icon: "task_alt",
-            tone: "bg-champagne text-taupe",
-          },
-          {
-            label: "CRM callbacks",
-            value: loading ? "…" : String(counts.crm),
-            detail: counts.crm > 0 ? "+3 this week" : "Schedule a callback",
-            spark: "line" as const,
-            trendUp: true,
-            icon: "phone_callback",
-            tone: "bg-rose-gold/15 text-rose-gold-deep",
-          },
-        ].map((stat) => (
-          <LuxuryCard key={stat.label} padding="md" className="min-w-0 transition-shadow hover:shadow-nav">
-            <div className="flex items-start justify-between gap-2">
-              <div
-                className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl",
-                  stat.tone,
-                )}
-              >
-                <Icon name={stat.icon} className="text-[20px]" />
-              </div>
-              <KpiSpark variant={stat.spark} className={stat.trendUp ? "text-emerald-muted" : "text-taupe"} />
-            </div>
-            <p className="mt-3 text-[13px] text-taupe">{stat.label}</p>
-            <p className="font-serif text-[32px] font-semibold text-ink">{stat.value}</p>
-            <p
-              className={cn(
-                "mt-1 text-[12px]",
-                stat.trendUp ? "text-emerald-muted" : "text-slate-text",
-              )}
-            >
-              {stat.detail}
-            </p>
-          </LuxuryCard>
-        ))}
-      </div>
-
-      {error ? (
-        <div className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
-          <p>{error.includes("invalid_grant") || error.includes("expired") ? "Your Google Calendar connection expired. Reconnect to sync live events - your in-app events still work." : error}</p>
-          {error.includes("expired") || error.includes("invalid_grant") || error.includes("Reconnect") ? (
-            <button
-              type="button"
-              onClick={() => {
-                const result = connectGoogleCalendar();
-                if (result.blocked) {
-                  setConnectHint(
-                    "Open MyARI in Safari or Chrome, then reconnect Google Calendar.",
-                  );
-                }
-              }}
-              className="mt-3 inline-flex items-center gap-2 rounded-full bg-rose-gold px-4 py-2 text-[13px] font-medium text-ivory"
-            >
-              Reconnect Google Calendar
-            </button>
-          ) : null}
-        </div>
+      {prefFailed ? (
+        <p className="calendar-notice" role="alert">
+          Preferences are unavailable. Default settings are shown; reload to
+          restore your saved view.
+        </p>
       ) : null}
-
-      <div className="grid w-full items-start gap-6 xl:grid-cols-12">
-        <LuxuryCard padding="lg" className="w-full min-w-0 xl:col-span-8">
+      <div className="calendar-tools">
+        <div className="calendar-section-tabs">
+          {(["calendar", "agenda", "task", "reminder"] as const).map((s) => (
+            <button
+              key={s}
+              aria-pressed={section === s}
+              onClick={() => setSection(s)}
+            >
+              <Icon
+                name={
+                  s === "task"
+                    ? "task_alt"
+                    : s === "reminder"
+                      ? "notifications"
+                      : s === "agenda"
+                        ? "event_note"
+                        : "calendar_month"
+                }
+              />
+              {s === "task"
+                ? "Tasks"
+                : s === "reminder"
+                  ? "Reminders"
+                  : s === "agenda"
+                    ? "Agenda"
+                    : "Calendar"}
+            </button>
+          ))}
+        </div>
+        <div className="calendar-mobile-panels">
+          <button
+            onClick={() => {
+              setPanel("calendars");
+              void savePreferences({
+                ...prefs,
+                mobileLeftOpen: true,
+                mobileRightOpen: false,
+              });
+            }}
+            aria-label="Open calendars panel"
+          >
+            ☷
+          </button>
+          <button
+            onClick={() => {
+              setPanel("details");
+              void savePreferences({
+                ...prefs,
+                mobileRightOpen: true,
+                mobileLeftOpen: false,
+              });
+            }}
+            aria-label="Open calendar details"
+          >
+            ⓘ
+          </button>
+        </div>
+        <div className="calendar-date">
+          <button onClick={() => setDate(today.date)}>Today</button>
+          <button
+            aria-label="Previous period"
+            onClick={() =>
+              setDate(navigateCalendarDate(date, displayedView, -1))
+            }
+          >
+            ‹
+          </button>
+          <label className="calendar-period-label">
+            <span>
+              {displayedView === "week"
+                ? `${dateLabel(days[0], { month: "short", day: "numeric" })} – ${dateLabel(days[days.length - 1], { month: "short", day: "numeric", year: "numeric" })}`
+                : displayedView === "month"
+                  ? dateLabel(date, { month: "long", year: "numeric" })
+                  : dateLabel(date, {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+            </span>
+            <input
+              aria-label="Calendar date"
+              type="date"
+              value={date}
+              onChange={(e) => {
+                if (e.target.value) setDate(e.target.value);
+              }}
+            />
+          </label>
+          <button
+            aria-label="Next period"
+            onClick={() =>
+              setDate(navigateCalendarDate(date, displayedView, 1))
+            }
+          >
+            ›
+          </button>
+        </div>
+        <div className="calendar-view-controls">
+          {(["day", "week", "month"] as const).map((v) => (
+            <button
+              key={v}
+              aria-pressed={prefs.view === v}
+              disabled={!ready || prefFailed}
+              onClick={() => {
+                setSection("calendar");
+                void savePreferences({ ...prefs, view: v });
+              }}
+            >
+              {v[0].toUpperCase() + v.slice(1)}
+            </button>
+          ))}
+          <button className="calendar-primary" onClick={() => create()}>
+            ＋ Add Event
+          </button>
+        </div>
+        <div className="calendar-sidebar-toggle">
+          <button
+            onClick={() =>
+              void savePreferences({ ...prefs, leftOpen: !prefs.leftOpen })
+            }
+            aria-label="Toggle calendars panel"
+          >
+            ☷
+          </button>
+          <button
+            onClick={() =>
+              void savePreferences({ ...prefs, rightOpen: !prefs.rightOpen })
+            }
+            aria-label="Toggle details panel"
+          >
+            ⓘ
+          </button>
+        </div>
+      </div>
+      <div
+        className={`calendar-columns ${!prefs.leftOpen ? "no-left" : ""} ${!prefs.rightOpen ? "no-right" : ""}`}
+      >
+        {prefs.leftOpen ? (
+          <aside className="calendar-left-desktop">{left}</aside>
+        ) : null}
+        <section className="calendar-stage" aria-label="Scheduling workspace">
           {loading ? (
-            <p className="py-12 text-center text-taupe">Loading calendar…</p>
-          ) : mobileDayView && selectedDate ? (
-            <CalendarDayPanel
-              date={selectedDate}
-              events={selectedDayEvents}
-              onAddEvent={openCreateEvent}
-              onEditEvent={openEditEvent}
-              onDeleteEvent={handleDeleteEvent}
-              onBack={() => setMobileDayView(false)}
-              onPrevDay={() => shiftSelectedDay(-1)}
-              onNextDay={() => shiftSelectedDay(1)}
-            />
-          ) : calendarView === "day" && selectedDate ? (
-            <CalendarDayPanel
-              date={selectedDate}
-              events={selectedDayEvents}
-              onAddEvent={openCreateEvent}
-              onEditEvent={openEditEvent}
-              onDeleteEvent={handleDeleteEvent}
-              onPrevDay={() => shiftSelectedDay(-1)}
-              onNextDay={() => shiftSelectedDay(1)}
-            />
-          ) : calendarView === "week" ? (
-            <div>
-              <div className="mb-4 flex flex-wrap gap-2">
-                {(["month", "week", "day"] as CalendarViewMode[]).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setCalendarView(mode)}
-                    className={cn(
-                      "rounded-full px-3 py-1.5 text-[12px] font-medium capitalize",
-                      calendarView === mode
-                        ? "bg-rose-gold text-ivory"
-                        : "border border-outline-variant/25 text-taupe",
-                    )}
-                  >
-                    {mode}
-                  </button>
-                ))}
-              </div>
-              <p className="mb-4 font-serif text-[22px] font-semibold text-ink">Week view</p>
-              {weekEvents.length === 0 ? (
-                <p className="text-[14px] text-slate-text">No events this week.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {weekEvents.map((item) => (
-                    <li
-                      key={item.id}
-                      className="rounded-2xl border border-outline-variant/15 px-4 py-3"
+            <div className="calendar-empty" role="status">
+              Loading your calendar…
+            </div>
+          ) : error ? (
+            <div className="calendar-empty" role="alert">
+              {error}
+            </div>
+          ) : section === "task" || section === "reminder" ? (
+            <div className="calendar-task-list">
+              {visible.filter((i) => i.source === section).length ? (
+                visible
+                  .filter((i) => i.source === section)
+                  .map((i) => (
+                    <button
+                      className="calendar-upcoming"
+                      key={i.id}
+                      onClick={() => setSelected(i)}
                     >
-                      <p className="font-medium text-ink">{item.title}</p>
-                      <p className="text-[13px] text-taupe">{formatWhen(item.starts_at)}</p>
-                    </li>
-                  ))}
-                </ul>
+                      {i.title}
+                      <small>
+                        {dateLabel(
+                          zonedParts(i.starts_at, prefs.timezone).date,
+                        )}
+                      </small>
+                    </button>
+                  ))
+              ) : (
+                <div className="calendar-empty">
+                  No {section === "task" ? "dated tasks" : "reminders"} in this
+                  range.
+                </div>
               )}
+            </div>
+          ) : displayedView === "agenda" ? (
+            <div className="calendar-agenda">
+              {visible.length ? (
+                visible.map((i) => (
+                  <button key={i.id} onClick={() => setSelected(i)}>
+                    <span>
+                      {i.title}
+                      <small className="block">
+                        {i.contactName ?? i.source}
+                      </small>
+                    </span>
+                    <time>
+                      {dateLabel(zonedParts(i.starts_at, prefs.timezone).date, {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                      <br />
+                      {i.allDay
+                        ? "All day"
+                        : formatClock(
+                            i.starts_at,
+                            prefs.timezone,
+                            prefs.hour24,
+                          )}
+                    </time>
+                  </button>
+                ))
+              ) : (
+                <div className="calendar-empty">
+                  No events in this range. Choose Add Event to plan your next
+                  appointment.
+                </div>
+              )}
+            </div>
+          ) : displayedView === "month" ? (
+            <div className="calendar-month">
+              {days.map((day) => (
+                <div key={day} className="calendar-month-day">
+                  <button
+                    aria-label={`Schedule on ${dateLabel(day)}`}
+                    onClick={() => create(day)}
+                  >
+                    {+day.slice(-2)}
+                  </button>
+                  {visible
+                    .filter((i) =>
+                      i.allDay
+                        ? i.startDate! <= day && i.endDate! > day
+                        : zonedParts(i.starts_at, prefs.timezone).date === day,
+                    )
+                    .map((i) => (
+                      <button
+                        key={i.id}
+                        className="calendar-month-event"
+                        onClick={() => setSelected(i)}
+                      >
+                        {i.title}
+                      </button>
+                    ))}
+                </div>
+              ))}
             </div>
           ) : (
-            <MonthCalendar
-              viewDate={viewDate}
-              onViewDateChange={setViewDate}
-              events={agenda}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-              onDayClick={handleDayClick}
-              viewMode={calendarView}
-              onViewModeChange={setCalendarView}
-              monthCount={2}
-            />
-          )}
-        </LuxuryCard>
-
-        <div className="space-y-4 xl:col-span-4">
-          <LuxuryCard padding="md" className="space-y-3">
-            <div className="flex flex-col gap-2 sm:flex-row">
-              {!connected ? (
-                <button
-                  type="button"
-                  onClick={connectGoogle}
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-outline-variant/25 bg-ivory px-4 py-2.5 text-[13px] font-medium text-ink hover:bg-champagne"
-                >
-                  <Icon name="calendar_today" className="text-[18px] text-rose-gold-deep" />
-                  Connect Google Calendar
-                </button>
-              ) : (
-                <p className="flex-1 truncate text-[12px] text-taupe">
-                  Synced{accountEmail ? ` · ${accountEmail}` : ""}
-                </p>
-              )}
-              <button
-                type="button"
-                onClick={() => void load(true)}
-                disabled={loading || refreshing}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant/25 px-4 py-2.5 text-[13px] font-medium text-ink hover:bg-champagne disabled:opacity-50"
+            <>
+              <div
+                className="calendar-grid-head"
+                style={{
+                  gridTemplateColumns: `42px repeat(${days.length},minmax(0,1fr))`,
+                }}
               >
-                <Icon name="refresh" className={cn("text-[18px]", refreshing && "animate-spin")} />
-                Refresh
-              </button>
-            </div>
-          </LuxuryCard>
-
-          <LuxuryCard padding="lg" className="w-full min-w-0">
-            {selectedDate ? (
-              <CalendarDayPanel
-                date={selectedDate}
-                events={selectedDayEvents}
-                onAddEvent={openCreateEvent}
-                onEditEvent={openEditEvent}
-                onDeleteEvent={handleDeleteEvent}
-                onPrevDay={() => shiftSelectedDay(-1)}
-                onNextDay={() => shiftSelectedDay(1)}
-              />
-            ) : (
-              <p className="text-[14px] text-taupe">Select a day on the calendar to view its schedule.</p>
-            )}
-          </LuxuryCard>
-
-          <LuxuryCard padding="lg">
-            <p className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-taupe">
-              Quick actions
-            </p>
-            <CalendarQuickActions onScheduleEvent={openCreateEvent} />
-          </LuxuryCard>
-
-          {!loading && upcomingAgenda.length > 0 ? (
-            <LuxuryCard padding="lg">
-              <CalendarUpcomingList items={upcomingAgenda} />
-            </LuxuryCard>
-          ) : null}
-        </div>
+                <div />
+                <>
+                  {days.map((day) => (
+                    <div
+                      key={day}
+                      className={day === today.date ? "is-today" : ""}
+                    >
+                      <small>{dateLabel(day, { weekday: "short" })}</small>
+                      <b>{+day.slice(-2)}</b>
+                    </div>
+                  ))}
+                </>
+              </div>
+              <div
+                className="calendar-all-day"
+                style={{
+                  gridTemplateColumns: `42px repeat(${days.length},minmax(0,1fr))`,
+                }}
+              >
+                <div>All day</div>
+                {days.map((day) => (
+                  <div key={day}>
+                    {visible
+                      .filter(
+                        (i) =>
+                          i.allDay && i.startDate! <= day && i.endDate! > day,
+                      )
+                      .map((i) => (
+                        <button key={i.id} onClick={() => setSelected(i)}>
+                          {i.title}
+                        </button>
+                      ))}
+                  </div>
+                ))}
+              </div>
+              <div className="calendar-scroll" ref={scroll}>
+                <div
+                  className="calendar-hours"
+                  style={{
+                    gridTemplateColumns: `42px repeat(${days.length},minmax(0,1fr))`,
+                  }}
+                >
+                  <div>
+                    {Array.from({ length: 24 }, (_, h) => (
+                      <div key={h} className="calendar-hour-label">
+                        {prefs.hour24
+                          ? `${h}:00`
+                          : `${h % 12 || 12}${h < 12 ? "a" : "p"}`}
+                      </div>
+                    ))}
+                  </div>
+                  {days.map((day) => {
+                    const segments = placeIntervals(
+                      visible
+                        .filter(
+                          (i) =>
+                            !i.allDay &&
+                            zonedParts(i.starts_at, prefs.timezone).date <=
+                              day &&
+                            zonedParts(i.ends_at, prefs.timezone).date >= day,
+                        )
+                        .map((i) => {
+                          const a = zonedParts(i.starts_at, prefs.timezone),
+                            b = zonedParts(i.ends_at, prefs.timezone);
+                          return {
+                            id: i.id,
+                            item: i,
+                            top: a.date < day ? 0 : a.minutes,
+                            bottom:
+                              i.source === "task"
+                                ? Math.min(1440, a.minutes + 15)
+                                : b.date > day
+                                  ? 1440
+                                  : b.minutes,
+                          };
+                        })
+                        .filter((i) => i.bottom > i.top),
+                    );
+                    return (
+                      <div className="calendar-hours-column" key={day}>
+                        {Array.from({ length: 48 }, (_, slot) => (
+                          <button
+                            key={slot}
+                            className="calendar-slot"
+                            style={{ top: slot * 30 * MINUTE_PX }}
+                            aria-label={`Schedule ${day} ${String(Math.floor(slot / 2)).padStart(2, "0")}:${slot % 2 ? "30" : "00"}`}
+                            onClick={() =>
+                              create(
+                                day,
+                                `${String(Math.floor(slot / 2)).padStart(2, "0")}:${slot % 2 ? "30" : "00"}`,
+                              )
+                            }
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => drop(e, day, slot * 30)}
+                          />
+                        ))}
+                        {segments.map(
+                          ({ item: i, top, bottom, lane, lanes }) => (
+                            <div
+                              key={i.id}
+                              className={`calendar-event ${bottom - top < 30 ? "calendar-event-compact" : ""}`}
+                              role="button"
+                              title={`${i.title} · ${describeCalendarInstant(i.starts_at, prefs.timezone, prefs.hour24)}`}
+                              tabIndex={0}
+                              aria-label={`${i.title}, ${formatClock(i.starts_at, prefs.timezone, prefs.hour24)}`}
+                              style={
+                                {
+                                  top: top * MINUTE_PX,
+                                  height: Math.max(
+                                    18,
+                                    (bottom - top) * MINUTE_PX - 2,
+                                  ),
+                                  left: `calc(${(lane / lanes) * 100}% + 2px)`,
+                                  width: `calc(${100 / lanes}% - 4px)`,
+                                  "--event-color":
+                                    prefs.colors[i.calendarKey] ??
+                                    (i.source === "crm"
+                                      ? (
+                                          {
+                                            meeting: "#79a1d0",
+                                            showing: "#78a1d0",
+                                            buyer_consultation: "#a38bcf",
+                                            listing_appointment: "#b7936f",
+                                          } as Record<string, string>
+                                        )[i.appointmentType ?? ""]
+                                      : undefined) ??
+                                    data.calendars.find(
+                                      (c) => c.key === i.calendarKey,
+                                    )?.color ??
+                                    "#bd9169",
+                                } as React.CSSProperties
+                              }
+                              draggable={
+                                i.editable &&
+                                !!(i.crmEventId || i.externalId) &&
+                                !i.allDay &&
+                                !saving
+                              }
+                              onDragStart={(e) =>
+                                e.dataTransfer.setData("text/myari-event", i.id)
+                              }
+                              onClick={() => setSelected(i)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  setSelected(i);
+                                }
+                              }}
+                            >
+                              <span
+                                className="calendar-event-icon"
+                                aria-hidden="true"
+                              >
+                                <Icon
+                                  name={
+                                    i.source === "task"
+                                      ? "task_alt"
+                                      : i.source === "callback"
+                                        ? "call"
+                                        : i.appointmentType === "showing"
+                                          ? "home"
+                                          : i.source === "reminder"
+                                            ? "notifications"
+                                            : "event"
+                                  }
+                                />
+                              </span>
+                              <time>
+                                {formatClock(
+                                  i.starts_at,
+                                  prefs.timezone,
+                                  prefs.hour24,
+                                )}
+                              </time>
+                              <strong>{i.title}</strong>
+                              {i.editable &&
+                              (i.crmEventId || i.externalId) &&
+                              !i.allDay ? (
+                                <span
+                                  className="calendar-resize"
+                                  onPointerDown={(e) => resize(e, i)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  aria-hidden="true"
+                                />
+                              ) : null}
+                            </div>
+                          ),
+                        )}
+                        {day === today.date ? (
+                          <div
+                            className="calendar-now"
+                            style={{ top: today.minutes * MINUTE_PX }}
+                            aria-label="Current time"
+                          />
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+        </section>
+        {prefs.rightOpen ? (
+          <aside className="calendar-right-desktop">{right}</aside>
+        ) : null}
       </div>
-      <AddCalendarEventModal
-        open={addEventOpen}
-        onClose={() => {
-          setAddEventOpen(false);
-          setEditingEvent(null);
-        }}
-        defaultDate={selectedDate}
-        editingEvent={editingEvent}
-        connected={connected}
-        onCreated={() => void load(true)}
-      />
+      {panel ? (
+        <Modal
+          open
+          onClose={() => {
+            setPanel(null);
+            void savePreferences({
+              ...prefs,
+              mobileLeftOpen: false,
+              mobileRightOpen: false,
+            });
+          }}
+          title={panel === "calendars" ? "Calendars" : "Calendar details"}
+        >
+          {panel === "calendars" ? left : right}
+        </Modal>
+      ) : null}
+      {preferencesOpen ? (
+        <CalendarPreferencesDialog
+          value={prefs}
+          onSave={savePreferences}
+          onClose={() => setPreferencesOpen(false)}
+        />
+      ) : null}
+      {editor ? (
+        <CalendarEventEditor
+          key={
+            editor.item?.id ?? `${editor.date}-${editor.time}-${editor.kind}`
+          }
+          {...editor}
+          prefs={prefs}
+          items={data.agenda}
+          googleAuthorized={data.authorized}
+          onClose={() => setEditor(null)}
+          onSaved={(message) => {
+            setEditor(null);
+            setSelected(null);
+            setNotice(message ?? "Saved.");
+            window.dispatchEvent(new Event("myari:activity-changed"));
+            refresh();
+          }}
+        />
+      ) : null}
+      {selected ? (
+        <Modal
+          open
+          onClose={() => setSelected(null)}
+          title={selected.title}
+          description={selected.syncState ?? selected.source}
+        >
+          <div className="calendar-detail">
+            <dl>
+              <dt>When</dt>
+              <dd>
+                {dateLabel(zonedParts(selected.starts_at, prefs.timezone).date)}{" "}
+                ·{" "}
+                {selected.source === "task"
+                  ? `Due ${formatClock(selected.starts_at, prefs.timezone, prefs.hour24)}`
+                  : selected.allDay
+                    ? "All day"
+                    : `${formatClock(selected.starts_at, prefs.timezone, prefs.hour24)} – ${formatClock(selected.ends_at, prefs.timezone, prefs.hour24)}`}
+              </dd>
+              {!selected.allDay ? (
+                <>
+                  <dt>Exact time</dt>
+                  <dd>
+                    {describeCalendarInstant(
+                      selected.starts_at,
+                      prefs.timezone,
+                      prefs.hour24,
+                    )}
+                  </dd>
+                </>
+              ) : null}
+              <dt>Timezone</dt>
+              <dd>{prefs.timezone}</dd>
+              {selected.contactName ? (
+                <>
+                  <dt>Contact</dt>
+                  <dd>
+                    <Link href={`/dashboard/contacts/${selected.contact_id}`}>
+                      {selected.contactName}
+                    </Link>
+                  </dd>
+                </>
+              ) : null}
+              <dt>Source</dt>
+              <dd>
+                {selected.source}
+                {selected.recurrence && selected.recurrence !== "none"
+                  ? ` · ${selected.recurrence}`
+                  : ""}
+              </dd>
+            </dl>
+            {selected.description ? <p>{selected.description}</p> : null}
+            {selected.meetingLink &&
+            /^https?:\/\//.test(selected.meetingLink) ? (
+              <a
+                href={selected.meetingLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open meeting link ↗
+              </a>
+            ) : null}
+            <div className="calendar-actions">
+              {selected.editable &&
+              (selected.crmEventId || selected.externalId) &&
+              (!selected.allDay || !selected.externalId) ? (
+                <button
+                  disabled={saving}
+                  onClick={() => {
+                    setEditor({ date, time: prefs.workStart, item: selected });
+                    setSelected(null);
+                  }}
+                >
+                  Edit / move / resize
+                </button>
+              ) : null}
+              {selected.editable &&
+              (selected.crmEventId || selected.externalId) ? (
+                <button disabled={saving} onClick={() => void remove(selected)}>
+                  Delete appointment
+                </button>
+              ) : null}
+              {selected.htmlLink &&
+              /^https:\/\/(calendar|www)\.google\.com\//.test(
+                selected.htmlLink,
+              ) ? (
+                <a
+                  href={selected.htmlLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open in Google ↗
+                </a>
+              ) : null}
+              {selected.contact_id ? (
+                <>
+                  <Link href={`/dashboard/contacts/${selected.contact_id}`}>
+                    Open contact / tasks
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setEditor({
+                        date,
+                        time: prefs.workStart,
+                        contactId: selected.contact_id ?? undefined,
+                      });
+                      setSelected(null);
+                    }}
+                  >
+                    Schedule follow-up
+                  </button>
+                </>
+              ) : null}
+            </div>
+            {selected.taskId && !selected.contact_id ? (
+              <Link href="/dashboard/tasks">Open task workspace</Link>
+            ) : null}
+          </div>
+        </Modal>
+      ) : null}
     </div>
   );
 }
-

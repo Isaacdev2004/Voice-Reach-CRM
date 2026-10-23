@@ -12,6 +12,8 @@ const stepIcons: Record<CampaignStep["type"], string> = {
   email: "mail",
   sms: "sms",
   retargeting: "ads_click",
+  task: "task_alt",
+  wait: "schedule",
   callback: "notifications_active",
 };
 
@@ -19,10 +21,25 @@ const statusConfig: Record<
   CampaignStepStatus,
   { label: string; className: string; icon?: string }
 > = {
-  sent: { label: "Sent", className: "bg-sage-light text-emerald-muted", icon: "check_circle" },
-  active: { label: "Active", className: "bg-bronze-light text-bronze", icon: "bolt" },
-  pending: { label: "Pending", className: "bg-champagne text-taupe", icon: "schedule" },
-  draft: { label: "Draft", className: "bg-surface-container text-on-surface-variant" },
+  sent: {
+    label: "Sent",
+    className: "bg-sage-light text-emerald-muted",
+    icon: "check_circle",
+  },
+  active: {
+    label: "Active",
+    className: "bg-bronze-light text-bronze",
+    icon: "bolt",
+  },
+  pending: {
+    label: "Pending",
+    className: "bg-champagne text-taupe",
+    icon: "schedule",
+  },
+  draft: {
+    label: "Draft",
+    className: "bg-surface-container text-on-surface-variant",
+  },
 };
 
 type CampaignFlowStepProps = {
@@ -71,8 +88,10 @@ export function CampaignFlowStep({
       padding="md"
       className={cn(
         "luxury-hover relative flex min-w-[200px] max-w-[240px] flex-col items-center text-center",
-        step.status === "active" && "ring-2 ring-rose-gold/30 animate-pulse-soft",
-        step.status === "draft" && "ring-2 ring-dashed ring-rose-gold/25 border-rose-gold/20",
+        step.status === "active" &&
+          "ring-2 ring-rose-gold/30 animate-pulse-soft",
+        step.status === "draft" &&
+          "ring-2 ring-dashed ring-rose-gold/25 border-rose-gold/20",
       )}
     >
       {editable ? (
@@ -105,15 +124,21 @@ export function CampaignFlowStep({
       <div className="mt-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-champagne/80 text-rose-gold-deep">
         <Icon name={stepIcons[step.type]} className="text-[28px]" />
       </div>
-      <h3 className="mt-4 font-serif text-[18px] font-semibold text-ink">{step.title}</h3>
-      <p className="mt-2 line-clamp-3 text-[13px] leading-relaxed text-taupe">{step.description}</p>
+      <h3 className="mt-4 font-serif text-[18px] font-semibold text-ink">
+        {step.title}
+      </h3>
+      <p className="mt-2 line-clamp-3 text-[13px] leading-relaxed text-taupe">
+        {step.description}
+      </p>
       <p className="mt-3 text-[12px] font-medium text-taupe">
         {step.dayLabel} · {step.timeLabel}
       </p>
 
       {isVoicemail ? (
         <div className="mt-3 w-full rounded-xl border border-outline-variant/15 bg-cream/60 px-3 py-2.5 text-left">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-taupe">Voicemail</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-taupe">
+            Voicemail
+          </p>
           {hasVoice ? (
             <>
               <p className="mt-1 truncate text-[13px] font-medium text-ink">
@@ -126,7 +151,10 @@ export function CampaignFlowStep({
                     onClick={playVoicePreview}
                     className="inline-flex items-center gap-1 rounded-full bg-rose-gold/15 px-2.5 py-1 text-[11px] font-medium text-rose-gold-deep hover:bg-rose-gold/25"
                   >
-                    <Icon name={playing ? "pause" : "play_arrow"} className="text-[14px]" />
+                    <Icon
+                      name={playing ? "pause" : "play_arrow"}
+                      className="text-[14px]"
+                    />
                     {playing ? "Pause" : "Preview"}
                   </button>
                 ) : null}
@@ -144,7 +172,9 @@ export function CampaignFlowStep({
             </>
           ) : (
             <>
-              <p className="mt-1 text-[12px] text-taupe">No recording assigned yet</p>
+              <p className="mt-1 text-[12px] text-taupe">
+                No recording assigned yet
+              </p>
               {editable && onChangeVoice ? (
                 <button
                   type="button"
@@ -163,9 +193,12 @@ export function CampaignFlowStep({
       {attachmentCount > 0 && (step.type === "sms" || step.type === "email") ? (
         <div className="mt-3 w-full rounded-xl border border-outline-variant/15 bg-cream/60 px-3 py-2.5 text-left">
           <p className="flex items-center gap-1.5 text-[12px] font-medium text-ink">
-            <Icon name="attach_file" className="text-[16px] text-rose-gold-deep" />
+            <Icon
+              name="attach_file"
+              className="text-[16px] text-rose-gold-deep"
+            />
             {attachmentCount === 1
-              ? step.attachments?.[0]?.fileName ?? "1 attachment"
+              ? (step.attachments?.[0]?.fileName ?? "1 attachment")
               : `${attachmentCount} attachments`}
           </p>
         </div>
@@ -186,7 +219,9 @@ export function CampaignFlowStep({
           status.className,
         )}
       >
-        {status.icon ? <Icon name={status.icon} className="text-[14px]" /> : null}
+        {status.icon ? (
+          <Icon name={status.icon} className="text-[14px]" />
+        ) : null}
         {status.label}
       </span>
     </LuxuryCard>
@@ -221,7 +256,10 @@ export function CampaignFlow({
               onChangeVoice={onChangeStepVoice}
             />
             {i < steps.length - 1 ? (
-              <div className="mx-2 h-0.5 w-12 shrink-0 campaign-flow-line" aria-hidden />
+              <div
+                className="mx-2 h-0.5 w-12 shrink-0 campaign-flow-line"
+                aria-hidden
+              />
             ) : null}
           </div>
         ))}

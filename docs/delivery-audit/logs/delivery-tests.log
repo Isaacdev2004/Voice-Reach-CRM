@@ -1,0 +1,46 @@
+
+> voicereach-backend-starter@0.1.0 test:delivery
+> node --import tsx scripts/delivery-analytics.test.ts && node scripts/delivery-routes.test.cjs
+
+✔ queued, accepted, sent and mocked submissions never become delivered (1.077685ms)
+✔ failure categories and unknown provider outcomes never inflate success (0.361289ms)
+✔ duplicate and out of order events deduplicate without queued-state regression (6.735201ms)
+✔ receipt recording time never substitutes for provider delivery timestamp (0.112578ms)
+✔ unique messages, attempts, contacts and retries have separate denominators (2.694814ms)
+✔ owner, provider, and message mismatches cannot supply delivery evidence (0.151155ms)
+✔ channel health is independent and inactivity is not an outage (0.311884ms)
+✔ all reporting uses the same UTC cohort and distinct-message calculations (8.872515ms)
+✔ combined search, campaign/contact/channel/status/date filters and stable pagination (0.34271ms)
+✔ missing event history and unsupported provider do not invent confirmation or health timestamps (0.465263ms)
+✔ analytics date ranges begin at UTC midnight and include exactly the labeled calendar days (0.130705ms)
+✔ unmeasured channel and funnel rates stay unavailable and provider shares count attempts (0.740603ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29.38733
+✔ delivery list/detail API enforces owner filters and does not expose message text in index (156.476162ms)
+✔ delivery API fails safely on database failure and rejects invalid filters (30.735889ms)
+✔ signed SMS receipts correlate by stored provider reference and are idempotent (45.393621ms)
+✔ bad signatures, missing IDs, unknown status and unmatched references cannot create delivery (40.857935ms)
+✔ native Resend signatures are timestamp bounded, body bound, and lifecycle-specific (22.953037ms)
+✔ voicemail requires authentication and never treats ambiguous completed disposition as delivered (17.305506ms)
+✔ complaint suppression is owner scoped and safely repeated on webhook replay (17.652221ms)
+✔ submission tracking requires durable pre-submit evidence and records acceptance without inventing delivery (11.276605ms)
+✔ reconciliation is disabled without explicit rollout authorization and never sends (38.581455ms)
+✔ analytics, campaign details and preview use shared evidence instead of mutable recipient success flags (72.90756ms)
+✔ mocked reconciliation records real status-read evidence without submitting or resending (18.640474ms)
+✔ rate limited reconciliation logs only that channel as delayed and does not retry (17.666314ms)
+✔ live requests cannot silently fall back to simulation when a provider is missing (42.4796ms)
+✔ reconciliation API requires authentication, explicit confirmation, and enabled rollout (25.997421ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 576.167734

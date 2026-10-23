@@ -195,19 +195,19 @@ export function SettingsWorkspacePage() {
     const reason = searchParams.get("reason");
     if (calendar === "connected") {
       void load();
-      showToast("Google Calendar connected.");
+      showToast("Google Calendar authorization saved. Open Calendar to verify synchronization.");
       router.replace("/dashboard/settings?tab=workspace", { scroll: false });
     } else if (calendar === "error") {
       const message =
         reason === "database_table_missing"
           ? "Calendar database not set up yet - we’re fixing this on our side."
-          : reason === "access_denied"
+          : (reason === "access_denied" || reason === "authorization_declined")
             ? "Google access was denied. Try Connect again and click Allow."
             : reason === "redirect_uri_mismatch"
               ? "Google redirect URL mismatch — your admin must add the exact callback URL from Vercel (APP_BASE_URL) in Google Cloud OAuth settings."
             : reason === "missing_code_or_session"
               ? "Session expired - click Connect again (stay signed in to MyARI)."
-              : `Google Calendar connection failed${reason ? `: ${reason}` : ""}.`;
+              : "Google Calendar authorization could not be completed. Try again or contact your workspace administrator.";
       showToast(message, "error");
       router.replace("/dashboard/settings?tab=workspace", { scroll: false });
     } else if (dotloop === "connected") {
@@ -218,7 +218,7 @@ export function SettingsWorkspacePage() {
       const message =
         reason === "database_table_missing"
           ? "Dotloop database not set up yet - run supabase/schema-integrations.sql."
-          : reason === "access_denied"
+          : (reason === "access_denied" || reason === "authorization_declined")
             ? "Dotloop access was denied. Try Connect again and click Allow."
             : reason === "missing_code_or_session"
               ? "Session expired - click Connect again (stay signed in)."
@@ -627,7 +627,7 @@ export function SettingsWorkspacePage() {
               <LuxuryCard padding="lg">
                 <div className="mb-6 flex items-center justify-between">
                   <h2 className="font-serif text-[22px] font-semibold text-ink">API integrations</h2>
-                  <span className="text-[13px] text-taupe">{connectedCount} connected</span>
+                  <span className="text-[13px] text-taupe">{connectedCount} configured</span>
                 </div>
                 <InAppBrowserBanner context="google-calendar" />
                 <div className="space-y-3">
@@ -655,7 +655,7 @@ export function SettingsWorkspacePage() {
                                   integration.connected ? "bg-emerald-muted" : "bg-taupe/40",
                                 )}
                               />
-                              {integration.connected ? "Connected" : "Not connected"}
+                              {integration.connected ? integration.id === "google-calendar" ? "Authorized — verify sync in Calendar" : "Connected" : "Not connected"}
                               {integration.lastSync
                                 ? ` · ${formatRelativeTime(integration.lastSync)}`
                                 : ""}

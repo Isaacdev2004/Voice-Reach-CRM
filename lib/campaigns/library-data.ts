@@ -62,6 +62,12 @@ export type LibraryEvent = {
   occurred_at?: string;
 };
 export type LibraryPreview = {
+  deliveryMetrics?: {
+    sent: number;
+    delivered: number;
+    opened: number;
+    replied: number;
+  };
   campaign: LibraryCampaign;
   steps: LibraryStep[];
   recipients: LibraryRecipient[];
@@ -127,35 +133,27 @@ export function campaignStatus(
   );
 }
 export function performanceSummary(data: LibraryPreview) {
-  const actualRuns =
-    data.campaign.provider === "mock"
-      ? []
-      : data.runs.filter((r) => r.status === "sent");
-  const eventCount = (kind: string) =>
-    new Set(
-      data.engagement.filter((e) => e.event_type === kind).map((e) => e.id),
-    ).size;
-  const steps = new Set(data.steps.map((s) => s.id));
   const completed = data.steps.length
     ? data.recipients.filter((rec) =>
-        [...steps].every((step) =>
+        data.steps.every((step) =>
           data.runs.some(
             (r) =>
               r.recipient_id === rec.id &&
-              r.step_id === step &&
-              ["sent", "skipped"].includes(r.status),
+              r.step_id === step.id &&
+              r.status === "sent",
           ),
         ),
       ).length
     : null;
   return {
-    sent: new Set(actualRuns.map((r) => r.id)).size,
-    delivered: eventCount("delivered"),
-    opened: eventCount("opened"),
-    replied: eventCount("replied"),
+    sent: data.deliveryMetrics?.sent ?? null,
+    delivered: data.deliveryMetrics?.delivered ?? null,
+    opened: data.deliveryMetrics?.opened ?? null,
+    replied: data.deliveryMetrics?.replied ?? null,
     completed,
   };
 }
+
 export function recipientProgress(
   recipient: LibraryRecipient,
   data: LibraryPreview,
@@ -204,6 +202,14 @@ export function isLibraryPreview(value: unknown): value is LibraryPreview {
   if (!value || typeof value !== "object") return false;
   const d = value as LibraryPreview;
   return (
+    (d.deliveryMetrics === undefined ||
+      (d.deliveryMetrics &&
+        [
+          d.deliveryMetrics.sent,
+          d.deliveryMetrics.delivered,
+          d.deliveryMetrics.opened,
+          d.deliveryMetrics.replied,
+        ].every((n) => Number.isSafeInteger(n) && n >= 0))) &&
     isLibraryCampaign(d.campaign) &&
     Array.isArray(d.steps) &&
     d.steps.every(

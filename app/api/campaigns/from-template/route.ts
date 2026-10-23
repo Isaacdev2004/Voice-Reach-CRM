@@ -2,7 +2,10 @@ import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
 import { delayFromDayLabel } from "@/lib/campaigns/delay-from-day-label";
-import { persistSteps, type CampaignBlueprintStep } from "@/lib/campaigns/engine";
+import {
+  persistSteps,
+  type CampaignBlueprintStep,
+} from "@/lib/campaigns/engine";
 import { getTemplate, instantiateTemplate } from "@/lib/crm/campaign-templates";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
@@ -17,7 +20,8 @@ export const POST = withApiHandler(async (request) => {
   const body = BodySchema.parse(await request.json().catch(() => ({})));
   const template = getTemplate(body.templateKey);
   const campaign = instantiateTemplate(body.templateKey);
-  if (!template || !campaign) return apiError("Unknown campaign template.", { status: 400 });
+  if (!template || !campaign)
+    return apiError("Unknown campaign template.", { status: 400 });
 
   const { data: existing } = await supabaseAdmin
     .from("campaigns")
@@ -63,7 +67,7 @@ export const POST = withApiHandler(async (request) => {
   const steps: CampaignBlueprintStep[] = campaign.steps.map((step) => ({
     id: step.id,
     order: step.order,
-    type: (step.type === "retargeting" ? "email" : step.type) as CampaignBlueprintStep["type"],
+    type: step.type as CampaignBlueprintStep["type"],
     title: step.title,
     description: step.description,
     delayMinutes: delayFromDayLabel(step.dayLabel),
@@ -83,7 +87,9 @@ export const POST = withApiHandler(async (request) => {
         description: template.automation.description,
         trigger_type: template.automation.triggerType,
         trigger_config: template.automation.triggerConfig ?? {},
-        actions: [{ type: "start_campaign", config: { campaignId: record.id } }],
+        actions: [
+          { type: "start_campaign", config: { campaignId: record.id } },
+        ],
         enabled: false,
         updated_at: new Date().toISOString(),
       })

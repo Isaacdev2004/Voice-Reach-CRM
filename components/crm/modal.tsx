@@ -3,7 +3,7 @@
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useId } from "react";
 import { createPortal } from "react-dom";
 
 type ModalSize = "sm" | "md" | "lg" | "xl";
@@ -40,27 +40,82 @@ export function Modal({
   className,
 }: ModalProps) {
   const [mounted, setMounted] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
+    const panel = panelRef.current;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const timer = requestAnimationFrame(() =>
+      panel
+        ?.querySelector<HTMLElement>(
+          'button,input,select,textarea,a[href],[tabindex="0"]',
+        )
+        ?.focus(),
+    );
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      const dialogs = document.querySelectorAll('[role="dialog"]');
+      if (dialogs.item(dialogs.length - 1) !== panel) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeRef.current();
+        return;
+      }
+      if (e.key !== "Tab" || !panel) return;
+      const nodes = Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href],[tabindex="0"]',
+        ),
+      ).filter((node) => node.getClientRects().length);
+      const first = nodes[0],
+        last = nodes.at(-1);
+      if (!first) {
+        e.preventDefault();
+        panel.focus();
+        return;
+      }
+      if (
+        e.shiftKey &&
+        (document.activeElement === first ||
+          !panel.contains(document.activeElement))
+      ) {
+        e.preventDefault();
+        last?.focus();
+      } else if (
+        !e.shiftKey &&
+        (document.activeElement === last ||
+          !panel.contains(document.activeElement))
+      ) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
     return () => {
+      cancelAnimationFrame(timer);
+      previousFocus?.focus();
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
-  }, [open, onClose]);
+  }, [open, mounted]);
 
   if (!open || !mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 overflow-y-auto" style={{ zIndex: 10000 }} role="presentation">
+    <div
+      className="fixed inset-0 overflow-y-auto"
+      style={{ zIndex: 10000 }}
+      role="presentation"
+    >
       <button
         type="button"
         className="modal-overlay fixed inset-0 bg-ink/55 backdrop-blur-[6px]"
@@ -71,9 +126,11 @@ export function Modal({
       {/* min-h-full + grid centers dialog without flex width collapse */}
       <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
         <div
+          ref={panelRef}
+          tabIndex={-1}
           role="dialog"
           aria-modal
-          aria-labelledby="modal-title"
+          aria-labelledby={titleId}
           className={cn(
             "modal-panel relative z-10 flex w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[28px] border border-outline-variant/20 bg-ivory shadow-[0_24px_80px_-12px_rgba(26,22,18,0.35)] sm:w-[calc(100vw-3rem)]",
             sizeWidth[size],
@@ -91,13 +148,15 @@ export function Modal({
               ) : null}
               <div className="min-w-0 flex-1 pr-2">
                 <h2
-                  id="modal-title"
+                  id={titleId}
                   className="font-serif text-[26px] font-semibold leading-tight text-ink"
                 >
                   {title}
                 </h2>
                 {description ? (
-                  <p className="mt-1.5 text-[14px] leading-relaxed text-slate-text">{description}</p>
+                  <p className="mt-1.5 text-[14px] leading-relaxed text-slate-text">
+                    {description}
+                  </p>
                 ) : null}
               </div>
               <button

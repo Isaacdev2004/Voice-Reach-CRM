@@ -1,196 +1,70 @@
-import { apiOk, withApiHandler } from "@/lib/api-response";
+import { apiOk, apiError, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
+import { readCalendar } from "@/lib/calendar/read-model";
+import { CalendarEventSchema } from "@/lib/calendar/event-schema";
 import { createOwnerCalendarEvent } from "@/lib/calendar/create-event";
-import {
-  fetchGoogleAccountEmail,
-  getGoogleConnection,
-  getValidGoogleAccessToken,
-  listGoogleCalendarEvents,
-} from "@/lib/calendar/google";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { z } from "zod";
-
-function asContactJoin(
-  value: unknown,
-): { first_name: string; last_name?: string | null } | null {
-  if (!value || Array.isArray(value)) return null;
-  const row = value as { first_name?: string; last_name?: string | null };
-  if (!row.first_name) return null;
-  return { first_name: row.first_name, last_name: row.last_name ?? null };
-}
-
-export type AgendaItem = {
-  id: string;
-  title: string;
-  starts_at: string;
-  ends_at?: string | null;
-  contact_id?: string | null;
-  contacts?: { first_name: string; last_name?: string | null } | null;
-  source: "google" | "crm" | "task";
-  htmlLink?: string | null;
-  meetingLink?: string | null;
-  crmEventId?: string | null;
-};
-
 export const GET = withApiHandler(async (request: Request) => {
-  const ownerId = await requireUserId();
-  const connection = await getGoogleConnection(ownerId).catch(() => null);
-
-  const { searchParams } = new URL(request.url);
-  const month = searchParams.get("month");
-  const monthsRaw = searchParams.get("months");
-  const monthSpan = monthsRaw === "2" ? 2 : 1;
-
-  let timeMin: Date;
-  let timeMax: Date;
-
-  if (month && /^\d{4}-\d{2}$/.test(month)) {
-    const [year, mon] = month.split("-").map(Number);
-    timeMin = new Date(year, mon - 1, 1);
-    timeMax = new Date(year, mon - 1 + monthSpan, 0, 23, 59, 59, 999);
-    timeMin.setDate(timeMin.getDate() - 7);
-    timeMax.setDate(timeMax.getDate() + 7);
-  } else {
-    timeMin = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    timeMax = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
-  }
-
-  let accountEmail = connection?.account_email ?? null;
-  let googleEvents: Awaited<ReturnType<typeof listGoogleCalendarEvents>> = [];
-  let googleError: string | null = null;
-
-  if (connection) {
-    try {
-      googleEvents = await listGoogleCalendarEvents({ connection, timeMin, timeMax });
-
-      if (!accountEmail) {
-        const token = await getValidGoogleAccessToken(connection);
-        const email = await fetchGoogleAccountEmail(token);
-        if (email) {
-          accountEmail = email;
-          await supabaseAdmin
-            .from("calendar_connections")
-            .update({ account_email: email, updated_at: new Date().toISOString() })
-            .eq("id", connection.id);
-        }
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Could not load Google Calendar";
-      googleError =
-        message === "GOOGLE_RECONNECT_REQUIRED"
-          ? "Your Google Calendar connection expired. Reconnect in Settings → Workspace."
-          : message;
-    }
-  }
-
-  const [eventsRes, tasksRes] = await Promise.all([
-    supabaseAdmin
-      .from("calendar_events")
-      .select("id, title, starts_at, ends_at, contact_id, external_event_id, metadata, contacts(first_name, last_name)")
-      .eq("owner_id", ownerId)
-      .gte("starts_at", timeMin.toISOString())
-      .lte("starts_at", timeMax.toISOString())
-      .order("starts_at", { ascending: true })
-      .limit(100),
-    supabaseAdmin
-      .from("contact_tasks")
-      .select("id, title, due_at, completed, contact_id, contacts(first_name, last_name)")
-      .eq("owner_id", ownerId)
-      .eq("completed", false)
-      .not("due_at", "is", null)
-      .gte("due_at", timeMin.toISOString())
-      .lte("due_at", timeMax.toISOString())
-      .order("due_at", { ascending: true })
-      .limit(50),
-  ]);
-
-  const googleIds = new Set(googleEvents.map((e) => e.id));
-  const crmEvents: AgendaItem[] = (eventsRes.data ?? [])
-    .filter((e) => !e.external_event_id || !googleIds.has(e.external_event_id))
-    .map((e) => {
-      const metadata = (e.metadata ?? {}) as {
-        htmlLink?: string;
-        meetingLink?: string;
-        description?: string;
-      };
-      return {
-        id: e.id,
-        title: e.title,
-        starts_at: e.starts_at,
-        ends_at: e.ends_at,
-        contact_id: e.contact_id,
-        contacts: asContactJoin(e.contacts),
-        source: "crm" as const,
-        htmlLink: metadata.htmlLink ?? null,
-        meetingLink: metadata.meetingLink ?? null,
-        description: metadata.description ?? null,
-        crmEventId: e.id,
-      };
+  const owner = await requireUserId();
+  const q = new URL(request.url).searchParams;
+  const month = q.get("month");
+  if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month))
+    return apiError("Choose a valid calendar month.", { status: 400 });
+  const fallback =
+    month && /^\d{4}-(0[1-9]|1[0-2])$/.test(month)
+      ? Date.parse(month + "-01T00:00Z")
+      : Date.now() - 7 * 86400000;
+  const from = q.get("from") ?? new Date(fallback).toISOString();
+  const to = q.get("to") ?? new Date(fallback + 70 * 86400000).toISOString();
+  if (
+    !Number.isFinite(Date.parse(from)) ||
+    !Number.isFinite(Date.parse(to)) ||
+    Date.parse(to) <= Date.parse(from) ||
+    Date.parse(to) - Date.parse(from) > 100 * 86400000
+  )
+    return apiError("Choose a calendar range of up to 100 days.", {
+      status: 400,
     });
-
-  const googleAgenda: AgendaItem[] = googleEvents.map((e) => ({
-    id: `google-${e.id}`,
-    title: e.title,
-    starts_at: e.starts_at,
-    ends_at: e.ends_at,
-    source: "google" as const,
-    htmlLink: e.htmlLink ?? null,
-    meetingLink: e.meetingLink ?? null,
-    crmEventId: null,
-  }));
-
-  const taskAgenda: AgendaItem[] = (tasksRes.data ?? []).map((t) => ({
-    id: `task-${t.id}`,
-    title: t.title,
-    starts_at: t.due_at!,
-    contact_id: t.contact_id,
-    contacts: asContactJoin(t.contacts),
-    source: "task" as const,
-  }));
-
-  const agenda = [...googleAgenda, ...crmEvents, ...taskAgenda].sort(
-    (a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime(),
-  );
-
-  return apiOk({
-    connected: Boolean(connection),
-    accountEmail,
-    agenda,
-    counts: {
-      google: googleAgenda.length,
-      crm: crmEvents.length,
-      tasks: taskAgenda.length,
-    },
-    googleError,
-    eventsError: eventsRes.error?.message ?? null,
-    tasksError: tasksRes.error?.message ?? null,
-  });
+  try {
+    return apiOk(await readCalendar(owner, from, to));
+  } catch {
+    return apiError(
+      "Calendar information is temporarily unavailable. Please refresh.",
+      { status: 503 },
+    );
+  }
 });
-
-const CreateEventSchema = z.object({
-  title: z.string().min(1).max(200),
-  startsAt: z.string().datetime(),
-  endsAt: z.string().datetime().optional(),
-  description: z.string().max(2000).optional(),
-  contactId: z.string().uuid().optional(),
-  recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional().default("none"),
-  meetingLink: z.string().url().max(500).optional(),
-});
-
 export const POST = withApiHandler(async (request: Request) => {
   const ownerId = await requireUserId();
-  const body = CreateEventSchema.parse(await request.json());
-
-  const result = await createOwnerCalendarEvent({
-    ownerId,
-    title: body.title.trim(),
-    startsAt: body.startsAt,
-    endsAt: body.endsAt,
-    description: body.description,
-    contactId: body.contactId,
-    recurrence: body.recurrence,
-    meetingLink: body.meetingLink,
+  const raw = await request.json().catch(() => null);
+  if (!raw || typeof raw !== "object" || Array.isArray(raw))
+    return apiError("Check the appointment details.", { status: 400 });
+  const parsed = CalendarEventSchema.safeParse({
+    ...raw,
+    endsAt:
+      raw.endsAt ??
+      (Number.isFinite(Date.parse(raw.startsAt))
+        ? new Date(Date.parse(raw.startsAt) + 3600000).toISOString()
+        : undefined),
   });
-
-  return apiOk(result, { status: 201 });
+  if (!parsed.success)
+    return apiError(
+      "Check the appointment title, dates, and contact selection.",
+      { status: 400 },
+    );
+  try {
+    return apiOk(await createOwnerCalendarEvent({ ownerId, ...parsed.data }), {
+      status: 201,
+    });
+  } catch (e) {
+    const overlap = e instanceof Error && e.message === "CALENDAR_OVERLAP";
+    return apiError(
+      overlap
+        ? "This time overlaps an existing appointment. Review the conflict before saving."
+        : "Appointment could not be saved. Refresh and check your selections.",
+      {
+        status: overlap ? 409 : 503,
+        code: overlap ? "calendar_overlap" : "calendar_unavailable",
+      },
+    );
+  }
 });

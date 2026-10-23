@@ -46,7 +46,9 @@ export type CampaignStepType =
   | "email"
   | "sms"
   | "retargeting"
-  | "callback";
+  | "callback"
+  | "task"
+  | "wait";
 
 export type CampaignStepStatus = "sent" | "active" | "pending" | "draft";
 
@@ -65,6 +67,7 @@ export type CampaignStep = {
   title: string;
   description: string;
   dayLabel: string;
+  delayMinutes?: number;
   timeLabel: string;
   status: CampaignStepStatus;
   /** Linked ringless voicemail recording (when type is voicemail) */

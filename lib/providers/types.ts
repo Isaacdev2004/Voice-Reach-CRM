@@ -6,6 +6,9 @@ export type EmailAttachmentPayload = {
 };
 
 export type SendRequest = {
+  ownerId?: string;
+  contactId?: string;
+  idempotencyKey?: string;
   channel: ProviderChannel;
   to: string;
   from?: string;
@@ -54,5 +57,8 @@ export interface ProviderAdapter {
   readonly label: string;
   readonly channels: ProviderChannel[];
   send(request: SendRequest): Promise<SendResult>;
-  parseWebhook?(raw: Record<string, unknown>, headers?: Record<string, string>): WebhookEvent | null;
+  parseWebhook?(
+    raw: Record<string, unknown>,
+    headers?: Record<string, string>,
+  ): WebhookEvent | null;
 }

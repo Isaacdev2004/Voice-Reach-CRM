@@ -1,4 +1,9 @@
-import type { ProviderAdapter, SendRequest, SendResult, WebhookEvent } from "./types";
+import type {
+  ProviderAdapter,
+  SendRequest,
+  SendResult,
+  WebhookEvent,
+} from "./types";
 
 /**
  * Twilio adapter - SMS now, voice/voicemail with TwiML when configured.
@@ -18,7 +23,8 @@ export const twilioProvider: ProviderAdapter = {
       return {
         ok: false,
         status: "failed",
-        error: "Twilio credentials missing (TWILIO_ACCOUNT_SID/AUTH_TOKEN/FROM_NUMBER).",
+        error:
+          "Twilio credentials missing (TWILIO_ACCOUNT_SID/AUTH_TOKEN/FROM_NUMBER).",
       };
     }
 
@@ -30,18 +36,30 @@ export const twilioProvider: ProviderAdapter = {
         From: from,
         Body: request.body ?? "",
       });
+      if (
+        process.env.DELIVERY_EVIDENCE_ENABLED === "true" &&
+        process.env.APP_BASE_URL
+      ) {
+        params.set(
+          "StatusCallback",
+          `${process.env.APP_BASE_URL.replace(/\/$/, "")}/api/webhooks/delivery/twilio`,
+        );
+      }
       for (const mediaUrl of request.mediaUrls ?? []) {
         params.append("MediaUrl", mediaUrl);
       }
       try {
-        const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
-          method: "POST",
-          headers: {
-            Authorization: `Basic ${auth}`,
-            "Content-Type": "application/x-www-form-urlencoded",
+        const res = await fetch(
+          `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Basic ${auth}`,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: params.toString(),
           },
-          body: params.toString(),
-        });
+        );
         const raw = await res.json().catch(() => ({}));
         const twilioError =
           typeof raw?.message === "string"
@@ -77,11 +95,17 @@ export const twilioProvider: ProviderAdapter = {
       };
     }
 
-    return { ok: false, status: "failed", error: `Twilio: unsupported channel ${request.channel}` };
+    return {
+      ok: false,
+      status: "failed",
+      error: `Twilio: unsupported channel ${request.channel}`,
+    };
   },
 
   parseWebhook(raw): WebhookEvent | null {
-    const status = String(raw.MessageStatus ?? raw.SmsStatus ?? "").toLowerCase();
+    const status = String(
+      raw.MessageStatus ?? raw.SmsStatus ?? "",
+    ).toLowerCase();
     const eventType: WebhookEvent["eventType"] =
       status === "delivered"
         ? "delivered"

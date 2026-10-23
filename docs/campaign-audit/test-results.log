@@ -1,0 +1,40 @@
+
+> voicereach-backend-starter@0.1.0 test:campaign-audit
+> node scripts/campaign-delivery-audit.test.cjs
+
+✔ all steps: cold-lead-reengage (5) (257.408419ms)
+✔ all steps: speed-to-lead (6) (198.358985ms)
+✔ all steps: listing-alert-drip (5) (164.750799ms)
+✔ all steps: long-term-buyer-nurture (7) (199.764747ms)
+✔ all steps: engaged-no-tour (5) (146.166426ms)
+✔ all steps: post-tour-follow-up (6) (170.606782ms)
+✔ all steps: luxury-seller-follow-up (6) (166.310879ms)
+✔ all steps: seller-valuation-follow-up (5) (134.60037ms)
+✔ all steps: open-house-follow-up (4) (100.654169ms)
+✔ all steps: past-client-anniversary (4) (102.891343ms)
+✔ all steps: pre-approval-push (3) (93.821005ms)
+✔ all messages handle complete, partial, missing and malformed contacts without leaking data (8.663682ms)
+✔ JSON recommendations, arrays, code fences, empty copy, broken variables and links never reach provider (152.535448ms)
+✔ atomic claims, repeated ticks, replies, opt-outs and mismatched owners cannot duplicate sends (123.283074ms)
+✔ mock sequence preview is read-only and enforces contact ownership (101.262495ms)
+✔ scheduler preserves completed history and original enrollment anchors on resume (10.190326ms)
+✔ wall clock and immediate delays honor IANA zones and DST quiet-hour boundaries (13.52103ms)
+✔ last live boundary blocks missing consent, DNC, foreign destinations, invalid identity and quiet hours (5.652705ms)
+✔ provider payload uses escaped HTML; failures are not recorded as delivery (3.278877ms)
+✔ webhook dedup distinguishes lifecycle events for the same provider message (0.958008ms)
+✔ active campaign edits and foreign recordings are rejected before any mutation (59.366776ms)
+✔ every proposed copy is separately reviewable, schema-valid, personalized and non-activating (16.172793ms)
+✔ provider failures do not turn into automatic retries or fabricated delivery events (30.929586ms)
+✔ skipped outreach never counts as a completed sequence (3.178607ms)
+✔ a concurrently running predecessor defers the next outreach step (43.858594ms)
+✔ final live authorization rechecks pause state rather than trusting a worker cache (4.726955ms)
+✔ authenticated delivery events update accurate status and do not suppress later lifecycle events (10.815248ms)
+✔ signed SMS STOP is idempotent and START cannot erase DNC or create consent (12.504026ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2357.292133

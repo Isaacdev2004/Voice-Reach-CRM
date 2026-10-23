@@ -5,8 +5,9 @@ import { DashboardShell } from "../../components/layout/dashboard-shell";
 import { CampaignsWorkspacePage } from "../../components/campaigns/campaigns-workspace-page";
 import { DEFAULT_SETTINGS } from "../../lib/settings/defaults";
 import { sequenceSummary } from "../../lib/campaigns/library-data";
-import {PRODUCT_CAMPAIGN_TEMPLATES} from "../../lib/crm/campaign-templates";
-import {delayFromDayLabel} from "../../lib/campaigns/delay-from-day-label";
+import { PRODUCT_CAMPAIGN_TEMPLATES } from "../../lib/crm/campaign-templates";
+import { delayFromDayLabel } from "../../lib/campaigns/delay-from-day-label";
+import { previewSequence } from "../../lib/campaigns/sequence-preview";
 const w = window;
 w.__owner = "owner_a";
 w.__setOwner = (owner) => {
@@ -105,6 +106,7 @@ const enrich = (c) => ({
   enrollmentCount: c.id === id(1) ? 1 : 0,
 });
 const preview = (c) => ({
+  deliveryMetrics: { sent: 1, delivered: 1, opened: 1, replied: 0 }, // Synthetic authoritative API fixture, not derived from step runs.
   campaign: enrich(c),
   steps: w.__steps[c.id] || [],
   recipients:
@@ -241,8 +243,37 @@ w.fetch = async (input, init = {}) => {
       w.__forbidden.push(body);
       throw Error("Unsafe automation");
     }
-    const tpl=PRODUCT_CAMPAIGN_TEMPLATES.find(t=>t.templateKey===body.templateKey);if(!tpl)return response({success:false},400);const existing=own.find(c=>c.name===tpl.name);if(existing)return response({success:true,campaignId:existing.id,alreadyExisted:true});
-    const newId=id(w.__campaigns.length+10);w.__campaigns.push({id:newId,owner_id:w.__owner,name:tpl.name,status:'draft',provider:'mock',live_launched:false,created_at:'2026-10-22T12:00:00Z'});w.__steps[newId]=tpl.steps.map((s,i)=>({id:id(2000+i),step_order:s.order,type:s.type,title:s.title,description:s.description,delay_minutes:delayFromDayLabel(s.dayLabel)}));persist();return response({success:true,campaignId:newId});
+    const tpl = PRODUCT_CAMPAIGN_TEMPLATES.find(
+      (t) => t.templateKey === body.templateKey,
+    );
+    if (!tpl) return response({ success: false }, 400);
+    const existing = own.find((c) => c.name === tpl.name);
+    if (existing)
+      return response({
+        success: true,
+        campaignId: existing.id,
+        alreadyExisted: true,
+      });
+    const newId = id(w.__campaigns.length + 10);
+    w.__campaigns.push({
+      id: newId,
+      owner_id: w.__owner,
+      name: tpl.name,
+      status: "draft",
+      provider: "mock",
+      live_launched: false,
+      created_at: "2026-10-22T12:00:00Z",
+    });
+    w.__steps[newId] = tpl.steps.map((s, i) => ({
+      id: id(2000 + i),
+      step_order: s.order,
+      type: s.type,
+      title: s.title,
+      description: s.description,
+      delay_minutes: delayFromDayLabel(s.dayLabel),
+    }));
+    persist();
+    return response({ success: true, campaignId: newId });
   }
   if (url.pathname === "/api/campaigns")
     return response({ success: true, campaigns: own });
@@ -264,8 +295,61 @@ w.fetch = async (input, init = {}) => {
     });
   if (url.pathname === "/api/health")
     return response({ status: "ok", supabase: true, clerk: true });
-  if (url.pathname === "/api/contacts")
-    return response({ success: true, complete: true, contacts: [], total: 0 });
+  if (url.pathname === "/api/contacts") {
+    const contacts =
+      w.__owner === "owner_a"
+        ? [
+            {
+              id: id(500),
+              owner_id: w.__owner,
+              first_name: "Actual",
+              last_name: "Fixture Client",
+              phone: "+15555550123",
+              email: "fixture@example.test",
+              type: "Active Lead",
+            },
+          ]
+        : [];
+    return response({
+      success: true,
+      complete: true,
+      contacts,
+      total: contacts.length,
+      filtered: contacts.length,
+      counts: {
+        all: contacts.length,
+        coldLead: 0,
+        activeLead: contacts.length,
+        pastClient: 0,
+      },
+      categories: [],
+    });
+  }
+  if (url.pathname === "/api/campaigns/preview" && method === "POST") {
+    const body = JSON.parse(init.body);
+    if (body.contactId !== id(500) || w.__owner !== "owner_a")
+      return response({ success: false }, 404);
+    return response({
+      success: true,
+      previews: previewSequence(
+        body.steps.map((s) => ({
+          id: s.id,
+          type: s.type,
+          title: s.title,
+          description: s.description,
+          delay_minutes: 0,
+          time_label: s.timeLabel,
+        })),
+        {
+          contact: { first_name: "Actual", last_name: "Fixture Client" },
+          agentName: "Avery Agent",
+          agentPhone: "+15555550199",
+          brokerage: "Example Realty",
+          timezone: "America/New_York",
+        },
+      ),
+    });
+  }
   return response(
     { success: false, error: "Not part of the isolated fixture" },
     404,

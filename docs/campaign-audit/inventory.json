@@ -1,0 +1,3599 @@
+{
+  "scope": "All bundled product templates; NOT a live database inventory",
+  "databaseCampaigns": null,
+  "databaseVerified": false,
+  "campaigns": [
+    {
+      "templateKey": "cold-lead-reengage",
+      "id": "tpl-cold-lead-reengage",
+      "name": "Cold Lead Re-engagement",
+      "status": "bundled draft template; database instance status not verified",
+      "owner": "MyARI shared product definition; subscriber owner not verified",
+      "audience": "Cold / inactive buyers (14+ days quiet)",
+      "channels": [
+        "email",
+        "sms",
+        "voicemail",
+        "callback"
+      ],
+      "durationDays": 21,
+      "stepsReviewed": 5,
+      "enrollmentRules": {
+        "name": "Start cold lead re-engagement",
+        "description": "When a lead is inactive 14+ days, enroll in Cold Lead Re-engagement.",
+        "triggerType": "lead_inactive",
+        "triggerConfig": {
+          "daysInactive": 14
+        }
+      },
+      "classification": "NEEDS REVIEW",
+      "personalizationIssues": [],
+      "sequenceIssues": [
+        "Original time labels and immediate offsets were ignored; repair is prepared, not deployed.",
+        "Actual subscriber enrollment/closing/tour dates are unavailable.",
+        "Reply-stop and resume repairs need staging verification before approval."
+      ],
+      "deliveryIssues": [
+        "Real provider credentials, sender domain, callbacks and recordings have not been exercised.",
+        "RVM audio is an approved asset and is not synthesized from personalized script text."
+      ],
+      "complianceConcerns": [
+        "Generic consent schema does not prove channel-specific legal eligibility.",
+        "No complete email unsubscribe/inbound reply lifecycle exists.",
+        "Recipient-local jurisdiction and quiet-hour requirements need review beyond workspace timezone.",
+        "Provider webhook atomic replay migration remains unapplied."
+      ],
+      "contentQualityIssues": [],
+      "fixesCompleted": [
+        "Shared safe renderer and final authorization boundary prepared.",
+        "All original steps executed with isolated fixtures; unsafe and unsupported steps are blocked.",
+        "Read-only preview, stable scheduling and revision protection prepared."
+      ],
+      "testResults": "See tests.json: actual worker/provider-boundary fixtures; no real sends.",
+      "remainingBlockers": [
+        "Database records not accessed: no authorized subscriber owner ID supplied and configured Supabase host is not allowlisted.",
+        "Draft copy, migrations, sender/integration checks and legal consent review require approval."
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "Market update / saved-search digest",
+          "description": "Subject: {{area}} market update for you, {{first_name}}\n\nHi {{first_name}},\n\nI've been watching the {{area}} market and wanted to share a quick snapshot - no check-in ask, just useful info.\n\nIf you're still keeping an eye on homes in {{area}}, reply UPDATE and I'll send this week's pricing pulse plus 2–3 standout listings.\n\nHappy to adjust what I'm watching for you anytime.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "dayLabel": "Day 1",
+          "timeLabel": "9:00 AM",
+          "id": "step-1",
+          "status": "draft",
+          "variables": [
+            "{{area}}",
+            "{{first_name}}",
+            "{{agent_name}}",
+            "[AgentPhone]",
+            "[Brokerage]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nI've been watching the Winter Park market and wanted to share a quick snapshot - no check-in ask, just useful info.\n\nIf you're still keeping an eye on homes in Winter Park, reply UPDATE and I'll send this week's pricing pulse plus 2–3 standout listings.\n\nHappy to adjust what I'm watching for you anytime.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Winter Park market update for you, Jordan",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nI've been watching the your area market and wanted to share a quick snapshot - no check-in ask, just useful info.\n\nIf you're still keeping an eye on homes in your area, reply UPDATE and I'll send this week's pricing pulse plus 2–3 standout listings.\n\nHappy to adjust what I'm watching for you anytime.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "your area market update for you, Sam",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nI've been watching the your area market and wanted to share a quick snapshot - no check-in ask, just useful info.\n\nIf you're still keeping an eye on homes in your area, reply UPDATE and I'll send this week's pricing pulse plus 2–3 standout listings.\n\nHappy to adjust what I'm watching for you anytime.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "your area market update for you, there",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nI've been watching the your area market and wanted to share a quick snapshot - no check-in ask, just useful info.\n\nIf you're still keeping an eye on homes in your area, reply UPDATE and I'll send this week's pricing pulse plus 2–3 standout listings.\n\nHappy to adjust what I'm watching for you anytime.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "your area market update for you, there",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: A fresh look at your home search\n\nHi [FirstName],\n\nWould an updated look at homes in {{area}} be useful? Tell me what has changed in your timing or priorities, and I can help you decide on a practical next step.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-1",
+            "channel": "email",
+            "title": "Market update / saved-search digest",
+            "ok": true,
+            "body": "Hi Jordan,\n\nI've been watching the Winter Park market and wanted to share a quick snapshot - no check-in ask, just useful info.\n\nIf you're still keeping an eye on homes in Winter Park, reply UPDATE and I'll send this week's pricing pulse plus 2–3 standout listings.\n\nHappy to adjust what I'm watching for you anytime.\n\nAvery Agent\n+15555550199 | Example Realty",
+            "subject": "Winter Park market update for you, Jordan",
+            "issues": [],
+            "scheduledAt": "2026-10-22T13:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 2,
+          "type": "sms",
+          "title": "Casual search-status SMS",
+          "description": "Hey [FirstName], [Agent] here - still looking in [City], or has your timeline shifted? Either answer is fine. Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "11:00 AM",
+          "id": "step-2",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]",
+            "[City]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hey Jordan, Avery Agent here - still looking in Winter Park, or has your timeline shifted? Either answer is fine. Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hey Sam, Avery Agent here - still looking in your area, or has your timeline shifted? Either answer is fine. Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hey there, Avery Agent here - still looking in your area, or has your timeline shifted? Either answer is fine. Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hey there, Avery Agent here - still looking in your area, or has your timeline shifted? Either answer is fine. Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], [Agent] here. Are you still considering a move in [City], or has your timing changed? Either answer helps me tailor the follow-up. Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-2",
+            "channel": "sms",
+            "title": "Casual search-status SMS",
+            "ok": true,
+            "body": "Hey Jordan, Avery Agent here - still looking in Winter Park, or has your timeline shifted? Either answer is fine. Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-24T15:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 3,
+          "type": "voicemail",
+          "title": "Low-pressure availability VM",
+          "description": "Hi [FirstName], this is [Agent] with [Brokerage]. Just leaving a quick note - I'm around if you want to talk through the [City] market or tweak your search. No pressure at all. You have my number whenever timing feels right. Take care.",
+          "dayLabel": "Day 7",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]",
+            "[Brokerage]",
+            "[City]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan, this is Avery Agent with Example Realty. Just leaving a quick note - I'm around if you want to talk through the Winter Park market or tweak your search. No pressure at all. You have my number whenever timing feels right. Take care.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam, this is Avery Agent with Example Realty. Just leaving a quick note - I'm around if you want to talk through the your area market or tweak your search. No pressure at all. You have my number whenever timing feels right. Take care.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there, this is Avery Agent with Example Realty. Just leaving a quick note - I'm around if you want to talk through the your area market or tweak your search. No pressure at all. You have my number whenever timing feels right. Take care.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there, this is Avery Agent with Example Realty. Just leaving a quick note - I'm around if you want to talk through the your area market or tweak your search. No pressure at all. You have my number whenever timing feels right. Take care.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "voicemail",
+            "description": "Hi [FirstName], this is [Agent] with [Brokerage]. I’m available if you would like to revisit your real estate plans or talk through the market in [City]. No pressure—please reach out whenever the timing suits you."
+          },
+          "preview": {
+            "stepId": "step-3",
+            "channel": "voicemail",
+            "title": "Low-pressure availability VM",
+            "ok": true,
+            "body": "Hi Jordan, this is Avery Agent with Example Realty. Just leaving a quick note - I'm around if you want to talk through the Winter Park market or tweak your search. No pressure at all. You have my number whenever timing feels right. Take care.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-28T14:00:00.000Z",
+            "notice": "Text is a script preview. Recorded audio must be reviewed separately."
+          }
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Opt-down / should I stop?",
+          "description": "Subject: Should I keep sending these, [FirstName]?\n\nHi [FirstName],\n\nI've reached out a few times and don't want to fill your inbox if the timing isn't right.\n\nShould I keep sending market updates and listing ideas for [City], or would you rather I stop for now?\n\nJust reply:\n· YES - keep me on the list\n· PAUSE - hold off for a bit\n· STOP - remove me\n\nEither way is completely fine - I only want to be useful.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
+          "dayLabel": "Day 14",
+          "timeLabel": "9:00 AM",
+          "id": "step-4",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[City]",
+            "[Agent]",
+            "[AgentPhone]",
+            "[Brokerage]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nI've reached out a few times and don't want to fill your inbox if the timing isn't right.\n\nShould I keep sending market updates and listing ideas for Winter Park, or would you rather I stop for now?\n\nJust reply:\n· YES - keep me on the list\n· PAUSE - hold off for a bit\n· STOP - remove me\n\nEither way is completely fine - I only want to be useful.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Should I keep sending these, Jordan?",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nI've reached out a few times and don't want to fill your inbox if the timing isn't right.\n\nShould I keep sending market updates and listing ideas for your area, or would you rather I stop for now?\n\nJust reply:\n· YES - keep me on the list\n· PAUSE - hold off for a bit\n· STOP - remove me\n\nEither way is completely fine - I only want to be useful.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Should I keep sending these, Sam?",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nI've reached out a few times and don't want to fill your inbox if the timing isn't right.\n\nShould I keep sending market updates and listing ideas for your area, or would you rather I stop for now?\n\nJust reply:\n· YES - keep me on the list\n· PAUSE - hold off for a bit\n· STOP - remove me\n\nEither way is completely fine - I only want to be useful.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Should I keep sending these, there?",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nI've reached out a few times and don't want to fill your inbox if the timing isn't right.\n\nShould I keep sending market updates and listing ideas for your area, or would you rather I stop for now?\n\nJust reply:\n· YES - keep me on the list\n· PAUSE - hold off for a bit\n· STOP - remove me\n\nEither way is completely fine - I only want to be useful.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Should I keep sending these, there?",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Would you like me to keep in touch?\n\nHi [FirstName],\n\nI want these updates to be useful. Would you prefer an occasional market note, a pause, or a different kind of help? You can contact me directly with your preference.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-4",
+            "channel": "email",
+            "title": "Opt-down / should I stop?",
+            "ok": true,
+            "body": "Hi Jordan,\n\nI've reached out a few times and don't want to fill your inbox if the timing isn't right.\n\nShould I keep sending market updates and listing ideas for Winter Park, or would you rather I stop for now?\n\nJust reply:\n· YES - keep me on the list\n· PAUSE - hold off for a bit\n· STOP - remove me\n\nEither way is completely fine - I only want to be useful.\n\nAvery Agent\n+15555550199 | Example Realty",
+            "subject": "Should I keep sending these, Jordan?",
+            "issues": [],
+            "scheduledAt": "2026-11-04T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 5,
+          "type": "callback",
+          "title": "Move to nurture cadence",
+          "description": "Set lead_status = nurture. Enroll in Long-term Buyer Nurture if still silent. If they replied or listened, call personally within 24 hours.",
+          "dayLabel": "Day 21",
+          "timeLabel": "9:00 AM",
+          "id": "step-5",
+          "status": "draft",
+          "variables": [],
+          "contentIssues": [],
+          "renderedCases": {},
+          "proposed": {
+            "type": "callback",
+            "description": "Review this contact’s response and preferences. If appropriate and authorized, propose a nurture plan for agent approval; do not change lifecycle stages or enroll another sequence automatically."
+          },
+          "preview": {
+            "stepId": "step-5",
+            "channel": "callback",
+            "title": "Move to nurture cadence",
+            "ok": true,
+            "body": "",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-11-11T14:00:00.000Z",
+            "notice": "Internal action; not a subscriber message."
+          }
+        }
+      ]
+    },
+    {
+      "templateKey": "speed-to-lead",
+      "id": "tpl-speed-to-lead",
+      "name": "Speed-to-Lead Quick Response",
+      "status": "bundled draft template; database instance status not verified",
+      "owner": "MyARI shared product definition; subscriber owner not verified",
+      "audience": "Brand-new buyer leads (form, IDX, portal, lead ads)",
+      "channels": [
+        "sms",
+        "email",
+        "callback"
+      ],
+      "durationDays": 5,
+      "stepsReviewed": 6,
+      "enrollmentRules": {
+        "name": "Speed-to-lead on new contact",
+        "description": "When a new contact is added, enroll in Speed-to-Lead.",
+        "triggerType": "contact_added",
+        "triggerConfig": {}
+      },
+      "classification": "FAIL",
+      "personalizationIssues": [],
+      "sequenceIssues": [
+        "Original time labels and immediate offsets were ignored; repair is prepared, not deployed.",
+        "Actual subscriber enrollment/closing/tour dates are unavailable.",
+        "Reply-stop and resume repairs need staging verification before approval."
+      ],
+      "deliveryIssues": [
+        "Real provider credentials, sender domain, callbacks and recordings have not been exercised.",
+        "RVM audio is an approved asset and is not synthesized from personalized script text."
+      ],
+      "complianceConcerns": [
+        "Generic consent schema does not prove channel-specific legal eligibility.",
+        "No complete email unsubscribe/inbound reply lifecycle exists.",
+        "Recipient-local jurisdiction and quiet-hour requirements need review beyond workspace timezone.",
+        "Provider webhook atomic replay migration remains unapplied."
+      ],
+      "contentQualityIssues": [
+        "Step 2: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 4: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 5: Claims specific supporting information or activity that is not supplied by this template."
+      ],
+      "fixesCompleted": [
+        "Shared safe renderer and final authorization boundary prepared.",
+        "All original steps executed with isolated fixtures; unsafe and unsupported steps are blocked.",
+        "Read-only preview, stable scheduling and revision protection prepared."
+      ],
+      "testResults": "See tests.json: actual worker/provider-boundary fixtures; no real sends.",
+      "remainingBlockers": [
+        "Database records not accessed: no authorized subscriber owner ID supplied and configured Supabase host is not allowlisted.",
+        "Draft copy, migrations, sender/integration checks and legal consent review require approval."
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "type": "sms",
+          "title": "First SMS (<60s)",
+          "description": "Hi [FirstName]! This is [Agent] from [Brokerage] - I just saw your inquiry about [PropertyAddress]. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate",
+          "id": "step-1",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]",
+            "[Brokerage]",
+            "[PropertyAddress]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan! This is Avery Agent from Example Realty - I just saw your inquiry about 123 Example Lane. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam! This is Avery Agent from Example Realty - I just saw your inquiry about your home search. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there! This is Avery Agent from Example Realty - I just saw your inquiry about your home search. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there! This is Avery Agent from Example Realty - I just saw your inquiry about your home search. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], this is [Agent] with [Brokerage]. Thanks for getting in touch. What would be most helpful right now—property details, search guidance, or a quick conversation? Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-1",
+            "channel": "sms",
+            "title": "First SMS (<60s)",
+            "ok": true,
+            "body": "Hi Jordan! This is Avery Agent from Example Realty - I just saw your inquiry about 123 Example Lane. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-22T12:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 2,
+          "type": "email",
+          "title": "First email (<2 min)",
+          "description": "Subject: I found homes matching your search - {{first_name}}\n\nHi {{first_name}},\n\nThanks for reaching out! I'm {{agent_name}}, your local real estate specialist covering {{area}}.\n\nI pulled up the listing you were looking at - {{property_address}} - and I want to make sure you don't miss out.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\n{{agent_name}}\n[Brokerage] · [AgentPhone]",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate +2m",
+          "id": "step-2",
+          "status": "draft",
+          "variables": [
+            "{{first_name}}",
+            "{{agent_name}}",
+            "{{area}}",
+            "{{property_address}}",
+            "[Brokerage]",
+            "[AgentPhone]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nThanks for reaching out! I'm Avery Agent, your local real estate specialist covering Winter Park.\n\nI pulled up the listing you were looking at - 123 Example Lane - and I want to make sure you don't miss out.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\nAvery Agent\nExample Realty · +15555550199",
+              "subject": "I found homes matching your search - Jordan",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nThanks for reaching out! I'm Avery Agent, your local real estate specialist covering your area.\n\nI pulled up the listing you were looking at - your home search - and I want to make sure you don't miss out.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\nAvery Agent\nExample Realty · +15555550199",
+              "subject": "I found homes matching your search - Sam",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nThanks for reaching out! I'm Avery Agent, your local real estate specialist covering your area.\n\nI pulled up the listing you were looking at - your home search - and I want to make sure you don't miss out.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\nAvery Agent\nExample Realty · +15555550199",
+              "subject": "I found homes matching your search - there",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nThanks for reaching out! I'm Avery Agent, your local real estate specialist covering your area.\n\nI pulled up the listing you were looking at - your home search - and I want to make sure you don't miss out.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\nAvery Agent\nExample Realty · +15555550199",
+              "subject": "I found homes matching your search - there",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: How can I help with your search?\n\nHi [FirstName],\n\nThank you for reaching out. What are your priorities for {{area}}? Share your preferred timing and must-haves, and I can help you identify a useful next step.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-2",
+            "channel": "email",
+            "title": "First email (<2 min)",
+            "ok": true,
+            "body": "Hi Jordan,\n\nThanks for reaching out! I'm Avery Agent, your local real estate specialist covering Winter Park.\n\nI pulled up the listing you were looking at - 123 Example Lane - and I want to make sure you don't miss out.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\nAvery Agent\nExample Realty · +15555550199",
+            "subject": "I found homes matching your search - Jordan",
+            "issues": [],
+            "scheduledAt": "2026-10-22T12:02:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 3,
+          "type": "callback",
+          "title": "Agent call task",
+          "description": "Call [FirstName] - new lead from [LeadSource] interested in [PropertyAddress]. Confirm timeline, budget, and whether they want a shortlist or showing. Due within 4 hours.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate +5m",
+          "id": "step-3",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[LeadSource]",
+            "[PropertyAddress]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {},
+          "proposed": {
+            "type": "callback",
+            "description": "Review the inquiry, confirm the actual property and source, and arrange a personal follow-up. Do not claim a call or listing review has already happened."
+          },
+          "preview": {
+            "stepId": "step-3",
+            "channel": "callback",
+            "title": "Agent call task",
+            "ok": true,
+            "body": "",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-22T12:05:00.000Z",
+            "notice": "Internal action; not a subscriber message."
+          }
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Day 1 comps follow-up (no reply)",
+          "description": "Subject: Still searching? A few homes near {{property_address}} worth seeing\n\nHi {{first_name}},\n\nI wanted to follow up in case my first message got buried.\n\nI pulled a short list of homes near {{property_address}} that match what you're looking for in {{area}} and wanted to share them before they're gone.\n\nReply LIST and I'll send the 3 strongest options with beds, baths, and price - no pressure at all.\n\nIf any catch your eye, I can get you in for a showing as early as tomorrow.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "dayLabel": "Day 2",
+          "timeLabel": "10:00 AM",
+          "id": "step-4",
+          "status": "draft",
+          "variables": [
+            "{{property_address}}",
+            "{{first_name}}",
+            "{{area}}",
+            "{{agent_name}}",
+            "[AgentPhone]",
+            "[Brokerage]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nI wanted to follow up in case my first message got buried.\n\nI pulled a short list of homes near 123 Example Lane that match what you're looking for in Winter Park and wanted to share them before they're gone.\n\nReply LIST and I'll send the 3 strongest options with beds, baths, and price - no pressure at all.\n\nIf any catch your eye, I can get you in for a showing as early as tomorrow.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Still searching? A few homes near 123 Example Lane worth seeing",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nI wanted to follow up in case my first message got buried.\n\nI pulled a short list of homes near your home search that match what you're looking for in your area and wanted to share them before they're gone.\n\nReply LIST and I'll send the 3 strongest options with beds, baths, and price - no pressure at all.\n\nIf any catch your eye, I can get you in for a showing as early as tomorrow.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Still searching? A few homes near your home search worth seeing",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nI wanted to follow up in case my first message got buried.\n\nI pulled a short list of homes near your home search that match what you're looking for in your area and wanted to share them before they're gone.\n\nReply LIST and I'll send the 3 strongest options with beds, baths, and price - no pressure at all.\n\nIf any catch your eye, I can get you in for a showing as early as tomorrow.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Still searching? A few homes near your home search worth seeing",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nI wanted to follow up in case my first message got buried.\n\nI pulled a short list of homes near your home search that match what you're looking for in your area and wanted to share them before they're gone.\n\nReply LIST and I'll send the 3 strongest options with beds, baths, and price - no pressure at all.\n\nIf any catch your eye, I can get you in for a showing as early as tomorrow.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Still searching? A few homes near your home search worth seeing",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: A quick follow-up on your search\n\nHi [FirstName],\n\nI wanted to make sure you have a way to reach me. Would you like help comparing properties, refining your criteria, or planning a tour? I’m happy to work at your pace.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-4",
+            "channel": "email",
+            "title": "Day 1 comps follow-up (no reply)",
+            "ok": true,
+            "body": "Hi Jordan,\n\nI wanted to follow up in case my first message got buried.\n\nI pulled a short list of homes near 123 Example Lane that match what you're looking for in Winter Park and wanted to share them before they're gone.\n\nReply LIST and I'll send the 3 strongest options with beds, baths, and price - no pressure at all.\n\nIf any catch your eye, I can get you in for a showing as early as tomorrow.\n\nAvery Agent\n+15555550199 | Example Realty",
+            "subject": "Still searching? A few homes near 123 Example Lane worth seeing",
+            "issues": [],
+            "scheduledAt": "2026-10-23T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 5,
+          "type": "sms",
+          "title": "Day 3 new-listing nudge",
+          "description": "Hey {{first_name}}, {{agent_name}} again. Still looking in {{area}}? A strong match just hit - want details or a showing this week? - {{agent_name}} Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "11:00 AM",
+          "id": "step-5",
+          "status": "draft",
+          "variables": [
+            "{{first_name}}",
+            "{{agent_name}}",
+            "{{area}}"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hey Jordan, Avery Agent again. Still looking in Winter Park? A strong match just hit - want details or a showing this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hey Sam, Avery Agent again. Still looking in your area? A strong match just hit - want details or a showing this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hey there, Avery Agent again. Still looking in your area? A strong match just hit - want details or a showing this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hey there, Avery Agent again. Still looking in your area? A strong match just hit - want details or a showing this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi {{first_name}}, {{agent_name}} here. Has anything changed in your search priorities for {{area}}? I’m available if you would like help with the next step. Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-5",
+            "channel": "sms",
+            "title": "Day 3 new-listing nudge",
+            "ok": true,
+            "body": "Hey Jordan, Avery Agent again. Still looking in Winter Park? A strong match just hit - want details or a showing this week? - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-24T15:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 6,
+          "type": "sms",
+          "title": "Day 5 breakup text",
+          "description": "Hi [FirstName], I don't want to keep bugging you - just wanted to make sure you have my number if you ever need a local expert in [MarketArea]. No pressure at all. Wishing you the best! - [Agent] [AgentPhone] Reply STOP to opt out.",
+          "dayLabel": "Day 5",
+          "timeLabel": "10:00 AM",
+          "id": "step-6",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[MarketArea]",
+            "[Agent]",
+            "[AgentPhone]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan, I don't want to keep bugging you - just wanted to make sure you have my number if you ever need a local expert in Winter Park. No pressure at all. Wishing you the best! - Avery Agent +15555550199 Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam, I don't want to keep bugging you - just wanted to make sure you have my number if you ever need a local expert in your area. No pressure at all. Wishing you the best! - Avery Agent +15555550199 Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there, I don't want to keep bugging you - just wanted to make sure you have my number if you ever need a local expert in your area. No pressure at all. Wishing you the best! - Avery Agent +15555550199 Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there, I don't want to keep bugging you - just wanted to make sure you have my number if you ever need a local expert in your area. No pressure at all. Wishing you the best! - Avery Agent +15555550199 Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], I’ll give you some space for now. If you would like help with your real estate plans later, you’re welcome to reach out. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-6",
+            "channel": "sms",
+            "title": "Day 5 breakup text",
+            "ok": true,
+            "body": "Hi Jordan, I don't want to keep bugging you - just wanted to make sure you have my number if you ever need a local expert in Winter Park. No pressure at all. Wishing you the best! - Avery Agent +15555550199 Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-26T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        }
+      ]
+    },
+    {
+      "templateKey": "listing-alert-drip",
+      "id": "tpl-listing-alert-drip",
+      "name": "Listing Alert Drip",
+      "status": "bundled draft template; database instance status not verified",
+      "owner": "MyARI shared product definition; subscriber owner not verified",
+      "audience": "Active buyers with a search criteria / saved search",
+      "channels": [
+        "email",
+        "sms"
+      ],
+      "durationDays": 60,
+      "stepsReviewed": 5,
+      "enrollmentRules": {
+        "trigger": "manual selection / category enrollment; audience text is not an enforced targeting rule"
+      },
+      "classification": "FAIL",
+      "personalizationIssues": [],
+      "sequenceIssues": [
+        "Original time labels and immediate offsets were ignored; repair is prepared, not deployed.",
+        "Actual subscriber enrollment/closing/tour dates are unavailable.",
+        "Reply-stop and resume repairs need staging verification before approval."
+      ],
+      "deliveryIssues": [
+        "Real provider credentials, sender domain, callbacks and recordings have not been exercised.",
+        "RVM audio is an approved asset and is not synthesized from personalized script text."
+      ],
+      "complianceConcerns": [
+        "Generic consent schema does not prove channel-specific legal eligibility.",
+        "No complete email unsubscribe/inbound reply lifecycle exists.",
+        "Recipient-local jurisdiction and quiet-hour requirements need review beyond workspace timezone.",
+        "Provider webhook atomic replay migration remains unapplied."
+      ],
+      "contentQualityIssues": [
+        "Step 1: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 2: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 3: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 5: Missing explicit STOP instruction; PAUSE is not an automated SMS opt-out keyword in the current receiver."
+      ],
+      "fixesCompleted": [
+        "Shared safe renderer and final authorization boundary prepared.",
+        "All original steps executed with isolated fixtures; unsafe and unsupported steps are blocked.",
+        "Read-only preview, stable scheduling and revision protection prepared."
+      ],
+      "testResults": "See tests.json: actual worker/provider-boundary fixtures; no real sends.",
+      "remainingBlockers": [
+        "Database records not accessed: no authorized subscriber owner ID supplied and configured Supabase host is not allowlisted.",
+        "Draft copy, migrations, sender/integration checks and legal consent review require approval."
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "Weekly matching homes digest",
+          "description": "Subject: New matches for your search this week\n\nHi [FirstName],\n\nHere are the strongest new listings that fit what we've been watching together. I've highlighted what stands out on each.\n\nReply with any address you want a deeper look at - or \"tour\" and I'll set times.\n\n[Agent]",
+          "dayLabel": "Day 1",
+          "timeLabel": "9:00 AM",
+          "id": "step-1",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nHere are the strongest new listings that fit what we've been watching together. I've highlighted what stands out on each.\n\nReply with any address you want a deeper look at - or \"tour\" and I'll set times.\n\nAvery Agent",
+              "subject": "New matches for your search this week",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nHere are the strongest new listings that fit what we've been watching together. I've highlighted what stands out on each.\n\nReply with any address you want a deeper look at - or \"tour\" and I'll set times.\n\nAvery Agent",
+              "subject": "New matches for your search this week",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nHere are the strongest new listings that fit what we've been watching together. I've highlighted what stands out on each.\n\nReply with any address you want a deeper look at - or \"tour\" and I'll set times.\n\nAvery Agent",
+              "subject": "New matches for your search this week",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nHere are the strongest new listings that fit what we've been watching together. I've highlighted what stands out on each.\n\nReply with any address you want a deeper look at - or \"tour\" and I'll set times.\n\nAvery Agent",
+              "subject": "New matches for your search this week",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Keeping your property search focused\n\nHi [FirstName],\n\nAre your location, budget, and must-haves still the same? Let me know what matters most, and I can help you review suitable properties without filling your inbox with irrelevant options.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-1",
+            "channel": "email",
+            "title": "Weekly matching homes digest",
+            "ok": true,
+            "body": "Hi Jordan,\n\nHere are the strongest new listings that fit what we've been watching together. I've highlighted what stands out on each.\n\nReply with any address you want a deeper look at - or \"tour\" and I'll set times.\n\nAvery Agent",
+            "subject": "New matches for your search this week",
+            "issues": [],
+            "scheduledAt": "2026-10-22T13:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 2,
+          "type": "sms",
+          "title": "High-match alert SMS",
+          "description": "Hi [FirstName] - strong match just hit your criteria. Want details or a showing this week? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM",
+          "id": "step-2",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan - strong match just hit your criteria. Want details or a showing this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam - strong match just hit your criteria. Want details or a showing this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there - strong match just hit your criteria. Want details or a showing this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there - strong match just hit your criteria. Want details or a showing this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], would a fresh look at properties that fit your priorities be useful? Let me know whether you prefer details by message or a quick conversation. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-2",
+            "channel": "sms",
+            "title": "High-match alert SMS",
+            "ok": true,
+            "body": "Hi Jordan - strong match just hit your criteria. Want details or a showing this week? - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-24T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 3,
+          "type": "sms",
+          "title": "Price-drop style nudge",
+          "description": "[FirstName], a home on your watchlist had a meaningful update. Want me to send the new numbers? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 14",
+          "timeLabel": "11:00 AM",
+          "id": "step-3",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Jordan, a home on your watchlist had a meaningful update. Want me to send the new numbers? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Sam, a home on your watchlist had a meaningful update. Want me to send the new numbers? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "there, a home on your watchlist had a meaningful update. Want me to send the new numbers? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "there, a home on your watchlist had a meaningful update. Want me to send the new numbers? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], are there any homes you would like me to check on? Send an address or tell me what has changed in your search. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-3",
+            "channel": "sms",
+            "title": "Price-drop style nudge",
+            "ok": true,
+            "body": "Jordan, a home on your watchlist had a meaningful update. Want me to send the new numbers? - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-11-04T16:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Monthly check-in",
+          "description": "Subject: Quick pulse on your home search\n\nHi [FirstName],\n\nIt's been about a month - has anything shifted on budget, neighborhood, or timing? I can tighten alerts so you only see what still fits.\n\nOne reply is enough.\n\n[Agent]",
+          "dayLabel": "Day 30",
+          "timeLabel": "10:00 AM",
+          "id": "step-4",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nIt's been about a month - has anything shifted on budget, neighborhood, or timing? I can tighten alerts so you only see what still fits.\n\nOne reply is enough.\n\nAvery Agent",
+              "subject": "Quick pulse on your home search",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nIt's been about a month - has anything shifted on budget, neighborhood, or timing? I can tighten alerts so you only see what still fits.\n\nOne reply is enough.\n\nAvery Agent",
+              "subject": "Quick pulse on your home search",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nIt's been about a month - has anything shifted on budget, neighborhood, or timing? I can tighten alerts so you only see what still fits.\n\nOne reply is enough.\n\nAvery Agent",
+              "subject": "Quick pulse on your home search",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nIt's been about a month - has anything shifted on budget, neighborhood, or timing? I can tighten alerts so you only see what still fits.\n\nOne reply is enough.\n\nAvery Agent",
+              "subject": "Quick pulse on your home search",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Has your home search changed?\n\nHi [FirstName],\n\nWould you like to adjust your preferred neighborhoods, budget, or timing? A brief reply will help me keep future recommendations relevant.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-4",
+            "channel": "email",
+            "title": "Monthly check-in",
+            "ok": true,
+            "body": "Hi Jordan,\n\nIt's been about a month - has anything shifted on budget, neighborhood, or timing? I can tighten alerts so you only see what still fits.\n\nOne reply is enough.\n\nAvery Agent",
+            "subject": "Quick pulse on your home search",
+            "issues": [],
+            "scheduledAt": "2026-11-20T15:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 5,
+          "type": "sms",
+          "title": "60-day re-engage",
+          "description": "Hi [FirstName] - still want listing alerts, or should I pause for now? Reply YES to keep them or PAUSE to stop. - [Agent]",
+          "dayLabel": "Day 60",
+          "timeLabel": "10:00 AM",
+          "id": "step-5",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Missing explicit STOP instruction; PAUSE is not an automated SMS opt-out keyword in the current receiver."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan - still want listing alerts, or should I pause for now? Reply YES to keep them or PAUSE to stop. - Avery Agent",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam - still want listing alerts, or should I pause for now? Reply YES to keep them or PAUSE to stop. - Avery Agent",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there - still want listing alerts, or should I pause for now? Reply YES to keep them or PAUSE to stop. - Avery Agent",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there - still want listing alerts, or should I pause for now? Reply YES to keep them or PAUSE to stop. - Avery Agent",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], would you like occasional search updates, or would you prefer a pause? You can let me know what works best. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-5",
+            "channel": "sms",
+            "title": "60-day re-engage",
+            "ok": true,
+            "body": "Hi Jordan - still want listing alerts, or should I pause for now? Reply YES to keep them or PAUSE to stop. - Avery Agent",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-12-20T15:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        }
+      ]
+    },
+    {
+      "templateKey": "long-term-buyer-nurture",
+      "id": "tpl-long-term-buyer-nurture",
+      "name": "Long-term Buyer Nurture",
+      "status": "bundled draft template; database instance status not verified",
+      "owner": "MyARI shared product definition; subscriber owner not verified",
+      "audience": "Cold / long-term buyers (6+ month timeline)",
+      "channels": [
+        "email",
+        "sms"
+      ],
+      "durationDays": 180,
+      "stepsReviewed": 7,
+      "enrollmentRules": {
+        "trigger": "manual selection / category enrollment; audience text is not an enforced targeting rule"
+      },
+      "classification": "FAIL",
+      "personalizationIssues": [],
+      "sequenceIssues": [
+        "Original time labels and immediate offsets were ignored; repair is prepared, not deployed.",
+        "Actual subscriber enrollment/closing/tour dates are unavailable.",
+        "Reply-stop and resume repairs need staging verification before approval."
+      ],
+      "deliveryIssues": [
+        "Real provider credentials, sender domain, callbacks and recordings have not been exercised.",
+        "RVM audio is an approved asset and is not synthesized from personalized script text."
+      ],
+      "complianceConcerns": [
+        "Generic consent schema does not prove channel-specific legal eligibility.",
+        "No complete email unsubscribe/inbound reply lifecycle exists.",
+        "Recipient-local jurisdiction and quiet-hour requirements need review beyond workspace timezone.",
+        "Provider webhook atomic replay migration remains unapplied."
+      ],
+      "contentQualityIssues": [
+        "Step 2: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 5: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 6: Missing explicit STOP instruction; PAUSE is not an automated SMS opt-out keyword in the current receiver."
+      ],
+      "fixesCompleted": [
+        "Shared safe renderer and final authorization boundary prepared.",
+        "All original steps executed with isolated fixtures; unsafe and unsupported steps are blocked.",
+        "Read-only preview, stable scheduling and revision protection prepared."
+      ],
+      "testResults": "See tests.json: actual worker/provider-boundary fixtures; no real sends.",
+      "remainingBlockers": [
+        "Database records not accessed: no authorized subscriber owner ID supplied and configured Supabase host is not allowlisted.",
+        "Draft copy, migrations, sender/integration checks and legal consent review require approval."
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "Market education",
+          "description": "Subject: What buyers should watch this month\n\nHi [FirstName],\n\nA quick, no-pressure briefing on inventory, pricing, and what smart buyers are doing right now in our market.\n\nIf you want this tailored to a specific neighborhood, reply with the area.\n\n[Agent]",
+          "dayLabel": "Day 1",
+          "timeLabel": "10:00 AM",
+          "id": "step-1",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nA quick, no-pressure briefing on inventory, pricing, and what smart buyers are doing right now in our market.\n\nIf you want this tailored to a specific neighborhood, reply with the area.\n\nAvery Agent",
+              "subject": "What buyers should watch this month",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nA quick, no-pressure briefing on inventory, pricing, and what smart buyers are doing right now in our market.\n\nIf you want this tailored to a specific neighborhood, reply with the area.\n\nAvery Agent",
+              "subject": "What buyers should watch this month",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nA quick, no-pressure briefing on inventory, pricing, and what smart buyers are doing right now in our market.\n\nIf you want this tailored to a specific neighborhood, reply with the area.\n\nAvery Agent",
+              "subject": "What buyers should watch this month",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nA quick, no-pressure briefing on inventory, pricing, and what smart buyers are doing right now in our market.\n\nIf you want this tailored to a specific neighborhood, reply with the area.\n\nAvery Agent",
+              "subject": "What buyers should watch this month",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Planning a move at your pace\n\nHi [FirstName],\n\nA little preparation can make a future move easier. What would be useful to explore first: neighborhoods, a realistic timeline, or the steps involved in buying?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-1",
+            "channel": "email",
+            "title": "Market education",
+            "ok": true,
+            "body": "Hi Jordan,\n\nA quick, no-pressure briefing on inventory, pricing, and what smart buyers are doing right now in our market.\n\nIf you want this tailored to a specific neighborhood, reply with the area.\n\nAvery Agent",
+            "subject": "What buyers should watch this month",
+            "issues": [],
+            "scheduledAt": "2026-10-22T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 2,
+          "type": "email",
+          "title": "Neighborhood spotlight",
+          "description": "Subject: Neighborhood spotlight worth knowing\n\nHi [FirstName],\n\nHere's a short look at a neighborhood clients often ask about - lifestyle, schools, and what recent sales suggest.\n\nHappy to compare it to anywhere else on your list.\n\n[Agent]",
+          "dayLabel": "Day 14",
+          "timeLabel": "10:00 AM",
+          "id": "step-2",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nHere's a short look at a neighborhood clients often ask about - lifestyle, schools, and what recent sales suggest.\n\nHappy to compare it to anywhere else on your list.\n\nAvery Agent",
+              "subject": "Neighborhood spotlight worth knowing",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nHere's a short look at a neighborhood clients often ask about - lifestyle, schools, and what recent sales suggest.\n\nHappy to compare it to anywhere else on your list.\n\nAvery Agent",
+              "subject": "Neighborhood spotlight worth knowing",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nHere's a short look at a neighborhood clients often ask about - lifestyle, schools, and what recent sales suggest.\n\nHappy to compare it to anywhere else on your list.\n\nAvery Agent",
+              "subject": "Neighborhood spotlight worth knowing",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nHere's a short look at a neighborhood clients often ask about - lifestyle, schools, and what recent sales suggest.\n\nHappy to compare it to anywhere else on your list.\n\nAvery Agent",
+              "subject": "Neighborhood spotlight worth knowing",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Which neighborhoods are on your list?\n\nHi [FirstName],\n\nIf you are comparing areas, tell me what matters most in your day-to-day life. I can help you find reliable information and questions to consider without assuming one neighborhood is right for you.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-2",
+            "channel": "email",
+            "title": "Neighborhood spotlight",
+            "ok": true,
+            "body": "Hi Jordan,\n\nHere's a short look at a neighborhood clients often ask about - lifestyle, schools, and what recent sales suggest.\n\nHappy to compare it to anywhere else on your list.\n\nAvery Agent",
+            "subject": "Neighborhood spotlight worth knowing",
+            "issues": [],
+            "scheduledAt": "2026-11-04T15:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 3,
+          "type": "sms",
+          "title": "Quarterly soft SMS",
+          "description": "Hi [FirstName] - still planning a move in the next year? I can keep quiet updates coming, or pause anytime. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 30",
+          "timeLabel": "11:00 AM",
+          "id": "step-3",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan - still planning a move in the next year? I can keep quiet updates coming, or pause anytime. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam - still planning a move in the next year? I can keep quiet updates coming, or pause anytime. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there - still planning a move in the next year? I can keep quiet updates coming, or pause anytime. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there - still planning a move in the next year? I can keep quiet updates coming, or pause anytime. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], is a move still part of your longer-term plans? I can keep in touch occasionally or give you space—whichever is more useful. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-3",
+            "channel": "sms",
+            "title": "Quarterly soft SMS",
+            "ok": true,
+            "body": "Hi Jordan - still planning a move in the next year? I can keep quiet updates coming, or pause anytime. - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-11-20T16:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Financing / timing tip",
+          "description": "Subject: One timing tip most buyers miss\n\nHi [FirstName],\n\nWhether you're 3 months or 18 months out, a little prep now (pre-approval, must-haves vs nice-to-haves) makes the search much calmer later.\n\nWant a simple checklist?\n\n[Agent]",
+          "dayLabel": "Day 45",
+          "timeLabel": "10:00 AM",
+          "id": "step-4",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nWhether you're 3 months or 18 months out, a little prep now (pre-approval, must-haves vs nice-to-haves) makes the search much calmer later.\n\nWant a simple checklist?\n\nAvery Agent",
+              "subject": "One timing tip most buyers miss",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nWhether you're 3 months or 18 months out, a little prep now (pre-approval, must-haves vs nice-to-haves) makes the search much calmer later.\n\nWant a simple checklist?\n\nAvery Agent",
+              "subject": "One timing tip most buyers miss",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nWhether you're 3 months or 18 months out, a little prep now (pre-approval, must-haves vs nice-to-haves) makes the search much calmer later.\n\nWant a simple checklist?\n\nAvery Agent",
+              "subject": "One timing tip most buyers miss",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nWhether you're 3 months or 18 months out, a little prep now (pre-approval, must-haves vs nice-to-haves) makes the search much calmer later.\n\nWant a simple checklist?\n\nAvery Agent",
+              "subject": "One timing tip most buyers miss",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: A simple way to prepare for a future move\n\nHi [FirstName],\n\nEven with a longer timeline, listing your must-haves and understanding financing options can bring clarity. Would a short preparation checklist help?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-4",
+            "channel": "email",
+            "title": "Financing / timing tip",
+            "ok": true,
+            "body": "Hi Jordan,\n\nWhether you're 3 months or 18 months out, a little prep now (pre-approval, must-haves vs nice-to-haves) makes the search much calmer later.\n\nWant a simple checklist?\n\nAvery Agent",
+            "subject": "One timing tip most buyers miss",
+            "issues": [],
+            "scheduledAt": "2026-12-05T15:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 5,
+          "type": "email",
+          "title": "Inventory / opportunity note",
+          "description": "Subject: A quiet opportunity in the market\n\nHi [FirstName],\n\nOccasionally a listing fits long-term buyers even if they're not \"actively touring\" yet. Here's what I'm seeing and why it might matter later.\n\nNo rush - just keeping you informed.\n\n[Agent]",
+          "dayLabel": "Day 90",
+          "timeLabel": "10:00 AM",
+          "id": "step-5",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nOccasionally a listing fits long-term buyers even if they're not \"actively touring\" yet. Here's what I'm seeing and why it might matter later.\n\nNo rush - just keeping you informed.\n\nAvery Agent",
+              "subject": "A quiet opportunity in the market",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nOccasionally a listing fits long-term buyers even if they're not \"actively touring\" yet. Here's what I'm seeing and why it might matter later.\n\nNo rush - just keeping you informed.\n\nAvery Agent",
+              "subject": "A quiet opportunity in the market",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nOccasionally a listing fits long-term buyers even if they're not \"actively touring\" yet. Here's what I'm seeing and why it might matter later.\n\nNo rush - just keeping you informed.\n\nAvery Agent",
+              "subject": "A quiet opportunity in the market",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nOccasionally a listing fits long-term buyers even if they're not \"actively touring\" yet. Here's what I'm seeing and why it might matter later.\n\nNo rush - just keeping you informed.\n\nAvery Agent",
+              "subject": "A quiet opportunity in the market",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Keeping your options in view\n\nHi [FirstName],\n\nHave your priorities or timing changed? I can help you review options when you are ready, without rushing a decision.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-5",
+            "channel": "email",
+            "title": "Inventory / opportunity note",
+            "ok": true,
+            "body": "Hi Jordan,\n\nOccasionally a listing fits long-term buyers even if they're not \"actively touring\" yet. Here's what I'm seeing and why it might matter later.\n\nNo rush - just keeping you informed.\n\nAvery Agent",
+            "subject": "A quiet opportunity in the market",
+            "issues": [],
+            "scheduledAt": "2027-01-19T15:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 6,
+          "type": "sms",
+          "title": "90-day re-engage gate",
+          "description": "Hi [FirstName], checking if home-search timing has changed. Reply READY, LATER, or PAUSE. - [Agent]",
+          "dayLabel": "Day 90",
+          "timeLabel": "2:00 PM",
+          "id": "step-6",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Missing explicit STOP instruction; PAUSE is not an automated SMS opt-out keyword in the current receiver."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan, checking if home-search timing has changed. Reply READY, LATER, or PAUSE. - Avery Agent",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam, checking if home-search timing has changed. Reply READY, LATER, or PAUSE. - Avery Agent",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there, checking if home-search timing has changed. Reply READY, LATER, or PAUSE. - Avery Agent",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there, checking if home-search timing has changed. Reply READY, LATER, or PAUSE. - Avery Agent",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], how is your planning going? Let me know if you would like help, a later follow-up, or a pause. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-6",
+            "channel": "sms",
+            "title": "90-day re-engage gate",
+            "ok": true,
+            "body": "Hi Jordan, checking if home-search timing has changed. Reply READY, LATER, or PAUSE. - Avery Agent",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2027-01-19T19:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 7,
+          "type": "email",
+          "title": "6-month relationship note",
+          "description": "Subject: Still here when you're ready\n\nHi [FirstName],\n\nJust a note that I'm still happy to be your local resource - market questions, neighborhood intel, or a quiet first tour when timing is right.\n\nWhenever you're ready,\n[Agent]",
+          "dayLabel": "Day 180",
+          "timeLabel": "10:00 AM",
+          "id": "step-7",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nJust a note that I'm still happy to be your local resource - market questions, neighborhood intel, or a quiet first tour when timing is right.\n\nWhenever you're ready,\nAvery Agent",
+              "subject": "Still here when you're ready",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nJust a note that I'm still happy to be your local resource - market questions, neighborhood intel, or a quiet first tour when timing is right.\n\nWhenever you're ready,\nAvery Agent",
+              "subject": "Still here when you're ready",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nJust a note that I'm still happy to be your local resource - market questions, neighborhood intel, or a quiet first tour when timing is right.\n\nWhenever you're ready,\nAvery Agent",
+              "subject": "Still here when you're ready",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nJust a note that I'm still happy to be your local resource - market questions, neighborhood intel, or a quiet first tour when timing is right.\n\nWhenever you're ready,\nAvery Agent",
+              "subject": "Still here when you're ready",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Here when you are ready\n\nHi [FirstName],\n\nI’m happy to be a resource whenever your next move comes into focus. You can reach out with a market question, a property you are considering, or a change in plans.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-7",
+            "channel": "email",
+            "title": "6-month relationship note",
+            "ok": true,
+            "body": "Hi Jordan,\n\nJust a note that I'm still happy to be your local resource - market questions, neighborhood intel, or a quiet first tour when timing is right.\n\nWhenever you're ready,\nAvery Agent",
+            "subject": "Still here when you're ready",
+            "issues": [],
+            "scheduledAt": "2027-04-19T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        }
+      ]
+    },
+    {
+      "templateKey": "engaged-no-tour",
+      "id": "tpl-engaged-no-tour",
+      "name": "Engaged - No Tour Yet",
+      "status": "bundled draft template; database instance status not verified",
+      "owner": "MyARI shared product definition; subscriber owner not verified",
+      "audience": "Engaged buyers (score ≥5) with zero tours",
+      "channels": [
+        "sms",
+        "email",
+        "callback"
+      ],
+      "durationDays": 14,
+      "stepsReviewed": 5,
+      "enrollmentRules": {
+        "name": "Engaged buyer - no tour",
+        "description": "When engagement score is high and no tour yet, start Engaged - No Tour Yet.",
+        "triggerType": "engagement_score",
+        "triggerConfig": {
+          "minScore": 5,
+          "requireNoTours": true
+        }
+      },
+      "classification": "NEEDS REVIEW",
+      "personalizationIssues": [],
+      "sequenceIssues": [
+        "Original time labels and immediate offsets were ignored; repair is prepared, not deployed.",
+        "Actual subscriber enrollment/closing/tour dates are unavailable.",
+        "Reply-stop and resume repairs need staging verification before approval."
+      ],
+      "deliveryIssues": [
+        "Real provider credentials, sender domain, callbacks and recordings have not been exercised.",
+        "RVM audio is an approved asset and is not synthesized from personalized script text."
+      ],
+      "complianceConcerns": [
+        "Generic consent schema does not prove channel-specific legal eligibility.",
+        "No complete email unsubscribe/inbound reply lifecycle exists.",
+        "Recipient-local jurisdiction and quiet-hour requirements need review beyond workspace timezone.",
+        "Provider webhook atomic replay migration remains unapplied."
+      ],
+      "contentQualityIssues": [],
+      "fixesCompleted": [
+        "Shared safe renderer and final authorization boundary prepared.",
+        "All original steps executed with isolated fixtures; unsafe and unsupported steps are blocked.",
+        "Read-only preview, stable scheduling and revision protection prepared."
+      ],
+      "testResults": "See tests.json: actual worker/provider-boundary fixtures; no real sends.",
+      "remainingBlockers": [
+        "Database records not accessed: no authorized subscriber owner ID supplied and configured Supabase host is not allowlisted.",
+        "Draft copy, migrations, sender/integration checks and legal consent review require approval."
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "type": "sms",
+          "title": "Personal listing reference",
+          "description": "Hi [FirstName] - saw you were looking at a listing that fits. Want details or a short showing window this week? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate",
+          "id": "step-1",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan - saw you were looking at a listing that fits. Want details or a short showing window this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam - saw you were looking at a listing that fits. Want details or a short showing window this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there - saw you were looking at a listing that fits. Want details or a short showing window this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there - saw you were looking at a listing that fits. Want details or a short showing window this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], would a brief conversation or a tour help you narrow your search? Let me know what would feel useful at this stage. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-1",
+            "channel": "sms",
+            "title": "Personal listing reference",
+            "ok": true,
+            "body": "Hi Jordan - saw you were looking at a listing that fits. Want details or a short showing window this week? - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-22T12:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 2,
+          "type": "email",
+          "title": "Video / virtual tour offer",
+          "description": "Subject: Prefer a FaceTime walkthrough first?\n\nHi [FirstName],\n\nIf an in-person tour feels like a big step, I can do a quick video walkthrough so you only visit the homes that truly fit.\n\nWant me to set one up?\n\n[Agent]",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM",
+          "id": "step-2",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nIf an in-person tour feels like a big step, I can do a quick video walkthrough so you only visit the homes that truly fit.\n\nWant me to set one up?\n\nAvery Agent",
+              "subject": "Prefer a FaceTime walkthrough first?",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nIf an in-person tour feels like a big step, I can do a quick video walkthrough so you only visit the homes that truly fit.\n\nWant me to set one up?\n\nAvery Agent",
+              "subject": "Prefer a FaceTime walkthrough first?",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nIf an in-person tour feels like a big step, I can do a quick video walkthrough so you only visit the homes that truly fit.\n\nWant me to set one up?\n\nAvery Agent",
+              "subject": "Prefer a FaceTime walkthrough first?",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nIf an in-person tour feels like a big step, I can do a quick video walkthrough so you only visit the homes that truly fit.\n\nWant me to set one up?\n\nAvery Agent",
+              "subject": "Prefer a FaceTime walkthrough first?",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Would a walkthrough help?\n\nHi [FirstName],\n\nIf you would rather explore a home remotely before arranging an in-person visit, I can help check what walkthrough options are available for a property you choose.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-2",
+            "channel": "email",
+            "title": "Video / virtual tour offer",
+            "ok": true,
+            "body": "Hi Jordan,\n\nIf an in-person tour feels like a big step, I can do a quick video walkthrough so you only visit the homes that truly fit.\n\nWant me to set one up?\n\nAvery Agent",
+            "subject": "Prefer a FaceTime walkthrough first?",
+            "issues": [],
+            "scheduledAt": "2026-10-24T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 3,
+          "type": "email",
+          "title": "What to know before touring",
+          "description": "Subject: What to know before you tour\n\nHi [FirstName],\n\nA short guide covering timing, financing questions buyers often wait too long to ask, and how to walk a home with clarity.\n\nWhen you're ready, I'll only show you the right ones.\n\n[Agent]",
+          "dayLabel": "Day 6",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nA short guide covering timing, financing questions buyers often wait too long to ask, and how to walk a home with clarity.\n\nWhen you're ready, I'll only show you the right ones.\n\nAvery Agent",
+              "subject": "What to know before you tour",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nA short guide covering timing, financing questions buyers often wait too long to ask, and how to walk a home with clarity.\n\nWhen you're ready, I'll only show you the right ones.\n\nAvery Agent",
+              "subject": "What to know before you tour",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nA short guide covering timing, financing questions buyers often wait too long to ask, and how to walk a home with clarity.\n\nWhen you're ready, I'll only show you the right ones.\n\nAvery Agent",
+              "subject": "What to know before you tour",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nA short guide covering timing, financing questions buyers often wait too long to ask, and how to walk a home with clarity.\n\nWhen you're ready, I'll only show you the right ones.\n\nAvery Agent",
+              "subject": "What to know before you tour",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: A few questions before your next tour\n\nHi [FirstName],\n\nBefore touring, it helps to be clear about your must-haves, financing questions, and what you want to learn from the visit. Is there anything you would like to talk through first?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-3",
+            "channel": "email",
+            "title": "What to know before touring",
+            "ok": true,
+            "body": "Hi Jordan,\n\nA short guide covering timing, financing questions buyers often wait too long to ask, and how to walk a home with clarity.\n\nWhen you're ready, I'll only show you the right ones.\n\nAvery Agent",
+            "subject": "What to know before you tour",
+            "issues": [],
+            "scheduledAt": "2026-10-27T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 4,
+          "type": "callback",
+          "title": "10-min call ask",
+          "description": "Soft ask: 10-minute call so you only show the right homes. Create task if no reply after this step.",
+          "dayLabel": "Day 8",
+          "timeLabel": "9:00 AM",
+          "id": "step-4",
+          "status": "draft",
+          "variables": [],
+          "contentIssues": [],
+          "renderedCases": {},
+          "proposed": {
+            "type": "callback",
+            "description": "Review the contact’s actual engagement and reply history. Offer a short conversation if appropriate; do not infer that a specific listing was viewed."
+          },
+          "preview": {
+            "stepId": "step-4",
+            "channel": "callback",
+            "title": "10-min call ask",
+            "ok": true,
+            "body": "",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-29T13:00:00.000Z",
+            "notice": "Internal action; not a subscriber message."
+          }
+        },
+        {
+          "order": 5,
+          "type": "sms",
+          "title": "Route back to cold if silent",
+          "description": "Hi [FirstName] - I'll ease up for now and keep you on quiet market updates. Ping me anytime. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 14",
+          "timeLabel": "10:00 AM",
+          "id": "step-5",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan - I'll ease up for now and keep you on quiet market updates. Ping me anytime. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam - I'll ease up for now and keep you on quiet market updates. Ping me anytime. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there - I'll ease up for now and keep you on quiet market updates. Ping me anytime. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there - I'll ease up for now and keep you on quiet market updates. Ping me anytime. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], I’ll ease up on follow-ups for now. If you would like to revisit your search, you are welcome to reach out anytime. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-5",
+            "channel": "sms",
+            "title": "Route back to cold if silent",
+            "ok": true,
+            "body": "Hi Jordan - I'll ease up for now and keep you on quiet market updates. Ping me anytime. - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-11-04T15:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        }
+      ]
+    },
+    {
+      "templateKey": "post-tour-follow-up",
+      "id": "tpl-post-tour-follow-up",
+      "name": "Post-Tour Follow-up & Offer Push",
+      "status": "bundled draft template; database instance status not verified",
+      "owner": "MyARI shared product definition; subscriber owner not verified",
+      "audience": "Buyers who completed at least one tour",
+      "channels": [
+        "sms",
+        "email",
+        "callback"
+      ],
+      "durationDays": 7,
+      "stepsReviewed": 6,
+      "enrollmentRules": {
+        "trigger": "manual selection / category enrollment; audience text is not an enforced targeting rule"
+      },
+      "classification": "FAIL",
+      "personalizationIssues": [],
+      "sequenceIssues": [
+        "Original time labels and immediate offsets were ignored; repair is prepared, not deployed.",
+        "Actual subscriber enrollment/closing/tour dates are unavailable.",
+        "Reply-stop and resume repairs need staging verification before approval."
+      ],
+      "deliveryIssues": [
+        "Real provider credentials, sender domain, callbacks and recordings have not been exercised.",
+        "RVM audio is an approved asset and is not synthesized from personalized script text."
+      ],
+      "complianceConcerns": [
+        "Generic consent schema does not prove channel-specific legal eligibility.",
+        "No complete email unsubscribe/inbound reply lifecycle exists.",
+        "Recipient-local jurisdiction and quiet-hour requirements need review beyond workspace timezone.",
+        "Provider webhook atomic replay migration remains unapplied."
+      ],
+      "contentQualityIssues": [
+        "Step 2: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 3: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 4: Claims specific supporting information or activity that is not supplied by this template."
+      ],
+      "fixesCompleted": [
+        "Shared safe renderer and final authorization boundary prepared.",
+        "All original steps executed with isolated fixtures; unsafe and unsupported steps are blocked.",
+        "Read-only preview, stable scheduling and revision protection prepared."
+      ],
+      "testResults": "See tests.json: actual worker/provider-boundary fixtures; no real sends.",
+      "remainingBlockers": [
+        "Database records not accessed: no authorized subscriber owner ID supplied and configured Supabase host is not allowlisted.",
+        "Draft copy, migrations, sender/integration checks and legal consent review require approval."
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "type": "sms",
+          "title": "Same-day thank-you + reaction",
+          "description": "Hey [FirstName]! Hope the showing at [PropertyAddress] was helpful. Quick question - overall impression: loved it, liked it, or not the one? Your gut reaction helps me zero in on exactly what you're looking for. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Same day",
+          "id": "step-1",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[PropertyAddress]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hey Jordan! Hope the showing at 123 Example Lane was helpful. Quick question - overall impression: loved it, liked it, or not the one? Your gut reaction helps me zero in on exactly what you're looking for. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hey Sam! Hope the showing at your home search was helpful. Quick question - overall impression: loved it, liked it, or not the one? Your gut reaction helps me zero in on exactly what you're looking for. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hey there! Hope the showing at your home search was helpful. Quick question - overall impression: loved it, liked it, or not the one? Your gut reaction helps me zero in on exactly what you're looking for. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hey there! Hope the showing at your home search was helpful. Quick question - overall impression: loved it, liked it, or not the one? Your gut reaction helps me zero in on exactly what you're looking for. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], what stood out to you about [PropertyAddress]? Your thoughts on what worked—and what didn’t—will help me plan the next step with you. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-1",
+            "channel": "sms",
+            "title": "Same-day thank-you + reaction",
+            "ok": true,
+            "body": "Hey Jordan! Hope the showing at 123 Example Lane was helpful. Quick question - overall impression: loved it, liked it, or not the one? Your gut reaction helps me zero in on exactly what you're looking for. - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-22T12:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 2,
+          "type": "email",
+          "title": "Comp analysis - priced right?",
+          "description": "Subject: Quick thoughts after your tour of {{property_address}}\n\nHi {{first_name}},\n\nHope you enjoyed the tour yesterday at {{property_address}}! I pulled recent nearby sales so you can see how it stacks up in {{area}}.\n\nI'll text you the shortlist of comps next - or reply COMPS and I'll send them right away.\n\nThinking about an offer? I can have a draft ready in about an hour.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "dayLabel": "Day 2",
+          "timeLabel": "10:00 AM",
+          "id": "step-2",
+          "status": "draft",
+          "variables": [
+            "{{property_address}}",
+            "{{first_name}}",
+            "{{area}}",
+            "{{agent_name}}",
+            "[AgentPhone]",
+            "[Brokerage]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nHope you enjoyed the tour yesterday at 123 Example Lane! I pulled recent nearby sales so you can see how it stacks up in Winter Park.\n\nI'll text you the shortlist of comps next - or reply COMPS and I'll send them right away.\n\nThinking about an offer? I can have a draft ready in about an hour.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Quick thoughts after your tour of 123 Example Lane",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nHope you enjoyed the tour yesterday at your home search! I pulled recent nearby sales so you can see how it stacks up in your area.\n\nI'll text you the shortlist of comps next - or reply COMPS and I'll send them right away.\n\nThinking about an offer? I can have a draft ready in about an hour.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Quick thoughts after your tour of your home search",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nHope you enjoyed the tour yesterday at your home search! I pulled recent nearby sales so you can see how it stacks up in your area.\n\nI'll text you the shortlist of comps next - or reply COMPS and I'll send them right away.\n\nThinking about an offer? I can have a draft ready in about an hour.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Quick thoughts after your tour of your home search",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nHope you enjoyed the tour yesterday at your home search! I pulled recent nearby sales so you can see how it stacks up in your area.\n\nI'll text you the shortlist of comps next - or reply COMPS and I'll send them right away.\n\nThinking about an offer? I can have a draft ready in about an hour.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Quick thoughts after your tour of your home search",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Your thoughts after the tour\n\nHi [FirstName],\n\nWhat questions would you like to explore about {{property_address}}? We can review available information together before you decide whether it is worth pursuing.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-2",
+            "channel": "email",
+            "title": "Comp analysis - priced right?",
+            "ok": true,
+            "body": "Hi Jordan,\n\nHope you enjoyed the tour yesterday at 123 Example Lane! I pulled recent nearby sales so you can see how it stacks up in Winter Park.\n\nI'll text you the shortlist of comps next - or reply COMPS and I'll send them right away.\n\nThinking about an offer? I can have a draft ready in about an hour.\n\nAvery Agent\n+15555550199 | Example Realty",
+            "subject": "Quick thoughts after your tour of 123 Example Lane",
+            "issues": [],
+            "scheduledAt": "2026-10-23T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 3,
+          "type": "sms",
+          "title": "Offer strategy nudge",
+          "description": "[FirstName], I ran the comps on [PropertyAddress] and sent you an analysis - did you get a chance to look? If you're thinking about it, I can have a draft offer ready in about an hour. Just say the word. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "2:00 PM",
+          "id": "step-3",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[PropertyAddress]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Jordan, I ran the comps on 123 Example Lane and sent you an analysis - did you get a chance to look? If you're thinking about it, I can have a draft offer ready in about an hour. Just say the word. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Sam, I ran the comps on your home search and sent you an analysis - did you get a chance to look? If you're thinking about it, I can have a draft offer ready in about an hour. Just say the word. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "there, I ran the comps on your home search and sent you an analysis - did you get a chance to look? If you're thinking about it, I can have a draft offer ready in about an hour. Just say the word. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "there, I ran the comps on your home search and sent you an analysis - did you get a chance to look? If you're thinking about it, I can have a draft offer ready in about an hour. Just say the word. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], would it help to talk through [PropertyAddress] or compare it with other options? There is no need to rush a decision. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-3",
+            "channel": "sms",
+            "title": "Offer strategy nudge",
+            "ok": true,
+            "body": "Jordan, I ran the comps on 123 Example Lane and sent you an analysis - did you get a chance to look? If you're thinking about it, I can have a draft offer ready in about an hour. Just say the word. - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-24T18:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Activity / competing-offer alert",
+          "description": "Subject: Update on {{property_address}} - wanted you to know\n\nHi {{first_name}},\n\nI wanted to give you a heads up - {{property_address}} has been getting activity since we toured.\n\nI don't say this to pressure you - only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "dayLabel": "Day 4",
+          "timeLabel": "4:00 PM",
+          "id": "step-4",
+          "status": "draft",
+          "variables": [
+            "{{property_address}}",
+            "{{first_name}}",
+            "{{agent_name}}",
+            "[AgentPhone]",
+            "[Brokerage]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nI wanted to give you a heads up - 123 Example Lane has been getting activity since we toured.\n\nI don't say this to pressure you - only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Update on 123 Example Lane - wanted you to know",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nI wanted to give you a heads up - your home search has been getting activity since we toured.\n\nI don't say this to pressure you - only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Update on your home search - wanted you to know",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nI wanted to give you a heads up - your home search has been getting activity since we toured.\n\nI don't say this to pressure you - only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Update on your home search - wanted you to know",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nI wanted to give you a heads up - your home search has been getting activity since we toured.\n\nI don't say this to pressure you - only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\nAvery Agent\n+15555550199 | Example Realty",
+              "subject": "Update on your home search - wanted you to know",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Considering your next step\n\nHi [FirstName],\n\nIf you are still thinking about {{property_address}}, I can help you check current information and discuss your options. Any availability or offer activity should be verified before you act.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-4",
+            "channel": "email",
+            "title": "Activity / competing-offer alert",
+            "ok": true,
+            "body": "Hi Jordan,\n\nI wanted to give you a heads up - 123 Example Lane has been getting activity since we toured.\n\nI don't say this to pressure you - only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\nAvery Agent\n+15555550199 | Example Realty",
+            "subject": "Update on 123 Example Lane - wanted you to know",
+            "issues": [],
+            "scheduledAt": "2026-10-25T20:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 5,
+          "type": "sms",
+          "title": "Objection isolator",
+          "description": "Hi [FirstName], checking in on [PropertyAddress] - was it mainly price, location, or the house itself that didn't click? Knowing that helps me find a better match fast. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 5",
+          "timeLabel": "11:00 AM",
+          "id": "step-5",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[PropertyAddress]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan, checking in on 123 Example Lane - was it mainly price, location, or the house itself that didn't click? Knowing that helps me find a better match fast. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam, checking in on your home search - was it mainly price, location, or the house itself that didn't click? Knowing that helps me find a better match fast. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there, checking in on your home search - was it mainly price, location, or the house itself that didn't click? Knowing that helps me find a better match fast. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there, checking in on your home search - was it mainly price, location, or the house itself that didn't click? Knowing that helps me find a better match fast. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], was there anything about [PropertyAddress] that didn’t fit your priorities? Your feedback will help me refine the next search. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-5",
+            "channel": "sms",
+            "title": "Objection isolator",
+            "ok": true,
+            "body": "Hi Jordan, checking in on 123 Example Lane - was it mainly price, location, or the house itself that didn't click? Knowing that helps me find a better match fast. - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-26T15:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 6,
+          "type": "callback",
+          "title": "Agent personal follow-up",
+          "description": "If no reply: call personally. If silent after this, route to Cold Lead / Long-term Nurture. If they said 'not the one', add to Listing Alert Drip.",
+          "dayLabel": "Day 7",
+          "timeLabel": "9:00 AM",
+          "id": "step-6",
+          "status": "draft",
+          "variables": [],
+          "contentIssues": [],
+          "renderedCases": {},
+          "proposed": {
+            "type": "callback",
+            "description": "Review tour feedback and current listing information. Agree on the next step personally; do not move the contact to another campaign without authorization."
+          },
+          "preview": {
+            "stepId": "step-6",
+            "channel": "callback",
+            "title": "Agent personal follow-up",
+            "ok": true,
+            "body": "",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-28T13:00:00.000Z",
+            "notice": "Internal action; not a subscriber message."
+          }
+        }
+      ]
+    },
+    {
+      "templateKey": "luxury-seller-follow-up",
+      "id": "tpl-luxury-seller-follow-up",
+      "name": "Luxury Seller – Automated Follow Up",
+      "status": "bundled draft template; database instance status not verified",
+      "owner": "MyARI shared product definition; subscriber owner not verified",
+      "audience": "Luxury Home Sellers",
+      "channels": [
+        "voicemail",
+        "avatar_video",
+        "email",
+        "sms",
+        "retargeting",
+        "callback"
+      ],
+      "durationDays": 10,
+      "stepsReviewed": 6,
+      "enrollmentRules": {
+        "trigger": "manual selection / category enrollment; audience text is not an enforced targeting rule"
+      },
+      "classification": "FAIL",
+      "personalizationIssues": [
+        "Step 1: Replace the instructional placeholder with actual message copy.",
+        "Step 2: No delivery integration is configured for this channel.",
+        "Step 3: Replace the instructional placeholder with actual message copy.",
+        "Step 4: Replace the instructional placeholder with actual message copy.",
+        "Step 5: No delivery integration is configured for this channel.",
+        "Step 5: Review this step’s send time and timezone."
+      ],
+      "sequenceIssues": [
+        "Original time labels and immediate offsets were ignored; repair is prepared, not deployed.",
+        "Actual subscriber enrollment/closing/tour dates are unavailable.",
+        "Reply-stop and resume repairs need staging verification before approval."
+      ],
+      "deliveryIssues": [
+        "Real provider credentials, sender domain, callbacks and recordings have not been exercised.",
+        "RVM audio is an approved asset and is not synthesized from personalized script text."
+      ],
+      "complianceConcerns": [
+        "Generic consent schema does not prove channel-specific legal eligibility.",
+        "No complete email unsubscribe/inbound reply lifecycle exists.",
+        "Recipient-local jurisdiction and quiet-hour requirements need review beyond workspace timezone.",
+        "Provider webhook atomic replay migration remains unapplied."
+      ],
+      "contentQualityIssues": [
+        "Step 2: No implemented delivery integration; originally represented as sent or converted to email.",
+        "Step 4: Missing explicit STOP instruction; PAUSE is not an automated SMS opt-out keyword in the current receiver.",
+        "Step 5: No implemented delivery integration; originally represented as sent or converted to email."
+      ],
+      "fixesCompleted": [
+        "Shared safe renderer and final authorization boundary prepared.",
+        "All original steps executed with isolated fixtures; unsafe and unsupported steps are blocked.",
+        "Read-only preview, stable scheduling and revision protection prepared."
+      ],
+      "testResults": "See tests.json: actual worker/provider-boundary fixtures; no real sends.",
+      "remainingBlockers": [
+        "Database records not accessed: no authorized subscriber owner ID supplied and configured Supabase host is not allowlisted.",
+        "Draft copy, migrations, sender/integration checks and legal consent review require approval."
+      ],
+      "steps": [
+        {
+          "id": "ls-1",
+          "order": 1,
+          "type": "voicemail",
+          "title": "Ringless Voicemail",
+          "description": "Warm introduction with your recorded voice message.",
+          "dayLabel": "Day 1",
+          "timeLabel": "9:00 AM",
+          "status": "draft",
+          "variables": [],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": false,
+              "body": "Warm introduction with your recorded voice message.",
+              "subject": null,
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            },
+            "partial": {
+              "ok": false,
+              "body": "Warm introduction with your recorded voice message.",
+              "subject": null,
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            },
+            "missing": {
+              "ok": false,
+              "body": "Warm introduction with your recorded voice message.",
+              "subject": null,
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            },
+            "malformed": {
+              "ok": false,
+              "body": "Warm introduction with your recorded voice message.",
+              "subject": null,
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            }
+          },
+          "proposed": {
+            "type": "voicemail",
+            "description": "Hi [FirstName], this is [Agent] with [Brokerage]. I’m available if you would like to discuss your selling plans, questions about the process, or what a thoughtful next step might look like. Please reach out whenever it suits you."
+          },
+          "preview": {
+            "stepId": "ls-1",
+            "channel": "voicemail",
+            "title": "Ringless Voicemail",
+            "ok": false,
+            "body": "Warm introduction with your recorded voice message.",
+            "subject": null,
+            "issues": [
+              "Replace the instructional placeholder with actual message copy."
+            ],
+            "scheduledAt": "2026-10-22T13:00:00.000Z",
+            "notice": "Text is a script preview. Recorded audio must be reviewed separately."
+          }
+        },
+        {
+          "id": "ls-2",
+          "order": 2,
+          "type": "avatar_video",
+          "title": "Personalized Video Message",
+          "description": "AI avatar delivers a tailored message on your behalf.",
+          "dayLabel": "Day 2",
+          "timeLabel": "11:00 AM",
+          "status": "draft",
+          "variables": [],
+          "contentIssues": [
+            "No implemented delivery integration; originally represented as sent or converted to email."
+          ],
+          "renderedCases": {},
+          "proposed": {
+            "type": "callback",
+            "description": "Prepare a personal video invitation only if an approved video workflow exists. Otherwise create an internal follow-up task; do not mark a video as delivered."
+          },
+          "preview": {
+            "stepId": "ls-2",
+            "channel": "avatar_video",
+            "title": "Personalized Video Message",
+            "ok": false,
+            "body": "",
+            "subject": null,
+            "issues": [
+              "No delivery integration is configured for this channel."
+            ],
+            "scheduledAt": "2026-10-23T15:00:00.000Z",
+            "notice": "Internal action; not a subscriber message."
+          }
+        },
+        {
+          "id": "ls-3",
+          "order": 3,
+          "type": "email",
+          "title": "Email",
+          "description": "Beautifully designed, personalized email follow-up.",
+          "dayLabel": "Day 3",
+          "timeLabel": "1:00 PM",
+          "status": "draft",
+          "variables": [],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": false,
+              "body": "Beautifully designed, personalized email follow-up.",
+              "subject": "Email",
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            },
+            "partial": {
+              "ok": false,
+              "body": "Beautifully designed, personalized email follow-up.",
+              "subject": "Email",
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            },
+            "missing": {
+              "ok": false,
+              "body": "Beautifully designed, personalized email follow-up.",
+              "subject": "Email",
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            },
+            "malformed": {
+              "ok": false,
+              "body": "Beautifully designed, personalized email follow-up.",
+              "subject": "Email",
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: A thoughtful next step for your selling plans\n\nHi [FirstName],\n\nWhat would help you feel clearer about a possible sale: understanding the process, discussing timing, or arranging a property review? I’m happy to start with your questions.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "ls-3",
+            "channel": "email",
+            "title": "Email",
+            "ok": false,
+            "body": "Beautifully designed, personalized email follow-up.",
+            "subject": "Email",
+            "issues": [
+              "Replace the instructional placeholder with actual message copy."
+            ],
+            "scheduledAt": "2026-10-24T17:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "id": "ls-4",
+          "order": 4,
+          "type": "sms",
+          "title": "Text Message",
+          "description": "Concise, high-touch SMS check-in.",
+          "dayLabel": "Day 5",
+          "timeLabel": "10:00 AM",
+          "status": "draft",
+          "variables": [],
+          "contentIssues": [
+            "Missing explicit STOP instruction; PAUSE is not an automated SMS opt-out keyword in the current receiver."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": false,
+              "body": "Concise, high-touch SMS check-in.",
+              "subject": null,
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            },
+            "partial": {
+              "ok": false,
+              "body": "Concise, high-touch SMS check-in.",
+              "subject": null,
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            },
+            "missing": {
+              "ok": false,
+              "body": "Concise, high-touch SMS check-in.",
+              "subject": null,
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            },
+            "malformed": {
+              "ok": false,
+              "body": "Concise, high-touch SMS check-in.",
+              "subject": null,
+              "issues": [
+                "Replace the instructional placeholder with actual message copy."
+              ]
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], would a short conversation about your selling plans be useful? I’m happy to work around your priorities and timing. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "ls-4",
+            "channel": "sms",
+            "title": "Text Message",
+            "ok": false,
+            "body": "Concise, high-touch SMS check-in.",
+            "subject": null,
+            "issues": [
+              "Replace the instructional placeholder with actual message copy."
+            ],
+            "scheduledAt": "2026-10-26T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "id": "ls-5",
+          "order": 5,
+          "type": "retargeting",
+          "title": "Social Media Retargeting",
+          "description": "Stay visible with co-branded social touchpoints.",
+          "dayLabel": "Day 7",
+          "timeLabel": "All Day",
+          "status": "draft",
+          "variables": [],
+          "contentIssues": [
+            "No implemented delivery integration; originally represented as sent or converted to email."
+          ],
+          "renderedCases": {},
+          "proposed": {
+            "type": "callback",
+            "description": "Review authorized marketing options with the agent. No social retargeting integration is configured; do not send this instruction to a contact."
+          },
+          "preview": {
+            "stepId": "ls-5",
+            "channel": "retargeting",
+            "title": "Social Media Retargeting",
+            "ok": false,
+            "body": "",
+            "subject": null,
+            "issues": [
+              "No delivery integration is configured for this channel.",
+              "Review this step’s send time and timezone."
+            ],
+            "scheduledAt": null,
+            "notice": "Internal action; not a subscriber message."
+          }
+        },
+        {
+          "id": "ls-6",
+          "order": 6,
+          "type": "callback",
+          "title": "Callback Alert",
+          "description": "Reminder to personally follow up when engagement peaks.",
+          "dayLabel": "Day 10",
+          "timeLabel": "9:00 AM",
+          "status": "draft",
+          "variables": [],
+          "contentIssues": [],
+          "renderedCases": {},
+          "proposed": {
+            "type": "callback",
+            "description": "Arrange a personal follow-up if the contact wants to discuss selling. Check current consent, reply history, and preferences first."
+          },
+          "preview": {
+            "stepId": "ls-6",
+            "channel": "callback",
+            "title": "Callback Alert",
+            "ok": true,
+            "body": "",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-31T13:00:00.000Z",
+            "notice": "Internal action; not a subscriber message."
+          }
+        }
+      ]
+    },
+    {
+      "templateKey": "seller-valuation-follow-up",
+      "id": "tpl-seller-valuation",
+      "name": "Seller Home Valuation Follow-up",
+      "status": "bundled draft template; database instance status not verified",
+      "owner": "MyARI shared product definition; subscriber owner not verified",
+      "audience": "Sellers who requested a CMA / AVM / valuation",
+      "channels": [
+        "email",
+        "sms"
+      ],
+      "durationDays": 14,
+      "stepsReviewed": 5,
+      "enrollmentRules": {
+        "trigger": "manual selection / category enrollment; audience text is not an enforced targeting rule"
+      },
+      "classification": "FAIL",
+      "personalizationIssues": [],
+      "sequenceIssues": [
+        "Original time labels and immediate offsets were ignored; repair is prepared, not deployed.",
+        "Actual subscriber enrollment/closing/tour dates are unavailable.",
+        "Reply-stop and resume repairs need staging verification before approval."
+      ],
+      "deliveryIssues": [
+        "Real provider credentials, sender domain, callbacks and recordings have not been exercised.",
+        "RVM audio is an approved asset and is not synthesized from personalized script text."
+      ],
+      "complianceConcerns": [
+        "Generic consent schema does not prove channel-specific legal eligibility.",
+        "No complete email unsubscribe/inbound reply lifecycle exists.",
+        "Recipient-local jurisdiction and quiet-hour requirements need review beyond workspace timezone.",
+        "Provider webhook atomic replay migration remains unapplied."
+      ],
+      "contentQualityIssues": [
+        "Step 1: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 2: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 4: Claims specific supporting information or activity that is not supplied by this template."
+      ],
+      "fixesCompleted": [
+        "Shared safe renderer and final authorization boundary prepared.",
+        "All original steps executed with isolated fixtures; unsafe and unsupported steps are blocked.",
+        "Read-only preview, stable scheduling and revision protection prepared."
+      ],
+      "testResults": "See tests.json: actual worker/provider-boundary fixtures; no real sends.",
+      "remainingBlockers": [
+        "Database records not accessed: no authorized subscriber owner ID supplied and configured Supabase host is not allowlisted.",
+        "Draft copy, migrations, sender/integration checks and legal consent review require approval."
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "CMA delivery",
+          "description": "Subject: Your home value snapshot\n\nHi [FirstName],\n\nAttached/linked is a clear look at where your home sits in today's market - comps, timing, and what buyers are responding to.\n\nHappy to walk through it on a short call.\n\n[Agent]",
+          "dayLabel": "Day 1",
+          "timeLabel": "10:00 AM",
+          "id": "step-1",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nAttached/linked is a clear look at where your home sits in today's market - comps, timing, and what buyers are responding to.\n\nHappy to walk through it on a short call.\n\nAvery Agent",
+              "subject": "Your home value snapshot",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nAttached/linked is a clear look at where your home sits in today's market - comps, timing, and what buyers are responding to.\n\nHappy to walk through it on a short call.\n\nAvery Agent",
+              "subject": "Your home value snapshot",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nAttached/linked is a clear look at where your home sits in today's market - comps, timing, and what buyers are responding to.\n\nHappy to walk through it on a short call.\n\nAvery Agent",
+              "subject": "Your home value snapshot",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nAttached/linked is a clear look at where your home sits in today's market - comps, timing, and what buyers are responding to.\n\nHappy to walk through it on a short call.\n\nAvery Agent",
+              "subject": "Your home value snapshot",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Would a home-value review be useful?\n\nHi [FirstName],\n\nIf you are weighing a sale, I can help arrange a review of your property and relevant local information. Would you prefer to start with a short conversation about your goals?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-1",
+            "channel": "email",
+            "title": "CMA delivery",
+            "ok": true,
+            "body": "Hi Jordan,\n\nAttached/linked is a clear look at where your home sits in today's market - comps, timing, and what buyers are responding to.\n\nHappy to walk through it on a short call.\n\nAvery Agent",
+            "subject": "Your home value snapshot",
+            "issues": [],
+            "scheduledAt": "2026-10-22T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 2,
+          "type": "sms",
+          "title": "Day 1 SMS",
+          "description": "Hi [FirstName] - sent your home value snapshot. Want a 10-min walkthrough this week? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "2:00 PM",
+          "id": "step-2",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan - sent your home value snapshot. Want a 10-min walkthrough this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam - sent your home value snapshot. Want a 10-min walkthrough this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there - sent your home value snapshot. Want a 10-min walkthrough this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there - sent your home value snapshot. Want a 10-min walkthrough this week? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], would you like to discuss a home-value review or ask a question about selling? Let me know what would be helpful. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-2",
+            "channel": "sms",
+            "title": "Day 1 SMS",
+            "ok": true,
+            "body": "Hi Jordan - sent your home value snapshot. Want a 10-min walkthrough this week? - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-22T18:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 3,
+          "type": "email",
+          "title": "Market stats",
+          "description": "Subject: What sellers in your area are seeing\n\nHi [FirstName],\n\nA few local stats that matter if you're weighing timing - days on market, list-to-sale ratio, and buyer demand.\n\n[Agent]",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nA few local stats that matter if you're weighing timing - days on market, list-to-sale ratio, and buyer demand.\n\nAvery Agent",
+              "subject": "What sellers in your area are seeing",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nA few local stats that matter if you're weighing timing - days on market, list-to-sale ratio, and buyer demand.\n\nAvery Agent",
+              "subject": "What sellers in your area are seeing",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nA few local stats that matter if you're weighing timing - days on market, list-to-sale ratio, and buyer demand.\n\nAvery Agent",
+              "subject": "What sellers in your area are seeing",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nA few local stats that matter if you're weighing timing - days on market, list-to-sale ratio, and buyer demand.\n\nAvery Agent",
+              "subject": "What sellers in your area are seeing",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Questions about the local selling market?\n\nHi [FirstName],\n\nWhich questions are most important to you—pricing, preparation, or timing? I can help gather relevant, current information rather than make assumptions about your property.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-3",
+            "channel": "email",
+            "title": "Market stats",
+            "ok": true,
+            "body": "Hi Jordan,\n\nA few local stats that matter if you're weighing timing - days on market, list-to-sale ratio, and buyer demand.\n\nAvery Agent",
+            "subject": "What sellers in your area are seeing",
+            "issues": [],
+            "scheduledAt": "2026-10-24T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Video / personal note",
+          "description": "Subject: A quick personal note on your home\n\nHi [FirstName],\n\nI recorded a short note on positioning and next steps if you decide to list. No pressure - just clarity.\n\n[Agent]",
+          "dayLabel": "Day 7",
+          "timeLabel": "10:00 AM",
+          "id": "step-4",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nI recorded a short note on positioning and next steps if you decide to list. No pressure - just clarity.\n\nAvery Agent",
+              "subject": "A quick personal note on your home",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nI recorded a short note on positioning and next steps if you decide to list. No pressure - just clarity.\n\nAvery Agent",
+              "subject": "A quick personal note on your home",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nI recorded a short note on positioning and next steps if you decide to list. No pressure - just clarity.\n\nAvery Agent",
+              "subject": "A quick personal note on your home",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nI recorded a short note on positioning and next steps if you decide to list. No pressure - just clarity.\n\nAvery Agent",
+              "subject": "A quick personal note on your home",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Your plans come first\n\nHi [FirstName],\n\nThere is no need to decide on a sale before you have the information you need. I’m available to discuss your options or explain the next steps whenever you are ready.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-4",
+            "channel": "email",
+            "title": "Video / personal note",
+            "ok": true,
+            "body": "Hi Jordan,\n\nI recorded a short note on positioning and next steps if you decide to list. No pressure - just clarity.\n\nAvery Agent",
+            "subject": "A quick personal note on your home",
+            "issues": [],
+            "scheduledAt": "2026-10-28T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 5,
+          "type": "sms",
+          "title": "Breakup",
+          "description": "Hi [FirstName] - I'll pause follow-ups for now. If listing timing opens up later, I'm here. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 14",
+          "timeLabel": "10:00 AM",
+          "id": "step-5",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan - I'll pause follow-ups for now. If listing timing opens up later, I'm here. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam - I'll pause follow-ups for now. If listing timing opens up later, I'm here. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there - I'll pause follow-ups for now. If listing timing opens up later, I'm here. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there - I'll pause follow-ups for now. If listing timing opens up later, I'm here. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], I’ll pause these follow-ups for now. If you want to revisit your selling plans later, you’re welcome to reach out. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-5",
+            "channel": "sms",
+            "title": "Breakup",
+            "ok": true,
+            "body": "Hi Jordan - I'll pause follow-ups for now. If listing timing opens up later, I'm here. - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-11-04T15:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        }
+      ]
+    },
+    {
+      "templateKey": "open-house-follow-up",
+      "id": "tpl-open-house",
+      "name": "Open House Follow-up",
+      "status": "bundled draft template; database instance status not verified",
+      "owner": "MyARI shared product definition; subscriber owner not verified",
+      "audience": "Open house sign-ins",
+      "channels": [
+        "sms",
+        "email",
+        "callback"
+      ],
+      "durationDays": 7,
+      "stepsReviewed": 4,
+      "enrollmentRules": {
+        "trigger": "manual selection / category enrollment; audience text is not an enforced targeting rule"
+      },
+      "classification": "FAIL",
+      "personalizationIssues": [],
+      "sequenceIssues": [
+        "Original time labels and immediate offsets were ignored; repair is prepared, not deployed.",
+        "Actual subscriber enrollment/closing/tour dates are unavailable.",
+        "Reply-stop and resume repairs need staging verification before approval."
+      ],
+      "deliveryIssues": [
+        "Real provider credentials, sender domain, callbacks and recordings have not been exercised.",
+        "RVM audio is an approved asset and is not synthesized from personalized script text."
+      ],
+      "complianceConcerns": [
+        "Generic consent schema does not prove channel-specific legal eligibility.",
+        "No complete email unsubscribe/inbound reply lifecycle exists.",
+        "Recipient-local jurisdiction and quiet-hour requirements need review beyond workspace timezone.",
+        "Provider webhook atomic replay migration remains unapplied."
+      ],
+      "contentQualityIssues": [
+        "Step 2: Claims specific supporting information or activity that is not supplied by this template.",
+        "Step 3: Claims specific supporting information or activity that is not supplied by this template."
+      ],
+      "fixesCompleted": [
+        "Shared safe renderer and final authorization boundary prepared.",
+        "All original steps executed with isolated fixtures; unsafe and unsupported steps are blocked.",
+        "Read-only preview, stable scheduling and revision protection prepared."
+      ],
+      "testResults": "See tests.json: actual worker/provider-boundary fixtures; no real sends.",
+      "remainingBlockers": [
+        "Database records not accessed: no authorized subscriber owner ID supplied and configured Supabase host is not allowlisted.",
+        "Draft copy, migrations, sender/integration checks and legal consent review require approval."
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "type": "sms",
+          "title": "Same-day SMS",
+          "description": "Hi [FirstName] - thanks for coming by the open house today. What did you think? I can send details or similar options. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Same day",
+          "id": "step-1",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan - thanks for coming by the open house today. What did you think? I can send details or similar options. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam - thanks for coming by the open house today. What did you think? I can send details or similar options. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there - thanks for coming by the open house today. What did you think? I can send details or similar options. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there - thanks for coming by the open house today. What did you think? I can send details or similar options. - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], thank you for visiting. What did you think of the home? I’m happy to help with a question or discuss a possible next step. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-1",
+            "channel": "sms",
+            "title": "Same-day SMS",
+            "ok": true,
+            "body": "Hi Jordan - thanks for coming by the open house today. What did you think? I can send details or similar options. - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-22T12:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 2,
+          "type": "email",
+          "title": "Photo / details email",
+          "description": "Subject: Details from today's open house\n\nHi [FirstName],\n\nGlad you stopped by. Here's a recap of the home plus answers to questions visitors usually ask.\n\nWant a private second look?\n\n[Agent]",
+          "dayLabel": "Day 2",
+          "timeLabel": "10:00 AM",
+          "id": "step-2",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nGlad you stopped by. Here's a recap of the home plus answers to questions visitors usually ask.\n\nWant a private second look?\n\nAvery Agent",
+              "subject": "Details from today's open house",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nGlad you stopped by. Here's a recap of the home plus answers to questions visitors usually ask.\n\nWant a private second look?\n\nAvery Agent",
+              "subject": "Details from today's open house",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nGlad you stopped by. Here's a recap of the home plus answers to questions visitors usually ask.\n\nWant a private second look?\n\nAvery Agent",
+              "subject": "Details from today's open house",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nGlad you stopped by. Here's a recap of the home plus answers to questions visitors usually ask.\n\nWant a private second look?\n\nAvery Agent",
+              "subject": "Details from today's open house",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Following up after your visit\n\nHi [FirstName],\n\nWas there anything you wanted to revisit or ask about the home? I can help check the details that matter most to you.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-2",
+            "channel": "email",
+            "title": "Photo / details email",
+            "ok": true,
+            "body": "Hi Jordan,\n\nGlad you stopped by. Here's a recap of the home plus answers to questions visitors usually ask.\n\nWant a private second look?\n\nAvery Agent",
+            "subject": "Details from today's open house",
+            "issues": [],
+            "scheduledAt": "2026-10-23T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 3,
+          "type": "email",
+          "title": "Similar homes",
+          "description": "Subject: Similar homes you may like\n\nHi [FirstName],\n\nIf that open house wasn't quite right, here are 2–3 similar options worth a look.\n\n[Agent]",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [
+            "Claims specific supporting information or activity that is not supplied by this template."
+          ],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nIf that open house wasn't quite right, here are 2–3 similar options worth a look.\n\nAvery Agent",
+              "subject": "Similar homes you may like",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nIf that open house wasn't quite right, here are 2–3 similar options worth a look.\n\nAvery Agent",
+              "subject": "Similar homes you may like",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nIf that open house wasn't quite right, here are 2–3 similar options worth a look.\n\nAvery Agent",
+              "subject": "Similar homes you may like",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nIf that open house wasn't quite right, here are 2–3 similar options worth a look.\n\nAvery Agent",
+              "subject": "Similar homes you may like",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Refining your next property search\n\nHi [FirstName],\n\nIf the home wasn’t quite right, what would you like to change in the next search? Share a few priorities, and I can help you consider suitable options.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-3",
+            "channel": "email",
+            "title": "Similar homes",
+            "ok": true,
+            "body": "Hi Jordan,\n\nIf that open house wasn't quite right, here are 2–3 similar options worth a look.\n\nAvery Agent",
+            "subject": "Similar homes you may like",
+            "issues": [],
+            "scheduledAt": "2026-10-24T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 4,
+          "type": "callback",
+          "title": "Call task",
+          "description": "Personal follow-up call. Ask feedback and next-tour interest.",
+          "dayLabel": "Day 7",
+          "timeLabel": "9:00 AM",
+          "id": "step-4",
+          "status": "draft",
+          "variables": [],
+          "contentIssues": [],
+          "renderedCases": {},
+          "proposed": {
+            "type": "callback",
+            "description": "Review verified visit feedback and ask whether a personal follow-up would be useful. Confirm the correct property and event date before referring to them."
+          },
+          "preview": {
+            "stepId": "step-4",
+            "channel": "callback",
+            "title": "Call task",
+            "ok": true,
+            "body": "",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-28T13:00:00.000Z",
+            "notice": "Internal action; not a subscriber message."
+          }
+        }
+      ]
+    },
+    {
+      "templateKey": "past-client-anniversary",
+      "id": "tpl-past-client",
+      "name": "Past Client Anniversary & Referral",
+      "status": "bundled draft template; database instance status not verified",
+      "owner": "MyARI shared product definition; subscriber owner not verified",
+      "audience": "Past clients (closed transactions)",
+      "channels": [
+        "email",
+        "sms"
+      ],
+      "durationDays": 365,
+      "stepsReviewed": 4,
+      "enrollmentRules": {
+        "trigger": "manual selection / category enrollment; audience text is not an enforced targeting rule"
+      },
+      "classification": "NEEDS REVIEW",
+      "personalizationIssues": [],
+      "sequenceIssues": [
+        "Original time labels and immediate offsets were ignored; repair is prepared, not deployed.",
+        "Actual subscriber enrollment/closing/tour dates are unavailable.",
+        "Reply-stop and resume repairs need staging verification before approval."
+      ],
+      "deliveryIssues": [
+        "Real provider credentials, sender domain, callbacks and recordings have not been exercised.",
+        "RVM audio is an approved asset and is not synthesized from personalized script text."
+      ],
+      "complianceConcerns": [
+        "Generic consent schema does not prove channel-specific legal eligibility.",
+        "No complete email unsubscribe/inbound reply lifecycle exists.",
+        "Recipient-local jurisdiction and quiet-hour requirements need review beyond workspace timezone.",
+        "Provider webhook atomic replay migration remains unapplied."
+      ],
+      "contentQualityIssues": [],
+      "fixesCompleted": [
+        "Shared safe renderer and final authorization boundary prepared.",
+        "All original steps executed with isolated fixtures; unsafe and unsupported steps are blocked.",
+        "Read-only preview, stable scheduling and revision protection prepared."
+      ],
+      "testResults": "See tests.json: actual worker/provider-boundary fixtures; no real sends.",
+      "remainingBlockers": [
+        "Database records not accessed: no authorized subscriber owner ID supplied and configured Supabase host is not allowlisted.",
+        "Draft copy, migrations, sender/integration checks and legal consent review require approval."
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "7-day thank you",
+          "description": "Subject: Still cheering for your new chapter\n\nHi [FirstName],\n\nJust a note to say congratulations again - and I'm here if anything comes up as you settle in.\n\n[Agent]",
+          "dayLabel": "Day 7",
+          "timeLabel": "10:00 AM",
+          "id": "step-1",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nJust a note to say congratulations again - and I'm here if anything comes up as you settle in.\n\nAvery Agent",
+              "subject": "Still cheering for your new chapter",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nJust a note to say congratulations again - and I'm here if anything comes up as you settle in.\n\nAvery Agent",
+              "subject": "Still cheering for your new chapter",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nJust a note to say congratulations again - and I'm here if anything comes up as you settle in.\n\nAvery Agent",
+              "subject": "Still cheering for your new chapter",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nJust a note to say congratulations again - and I'm here if anything comes up as you settle in.\n\nAvery Agent",
+              "subject": "Still cheering for your new chapter",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Here for your next chapter\n\nHi [FirstName],\n\nIt was a pleasure working with you. If a homeownership question comes up, I’m happy to point you toward useful information or discuss a future real estate need.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-1",
+            "channel": "email",
+            "title": "7-day thank you",
+            "ok": true,
+            "body": "Hi Jordan,\n\nJust a note to say congratulations again - and I'm here if anything comes up as you settle in.\n\nAvery Agent",
+            "subject": "Still cheering for your new chapter",
+            "issues": [],
+            "scheduledAt": "2026-10-28T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 2,
+          "type": "sms",
+          "title": "90-day check-in",
+          "description": "Hi [FirstName] - how is the new place treating you? Anything I can help with? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 90",
+          "timeLabel": "11:00 AM",
+          "id": "step-2",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan - how is the new place treating you? Anything I can help with? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam - how is the new place treating you? Anything I can help with? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there - how is the new place treating you? Anything I can help with? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there - how is the new place treating you? Anything I can help with? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], how are things going with your home? If a real estate question comes up, I’m happy to help. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-2",
+            "channel": "sms",
+            "title": "90-day check-in",
+            "ok": true,
+            "body": "Hi Jordan - how is the new place treating you? Anything I can help with? - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2027-01-19T16:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 3,
+          "type": "email",
+          "title": "Equity / market update",
+          "description": "Subject: A quick look at your home's market\n\nHi [FirstName],\n\nThought you'd appreciate a simple update on how homes like yours are performing nearby.\n\n[Agent]",
+          "dayLabel": "Day 180",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nThought you'd appreciate a simple update on how homes like yours are performing nearby.\n\nAvery Agent",
+              "subject": "A quick look at your home's market",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nThought you'd appreciate a simple update on how homes like yours are performing nearby.\n\nAvery Agent",
+              "subject": "A quick look at your home's market",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nThought you'd appreciate a simple update on how homes like yours are performing nearby.\n\nAvery Agent",
+              "subject": "A quick look at your home's market",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nThought you'd appreciate a simple update on how homes like yours are performing nearby.\n\nAvery Agent",
+              "subject": "A quick look at your home's market",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: A resource for your homeownership questions\n\nHi [FirstName],\n\nWould an updated look at local real estate information be useful? Let me know what you would like to understand, and I can help you find relevant, current details.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-3",
+            "channel": "email",
+            "title": "Equity / market update",
+            "ok": true,
+            "body": "Hi Jordan,\n\nThought you'd appreciate a simple update on how homes like yours are performing nearby.\n\nAvery Agent",
+            "subject": "A quick look at your home's market",
+            "issues": [],
+            "scheduledAt": "2027-04-19T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Anniversary + soft referral",
+          "description": "Subject: Happy home-iversary\n\nHi [FirstName],\n\nOne year in - congratulations. If a friend or family member ever needs a trusted local agent, I'm honored to help.\n\n[Agent]",
+          "dayLabel": "Day 365",
+          "timeLabel": "10:00 AM",
+          "id": "step-4",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nOne year in - congratulations. If a friend or family member ever needs a trusted local agent, I'm honored to help.\n\nAvery Agent",
+              "subject": "Happy home-iversary",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nOne year in - congratulations. If a friend or family member ever needs a trusted local agent, I'm honored to help.\n\nAvery Agent",
+              "subject": "Happy home-iversary",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nOne year in - congratulations. If a friend or family member ever needs a trusted local agent, I'm honored to help.\n\nAvery Agent",
+              "subject": "Happy home-iversary",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nOne year in - congratulations. If a friend or family member ever needs a trusted local agent, I'm honored to help.\n\nAvery Agent",
+              "subject": "Happy home-iversary",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Keeping in touch\n\nHi [FirstName],\n\nI hope homeownership is treating you well. I’m here if you have a real estate question, and I would be happy to help someone you choose to introduce. Thank you for staying in touch.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-4",
+            "channel": "email",
+            "title": "Anniversary + soft referral",
+            "ok": true,
+            "body": "Hi Jordan,\n\nOne year in - congratulations. If a friend or family member ever needs a trusted local agent, I'm honored to help.\n\nAvery Agent",
+            "subject": "Happy home-iversary",
+            "issues": [],
+            "scheduledAt": "2027-10-21T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        }
+      ]
+    },
+    {
+      "templateKey": "pre-approval-push",
+      "id": "tpl-pre-approval",
+      "name": "Pre-approval Push",
+      "status": "bundled draft template; database instance status not verified",
+      "owner": "MyARI shared product definition; subscriber owner not verified",
+      "audience": "Buyers with intent, not yet pre-approved",
+      "channels": [
+        "email",
+        "sms"
+      ],
+      "durationDays": 7,
+      "stepsReviewed": 3,
+      "enrollmentRules": {
+        "trigger": "manual selection / category enrollment; audience text is not an enforced targeting rule"
+      },
+      "classification": "NEEDS REVIEW",
+      "personalizationIssues": [],
+      "sequenceIssues": [
+        "Original time labels and immediate offsets were ignored; repair is prepared, not deployed.",
+        "Actual subscriber enrollment/closing/tour dates are unavailable.",
+        "Reply-stop and resume repairs need staging verification before approval."
+      ],
+      "deliveryIssues": [
+        "Real provider credentials, sender domain, callbacks and recordings have not been exercised.",
+        "RVM audio is an approved asset and is not synthesized from personalized script text."
+      ],
+      "complianceConcerns": [
+        "Generic consent schema does not prove channel-specific legal eligibility.",
+        "No complete email unsubscribe/inbound reply lifecycle exists.",
+        "Recipient-local jurisdiction and quiet-hour requirements need review beyond workspace timezone.",
+        "Provider webhook atomic replay migration remains unapplied."
+      ],
+      "contentQualityIssues": [],
+      "fixesCompleted": [
+        "Shared safe renderer and final authorization boundary prepared.",
+        "All original steps executed with isolated fixtures; unsafe and unsupported steps are blocked.",
+        "Read-only preview, stable scheduling and revision protection prepared."
+      ],
+      "testResults": "See tests.json: actual worker/provider-boundary fixtures; no real sends.",
+      "remainingBlockers": [
+        "Database records not accessed: no authorized subscriber owner ID supplied and configured Supabase host is not allowlisted.",
+        "Draft copy, migrations, sender/integration checks and legal consent review require approval."
+      ],
+      "steps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "Lender intro",
+          "description": "Subject: A simple next step before touring\n\nHi [FirstName],\n\nWhen you're ready to tour seriously, a pre-approval makes everything smoother. I can intro a trusted local lender who treats clients well - no pressure.\n\nWant the intro?\n\n[Agent]",
+          "dayLabel": "Day 1",
+          "timeLabel": "10:00 AM",
+          "id": "step-1",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nWhen you're ready to tour seriously, a pre-approval makes everything smoother. I can intro a trusted local lender who treats clients well - no pressure.\n\nWant the intro?\n\nAvery Agent",
+              "subject": "A simple next step before touring",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nWhen you're ready to tour seriously, a pre-approval makes everything smoother. I can intro a trusted local lender who treats clients well - no pressure.\n\nWant the intro?\n\nAvery Agent",
+              "subject": "A simple next step before touring",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nWhen you're ready to tour seriously, a pre-approval makes everything smoother. I can intro a trusted local lender who treats clients well - no pressure.\n\nWant the intro?\n\nAvery Agent",
+              "subject": "A simple next step before touring",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nWhen you're ready to tour seriously, a pre-approval makes everything smoother. I can intro a trusted local lender who treats clients well - no pressure.\n\nWant the intro?\n\nAvery Agent",
+              "subject": "A simple next step before touring",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: A useful step before a serious home search\n\nHi [FirstName],\n\nUnderstanding financing options can help you plan a comfortable budget. If you would like, I can help you identify questions to discuss with a licensed lender. Would that be useful?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-1",
+            "channel": "email",
+            "title": "Lender intro",
+            "ok": true,
+            "body": "Hi Jordan,\n\nWhen you're ready to tour seriously, a pre-approval makes everything smoother. I can intro a trusted local lender who treats clients well - no pressure.\n\nWant the intro?\n\nAvery Agent",
+            "subject": "A simple next step before touring",
+            "issues": [],
+            "scheduledAt": "2026-10-22T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 2,
+          "type": "sms",
+          "title": "Why it matters",
+          "description": "Hi [FirstName] - pre-approval often means stronger offers and clearer budgets. Want me to connect you? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "11:00 AM",
+          "id": "step-2",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan - pre-approval often means stronger offers and clearer budgets. Want me to connect you? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam - pre-approval often means stronger offers and clearer budgets. Want me to connect you? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there - pre-approval often means stronger offers and clearer budgets. Want me to connect you? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there - pre-approval often means stronger offers and clearer budgets. Want me to connect you? - Avery Agent Reply STOP to opt out.",
+              "subject": null,
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "sms",
+            "description": "Hi [FirstName], would a conversation with a licensed lender help clarify your budget and financing options? I can help with an introduction if you would like one. —[Agent] Reply STOP to opt out."
+          },
+          "preview": {
+            "stepId": "step-2",
+            "channel": "sms",
+            "title": "Why it matters",
+            "ok": true,
+            "body": "Hi Jordan - pre-approval often means stronger offers and clearer budgets. Want me to connect you? - Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": [],
+            "scheduledAt": "2026-10-24T15:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        },
+        {
+          "order": 3,
+          "type": "email",
+          "title": "Lost-offer story",
+          "description": "Subject: Why strong buyers still lose homes\n\nHi [FirstName],\n\nSometimes the difference isn't the offer price - it's how ready the buyer looks on paper. Happy to help you get that piece in place before the right home shows up.\n\n[Agent]",
+          "dayLabel": "Day 5",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft",
+          "variables": [
+            "[FirstName]",
+            "[Agent]"
+          ],
+          "contentIssues": [],
+          "renderedCases": {
+            "complete": {
+              "ok": true,
+              "body": "Hi Jordan,\n\nSometimes the difference isn't the offer price - it's how ready the buyer looks on paper. Happy to help you get that piece in place before the right home shows up.\n\nAvery Agent",
+              "subject": "Why strong buyers still lose homes",
+              "issues": []
+            },
+            "partial": {
+              "ok": true,
+              "body": "Hi Sam,\n\nSometimes the difference isn't the offer price - it's how ready the buyer looks on paper. Happy to help you get that piece in place before the right home shows up.\n\nAvery Agent",
+              "subject": "Why strong buyers still lose homes",
+              "issues": []
+            },
+            "missing": {
+              "ok": true,
+              "body": "Hi there,\n\nSometimes the difference isn't the offer price - it's how ready the buyer looks on paper. Happy to help you get that piece in place before the right home shows up.\n\nAvery Agent",
+              "subject": "Why strong buyers still lose homes",
+              "issues": []
+            },
+            "malformed": {
+              "ok": true,
+              "body": "Hi there,\n\nSometimes the difference isn't the offer price - it's how ready the buyer looks on paper. Happy to help you get that piece in place before the right home shows up.\n\nAvery Agent",
+              "subject": "Why strong buyers still lose homes",
+              "issues": []
+            }
+          },
+          "proposed": {
+            "type": "email",
+            "description": "Subject: Feeling prepared for the next step\n\nHi [FirstName],\n\nWhen you are ready, having financing questions answered can make evaluating homes less stressful. There is no obligation to move forward before you feel informed.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly."
+          },
+          "preview": {
+            "stepId": "step-3",
+            "channel": "email",
+            "title": "Lost-offer story",
+            "ok": true,
+            "body": "Hi Jordan,\n\nSometimes the difference isn't the offer price - it's how ready the buyer looks on paper. Happy to help you get that piece in place before the right home shows up.\n\nAvery Agent",
+            "subject": "Why strong buyers still lose homes",
+            "issues": [],
+            "scheduledAt": "2026-10-26T14:00:00.000Z",
+            "notice": "Content preview only. Consent, quiet hours and authorization are rechecked at delivery."
+          }
+        }
+      ]
+    }
+  ]
+}

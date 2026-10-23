@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 
 export type CalendarEventEdit = {
   crmEventId: string;
+  version?: string;
+  etag?: string;
   title: string;
   starts_at: string;
   ends_at?: string | null;
@@ -112,6 +114,8 @@ export function AddCalendarEventModal({
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            version: editingEvent.version,
+            etag: editingEvent.etag,
             title: title.trim(),
             startsAt: startsAt.toISOString(),
             endsAt: endsAt.toISOString(),

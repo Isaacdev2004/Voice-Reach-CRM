@@ -5,17 +5,13 @@ import {
   liveOutboundBlockedMessage,
 } from "@/lib/billing/live-outbound";
 import { syncCallbackStepToCalendar } from "@/lib/calendar/sync";
-import {
-  applyMergeFields,
-  findUnresolvedMergeFields,
-} from "@/lib/campaigns/merge-fields";
-import {
-  normalizeOutboundContent,
-  shouldBlockRawJsonSend,
-} from "@/lib/campaigns/outbound-content";
+import { renderMessage } from "@/lib/campaigns/render-message";
+import { ownedConsentRecords } from "@/lib/contacts/owned-consent";
 import { evaluateEligibility } from "@/lib/compliance";
-import { isInQuietHours, nextQuietHoursEnd } from "@/lib/compliance/quiet-hours";
-import { recordEngagementEvent } from "@/lib/engagement/record";
+import {
+  isInQuietHours,
+  nextQuietHoursEnd,
+} from "@/lib/compliance/quiet-hours";
 import { sendToContact } from "@/lib/providers/dispatch-message";
 import { loadWorkspaceSettings } from "@/lib/settings/load-workspace";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -37,7 +33,8 @@ export type CampaignStepType =
   | "avatar_video"
   | "task"
   | "callback"
-  | "wait";
+  | "wait"
+  | "retargeting";
 
 export type CampaignBlueprintStep = {
   id: string;
@@ -70,12 +67,12 @@ export async function persistSteps(
   for (const row of existingSteps ?? []) {
     const voiceAssetId =
       (row as { voice_asset_id?: string | null }).voice_asset_id ||
-      ((row as { conditions?: { voiceAssetId?: string } }).conditions?.voiceAssetId ?? null);
-    const existingConditions =
-      ((row as { conditions?: Record<string, unknown> }).conditions ?? {}) as Record<
-        string,
-        unknown
-      >;
+      ((row as { conditions?: { voiceAssetId?: string } }).conditions
+        ?.voiceAssetId ??
+        null);
+    const existingConditions = ((
+      row as { conditions?: Record<string, unknown> }
+    ).conditions ?? {}) as Record<string, unknown>;
     const attachments = attachmentsFromConditions(existingConditions);
     if (!voiceAssetId && !attachments.length) continue;
     const key = `${row.type}:${row.step_order}`;
@@ -89,12 +86,17 @@ export async function persistSteps(
     });
   }
 
-  await supabaseAdmin.from("campaign_steps").delete().eq("campaign_id", campaignId);
+  await supabaseAdmin
+    .from("campaign_steps")
+    .delete()
+    .eq("campaign_id", campaignId)
+    .eq("owner_id", ownerId);
   if (!steps.length) return [];
 
   const rows = steps.map((step) => {
     const explicitVoice =
-      (step.conditions as { voiceAssetId?: string } | undefined)?.voiceAssetId ?? null;
+      (step.conditions as { voiceAssetId?: string } | undefined)
+        ?.voiceAssetId ?? null;
     const explicitAttachments = attachmentsFromConditions(step.conditions);
     const preserved = metaBySlot.get(`${step.type}:${step.order}`);
     const voiceAssetId = explicitVoice ?? preserved?.voiceAssetId ?? null;
@@ -133,7 +135,10 @@ export async function persistSteps(
   return data ?? [];
 }
 
-export async function scheduleStepRunsForCampaign(ownerId: string, campaignId: string) {
+export async function scheduleStepRunsForCampaign(
+  ownerId: string,
+  campaignId: string,
+) {
   const { ensureStepRunsForCampaign } = await import("@/lib/campaigns/enroll");
   return ensureStepRunsForCampaign(ownerId, campaignId);
 }
@@ -151,8 +156,12 @@ type CampaignRunContext = {
   voice_assets?: unknown;
 };
 
-async function campaignIdsEligibleForAutoSend(ownerId?: string): Promise<string[] | null> {
-  let query = supabaseAdmin.from("campaigns").select("id, provider, live_launched");
+async function campaignIdsEligibleForAutoSend(
+  ownerId?: string,
+): Promise<string[] | null> {
+  let query = supabaseAdmin
+    .from("campaigns")
+    .select("id, provider, live_launched");
   if (ownerId) query = query.eq("owner_id", ownerId);
   const { data, error } = await query;
   if (error?.message?.toLowerCase().includes("live_launched")) {
@@ -172,6 +181,7 @@ export async function runDueStepRuns(
   options: {
     ownerId?: string;
     campaignId?: string;
+    recipientIds?: string[];
     limit?: number;
     bypassLaunchGate?: boolean;
   } = {},
@@ -190,10 +200,14 @@ export async function runDueStepRuns(
     .order("scheduled_at", { ascending: true })
     .limit(limit);
 
+  if (options.recipientIds)
+    query = query.in("recipient_id", options.recipientIds);
   if (options.ownerId) query = query.eq("owner_id", options.ownerId);
   if (options.campaignId) query = query.eq("campaign_id", options.campaignId);
   else if (!options.bypassLaunchGate) {
-    const eligibleCampaignIds = await campaignIdsEligibleForAutoSend(options.ownerId);
+    const eligibleCampaignIds = await campaignIdsEligibleForAutoSend(
+      options.ownerId,
+    );
     if (eligibleCampaignIds && eligibleCampaignIds.length > 0) {
       query = query.in("campaign_id", eligibleCampaignIds);
     } else if (eligibleCampaignIds && eligibleCampaignIds.length === 0) {
@@ -222,10 +236,15 @@ export async function runDueStepRuns(
       .lte("scheduled_at", new Date().toISOString())
       .order("scheduled_at", { ascending: true })
       .limit(limit);
+    if (options.recipientIds)
+      fallback = fallback.in("recipient_id", options.recipientIds);
     if (options.ownerId) fallback = fallback.eq("owner_id", options.ownerId);
-    if (options.campaignId) fallback = fallback.eq("campaign_id", options.campaignId);
+    if (options.campaignId)
+      fallback = fallback.eq("campaign_id", options.campaignId);
     else if (!options.bypassLaunchGate) {
-      const eligibleCampaignIds = await campaignIdsEligibleForAutoSend(options.ownerId);
+      const eligibleCampaignIds = await campaignIdsEligibleForAutoSend(
+        options.ownerId,
+      );
       if (eligibleCampaignIds?.length) {
         fallback = fallback.in("campaign_id", eligibleCampaignIds);
       }
@@ -238,30 +257,19 @@ export async function runDueStepRuns(
 
   const campaignCache = new Map<string, CampaignRunContext | null>();
 
-  async function resolveCampaign(
-    run: {
-      campaign_id: string;
-      owner_id: string;
-      campaign_recipients?: {
-        campaigns?: CampaignRunContext | CampaignRunContext[] | null;
-      } | null;
-    },
-  ): Promise<CampaignRunContext | null> {
-    const nestedRaw = run.campaign_recipients?.campaigns;
-    const nested = Array.isArray(nestedRaw) ? nestedRaw[0] : nestedRaw;
-    const nestedProvider = (nested?.provider ?? "").trim().toLowerCase();
-    if (
-      nested?.id &&
-      nested.provider != null &&
-      (nestedProvider === "mock" || nested.live_launched !== undefined)
-    ) {
-      return nested;
-    }
-
+  async function resolveCampaign(run: {
+    campaign_id: string;
+    owner_id: string;
+    campaign_recipients?: {
+      campaigns?: CampaignRunContext | CampaignRunContext[] | null;
+    } | null;
+  }): Promise<CampaignRunContext | null> {
     if (!campaignCache.has(run.campaign_id)) {
       const { data, error: campError } = await supabaseAdmin
         .from("campaigns")
-        .select("id, provider, voice_asset_id, live_launched, status, voice_assets(*)")
+        .select(
+          "id, provider, voice_asset_id, live_launched, status, voice_assets(*)",
+        )
         .eq("id", run.campaign_id)
         .eq("owner_id", run.owner_id)
         .maybeSingle();
@@ -273,13 +281,19 @@ export async function runDueStepRuns(
           .eq("id", run.campaign_id)
           .eq("owner_id", run.owner_id)
           .maybeSingle();
-        campaignCache.set(run.campaign_id, (fallbackRow as CampaignRunContext) ?? null);
+        campaignCache.set(
+          run.campaign_id,
+          (fallbackRow as CampaignRunContext) ?? null,
+        );
       } else {
-        campaignCache.set(run.campaign_id, (data as CampaignRunContext) ?? null);
+        campaignCache.set(
+          run.campaign_id,
+          (data as CampaignRunContext) ?? null,
+        );
       }
     }
 
-    return campaignCache.get(run.campaign_id) ?? nested ?? null;
+    return campaignCache.get(run.campaign_id) ?? null;
   }
 
   const executed: { runId: string; status: string }[] = [];
@@ -298,12 +312,20 @@ export async function runDueStepRuns(
 
   async function workspaceFor(ownerId: string) {
     if (!settingsCache.has(ownerId)) {
-      settingsCache.set(ownerId, await loadWorkspaceSettings(ownerId));
+      settingsCache.set(
+        ownerId,
+        await loadWorkspaceSettings(ownerId, { outbound: true }),
+      );
     }
     return settingsCache.get(ownerId)!;
   }
 
   for (const run of runs ?? []) {
+    const markOwnedRun = (
+      id: string,
+      status: Parameters<typeof markRun>[1],
+      result: Record<string, unknown>,
+    ) => markRun(id, status, result, run.owner_id);
     const claimed = await claimStepRunForExecution(run.id, run.owner_id);
     if (!claimed) {
       executed.push({ runId: run.id, status: "skipped_concurrent" });
@@ -320,13 +342,44 @@ export async function runDueStepRuns(
       !step ||
       !recipient ||
       !contact ||
+      !campaign ||
+      step.owner_id !== run.owner_id ||
+      recipient.owner_id !== run.owner_id ||
+      contact.owner_id !== run.owner_id ||
+      recipient.campaign_id !== run.campaign_id ||
+      step.campaign_id !== run.campaign_id ||
+      !["queued", "sending"].includes(campaign.status ?? "") ||
       recipient.eligibility_status === "blocked" ||
       recipient.delivery_status === "removed"
     ) {
-      await markRun(run.id, "skipped", { reason: "missing entity" });
+      await markOwnedRun(run.id, "skipped", { reason: "missing entity" });
       executed.push({ runId: run.id, status: "skipped" });
       summary.skipped += 1;
       continue;
+    }
+
+    if (
+      ![
+        "sms",
+        "email",
+        "voicemail",
+        "wait",
+        "callback",
+        "task",
+        "avatar_video",
+        "retargeting",
+      ].includes(step.type)
+    ) {
+      await markOwnedRun(run.id, "blocked", { code: "unsupported_channel" });
+      executed.push({ runId: run.id, status: "blocked" });
+      continue;
+    }
+    if(['sms','email','voicemail'].includes(step.type)){
+      const prior=await supabaseAdmin.from('campaign_steps').select('id').eq('owner_id',run.owner_id).eq('campaign_id',run.campaign_id).lt('step_order',step.step_order);
+      const ids=(prior.data??[]).map(s=>s.id);
+      const previous=ids.length?await supabaseAdmin.from('campaign_step_runs').select('step_id,status').eq('owner_id',run.owner_id).eq('campaign_id',run.campaign_id).eq('recipient_id',recipient.id).in('step_id',ids):{data:[],error:null};
+      if(prior.error||previous.error||ids.some(id=>!(previous.data??[]).some(r=>r.step_id===id))||(previous.data??[]).some(r=>['scheduled','running'].includes(r.status))){await releaseStepRunToScheduled(run.id,run.owner_id,{scheduled_at:new Date(Date.now()+60000).toISOString()});executed.push({runId:run.id,status:'deferred_dependency'});continue;}
+      if((previous.data??[]).some(r=>['failed','blocked'].includes(r.status))){await markOwnedRun(run.id,'blocked',{reason:'A previous sequence step requires review.'});executed.push({runId:run.id,status:'blocked'});continue;}
     }
 
     // Hard gate: live campaigns stay idle until the user clicks "Launch campaign".
@@ -343,6 +396,34 @@ export async function runDueStepRuns(
       executed.push({ runId: run.id, status: "deferred_not_launched" });
       summary.deferredNotLaunched += 1;
       continue;
+    }
+
+    if (!["wait", "task", "callback"].includes(step.type)) {
+      const { data: replies, error: replyError } = await supabaseAdmin
+        .from("engagement_events")
+        .select("id")
+        .eq("owner_id", run.owner_id)
+        .eq("contact_id", contact.id)
+        .in("event_type", ["replied", "callback", "opt_out"])
+        .gte(
+          "occurred_at",
+          recipient.created_at ?? run.created_at ?? run.scheduled_at,
+        )
+        .limit(1);
+      if (replyError) {
+        await releaseStepRunToScheduled(run.id, run.owner_id);
+        executed.push({ runId: run.id, status: "deferred_reply_check" });
+        continue;
+      }
+      if (replies?.length) {
+        await markOwnedRun(run.id, "skipped", {
+          reason:
+            "Contact responded or opted out after enrollment; review before further outreach.",
+        });
+        executed.push({ runId: run.id, status: "skipped" });
+        summary.skipped++;
+        continue;
+      }
     }
 
     const { workspace, profile } = await workspaceFor(run.owner_id);
@@ -371,24 +452,39 @@ export async function runDueStepRuns(
       phone: contact.phone,
       dnc: contact.dnc,
       opt_out_requested: contact.opt_out_requested,
-      consent_records: contact.consent_records ?? [],
+      consent_records: ownedConsentRecords(
+        (contact.consent_records ?? []) as Array<{
+          status: string;
+          owner_id?: string;
+          contact_id?: string;
+          consent_date?: string;
+          source?: string;
+          proof_reference?: string;
+          created_at?: string;
+        }>,
+        run.owner_id,
+        contact.id,
+      ),
     });
     const issues = workspace.requireConsentProof
       ? eligibility.issues
-      : eligibility.issues.filter((i) => i !== "Missing consent proof/reference");
+      : eligibility.issues.filter(
+          (i) => i !== "Missing consent proof/reference",
+        );
     if (issues.length) {
-      await markRun(run.id, "blocked", { issues });
+      await markOwnedRun(run.id, "blocked", { issues });
       await supabaseAdmin
         .from("campaign_recipients")
         .update({ eligibility_status: "blocked", eligibility_issues: issues })
-        .eq("id", recipient.id);
+        .eq("id", recipient.id)
+        .eq("owner_id", run.owner_id);
       executed.push({ runId: run.id, status: "blocked" });
       summary.blocked += 1;
       continue;
     }
 
     if (step.type === "wait") {
-      await markRun(run.id, "sent", { channel: step.type });
+      await markOwnedRun(run.id, "sent", { channel: step.type });
       executed.push({ runId: run.id, status: "sent" });
       continue;
     }
@@ -406,41 +502,33 @@ export async function runDueStepRuns(
         stepType: step.type,
       });
 
-      await markRun(run.id, "sent", {
+      await markOwnedRun(run.id, calendarSync.synced ? "sent" : "blocked", {
         channel: step.type,
         calendarSync: calendarSync.synced ? "created" : calendarSync.reason,
       });
-      await recordEngagementEvent({
-        ownerId: run.owner_id,
-        contactId: contact.id,
-        campaignId: campaign?.id,
-        stepId: step.id,
-        eventType: step.type === "task" ? "task_completed" : "delivered",
-        channel: step.type === "callback" ? "callback" : "task",
-        metadata: calendarSync.synced
-          ? { calendarEventId: calendarSync.eventId }
-          : { calendarSkipped: calendarSync.reason },
+      executed.push({
+        runId: run.id,
+        status: calendarSync.synced ? "sent" : "blocked",
       });
-      executed.push({ runId: run.id, status: "sent" });
       continue;
     }
 
-    if (step.type === "avatar_video") {
-      await markRun(run.id, "sent", { channel: "video", note: "AI video placeholder" });
-      await recordEngagementEvent({
-        ownerId: run.owner_id,
-        contactId: contact.id,
-        campaignId: campaign?.id,
-        stepId: step.id,
-        eventType: "delivered",
-        channel: "video",
+    if (step.type === "avatar_video" || step.type === "retargeting") {
+      await markOwnedRun(run.id, "blocked", {
+        code: "unsupported_channel",
+        error: "This channel has no configured delivery integration.",
       });
-      executed.push({ runId: run.id, status: "sent" });
+      executed.push({ runId: run.id, status: "blocked" });
+      summary.blocked++;
       continue;
     }
 
     const channel: "voicemail" | "sms" | "email" =
-      step.type === "voicemail" ? "voicemail" : step.type === "sms" ? "sms" : "email";
+      step.type === "voicemail"
+        ? "voicemail"
+        : step.type === "sms"
+          ? "sms"
+          : "email";
 
     // Campaign.provider is the voicemail adapter preference only.
     // SMS/email always use channel-aware picking (or mock when campaign is in mock/test mode).
@@ -457,7 +545,7 @@ export async function runDueStepRuns(
       !isLiveOutboundAllowed() &&
       (channel === "voicemail" || channel === "sms" || channel === "email")
     ) {
-      await markRun(run.id, "skipped", {
+      await markOwnedRun(run.id, "skipped", {
         error: liveOutboundBlockedMessage(),
         code: "live_outbound_paused",
       });
@@ -467,33 +555,39 @@ export async function runDueStepRuns(
 
     // Live campaigns must not silently mock SMS/email when credentials are missing.
     if (campaign?.provider !== "mock") {
-      const liveProviders = (await import("@/lib/providers/registry")).isLiveProvidersConfigured();
+      const liveProviders = (
+        await import("@/lib/providers/registry")
+      ).isLiveProvidersConfigured();
       if (channel === "sms" && !liveProviders.sms) {
-        await markRun(run.id, "failed", {
-          error: "Twilio SMS is not configured. Add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER.",
+        await markOwnedRun(run.id, "failed", {
+          error:
+            "Twilio SMS is not configured. Add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER.",
         });
         executed.push({ runId: run.id, status: "failed" });
         continue;
       }
       if (channel === "email" && !liveProviders.email) {
-        await markRun(run.id, "failed", {
-          error: "Resend email is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL.",
+        await markOwnedRun(run.id, "failed", {
+          error:
+            "Resend email is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL.",
         });
         executed.push({ runId: run.id, status: "failed" });
         continue;
       }
       if (channel === "voicemail" && !liveProviders.voicemail) {
-        await markRun(run.id, "failed", {
+        await markOwnedRun(run.id, "failed", {
           error: "Slybroadcast is not configured for ringless voicemail.",
         });
         executed.push({ runId: run.id, status: "failed" });
         continue;
       }
 
-      const { assertCanSendChannel } = await import("@/lib/billing/plan-limits");
+      const { assertCanSendChannel } = await import(
+        "@/lib/billing/plan-limits"
+      );
       const quota = await assertCanSendChannel(run.owner_id, channel);
       if (!quota.ok) {
-        await markRun(run.id, "failed", {
+        await markOwnedRun(run.id, "failed", {
           error: quota.error,
           code: quota.code,
           planId: quota.usage.planId,
@@ -522,17 +616,25 @@ export async function runDueStepRuns(
           .from("voice_assets")
           .select("id, approved, storage_path, audio_url")
           .eq("id", stepVoiceId)
+          .eq("owner_id", run.owner_id)
           .maybeSingle();
         voiceAsset = stepVoice;
       }
 
       if (!voiceAsset) {
-        const voiceRaw = campaign?.voice_assets;
-        voiceAsset = Array.isArray(voiceRaw) ? voiceRaw[0] : voiceRaw;
+        if (campaign?.voice_asset_id) {
+          const { data: ownedVoice } = await supabaseAdmin
+            .from("voice_assets")
+            .select("id, approved, storage_path, audio_url")
+            .eq("id", campaign.voice_asset_id)
+            .eq("owner_id", run.owner_id)
+            .maybeSingle();
+          voiceAsset = ownedVoice;
+        }
       }
 
       if (!voiceAssetReady(voiceAsset)) {
-        await markRun(run.id, "failed", {
+        await markOwnedRun(run.id, "failed", {
           error:
             "This voicemail step needs an approved voice recording. Link one in Voice Scripts (Use for campaign) - each voicemail step can have its own recording.",
         });
@@ -541,7 +643,9 @@ export async function runDueStepRuns(
       }
       audioUrl = (await signVoiceAssetUrl(voiceAsset)) ?? undefined;
       if (!audioUrl) {
-        await markRun(run.id, "failed", { error: "Unable to sign voice recording URL." });
+        await markOwnedRun(run.id, "failed", {
+          error: "Unable to sign voice recording URL.",
+        });
         executed.push({ runId: run.id, status: "failed" });
         continue;
       }
@@ -568,44 +672,39 @@ export async function runDueStepRuns(
       city: contact.preferred_area || undefined,
     };
 
-    const mergedDescription = applyMergeFields(step.description ?? step.title ?? "", mergeCtx);
-    const mergedTitle = applyMergeFields(step.title ?? "", mergeCtx);
-    const normalized = normalizeOutboundContent(channel, mergedDescription, mergedTitle);
-    const outboundBody = normalized.body;
-    const outboundSubject =
-      channel === "email" ? normalized.subject ?? mergedTitle : mergedTitle;
-
-    if (shouldBlockRawJsonSend(outboundBody, channel === "email" ? outboundSubject : null)) {
-      await markRun(run.id, "failed", {
-        error:
-          "This step still contains raw AI/JSON text. Open the step, paste only the email or SMS copy (or use Email writer in AI assist and copy Subject + body), then try again.",
-      });
-      executed.push({ runId: run.id, status: "failed" });
-      continue;
-    }
-    const unresolved = findUnresolvedMergeFields(
-      `${outboundSubject ?? ""}\n${outboundBody ?? ""}`,
+    const rendered = renderMessage(
+      channel,
+      step.description ?? "",
+      step.title ?? "",
+      mergeCtx,
     );
-    if (unresolved.length) {
-      await markRun(run.id, "failed", {
-        error: `Message still has unfilled merge fields: ${unresolved.join(", ")}. Edit the step copy or fill contact property/area before sending.`,
-        unresolvedMergeFields: unresolved,
+    if (!rendered.ok) {
+      await markOwnedRun(run.id, "failed", {
+        code: "invalid_message",
+        error: "Review the personalized message preview.",
+        issues: rendered.issues,
       });
       executed.push({ runId: run.id, status: "failed" });
+      summary.failed++;
       continue;
     }
+    const outboundBody = rendered.body;
+    const outboundSubject = rendered.subject ?? undefined;
 
     const stepAttachments = attachmentsFromConditions(
       (step.conditions as Record<string, unknown> | null) ?? undefined,
     );
     let mediaUrls: string[] | undefined;
-    let emailAttachments: Array<{ filename: string; content: string }> | undefined;
+    let emailAttachments:
+      | Array<{ filename: string; content: string }>
+      | undefined;
 
     if (channel === "sms" && stepAttachments.length) {
       mediaUrls = await signAttachmentsForSend(run.owner_id, stepAttachments);
       if (!mediaUrls.length) {
-        await markRun(run.id, "failed", {
-          error: "Could not sign MMS attachment URL. Re-upload the image on this step.",
+        await markOwnedRun(run.id, "failed", {
+          error:
+            "Could not sign MMS attachment URL. Re-upload the image on this step.",
         });
         executed.push({ runId: run.id, status: "failed" });
         continue;
@@ -613,10 +712,14 @@ export async function runDueStepRuns(
     }
 
     if (channel === "email" && stepAttachments.length) {
-      emailAttachments = await emailAttachmentsForSend(run.owner_id, stepAttachments);
+      emailAttachments = await emailAttachmentsForSend(
+        run.owner_id,
+        stepAttachments,
+      );
       if (!emailAttachments.length) {
-        await markRun(run.id, "failed", {
-          error: "Could not load email attachment. Re-upload the file on this step.",
+        await markOwnedRun(run.id, "failed", {
+          error:
+            "Could not load email attachment. Re-upload the file on this step.",
         });
         executed.push({ runId: run.id, status: "failed" });
         continue;
@@ -634,6 +737,7 @@ export async function runDueStepRuns(
       campaignId: campaign?.id ?? recipient.campaign_id,
       recipientId: recipient.id,
       stepId: step.id,
+      idempotencyKey: `campaign-step-${run.id}`,
       body: outboundBody,
       subject: outboundSubject,
       audioUrl,
@@ -644,13 +748,13 @@ export async function runDueStepRuns(
     });
 
     if (sendResult.skipped) {
-      await markRun(run.id, "skipped", { reason: sendResult.skipReason });
+      await markOwnedRun(run.id, "skipped", { reason: sendResult.skipReason });
       executed.push({ runId: run.id, status: "skipped" });
       continue;
     }
 
     if (sendResult.ok) {
-      await markRun(run.id, "sent", {
+      await markOwnedRun(run.id, "sent", {
         providerMessageId: sendResult.providerMessageId,
         status: sendResult.status,
         simulated: sendResult.status === "mock_sent",
@@ -666,7 +770,8 @@ export async function runDueStepRuns(
                 : "sent",
           provider_message_id: sendResult.providerMessageId ?? null,
         })
-        .eq("id", recipient.id);
+        .eq("id", recipient.id)
+        .eq("owner_id", run.owner_id);
 
       if (
         (channel === "sms" || channel === "voicemail") &&
@@ -686,7 +791,7 @@ export async function runDueStepRuns(
         }).catch(() => undefined);
       }
     } else {
-      await markRun(run.id, "failed", { error: sendResult.error });
+      await markOwnedRun(run.id, "failed", { error: sendResult.error });
     }
     const finalStatus = sendResult.ok ? "sent" : "failed";
     executed.push({ runId: run.id, status: finalStatus });
@@ -709,9 +814,11 @@ async function markRun(
   id: string,
   status: "running" | "sent" | "skipped" | "failed" | "blocked",
   result: Record<string, unknown>,
+  ownerId: string,
 ) {
   await supabaseAdmin
     .from("campaign_step_runs")
     .update({ status, executed_at: new Date().toISOString(), result })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("owner_id", ownerId);
 }

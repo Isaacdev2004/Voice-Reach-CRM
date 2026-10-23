@@ -238,17 +238,17 @@ export function mapDeliveryRow(row: DeliveryRow): ActivityLogEntry | null {
   const campaign = row.campaigns?.name ?? "Campaign";
 
   const failed = row.delivery_status === "failed" || row.delivery_status === "blocked";
-  const delivered = row.delivery_status === "delivered" || row.delivery_status === "sent";
+  const delivered = row.delivery_status === "delivered";
 
   return {
     id: `delivery-${row.id}`,
     category: failed ? "compliance" : "engagement",
     icon: failed ? "block" : "voicemail",
-    tone: failed ? "error" : "success",
-    title: failed ? `Delivery blocked - ${name}` : `Voicemail delivered - ${name}`,
+    tone: failed ? "error" : "default",
+    title: failed ? `Delivery issue - ${name}` : `Recorded message status - ${name}`,
     body: failed
       ? `${name} could not receive message in "${campaign}".`
-      : `${name} received your message in "${campaign}".`,
+      : `"${campaign}": ${row.delivery_status === "mock_sent" ? "simulation" : row.delivery_status}. Legacy recipient status is not independently verified delivery.`,
     createdAt: row.updated_at,
     source: "delivery",
     alert: failed,
