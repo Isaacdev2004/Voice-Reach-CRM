@@ -43,3 +43,8 @@ See [Voice Studio repair and QA](VOICE-STUDIO-REPAIR.md). Draft saves now use ow
 Follow-up QA: campaign voice-test dialogs now sit above the preview drawer with isolated keyboard focus. Calendar preference failures distinguish missing database setup, conflicts and outages; production persistence remains unverified. See [Voice Studio repair report](VOICE-STUDIO-REPAIR.md#follow-up-campaign-overlay-and-calendar-preference-banner).
 
 Dashboard / briefing / Twilio follow-up: see [final audit](DASHBOARD-BRIEFING-TWILIO-AUDIT.md). Compact UI and owner-scoped daily preferences; opt-in scheduling; validated Claude selections; conservative shared-number quarantine and transport holds. No production Twilio configuration or test communications. Verify worker/provider configuration separately.
+
+
+### Dashboard bottom finish — 2026-10-23
+
+Dashboard bottom-spacing follow-up changes presentation and browser QA only; authentication, tenant queries, permissions and provider behavior are unchanged.

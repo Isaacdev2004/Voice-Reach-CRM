@@ -410,6 +410,40 @@ const { chromium } = require("playwright"),
         path: path.join(output, `dashboard-${width}.png`),
         fullPage: true,
       });
+      // The final action must remain above the bottom edge at the scroll limit,
+      // including laptop browser chrome and short mobile viewports.
+      if (phase === "after") {
+        for (const height of [700, 900]) {
+          await page.setViewportSize({ width, height });
+          await page.evaluate(() =>
+            window.scrollTo(0, document.documentElement.scrollHeight),
+          );
+          const finish = await page
+            .locator(".dashboard-recommendations-column li")
+            .last()
+            .evaluate((el) => ({
+              top: el.getBoundingClientRect().top,
+              bottom: el.getBoundingClientRect().bottom,
+              viewport: innerHeight,
+              overflow: document.documentElement.scrollWidth > innerWidth,
+            }));
+          assert.ok(
+            finish.top >= 64,
+            `Last recommendation hidden by header at ${width}x${height}`,
+          );
+          assert.ok(
+            finish.bottom <= finish.viewport - 64,
+            `Last recommendation too close to bottom at ${width}x${height}`,
+          );
+          assert.equal(finish.overflow, false);
+          if (height === 700)
+            await page.screenshot({
+              path: path.join(output, `bottom-${width}.png`),
+            });
+        }
+        await page.setViewportSize({ width, height: 1080 });
+        await page.evaluate(() => window.scrollTo(0, 0));
+      }
       const measured = await page.evaluate(() => ({
         hero: document
           .querySelector(".dashboard-luxury-hero")
