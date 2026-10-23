@@ -45,6 +45,10 @@ type Editor = {
   contactId?: string;
   item?: ScheduleItem;
 };
+
+/** Matches `.calendar-slot` height (30px per 30-minute row). */
+const MINUTE_PX = 1;
+
 export function CalendarPage() {
   const { user } = useUser();
   return <CalendarWorkspace key={user?.id ?? "signed-out"} />;
