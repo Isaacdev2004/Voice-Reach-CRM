@@ -32,7 +32,7 @@ export type TaskRecord = {
   completed: boolean;
   completed_at?: string | null;
   created_at?: string;
-  updated_at?: string;
+  updated_at?: string | null;
   priority?: string | null;
   source_note_id?: string | null;
   recurrence?: string | null;

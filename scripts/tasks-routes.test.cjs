@@ -344,3 +344,37 @@ test("custom templates load all pages and never include a foreign workspace temp
   assert.equal(rows.length, 518);
   assert(!rows.some((t) => t.id === "foreign"));
 });
+
+test("legacy tasks with a null update timestamp remain editable without losing concurrency protection", async () => {
+  const f = setup();
+  f.tables.contact_tasks.push({
+    id: id(50),
+    owner_id: owner,
+    contact_id: id(2),
+    title: "Legacy",
+    completed: false,
+    due_at: null,
+    updated_at: null,
+    workspace: {},
+  });
+  const r = f.load("app/api/tasks/workspace/route");
+  let response = await r.POST(
+    req("/api/tasks/workspace", {
+      ...body(),
+      expectedUpdatedAt: null,
+      title: "Updated legacy task",
+    }),
+  );
+  assert.equal(response.status, 200);
+  assert.equal(f.tables.contact_tasks[0].title, "Updated legacy task");
+  assert(f.tables.contact_tasks[0].updated_at);
+  response = await r.POST(
+    req("/api/tasks/workspace", {
+      ...body(),
+      expectedUpdatedAt: null,
+      title: "Stale update",
+    }),
+  );
+  assert.equal(response.status, 409);
+  assert.equal(f.tables.contact_tasks[0].title, "Updated legacy task");
+});

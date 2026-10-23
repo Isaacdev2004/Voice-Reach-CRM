@@ -207,7 +207,10 @@ export async function saveTask(owner: string, raw: unknown) {
     context = await validateAssociations(owner, input),
     tasks = await readTasks(owner),
     previous = tasks.find((t) => t.id === input.id);
-  if (previous && input.expectedUpdatedAt !== previous.updated_at)
+  if (
+    previous &&
+    (input.expectedUpdatedAt ?? null) !== (previous.updated_at ?? null)
+  )
     throw new TaskFailure("CONFLICT", 409);
   if (!previous && input.expectedUpdatedAt)
     throw new TaskFailure("NOT_FOUND", 404);
@@ -286,14 +289,19 @@ export async function saveTask(owner: string, raw: unknown) {
         }
       : {}),
   };
-  let q = previous
-    ? supabaseAdmin
-        .from("contact_tasks")
-        .update(row)
-        .eq("owner_id", owner)
-        .eq("id", input.id)
-        .eq("updated_at", previous.updated_at!)
-    : supabaseAdmin.from("contact_tasks").insert(row);
+  let q;
+  if (previous) {
+    q = supabaseAdmin
+      .from("contact_tasks")
+      .update(row)
+      .eq("owner_id", owner)
+      .eq("id", input.id);
+    q = previous.updated_at
+      ? q.eq("updated_at", previous.updated_at)
+      : q.is("updated_at", null);
+  } else {
+    q = supabaseAdmin.from("contact_tasks").insert(row);
+  }
   const r = await q.select("*").maybeSingle();
   if (r.error) throw r.error;
   if (!r.data) throw new TaskFailure("CONFLICT", 409);

@@ -65,6 +65,7 @@ function fixture() {
           calls.push({ table, filter: k, value: v });
           return q;
         },
+        is(k,v){filters.push(r=>v===null?r[k]==null:r[k]===v);calls.push({table,filter:k,value:v});return q;},
         neq(k, v) {
           filters.push((r) => r[k] !== v);
           return q;
