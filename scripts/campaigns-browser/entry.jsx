@@ -274,8 +274,6 @@ w.fetch = async (input, init = {}) => {
     }));
     persist();
     return response({ success: true, campaignId: newId });
-    const tpl=PRODUCT_CAMPAIGN_TEMPLATES.find(t=>t.templateKey===body.templateKey);if(!tpl)return response({success:false},400);const existing=own.find(c=>c.name===tpl.name);if(existing)return response({success:true,campaignId:existing.id,alreadyExisted:true});
-    const newId=id(w.__campaigns.length+10);w.__campaigns.push({id:newId,owner_id:w.__owner,name:tpl.name,status:'draft',provider:'mock',live_launched:false,created_at:'2026-10-22T12:00:00Z'});w.__steps[newId]=tpl.steps.map((s,i)=>({id:id(2000+i),step_order:s.order,type:s.type,title:s.title,description:s.description,delay_minutes:delayFromDayLabel(s.dayLabel)}));persist();return response({success:true,campaignId:newId});
   }
   if (url.pathname === "/api/campaigns")
     return response({ success: true, campaigns: own });
