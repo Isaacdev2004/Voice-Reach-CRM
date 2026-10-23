@@ -113,7 +113,7 @@ export function Modal({
   return createPortal(
     <div
       className="fixed inset-0 overflow-y-auto"
-      style={{ zIndex: 10000 }}
+      style={{ zIndex: 10020 }}
       role="presentation"
     >
       <button
