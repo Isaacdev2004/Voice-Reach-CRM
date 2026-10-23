@@ -1,537 +1,712 @@
 "use client";
-
 import {
-  CampaignLibraryCard,
-  CampaignLibraryListRow,
-  type CampaignLibraryCardProps,
-} from "@/components/campaigns/campaign-library-card";
-import { LuxuryCard } from "@/components/crm/luxury-card";
-import { Icon } from "@/components/ui/icon";
-import { safeFetch } from "@/lib/api-response";
-import {
-  CAMPAIGN_LIBRARY_FOLDERS,
-  channelsFromTemplate,
-  demoContactCount,
-  formatLastEdited,
-  heroImageForKey,
-  templateForCampaignName,
-} from "@/lib/campaigns/library-ui";
-import { cn } from "@/lib/cn";
-import {
-  PRODUCT_CAMPAIGN_TEMPLATES,
-  type ProductCampaignTemplate,
-} from "@/lib/crm/campaign-templates";
-import { RECOMMENDED_INSTALL_ORDER } from "@/lib/crm/engagement-score";
+  allocateCampaignArt,
+  campaignCover,
+} from "@/lib/campaigns/library-art";
+import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-
-type CampaignRow = {
-  id: string;
-  name: string;
-  status: "draft" | "queued" | "sending" | "sent" | "partial" | "failed";
-  provider: string;
-  script_id: string;
-  created_at: string;
-  updated_at: string;
+import { useUser } from "@clerk/nextjs";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { safeFetch } from "@/lib/api-response";
+import { Icon } from "@/components/ui/icon";
+import { Modal } from "@/components/crm/modal";
+import { CampaignLibraryCard, type Cover } from "./campaign-library-card";
+import { CampaignPreviewDrawer } from "./campaign-preview-drawer";
+import {
+  campaignCounts,
+  isLibraryCampaign,
+  sequenceSummary,
+  type LibraryCampaign,
+  type LibraryPreview,
+  type LibraryStep,
+} from "@/lib/campaigns/library-data";
+import {
+  CampaignImportSchema,
+  duplicateBlueprint,
+} from "@/lib/campaigns/library-transfer";
+import { PRODUCT_CAMPAIGN_TEMPLATES } from "@/lib/crm/campaign-templates";
+import { RECOMMENDED_INSTALL_ORDER } from "@/lib/crm/engagement-score";
+import { delayFromDayLabel } from "@/lib/campaigns/delay-from-day-label";
+const TABS = [
+  ["all", "All campaigns"],
+  ["recommended", "Recommended"],
+  ["mine", "My campaigns"],
+  ["shared", "Shared with me"],
+  ["templates", "Templates"],
+] as const;
+type Tab = (typeof TABS)[number][0];
+const readStorage = (key: string, fallback: string) => {
+  try {
+    return localStorage.getItem(key) || fallback;
+  } catch {
+    return fallback;
+  }
 };
-
-type LibraryTab = "all" | "recommended" | "mine" | "shared" | "templates";
-type ViewMode = "grid" | "list";
-
-const LIBRARY_TABS: { id: LibraryTab; label: string }[] = [
-  { id: "all", label: "All campaigns" },
-  { id: "recommended", label: "Recommended" },
-  { id: "mine", label: "My campaigns" },
-  { id: "shared", label: "Shared with me" },
-  { id: "templates", label: "Templates" },
-];
-
-function campaignToCard(c: CampaignRow, pinned: boolean): CampaignLibraryCardProps {
-  const tpl = templateForCampaignName(c.name);
+const writeStorage = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+function templatePreview(key: string): LibraryPreview {
+  const t = PRODUCT_CAMPAIGN_TEMPLATES.find((t) => t.templateKey === key)!;
+  const steps: LibraryStep[] = t.steps.map((s) => ({
+    id: s.id,
+    step_order: s.order,
+    type: s.type,
+    title: s.title,
+    description: s.description,
+    delay_minutes: delayFromDayLabel(s.dayLabel),
+    day_label: s.dayLabel,
+    time_label: s.timeLabel,
+  }));
   return {
-    href: `/dashboard/campaigns/${c.id}`,
-    name: c.name,
-    description:
-      tpl?.description ??
-      "Create, organize, and automate outreach with email, SMS, and ringless voicemail.",
-    imageSrc: heroImageForKey(c.id),
-    status: c.status,
-    pinned,
-    contactCount: demoContactCount(c.id),
-    durationLabel: tpl
-      ? `${tpl.durationDays} days · ${tpl.steps.length} steps`
-      : "Custom sequence",
-    lastEdited: formatLastEdited(c.updated_at || c.created_at),
-    channels: channelsFromTemplate(c.name),
+    campaign: {
+      id: `template:${key}`,
+      name: t.name,
+      description: t.description,
+      audience: t.audience,
+      goals: t.goals,
+      status: "draft",
+      created_at: "",
+      enrollmentCount: 0,
+      ...sequenceSummary(steps),
+    },
+    steps,
+    recipients: [],
+    runs: [],
+    engagement: [],
+    performanceAvailable: false,
   };
 }
-
-function templateToCard(
-  tpl: ProductCampaignTemplate,
-  onClick: () => void,
-): CampaignLibraryCardProps {
-  const channels = [...new Set(tpl.steps.map((s) => s.type))].filter(
-    (t) => t !== "retargeting",
-  );
-  return {
-    href: "#",
-    name: tpl.name,
-    description: tpl.description,
-    imageSrc: heroImageForKey(tpl.templateKey),
-    status: "draft",
-    contactCount: 0,
-    durationLabel: `${tpl.durationDays} days · ${tpl.steps.length} steps`,
-    lastEdited: "Template",
-    channels,
-    onClick,
-  };
-}
-
 export function CampaignListPanel() {
-  const router = useRouter();
-  const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
+  const { user, isLoaded } = useUser();
+  return isLoaded && user ? (
+    <CampaignLibraryWorkspace key={user.id} ownerId={user.id} />
+  ) : (
+    <p role="status">Loading campaign workspace…</p>
+  );
+}
+function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
+  const [campaigns, setCampaigns] = useState<LibraryCampaign[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [creatingKey, setCreatingKey] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<LibraryTab>("all");
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [search, setSearch] = useState("");
-
+  const [failed, setFailed] = useState(false);
+  const [version, setVersion] = useState(0);
+  const [tab, setTab] = useState<Tab>("all");
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("");
+  const [channel, setChannel] = useState("");
+  const [goal, setGoal] = useState("");
+  const [audience, setAudience] = useState("");
+  const [sort, setSort] = useState("edited");
+  const [view, setView] = useState("grid");
+  const [pins, setPins] = useState<string[]>([]);
+  const [selected, setSelected] = useState<LibraryCampaign | null>(null);
+  const [notice, setNotice] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [importError, setImportError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [art, setArt] = useState<Record<string, number>>({});
   useEffect(() => {
-    void (async () => {
-      setLoading(true);
-      const envelope = await safeFetch<{ campaigns: CampaignRow[] }>("/api/campaigns");
+    const changed = () => setVersion((v) => v + 1);
+    window.addEventListener("myari:campaigns-changed", changed);
+    return () => window.removeEventListener("myari:campaigns-changed", changed);
+  }, []);
+  const closePreview = useCallback(() => setSelected(null), []);
+  const refresh = useCallback(() => setVersion((v) => v + 1), []);
+  useEffect(() => {
+    try {
+      const value = JSON.parse(
+        readStorage(`myari:campaign-pins:${ownerId}`, "[]"),
+      );
+      if (Array.isArray(value))
+        setPins(value.filter((v): v is string => typeof v === "string"));
+    } catch {}
+    try {
+      const value = JSON.parse(
+        readStorage(`myari:campaign-art:${ownerId}`, "{}"),
+      );
+      if (value && typeof value === "object" && !Array.isArray(value))
+        setArt(value);
+    } catch {}
+  }, [ownerId]);
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setFailed(false);
+    void safeFetch<{ campaigns: LibraryCampaign[] }>("/api/campaigns/library", {
+      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
+    }).then((r) => {
+      if (controller.signal.aborted) return;
       setLoading(false);
-      if (envelope.success) setCampaigns(envelope.data.campaigns);
-      else setError(envelope.error);
-    })();
-  }, []);
-
-  const recommendedTemplates = useMemo(() => {
-    const byKey = new Map(PRODUCT_CAMPAIGN_TEMPLATES.map((t) => [t.templateKey, t]));
-    return RECOMMENDED_INSTALL_ORDER.map((key) => byKey.get(key)).filter(
-      (t): t is ProductCampaignTemplate => Boolean(t),
-    );
-  }, []);
-
-  const recommendedNames = useMemo(
-    () => new Set(recommendedTemplates.map((t) => t.name.toLowerCase())),
-    [recommendedTemplates],
-  );
-
-  const createFromTemplate = async (templateKey: string, withAutomation = true) => {
-    setCreatingKey(templateKey);
-    setError(null);
-    const envelope = await safeFetch<{ campaignId: string }>("/api/campaigns/from-template", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ templateKey, createAutomation: withAutomation }),
+      if (
+        r.success &&
+        Array.isArray(r.data.campaigns) &&
+        r.data.campaigns.every(isLibraryCampaign)
+      )
+        setCampaigns([
+          ...new Map(r.data.campaigns.map((c) => [c.id, c])).values(),
+        ]);
+      else {
+        setFailed(true);
+        setCampaigns([]);
+      }
     });
-    setCreatingKey(null);
-    if (!envelope.success) {
-      setError(envelope.error);
-      return;
-    }
-    router.push(`/dashboard/campaigns/${envelope.data.campaignId}`);
+    return () => controller.abort();
+  }, [version]);
+  const templates = useMemo(
+    () => PRODUCT_CAMPAIGN_TEMPLATES.map((t) => templatePreview(t.templateKey)),
+    [],
+  );
+  useEffect(() => {
+    if (loading || failed) return;
+    setArt((previous) => {
+      const keys = [
+        ...campaigns.map((c) => c.id),
+        ...templates.map((t) => t.campaign.id),
+      ];
+      const next = allocateCampaignArt(keys, previous);
+      if (JSON.stringify(next) === JSON.stringify(previous)) return previous;
+      writeStorage(`myari:campaign-art:${ownerId}`, JSON.stringify(next));
+      return next;
+    });
+  }, [campaigns, templates, ownerId, loading, failed]);
+  const cover = (c: LibraryCampaign): Cover => campaignCover(c, art);
+  const togglePin = (id: string) => {
+    setPins((old) => {
+      const next = old.includes(id)
+        ? old.filter((v) => v !== id)
+        : [...old, id];
+      if (!writeStorage(`myari:campaign-pins:${ownerId}`, JSON.stringify(next)))
+        setNotice("Pin saved for this visit. Browser storage is unavailable.");
+      return next;
+    });
   };
-
-  const sortedCampaigns = useMemo(() => {
-    const statusRank: Record<CampaignRow["status"], number> = {
-      sending: 0,
-      sent: 1,
-      queued: 2,
-      partial: 3,
-      draft: 4,
-      failed: 5,
-    };
-    return [...campaigns].sort((a, b) => {
-      const sr = statusRank[a.status] - statusRank[b.status];
-      if (sr !== 0) return sr;
-      return new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime();
-    });
-  }, [campaigns]);
-
-  const searchLower = search.trim().toLowerCase();
-
-  const filteredCampaigns = useMemo(() => {
-    let list = sortedCampaigns;
-    if (activeTab === "recommended") {
-      list = list.filter((c) => recommendedNames.has(c.name.toLowerCase()));
-    } else if (activeTab === "mine" || activeTab === "all") {
-      list = sortedCampaigns;
-    } else if (activeTab === "shared") {
-      list = [];
-    } else if (activeTab === "templates") {
-      list = [];
+  const isTemplate = selected?.id.startsWith("template:");
+  const selectedTemplate = isTemplate
+    ? templates.find((t) => t.campaign.id === selected?.id)
+    : undefined;
+  const recommended = templates.filter((t) =>
+    RECOMMENDED_INSTALL_ORDER.some(
+      (key) => key === t.campaign.id.replace("template:", ""),
+    ),
+  );
+  const source =
+    tab === "templates"
+      ? templates.map((t) => t.campaign)
+      : tab === "recommended"
+        ? recommended.map((t) => t.campaign)
+        : tab === "shared"
+          ? []
+          : campaigns;
+  const filtered = source
+    .filter(
+      (c) =>
+        (!query.trim() ||
+          `${c.name} ${c.description ?? ""}`
+            .toLowerCase()
+            .includes(query.trim().toLowerCase())) &&
+        (!status || c.status === status) &&
+        (!channel || c.channels.includes(channel)) &&
+        (!goal || c.goals?.includes(goal)) &&
+        (!audience || c.audience === audience),
+    )
+    .sort((a, b) =>
+      sort === "name"
+        ? a.name.localeCompare(b.name)
+        : sort === "oldest"
+          ? (a.updated_at || a.created_at).localeCompare(
+              b.updated_at || b.created_at,
+            )
+          : (b.updated_at || b.created_at).localeCompare(
+              a.updated_at || a.created_at,
+            ),
+    );
+  const counts = campaignCounts(
+    filtered.filter((c) => !c.id.startsWith("template:")),
+  );
+  const metricRows =
+    tab === "templates" || tab === "recommended" || tab === "shared"
+      ? campaignCounts(campaigns)
+      : counts;
+  const tabCounts = {
+    all: campaigns.length,
+    mine: campaigns.length,
+    recommended: recommended.length,
+    shared: "—",
+    templates: templates.length,
+  };
+  const createDraft = async (blueprint: unknown) => {
+    const parsed = CampaignImportSchema.safeParse(blueprint);
+    if (!parsed.success) throw Error("invalid");
+    const result = await safeFetch<{ campaignId: string }>(
+      "/api/campaigns/builder",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "template",
+          campaign: {
+            ...parsed.data,
+            id: `campaign-${crypto.randomUUID()}`,
+            provider: "mock",
+          },
+        }),
+      },
+    );
+    if (!result.success || !result.data.campaignId) throw Error("save");
+    refresh();
+    setTab("mine");
+    setQuery("");
+    setStatus("");
+    setChannel("");
+    setGoal("");
+    setAudience("");
+    setNotice("Draft saved. No contacts enrolled or messages scheduled.");
+    setSelected(null);
+  };
+  const duplicate = async (data: LibraryPreview) => {
+    await createDraft(duplicateBlueprint(data));
+  };
+  const install = async () => {
+    if (!selectedTemplate) return;
+    const res = await safeFetch<{ campaignId: string; alreadyExisted?:boolean }>(
+      "/api/campaigns/from-template",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateKey: selectedTemplate.campaign.id.replace("template:", ""),
+          createAutomation: false,
+        }),
+      },
+    );
+    if (!res.success) throw Error();
+    refresh();
+    setTab("mine");
+    setSelected(null);
+    setQuery("");setStatus("");setChannel("");setGoal("");setAudience("");
+    setNotice(res.data.alreadyExisted ? "This playbook is already in your library. Its existing status is unchanged." : "Playbook available as a draft. No automation was activated.");
+  };
+  const importDraft = async () => {
+    setBusy(true);
+    setImportError("");
+    try {
+      if (importText.length > 500000) throw Error();
+      const value = JSON.parse(importText);
+      const parsed = CampaignImportSchema.safeParse(value);
+      if (
+        !parsed.success ||
+        parsed.data.steps.some((s) => s.voiceAssetId || s.attachments?.length)
+      ) {
+        setImportError(
+          "Use the documented campaign JSON format. Import message content only; link your own recordings and attachments in the editor.",
+        );
+        return;
+      }
+      await createDraft(parsed.data);
+      setImportOpen(false);
+      setImportText("");
+    } catch {
+      setImportError(
+        "Unable to import this campaign. Check the JSON format and try again.",
+      );
+    } finally {
+      setBusy(false);
     }
-    if (searchLower) {
-      list = list.filter((c) => c.name.toLowerCase().includes(searchLower));
-    }
-    return list;
-  }, [sortedCampaigns, activeTab, recommendedNames, searchLower]);
-
-  const pinnedCampaigns = useMemo(() => sortedCampaigns.slice(0, 3), [sortedCampaigns]);
-
-  const tabCounts: Record<LibraryTab, number> = useMemo(
-    () => ({
-      all: campaigns.length || sortedCampaigns.length,
-      recommended: recommendedTemplates.length,
-      mine: campaigns.length,
-      shared: 0,
-      templates: PRODUCT_CAMPAIGN_TEMPLATES.length,
-    }),
-    [campaigns.length, sortedCampaigns.length, recommendedTemplates.length],
+  };
+  const renderCard = (c: LibraryCampaign) => (
+    <CampaignLibraryCard
+      key={c.id}
+      campaign={c}
+      cover={cover(c)}
+      pinned={pins.includes(c.id)}
+      onPin={c.id.startsWith("template:") ? undefined : () => togglePin(c.id)}
+      onOpen={() => setSelected(c)}
+      isTemplate={c.id.startsWith("template:")}
+      view={view}
+    />
   );
-
-  const showPinnedSection =
-    activeTab === "all" || activeTab === "mine" || activeTab === "recommended";
-
-  const renderGrid = (items: CampaignLibraryCardProps[]) => (
-    <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-      {items.map((item) => (
-        <li key={item.href + item.name} className="min-h-[320px]">
-          <CampaignLibraryCard {...item} />
-        </li>
-      ))}
-    </ul>
-  );
-
-  const renderList = (items: CampaignLibraryCardProps[]) => (
-    <ul className="space-y-2">
-      {items.map((item) => (
-        <li key={item.href + item.name}>
-          {item.onClick ? (
-            <button
-              type="button"
-              onClick={item.onClick}
-              className="flex w-full items-center justify-between gap-4 rounded-2xl border border-outline-variant/15 bg-ivory px-4 py-3 text-left transition-shadow hover:shadow-nav"
-            >
-              <div className="min-w-0">
-                <p className="truncate font-medium text-ink">{item.name}</p>
-                <p className="text-[12px] text-taupe">{item.durationLabel} · Install template</p>
-              </div>
-              <span className="shrink-0 rounded-full bg-champagne px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-taupe">
-                Template
-              </span>
-            </button>
-          ) : (
-            <CampaignLibraryListRow
-              href={item.href}
-              name={item.name}
-              status={item.status}
-              lastEdited={item.lastEdited}
-              contactCount={item.contactCount}
-            />
-          )}
-        </li>
-      ))}
-    </ul>
-  );
-
   return (
-    <div className="space-y-8 pb-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="max-w-2xl">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-taupe">
-            Campaign library
+    <div className="campaigns-premium">
+      <section className="cl-hero">
+        <Image
+          src="/brand/heroes/campaign-library-interior.png"
+          alt="Sunlit luxury residential library with cream armchairs"
+          fill
+          priority
+          sizes="(max-width:768px) 100vw, 1200px"
+        />
+        <div className="cl-hero-copy">
+          <p className="cl-eyebrow">CAMPAIGNS</p>
+          <h1>Stay connected. Stay top of mind.</h1>
+          <p>
+            Create thoughtful outreach that turns conversations into
+            opportunities.
           </p>
-          <h1 className="mt-1 font-serif text-[32px] font-semibold leading-tight text-ink sm:text-[36px]">
-            All campaigns
-          </h1>
-          <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
-            Create, organize, and automate your outreach with ready-to-use campaigns or build your
-            own.
-          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            className="rounded-full border border-outline-variant/25 bg-ivory px-5 py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-champagne"
-          >
-            Import campaign
-          </button>
-          <Link
-            href="/dashboard/campaigns?new=1#campaign-builder"
-            className="inline-flex items-center gap-1.5 rounded-full bg-rose-gold px-5 py-2.5 text-[13px] font-medium text-ivory transition-opacity hover:opacity-90"
-          >
-            <Icon name="add" className="text-[18px]" />
-            Build custom
-          </Link>
-        </div>
-      </header>
-
-      <div className="flex flex-col gap-4 border-b border-outline-variant/15 pb-4">
-        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] md:flex-wrap md:overflow-visible md:pb-0">
-          {LIBRARY_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "shrink-0 rounded-full px-4 py-2 text-[13px] font-medium transition-colors md:shrink",
-                activeTab === tab.id
-                  ? "bg-rose-gold text-ivory"
-                  : "bg-champagne/60 text-taupe hover:bg-champagne",
-              )}
-            >
-              {tab.label} ({tabCounts[tab.id]})
-            </button>
-          ))}
-          <button
-            type="button"
-            className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-outline-variant/20 px-3 py-2 text-[12px] font-medium text-taupe"
-          >
-            <Icon name="folder" className="text-[16px]" />
-            Saved views
-          </button>
-        </div>
-
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="relative min-w-0 flex-1 max-w-md">
-            <Icon
-              name="search"
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-taupe"
-            />
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search campaigns…"
-              className="w-full rounded-full border border-outline-variant/20 bg-ivory py-2.5 pl-10 pr-4 text-[14px] text-ink placeholder:text-taupe focus:border-rose-gold/40 focus:outline-none"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {["Status", "Goal", "Audience", "Channel", "Owner"].map((label) => (
-              <button
-                key={label}
-                type="button"
-                className="inline-flex items-center gap-1 rounded-full border border-outline-variant/20 bg-ivory px-3 py-1.5 text-[12px] font-medium text-taupe"
-              >
-                {label}
-                <Icon name="expand_more" className="text-[16px]" />
-              </button>
-            ))}
-            <button
-              type="button"
-              className="rounded-full border border-outline-variant/20 px-3 py-1.5 text-[12px] font-medium text-taupe"
-            >
-              More filters
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center gap-1 rounded-full border border-outline-variant/20 px-3 py-1.5 text-[12px] font-medium text-taupe"
-            >
-              Last edited
-              <Icon name="expand_more" className="text-[16px]" />
-            </button>
-            <div className="flex rounded-full border border-outline-variant/20 p-0.5">
-              <button
-                type="button"
-                onClick={() => setViewMode("grid")}
-                className={cn(
-                  "rounded-full p-1.5",
-                  viewMode === "grid" ? "bg-champagne text-ink" : "text-taupe",
-                )}
-                aria-label="Grid view"
-              >
-                <Icon name="grid_view" className="text-[18px]" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("list")}
-                className={cn(
-                  "rounded-full p-1.5",
-                  viewMode === "list" ? "bg-champagne text-ink" : "text-taupe",
-                )}
-                aria-label="List view"
-              >
-                <Icon name="view_list" className="text-[18px]" />
-              </button>
+      </section>
+      <section className="cl-kpis" aria-label="Campaign summary">
+        {[
+          ["Total Campaigns", "campaign", metricRows.total],
+          ["Active Campaigns", "play_arrow", metricRows.active],
+          ["Drafts", "draft", metricRows.draft],
+          ["Queued", "schedule", metricRows.queued],
+        ].map(([label, icon, value]) => (
+          <div className="cl-kpi" key={label}>
+            <span className="cl-kpi-icon">
+              <Icon name={String(icon)} />
+            </span>
+            <div>
+              <p>{label}</p>
+              <strong>
+                {loading || failed ? "—" : Number(value).toLocaleString()}
+              </strong>
+              <small>
+                {label === "Active Campaigns"
+                  ? "Sending campaigns"
+                  : tab === "all" || tab === "mine"
+                    ? "Matching library filters"
+                    : "Your saved campaigns"}
+              </small>
             </div>
           </div>
+        ))}
+      </section>
+      <section className="cl-library" aria-label="Campaign library">
+        <div className="cl-library-top">
+          <div
+            className="cl-library-tabs"
+            role="group"
+            aria-label="Campaign collections"
+          >
+            {TABS.map(([id, label]) => (
+              <button
+                className={`cl-button ${tab === id ? "cl-primary" : ""}`}
+                key={id}
+                aria-pressed={tab === id}
+                onClick={() => {
+                  setTab(id);
+                  setStatus("");
+                  setChannel("");
+                  setGoal("");
+                  setAudience("");
+                }}
+              >
+                {label} (
+                {loading && id !== "templates" && id !== "recommended"
+                  ? "…"
+                  : tabCounts[id]}
+                )
+              </button>
+            ))}
+          </div>
+          <div className="cl-library-actions">
+            <button
+              aria-label="Import campaign"
+              className="cl-button"
+              onClick={() => setImportOpen(true)}
+            >
+              <Icon name="upload" />
+              Import campaign
+            </button>
+            <Link
+              className="cl-button cl-primary"
+              href="/dashboard/campaigns?new=1#campaign-builder"
+            >
+              <Icon name="add" />
+              Build custom
+            </Link>
+          </div>
         </div>
-      </div>
-
-      {error ? (
-        <p className="rounded-xl border border-error/30 bg-error/5 p-3 text-[13px] text-error">
-          {error}
-        </p>
-      ) : null}
-
-      {loading ? (
-        <p className="py-12 text-center text-[14px] text-taupe">Loading campaigns…</p>
-      ) : activeTab === "shared" ? (
-        <LuxuryCard padding="lg" className="text-center">
-          <Icon name="group" className="mx-auto text-[36px] text-taupe" />
-          <p className="mt-3 font-medium text-ink">Nothing shared with you yet</p>
-          <p className="mt-1 text-[14px] text-slate-text">
-            When a teammate shares a campaign folder, it will appear here.
-          </p>
-        </LuxuryCard>
-      ) : activeTab === "templates" ? (
-        <section>
-          <SectionHeader
-            title={`Templates (${PRODUCT_CAMPAIGN_TEMPLATES.length})`}
-            subtitle="Install a playbook to add it to your library."
-          />
-          {viewMode === "grid"
-            ? renderGrid(
-                PRODUCT_CAMPAIGN_TEMPLATES.filter((t) =>
-                  searchLower ? t.name.toLowerCase().includes(searchLower) : true,
-                ).map((tpl) =>
-                  templateToCard(tpl, () =>
-                    void createFromTemplate(tpl.templateKey, Boolean(tpl.automation)),
-                  ),
-                ),
-              )
-            : renderList(
-                PRODUCT_CAMPAIGN_TEMPLATES.map((tpl) =>
-                  templateToCard(tpl, () =>
-                    void createFromTemplate(tpl.templateKey, Boolean(tpl.automation)),
-                  ),
-                ),
-              )}
-        </section>
-      ) : activeTab === "recommended" && filteredCampaigns.length === 0 ? (
-        <section>
-          <SectionHeader
-            title="Recommended"
-            subtitle="Priority playbooks from your MyARI playbook — install to start."
-          />
-          {viewMode === "grid"
-            ? renderGrid(
-                recommendedTemplates.map((tpl) =>
-                  templateToCard(tpl, () =>
-                    void createFromTemplate(tpl.templateKey, Boolean(tpl.automation)),
-                  ),
-                ),
-              )
-            : renderList(
-                recommendedTemplates.map((tpl) =>
-                  templateToCard(tpl, () =>
-                    void createFromTemplate(tpl.templateKey, Boolean(tpl.automation)),
-                  ),
-                ),
-              )}
-        </section>
-      ) : (
-        <>
-          {showPinnedSection && pinnedCampaigns.length > 0 ? (
-            <section>
-              <SectionHeader
-                title={`Pinned (${pinnedCampaigns.length})`}
-                subtitle="Your most important campaigns, pinned for quick access."
-                actionHref="/dashboard/campaigns"
-                actionLabel="Show all"
-              />
-              {viewMode === "grid"
-                ? renderGrid(
-                    pinnedCampaigns.map((c) => campaignToCard(c, true)),
-                  )
-                : renderList(pinnedCampaigns.map((c) => campaignToCard(c, true)))}
-            </section>
-          ) : null}
-
-          {activeTab === "all" || activeTab === "mine" ? (
-            <section>
-              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <SectionHeader
-                  title={`Folders (${CAMPAIGN_LIBRARY_FOLDERS.length})`}
-                  subtitle="Organize your campaigns by goal, audience, or custom groups."
-                  compact
-                />
-                <button
-                  type="button"
-                  className="inline-flex shrink-0 items-center gap-1 rounded-full border border-outline-variant/25 px-4 py-2 text-[13px] font-medium text-rose-gold-deep"
-                >
-                  <Icon name="create_new_folder" className="text-[18px]" />
-                  Create folder
-                </button>
-              </div>
-              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {CAMPAIGN_LIBRARY_FOLDERS.map((folder) => (
-                  <li key={folder.id}>
-                    <button
-                      type="button"
-                      className="flex w-full items-center justify-between rounded-2xl border border-outline-variant/15 bg-champagne/40 px-4 py-4 text-left transition-colors hover:bg-champagne/70"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <Icon name="folder" className="shrink-0 text-[22px] text-rose-gold-deep" />
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-ink">{folder.name}</p>
-                          <p className="text-[12px] text-taupe">{folder.count} campaigns</p>
-                        </div>
-                      </div>
-                      <Icon name="more_horiz" className="shrink-0 text-taupe" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
-          <section>
-            <SectionHeader
-              title={`All campaigns (${filteredCampaigns.length || campaigns.length})`}
-              subtitle="Browse, edit, and launch campaigns. Use filters or saved views to find what you need."
+        <div className="cl-filters">
+          <label className="cl-search">
+            <Icon name="search" />
+            <input
+              type="search"
+              aria-label="Search campaigns"
+              placeholder="Search campaigns…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
             />
-            {filteredCampaigns.length === 0 ? (
-              <LuxuryCard padding="lg" className="text-center">
-                <Icon name="campaign" className="mx-auto text-[40px] text-rose-gold-deep" />
-                <p className="mt-3 font-medium text-ink">No campaigns match</p>
-                <p className="mt-1 text-[14px] text-slate-text">
-                  Try another filter or{" "}
-                  <Link href="/dashboard/campaigns?new=1#campaign-builder" className="text-rose-gold-deep hover:underline">
-                    build a custom campaign
-                  </Link>
-                  .
+          </label>
+          <label>
+            <span className="sr-only">Status</span>
+            <select
+              aria-label="Campaign status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="">Status</option>
+              {[...new Set(source.map((c) => c.status))].sort().map((s) => (
+                <option key={s} value={s}>
+                  {s[0].toUpperCase() + s.slice(1)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="sr-only">Channel</span>
+            <select
+              aria-label="Campaign channel"
+              value={channel}
+              onChange={(e) => setChannel(e.target.value)}
+            >
+              <option value="">Channel</option>
+              {[...new Set(source.flatMap((c) => c.channels))]
+                .sort()
+                .map((ch) => (
+                  <option key={ch} value={ch}>
+                    {ch}
+                  </option>
+                ))}
+            </select>
+          </label>
+          {[
+            {
+              label: "Goal",
+              value: goal,
+              set: setGoal,
+              values: [...new Set(source.flatMap((c) => c.goals ?? []))],
+            },
+            {
+              label: "Audience",
+              value: audience,
+              set: setAudience,
+              values: [
+                ...new Set(
+                  source.map((c) => c.audience).filter((v): v is string => !!v),
+                ),
+              ],
+            },
+          ]
+            .filter((f) => f.values.length)
+            .map((f) => (
+              <label key={f.label}>
+                <span className="sr-only">{f.label}</span>
+                <select
+                  aria-label={`Campaign ${f.label.toLowerCase()}`}
+                  value={f.value}
+                  onChange={(e) => f.set(e.target.value)}
+                >
+                  <option value="">{f.label}</option>
+                  {f.values.sort().map((v) => (
+                    <option key={v} value={v}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+          <label>
+            <span className="sr-only">Sort</span>
+            <select
+              aria-label="Campaign sort"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+            >
+              <option value="edited">Last edited</option>
+              <option value="oldest">Oldest edited</option>
+              <option value="name">Name A–Z</option>
+            </select>
+          </label>
+          <div className="cl-view-toggle">
+            {["grid", "list"].map((mode) => (
+              <button
+                className="cl-icon-button"
+                key={mode}
+                aria-label={`${mode === "grid" ? "Grid" : "List"} view`}
+                aria-pressed={view === mode}
+                onClick={() => setView(mode)}
+              >
+                <Icon name={mode === "grid" ? "grid_view" : "view_list"} />
+              </button>
+            ))}
+          </div>
+          {query || status || channel || goal || audience ? (
+            <button
+              className="cl-button"
+              onClick={() => {
+                setQuery("");
+                setStatus("");
+                setChannel("");
+                setGoal("");
+                setAudience("");
+              }}
+            >
+              Clear filters
+            </button>
+          ) : null}
+        </div>
+        {notice ? (
+          <p className="cl-notice" role="status">
+            {notice}
+          </p>
+        ) : null}
+        {loading ? (
+          <div className="cl-empty" role="status">
+            Loading your campaigns…
+          </div>
+        ) : failed ? (
+          <div className="cl-empty" role="alert">
+            <h2>Campaign library unavailable</h2>
+            <p>We couldn’t load your saved campaigns. Please try again.</p>
+            <button className="cl-button" onClick={refresh}>
+              Retry library
+            </button>
+          </div>
+        ) : tab === "shared" ? (
+          <div className="cl-empty">
+            <Icon name="group" />
+            <h2>No shared campaigns</h2>
+            <p>
+              Incoming campaign access is not available in this library. Your
+              private campaigns remain in My campaigns.
+            </p>
+          </div>
+        ) : (
+          <>
+            {filtered.some((c) => pins.includes(c.id)) ? (
+              <section className="cl-pinned">
+                <h2>
+                  Pinned <small>Saved in this browser</small>
+                </h2>
+                <div className={`cl-grid ${view === "list" ? "is-list" : ""}`}>
+                  {filtered.filter((c) => pins.includes(c.id)).map(renderCard)}
+                </div>
+              </section>
+            ) : null}
+            <div
+              className={`cl-results-heading ${tab === "all" || tab === "mine" ? "sr-only" : ""}`}
+            >
+              <h2>
+                {tab === "templates"
+                  ? "Starter templates"
+                  : tab === "recommended"
+                    ? "Recommended playbooks"
+                    : "Your campaigns"}{" "}
+                <span>({filtered.length})</span>
+              </h2>
+              {tab === "recommended" ? (
+                <p>
+                  Curated MyARI playbooks. Preview before installing as a draft.
                 </p>
-              </LuxuryCard>
-            ) : viewMode === "grid" ? (
-              renderGrid(filteredCampaigns.map((c) => campaignToCard(c, false)))
+              ) : null}
+            </div>
+            {filtered.length ? (
+              <div className={`cl-grid ${view === "list" ? "is-list" : ""}`}>
+                {filtered.filter((c) => !pins.includes(c.id)).map(renderCard)}
+              </div>
             ) : (
-              renderList(filteredCampaigns.map((c) => campaignToCard(c, false)))
+              <div className="cl-empty">
+                <Icon name="campaign" />
+                <h2>
+                  {query || status || channel || goal || audience
+                    ? "No campaigns match"
+                    : "Your next conversation starts here"}
+                </h2>
+                <p>
+                  {query || status || channel || goal || audience
+                    ? "Adjust your search or clear the filters."
+                    : "Explore the starter templates or build a custom sequence."}
+                </p>
+              </div>
             )}
-          </section>
-        </>
-      )}
-
-      {creatingKey ? (
-        <p className="fixed bottom-6 right-6 z-50 rounded-full bg-ink px-4 py-2 text-[13px] text-ivory shadow-lg">
-          Creating campaign…
-        </p>
+          </>
+        )}
+      </section>
+      {selected ? (
+        <CampaignPreviewDrawer
+          key={selected.id}
+          campaign={selected}
+          cover={cover(selected)}
+          templatePreview={selectedTemplate}
+          onClose={closePreview}
+          pinned={pins.includes(selected.id)}
+          onPin={() => togglePin(selected.id)}
+          onDuplicate={duplicate}
+          onInstall={install}
+          onChanged={refresh}
+        />
       ) : null}
-    </div>
-  );
-}
-
-function SectionHeader({
-  title,
-  subtitle,
-  actionHref,
-  actionLabel,
-  compact,
-}: {
-  title: string;
-  subtitle: string;
-  actionHref?: string;
-  actionLabel?: string;
-  compact?: boolean;
-}) {
-  return (
-    <div className={cn("flex flex-wrap items-end justify-between gap-2", compact ? "mb-0" : "mb-4")}>
-      <div>
-        <h2 className={cn("font-serif font-semibold text-ink", compact ? "text-[20px]" : "text-[22px]")}>
-          {title}
-        </h2>
-        {!compact ? <p className="mt-1 text-[14px] text-slate-text">{subtitle}</p> : null}
-      </div>
-      {actionHref && actionLabel ? (
-        <Link href={actionHref} className="text-[13px] font-medium text-rose-gold-deep hover:underline">
-          {actionLabel}
-        </Link>
-      ) : null}
+      <Modal
+        open={importOpen}
+        onClose={() => {
+          if (!busy) setImportOpen(false);
+        }}
+        title="Import campaign"
+        description="Import message content as a simulation draft. No contacts or schedules are imported."
+        size="lg"
+      >
+        <label className="cl-file-label">
+          Campaign JSON file
+          <input
+            type="file"
+            accept="application/json,.json"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              if (file.size > 500000) {
+                setImportError("Choose a JSON file smaller than 500 KB.");
+                return;
+              }
+              try {
+                setImportText(await file.text());
+                setImportError("");
+              } catch {
+                setImportError("Could not read this file.");
+              }
+            }}
+          />
+        </label>
+        <label className="cl-file-label">
+          Or paste campaign JSON
+          <textarea
+            aria-label="Campaign JSON"
+            value={importText}
+            onChange={(e) => setImportText(e.target.value)}
+            rows={8}
+          />
+        </label>
+        <details>
+          <summary>View import format</summary>
+          <pre className="cl-message">
+            {JSON.stringify(
+              {
+                name: "Your campaign name",
+                description: "Your description",
+                steps: [
+                  {
+                    id: "step-1",
+                    order: 1,
+                    type: "email",
+                    title: "Your subject",
+                    description: "Your message",
+                    delayMinutes: 0,
+                  },
+                ],
+              },
+              null,
+              2,
+            )}
+          </pre>
+        </details>
+        {importError ? (
+          <p role="alert" className="cl-error">
+            {importError}
+          </p>
+        ) : null}
+        <button
+          className="cl-button cl-primary"
+          disabled={busy || !importText.trim()}
+          onClick={() => void importDraft()}
+        >
+          {busy ? "Importing…" : "Import as draft"}
+        </button>
+      </Modal>
     </div>
   );
 }
