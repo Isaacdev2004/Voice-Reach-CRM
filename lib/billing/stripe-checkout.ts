@@ -5,10 +5,10 @@ import { getStripe } from "@/lib/stripe/config";
 import type Stripe from "stripe";
 
 export function stripeMessage(err: unknown): string {
-  if (err && typeof err === "object" && "type" in err && err.type === "StripeCardError") {
-    return "Payment could not be completed. Check your payment details and try again.";
+  if (err && typeof err === "object" && "message" in err) {
+    return String((err as { message: string }).message);
   }
-  return "Billing is temporarily unavailable. Please try again later.";
+  return err instanceof Error ? err.message : "Stripe checkout failed";
 }
 
 export async function createSubscriptionSession(params: {

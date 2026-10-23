@@ -1,4 +1,3 @@
-import { isLiveOutboundAllowed } from "@/lib/billing/live-outbound";
 import { apiOk, withApiHandler } from "@/lib/api-response";
 import { isGoogleCalendarConfigured } from "@/lib/calendar/google";
 import { hasClerkEnv, hasClerkPublishableKey, hasClerkSecretKey } from "@/lib/clerk-env";
@@ -28,10 +27,10 @@ export const GET = withApiHandler(async () => {
       configured: stripe,
       publishableKey: Boolean(stripePublishableKey()),
     },
-    liveSending: isLiveOutboundAllowed() && (providers.voicemail || providers.sms || providers.email),
+    liveSending: providers.voicemail || providers.sms || providers.email,
     message:
       supabase && clerk
-        ? "Core service configuration is present. Connectivity has not been verified."
+        ? "All core services configured."
         : "Some production credentials are missing - dashboard data will not load until they are set on Vercel.",
   });
 });

@@ -46,32 +46,32 @@ export const HERO_IMAGES = {
   crmDashboard: mockup(
     `${BRAND}/hero-crm-dashboard.png`,
     "MyARI real estate CRM with portal leads and automated follow-up",
-    1024,
-    576,
+    1200,
+    900,
   ),
   followUpWorkflow: mockup(
     `${BRAND}/hero-follow-up-workflow.png`,
     "Automated follow-up workflow across SMS, email, and voicemail",
-    1024,
-    576,
+    1200,
+    900,
   ),
   leadReactivation: mockup(
     `${BRAND}/hero-lead-reactivation.png`,
     "Lead reactivation dashboard turning dormant leads into conversations",
-    1024,
-    576,
+    1200,
+    900,
   ),
   leadReactivationDetail: mockup(
     `${BRAND}/hero-lead-reactivation-detail.png`,
     "Segmented lead reactivation with campaigns and booked appointments",
-    1024,
-    576,
+    1200,
+    900,
   ),
   workspaceOverview: mockup(
     `${BRAND}/ari-dashboard-hero.png`,
     "MyARI workspace with pipeline, tasks, and AI assistant",
-    1024,
-    768,
+    1360,
+    860,
   ),
   default: mockup(
     `${MKT}/public-home-dashboard.png`,
@@ -80,7 +80,7 @@ export const HERO_IMAGES = {
   productScreenshot: mockup(
     `${BRAND}/ari-dashboard-hero.png`,
     "MyARI CRM product screenshot",
-    1024,
-    768,
+    1360,
+    860,
   ),
 } as const satisfies Record<string, HeroImage>;

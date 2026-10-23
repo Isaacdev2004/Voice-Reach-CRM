@@ -15,16 +15,16 @@ const BodySchema = z.object({
     "campaign_idea",
     "relationship_pulse",
   ]),
-  brief: z.string().max(12000).optional(),
+  brief: z.string().optional(),
   context: z
     .object({
-      contactName: z.string().max(200).optional(),
+      contactName: z.string().optional(),
       contactId: z.string().uuid().optional(),
-      contactNotes: z.string().max(12000).optional(),
-      campaignName: z.string().max(200).optional(),
+      contactNotes: z.string().optional(),
+      campaignName: z.string().optional(),
       tone: z.enum(["warm", "professional", "concise", "luxury"]).optional(),
-      goal: z.string().max(2000).optional(),
-      language: z.string().max(80).optional(),
+      goal: z.string().optional(),
+      language: z.string().optional(),
     })
     .optional()
     .default({}),

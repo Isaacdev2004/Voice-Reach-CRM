@@ -2,7 +2,7 @@
 export function PropertyLifestyleArt({
   tile = 0,
   className = "",
-  image = "/brand/campaigns/interiors-a.webp",
+  image = "/brand/campaigns/interiors-a.png",
 }: {
   tile?: number;
   className?: string;

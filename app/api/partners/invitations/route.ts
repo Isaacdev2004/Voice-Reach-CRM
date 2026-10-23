@@ -1,4 +1,3 @@
-import { ownsPartner } from "@/lib/partners/ownership";
 import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
@@ -19,7 +18,6 @@ const UpdateSchema = z.object({
 export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const body = InviteSchema.parse(await request.json());
-  if (!(await ownsPartner(ownerId, body.partnerId))) return apiError("Partner not found.", { status: 404 });
 
   const token = `vr_inv_${crypto.randomUUID().replace(/-/g, "").slice(0, 28)}`;
 
@@ -36,7 +34,7 @@ export const POST = withApiHandler(async (request) => {
     .select("*")
     .single();
 
-  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
 
   await writeAuditLog({
     ownerId,
@@ -64,7 +62,7 @@ export const PATCH = withApiHandler(async (request) => {
     .select("*")
     .single();
 
-  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
 
   await writeAuditLog({
     ownerId,

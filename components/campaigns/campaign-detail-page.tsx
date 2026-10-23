@@ -414,7 +414,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
     }
   };
 
-  const recipients = useMemo(() => data?.recipients ?? [], [data?.recipients]);
+  const recipients = data?.recipients ?? [];
 
   const existingContactIds = useMemo(
     () =>

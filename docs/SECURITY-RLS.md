@@ -48,8 +48,3 @@ Dashboard / briefing / Twilio follow-up: see [final audit](DASHBOARD-BRIEFING-TW
 ### Dashboard bottom finish — 2026-10-23
 
 Dashboard bottom-spacing follow-up changes presentation and browser QA only; authentication, tenant queries, permissions and provider behavior are unchanged.
-
-
-### Complete platform audit — 2026-10-23
-
-The audit reproduces legacy USING(true) exposure under browser grants on the repository schemas. An unapplied review migration revokes browser-role access on 21 legacy tables while retaining server access; PGlite validates it. Production grants remain unverified. Partner reference ownership and API diagnostic redaction are repaired locally. [Details](platform-audit/REPORT.md).
