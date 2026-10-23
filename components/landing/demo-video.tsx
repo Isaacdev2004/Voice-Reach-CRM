@@ -124,7 +124,7 @@ export function DemoVideo({
                 controls
                 playsInline
                 preload="none"
-                poster="/brand/marketing/walkthrough-poster.webp"
+                poster="/brand/ari-dashboard-hero.png"
                 onEnded={onEnded}
                 onPlay={onPlay}
                 onTimeUpdate={(e) =>

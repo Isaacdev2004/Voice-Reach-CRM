@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -120,53 +119,21 @@ export function WalkthroughProvider({
     </WalkthroughContext.Provider>
   );
 }
-export function WalkthroughButton({ preview = false }: { preview?: boolean }) {
+export function WalkthroughButton({
+  editorial = false,
+}: {
+  editorial?: boolean;
+}) {
   const show = useContext(WalkthroughContext);
-  if (preview)
-    return (
-      <section
-        className="public-video-preview landing-shell"
-        aria-labelledby="walkthrough-preview-title"
-      >
-        <button
-          type="button"
-          className="public-video-poster"
-          onClick={show ?? undefined}
-          aria-label="Play MyARI product walkthrough"
-        >
-          <Image
-            src="/brand/marketing/walkthrough-poster.webp"
-            alt="Frame from the existing MyARI walkthrough"
-            width={1280}
-            height={720}
-            sizes="(max-width:767px) 90vw, 280px"
-          />
-          <span aria-hidden="true">▶</span>
-        </button>
-        <div>
-          <p className="public-eyebrow">A closer look</p>
-          <h2 id="walkthrough-preview-title">See MyARI in action</h2>
-          <p>
-            Take a closer look at the tools that keep your relationships and
-            follow-up beautifully organized.
-          </p>
-          <button
-            type="button"
-            className="public-text-link"
-            onClick={show ?? undefined}
-          >
-            Watch the walkthrough <span aria-hidden="true">→</span>
-          </button>
-        </div>
-      </section>
-    );
   return (
     <button
       type="button"
       className="public-outline-button public-watch-button"
+      aria-label={editorial ? "Play MyARI product walkthrough" : undefined}
       onClick={show ?? undefined}
     >
-      <span aria-hidden="true">▷</span>Watch MyARI in Action
+      <span aria-hidden="true">▷</span>
+      {editorial ? "Watch the walkthrough" : "Watch MyARI in Action"}
     </button>
   );
 }

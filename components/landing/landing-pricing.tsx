@@ -35,24 +35,27 @@ export function LandingPricing({
       className="scroll-mt-[4.25rem] bg-cream py-12 md:py-20 lg:py-24"
     >
       <div className="landing-shell">
-        <Reveal className="text-center">
-          <h2 className="font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
-            Start free. Scale when you&apos;re ready.
-          </h2>
-          <p className="mx-auto mt-3 w-full max-w-[40rem] px-2 text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
-            <strong className="font-semibold text-ink">Growth</strong> is our
-            recommended plan for active agents.{" "}
-            {!compact && (
-              <>
-                {SITE_OFFER.trialDays}-day free trial on every plan.{" "}
-                {SITE_OFFER.whiteGlove.shortLine}.{" "}
-                {SITE_OFFER.founding.active
-                  ? ` ${SITE_OFFER.founding.memberBenefit}`
-                  : ""}
-              </>
-            )}
-          </p>
-
+        <Reveal className={compact ? "public-pricing-intro" : "text-center"}>
+          <div>
+            <h2 className="font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
+              {compact
+                ? "Choose your plan."
+                : "Start free. Scale when you’re ready."}
+            </h2>
+            <p className="mx-auto mt-3 w-full max-w-[40rem] px-2 text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
+              <strong className="font-semibold text-ink">Growth</strong> is our
+              recommended plan for active agents.{" "}
+              {!compact && (
+                <>
+                  {SITE_OFFER.trialDays}-day free trial on every plan.{" "}
+                  {SITE_OFFER.whiteGlove.shortLine}.{" "}
+                  {SITE_OFFER.founding.active
+                    ? ` ${SITE_OFFER.founding.memberBenefit}`
+                    : ""}
+                </>
+              )}
+            </p>
+          </div>
           <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-outline-variant/20 bg-ivory p-1">
             <button
               type="button"
@@ -117,7 +120,7 @@ export function LandingPricing({
                 ) : null}
 
                 <header className="public-plan-heading">
-                  {plan.outcomeHeadline ? (
+                  {!compact && plan.outcomeHeadline ? (
                     <p
                       className={`text-[15px] font-semibold leading-snug ${featured ? "text-ivory" : "text-ink"}`}
                     >
@@ -134,7 +137,7 @@ export function LandingPricing({
                   >
                     {plan.description}
                   </p>
-                  {plan.positioningLine ? (
+                  {!compact && plan.positioningLine ? (
                     <p
                       className={`mt-2 text-[13px] leading-snug ${featured ? "text-ivory/90" : "text-slate-text"}`}
                     >
@@ -204,6 +207,13 @@ export function LandingPricing({
                   >
                     ${monthly}/mo billed monthly
                   </p>
+                )}
+
+                {compact && (
+                  <div className="public-plan-value">
+                    <p>{plan.outcomeHeadline}</p>
+                    {plan.positioningLine && <p>{plan.positioningLine}</p>}
+                  </div>
                 )}
 
                 <Link

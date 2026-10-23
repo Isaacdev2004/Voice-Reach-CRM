@@ -8,7 +8,10 @@ type PerformanceTrendsChartProps = {
   className?: string;
 };
 
-export function PerformanceTrendsChart({ trends, className }: PerformanceTrendsChartProps) {
+export function PerformanceTrendsChart({
+  trends,
+  className,
+}: PerformanceTrendsChartProps) {
   const max = Math.max(1, ...trends.map((t) => t.connected + t.failed));
 
   return (
@@ -16,7 +19,10 @@ export function PerformanceTrendsChart({ trends, className }: PerformanceTrendsC
       <div className="relative flex h-[280px] w-full items-end justify-between gap-1 border-b border-l border-outline-variant/20 px-1 pb-1">
         <div className="pointer-events-none absolute inset-0 flex flex-col justify-between py-2">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="w-full border-t border-dashed border-outline-variant/10" />
+            <div
+              key={i}
+              className="w-full border-t border-dashed border-outline-variant/10"
+            />
           ))}
         </div>
         {trends.map((point) => {
@@ -26,12 +32,12 @@ export function PerformanceTrendsChart({ trends, className }: PerformanceTrendsC
           return (
             <div
               key={point.label}
-              className="group relative flex w-[10%] min-w-[28px] max-w-[48px] flex-col justify-end"
+              className="group relative flex h-full min-w-0 flex-1 flex-col justify-end"
               title={`${point.label}: ${point.connected} delivered, ${point.failed} failed`}
             >
               <div
                 className="relative w-full rounded-t-lg bg-champagne transition-all group-hover:opacity-90"
-                style={{ height: `${Math.max(heightPct, 4)}%` }}
+                style={{ height: `${total > 0 ? Math.max(heightPct, 4) : 0}%` }}
               >
                 <div
                   className="absolute bottom-0 w-full rounded-t-lg bg-gradient-to-t from-emerald-muted to-sage"
@@ -47,9 +53,15 @@ export function PerformanceTrendsChart({ trends, className }: PerformanceTrendsC
         })}
       </div>
       <div className="mt-3 flex justify-between text-[12px] font-medium text-taupe">
-        {trends.map((t) => (
-          <span key={t.label}>{t.label}</span>
-        ))}
+        {trends
+          .filter(
+            (_, index) =>
+              index % Math.max(1, Math.ceil(trends.length / 7)) === 0 ||
+              index === trends.length - 1,
+          )
+          .map((t) => (
+            <span key={t.label}>{t.label}</span>
+          ))}
       </div>
     </div>
   );

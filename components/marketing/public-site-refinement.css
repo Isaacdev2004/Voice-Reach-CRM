@@ -1118,7 +1118,7 @@
   }
 }
 .public-pricing-plans .public-plan-heading {
-  min-height: 160px;
+  min-height: 60px;
 }
 .public-pricing-plans article[class*="border-[3px]"] {
   background: #8e5c39;
@@ -1168,3 +1168,86 @@
 .public-pricing-plans #pricing button[aria-pressed="false"] {
   color: #62574f;
 }
+
+/* Keep plan names and prices visible before supporting detail. */
+.public-pricing-hero {
+  padding-block: 22px;
+  gap: 36px;
+}
+.public-pricing-hero h1 {
+  font-size: clamp(32px, 3vw, 42px);
+  margin-bottom: 12px;
+}
+.public-pricing-hero p:not(.public-eyebrow) {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+.public-pricing-photo {
+  height: 220px;
+}
+.public-pricing-plans #pricing {
+  padding-top: 12px;
+}
+.public-pricing-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  text-align: left;
+}
+.public-pricing-intro p {
+  margin: 4px 0 0;
+  padding: 0;
+  font-size: 15px;
+}
+.public-pricing-plans #pricing .public-pricing-intro > div {
+  margin-top: 0;
+}
+.public-pricing-intro > div:last-child {
+  flex-shrink: 0;
+}
+.public-pricing-plans #pricing > div > div:nth-child(2) {
+  margin-top: 24px;
+}
+.public-pricing-plans .public-plan-heading h3 {
+  margin-top: 0;
+  color: inherit;
+}
+.public-pricing-plans .public-plan-heading + div {
+  margin-top: 12px;
+}
+.public-plan-value {
+  margin-top: 16px;
+  min-height: 100px;
+  border-top: 1px solid #b89b7c55;
+  padding-top: 12px;
+}
+.public-plan-value p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+.public-plan-value p + p {
+  margin-top: 6px;
+}
+.public-pricing-plans #pricing article > a[href^="/sign-up"] {
+  margin-top: 14px;
+}
+@media (max-width: 767px) {
+  .public-pricing-intro {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .public-pricing-photo {
+    height: 190px;
+  }
+  .public-plan-value {
+    min-height: 0;
+  }
+}
+.public-site .public-pricing-plans article .public-plan-heading {
+  padding-block: 0;
+}
+
+.public-editorial-watch { margin-top: 12px; }

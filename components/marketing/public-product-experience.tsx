@@ -181,7 +181,6 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
               ))}
             </div>
           </section>
-          {home && <WalkthroughButton preview />}
           <section
             className="public-dashboard-editorial landing-shell"
             aria-labelledby="dashboard-showcase-title"
@@ -239,6 +238,11 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
               <Link href="/features" className="public-solid-button">
                 Explore MyARI <span aria-hidden="true">→</span>
               </Link>
+              {home && (
+                <div className="public-editorial-watch">
+                  <WalkthroughButton editorial />
+                </div>
+              )}
             </div>
           </section>
           <section
