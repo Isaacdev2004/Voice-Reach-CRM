@@ -28,12 +28,10 @@ const { chromium } = require("playwright"),
   });
   const cssRoot = path.join(root, ".next/static/css");
   const iconFont = process.env.CONTACTS_ICON_FONT;
-  const reviewFonts = process.env.REVIEW_FONTS_DIR;
   const css =
     (iconFont
       ? "@font-face{font-family:'Material Symbols Outlined';src:url(/review-icons.ttf)}.material-symbols-outlined{font-family:'Material Symbols Outlined'}"
       : "") +
-    (reviewFonts ? fs.readFileSync(path.join(reviewFonts,"faces.css"),"utf8") : "") +
     fs
       .readdirSync(cssRoot)
       .filter((x) => x.endsWith(".css"))
@@ -79,9 +77,9 @@ const { chromium } = require("playwright"),
       return res.end();
     }
     const local = file.startsWith("/review-fonts/")
-      ? path.join(reviewFonts || path.join(root,".next/static/media"), path.basename(file))
+      ? path.join(root, ".next/static/media", path.basename(file))
       : path.resolve(root, "public", "." + file);
-    if (!local.startsWith(root + path.sep) && !(reviewFonts && local.startsWith(path.resolve(reviewFonts)+path.sep))) {
+    if (!local.startsWith(root + path.sep)) {
       res.statusCode = 403;
       return res.end();
     }
@@ -99,10 +97,10 @@ const { chromium } = require("playwright"),
     args: ["--no-sandbox"],
   });
   const results = [];
-  const output = path.join(root, "docs/calendar-reference");
+  const output = path.join(root, "docs/calendar-premium");
   fs.mkdirSync(output, { recursive: true });
   try {
-    for (const width of [1536, 1440, 1920, 768, 390]) {
+    for (const width of [1440, 1920, 768, 390]) {
       const page = await browser.newPage({ viewport: { width, height: 1050 } }),
         errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
@@ -114,7 +112,7 @@ const { chromium } = require("playwright"),
         .first()
         .waitFor();
       await page
-        .getByRole("heading", { name: "Plan today. Close tomorrow." })
+        .getByRole("heading", { name: "Make every moment count." })
         .waitFor();
       assert.equal(
         await page.evaluate(
@@ -209,7 +207,7 @@ const { chromium } = require("playwright"),
           .locator(".calendar-event")
           .filter({ hasText: "Synthetic appointment" });
         const target = page.getByRole("button", {
-          name: "Schedule 2026-10-23 16:00",
+          name: "Schedule 2026-10-23 14:00",
           exact: true,
         });
         await draggable.dragTo(target);

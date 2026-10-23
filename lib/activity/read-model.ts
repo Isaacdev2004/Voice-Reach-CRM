@@ -8,7 +8,6 @@ import {
   timelinePage,
   type ActivityItem,
 } from "./model";
-import { relatedContactIds } from "@/lib/notes/workspace";
 import { evidenceEnabled } from "@/lib/delivery/store";
 import type { DeliveryMessage, DeliveryEvent } from "@/lib/delivery/types";
 type Event = {
@@ -62,10 +61,7 @@ export async function readContactActivity(
         body: string;
         created_at: string;
         updated_at?: string;
-        kind: "note" | "strategy" | "goal";
-        contact_id?: string;
-        metadata?: unknown;
-      }>("contact_notes", "*", owner),
+      }>("contact_notes", "*", owner, undefined, extra),
       ownedRows<{
         id: string;
         campaign_id: string;
@@ -183,14 +179,13 @@ export async function readContactActivity(
         : "Open",
       href: `/dashboard/contacts/${contact}`,
     });
-  for (const n of notes.filter((n) => relatedContactIds(n).includes(contact)))
+  for (const n of notes)
     items.push({
       id: "note:" + n.id,
       type: "note",
       title: n.title || "Contact note",
       at: n.updated_at ?? n.created_at,
       status: "Saved note",
-      href: `/dashboard/notes?note=${n.id}`,
       detail: n.body.slice(0, 500),
     });
   const campaigns = await ownedRows<{

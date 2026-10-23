@@ -22,7 +22,6 @@ const initial = [
     id: id(50),
     crmEventId: id(50),
     title: "Buyer consultation",
-    appointmentType: "buyer_consultation",
     starts_at: day + "T13:00:00.000Z",
     ends_at: day + "T14:00:00.000Z",
     source: "crm",
@@ -37,7 +36,6 @@ const initial = [
     id: id(51),
     crmEventId: id(51),
     title: "Listing photography",
-    appointmentType: "listing_appointment",
     starts_at: day + "T13:30:00.000Z",
     ends_at: day + "T14:30:00.000Z",
     source: "crm",
@@ -70,35 +68,6 @@ const initial = [
     endDate: "2026-10-23",
   },
 ];
-// Additional synthetic appointments demonstrate the reference composition only in local QA.
-// They never seed subscriber records or appear in production bundles.
-for (const [n, date, hour, title, type] of [
-  [60, "2026-10-19", 8, "Team planning", "meeting"],
-  [61, "2026-10-19", 10, "Buyer consultation prep", "buyer_consultation"],
-  [62, "2026-10-19", 14, "Marketing review", "listing_appointment"],
-  [63, "2026-10-20", 8, "Listing photographs", "listing_appointment"],
-  [64, "2026-10-20", 12, "Property review", "showing"],
-  [65, "2026-10-20", 15, "Client showing", "showing"],
-  [66, "2026-10-21", 8, "Client check-in", "meeting"],
-  [67, "2026-10-21", 11, "Listing presentation", "listing_appointment"],
-  [68, "2026-10-21", 14, "Contract review", "buyer_consultation"],
-  [69, "2026-10-23", 9, "Property showing", "showing"],
-  [70, "2026-10-23", 14, "Buyer follow-up", "meeting"],
-  [71, "2026-10-24", 9, "Open house preparation", "listing_appointment"],
-  [72, "2026-10-24", 11, "Team check-in", "meeting"],
-])
-  initial.push({
-    id: id(n),
-    crmEventId: id(n),
-    title,
-    appointmentType: type,
-    starts_at: date + "T" + String(hour + 4).padStart(2, "0") + ":00:00.000Z",
-    ends_at: date + "T" + String(hour + 5).padStart(2, "0") + ":00:00.000Z",
-    source: "crm",
-    calendarKey: "crm",
-    version: "v1",
-    editable: true,
-  });
 const response = (d, status = 200) =>
   new Response(JSON.stringify(d), {
     status,
@@ -299,7 +268,7 @@ w.fetch = async (input, init = {}) => {
       ],
       nextCursor: null,
       limitations: [],
-      timezone: "America/New_York",
+      timezone:"America/New_York",
     });
   if (path.endsWith("/tasks")) return response({ tasks: [] });
   if (path === "/api/health")
