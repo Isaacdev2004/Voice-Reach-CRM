@@ -22,6 +22,8 @@ export type TaskTableRow = {
   completed_at?: string | null;
   notes?: string | null;
   contact_id: string;
+  source_note_id?: string | null;
+  priority?: string | null;
   contacts?: {
     id: string;
     first_name: string;
@@ -93,6 +95,7 @@ export function TaskListTable({ tasks, completed = false, onToggleComplete }: Ta
                   >
                     {task.title}
                   </p>
+                  {task.source_note_id ? <Link href={`/dashboard/notes?note=${task.source_note_id}`} className="text-[11px] text-rose-gold-deep hover:underline">Source note →</Link> : null}
                   {!completed ? (
                     <p className="mt-0.5 line-clamp-2 text-[12px] text-slate-text">{sub}</p>
                   ) : null}
@@ -161,6 +164,7 @@ export function TaskListTable({ tasks, completed = false, onToggleComplete }: Ta
                       >
                         {task.title}
                       </p>
+                      {task.source_note_id ? <Link href={`/dashboard/notes?note=${task.source_note_id}`} className="text-[11px] text-rose-gold-deep hover:underline">Source note →</Link> : null}
                       {!completed ? (
                         <p className="mt-0.5 line-clamp-1 text-[12px] text-slate-text">{sub}</p>
                       ) : null}
@@ -236,6 +240,7 @@ export function TaskGridCards({
               ) : null}
             </div>
             <p className="mt-2 font-medium text-ink">{task.title}</p>
+            {task.source_note_id ? <Link href={`/dashboard/notes?note=${task.source_note_id}`} className="text-[11px] text-rose-gold-deep hover:underline">Source note →</Link> : null}
             <p className="mt-2 text-[12px] text-taupe">{formatTaskDue(task.due_at)}</p>
             <div className="mt-3 flex items-center justify-between text-[12px]">
               <PriorityCell priority={priority} />

@@ -352,8 +352,6 @@ w.fetch = async (input, init = {}) => {
       ),
     });
   }
-  if (url.pathname === "/api/contacts")
-    return response({ success: true, complete: true, contacts: [], total: 0 });
   return response(
     { success: false, error: "Not part of the isolated fixture" },
     404,

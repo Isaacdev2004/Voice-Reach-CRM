@@ -978,12 +978,25 @@ function CalendarWorkspace() {
                               aria-label={`${i.title}, ${formatClock(i.starts_at, prefs.timezone, prefs.hour24)}`}
                               style={
                                 {
-                                  top,
-                                  height: Math.max(18, bottom - top - 2),
+                                  top: top * MINUTE_PX,
+                                  height: Math.max(
+                                    18,
+                                    (bottom - top) * MINUTE_PX - 2,
+                                  ),
                                   left: `calc(${(lane / lanes) * 100}% + 2px)`,
                                   width: `calc(${100 / lanes}% - 4px)`,
                                   "--event-color":
                                     prefs.colors[i.calendarKey] ??
+                                    (i.source === "crm"
+                                      ? (
+                                          {
+                                            meeting: "#79a1d0",
+                                            showing: "#78a1d0",
+                                            buyer_consultation: "#a38bcf",
+                                            listing_appointment: "#b7936f",
+                                          } as Record<string, string>
+                                        )[i.appointmentType ?? ""]
+                                      : undefined) ??
                                     data.calendars.find(
                                       (c) => c.key === i.calendarKey,
                                     )?.color ??
@@ -1007,6 +1020,24 @@ function CalendarWorkspace() {
                                 }
                               }}
                             >
+                              <span
+                                className="calendar-event-icon"
+                                aria-hidden="true"
+                              >
+                                <Icon
+                                  name={
+                                    i.source === "task"
+                                      ? "task_alt"
+                                      : i.source === "callback"
+                                        ? "call"
+                                        : i.appointmentType === "showing"
+                                          ? "home"
+                                          : i.source === "reminder"
+                                            ? "notifications"
+                                            : "event"
+                                  }
+                                />
+                              </span>
                               <time>
                                 {formatClock(
                                   i.starts_at,
@@ -1031,7 +1062,7 @@ function CalendarWorkspace() {
                         {day === today.date ? (
                           <div
                             className="calendar-now"
-                            style={{ top: today.minutes }}
+                            style={{ top: today.minutes * MINUTE_PX }}
                             aria-label="Current time"
                           />
                         ) : null}

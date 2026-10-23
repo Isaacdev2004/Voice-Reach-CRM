@@ -24,7 +24,10 @@
     "test:delivery": "node --import tsx scripts/delivery-analytics.test.ts && node scripts/delivery-routes.test.cjs",
     "test:delivery-browser": "node scripts/delivery-browser.test.cjs",
     "test:calendar": "node scripts/calendar-workspace.test.cjs",
-    "test:calendar-browser": "node scripts/calendar-browser.test.cjs"
+    "test:calendar-browser": "node scripts/calendar-browser.test.cjs",
+    "test:notes": "node scripts/notes-workspace.test.cjs",
+    "test:notes-db": "node scripts/notes-database.test.cjs",
+    "test:notes-browser": "node scripts/notes-browser.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",

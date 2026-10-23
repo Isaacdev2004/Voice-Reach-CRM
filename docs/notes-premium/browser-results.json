@@ -1,0 +1,79 @@
+[
+  {
+    "width": 1440,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "responsive editor/library/context",
+      "auto-save",
+      "microphone denial",
+      "synthetic speech and original preservation",
+      "approved task creation",
+      "AI approval gate",
+      "combined search empty state"
+    ]
+  },
+  {
+    "width": 1920,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "responsive editor/library/context",
+      "auto-save",
+      "microphone denial",
+      "synthetic speech and original preservation",
+      "approved task creation",
+      "AI approval gate",
+      "combined search empty state"
+    ]
+  },
+  {
+    "width": 768,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "responsive editor/library/context",
+      "auto-save",
+      "microphone denial",
+      "synthetic speech and original preservation",
+      "approved task creation",
+      "AI approval gate",
+      "combined search empty state"
+    ]
+  },
+  {
+    "width": 390,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "responsive editor/library/context",
+      "auto-save",
+      "microphone denial",
+      "synthetic speech and original preservation",
+      "approved task creation",
+      "AI approval gate",
+      "combined search empty state"
+    ]
+  },
+  {
+    "checks": [
+      "formatting and safe rendered preview",
+      "stable-ID contact mention",
+      "combined category/tag/contact/search filters",
+      "version restoration creates new save",
+      "built-in template and reusable custom template",
+      "pin persistence",
+      "confirmed note deletion",
+      "daily/weekly/monthly planner navigation"
+    ]
+  },
+  {
+    "checks": [
+      "save failure recovery",
+      "stale revision conflict",
+      "load newer server version",
+      "second isolated browser session reads saved note",
+      "tenant switch clears editor"
+    ]
+  }
+]

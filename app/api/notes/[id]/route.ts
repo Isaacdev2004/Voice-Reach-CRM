@@ -13,6 +13,7 @@ const PatchNoteSchema = z.object({
   body: z.string().max(8000).optional(),
   kind: z.enum(["note", "strategy", "goal"]).optional(),
   contactId: z.string().uuid().optional().nullable(),
+  expectedRevision: z.number().int().positive().optional(),
 });
 
 export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
@@ -21,7 +22,18 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   if (!isUuid(id)) return apiError("Invalid id", { status: 400 });
 
   const parsed = PatchNoteSchema.parse(await request.json());
-  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  const current = await supabaseAdmin
+    .from("contact_notes")
+    .select("id, revision, metadata")
+    .eq("owner_id", ownerId)
+    .eq("id", id)
+    .maybeSingle();
+  if (current.error) return apiError("Unable to load note.", { status: 503 });
+  if (!current.data) return apiError("Note not found", { status: 404 });
+  const revision = parsed.expectedRevision ?? current.data.revision;
+  const updates: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
 
   if (parsed.body !== undefined) {
     updates.body = parsed.body;
@@ -32,23 +44,41 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
 
   if (parsed.kind !== undefined) updates.kind = parsed.kind;
   if (parsed.contactId) {
-    const { data: contact, error } = await supabaseAdmin.from("contacts").select("id")
-      .eq("owner_id", ownerId).eq("id", parsed.contactId).maybeSingle();
-    if (error) return apiError("Unable to verify contact. Please retry.", { status: 503 });
+    const { data: contact, error } = await supabaseAdmin
+      .from("contacts")
+      .select("id")
+      .eq("owner_id", ownerId)
+      .eq("id", parsed.contactId)
+      .maybeSingle();
+    if (error)
+      return apiError("Unable to verify contact. Please retry.", {
+        status: 503,
+      });
     if (!contact) return apiError("Contact not found", { status: 404 });
   }
-  if (parsed.contactId !== undefined) updates.contact_id = parsed.contactId;
+  if (parsed.contactId !== undefined) {
+    updates.contact_id = parsed.contactId;
+    updates.metadata = {
+      ...current.data.metadata,
+      contactIds: parsed.contactId ? [parsed.contactId] : [],
+    };
+  }
 
   const { data, error } = await supabaseAdmin
     .from("contact_notes")
     .update(updates)
     .eq("owner_id", ownerId)
     .eq("id", id)
+    .eq("revision", revision)
     .select("*, contacts(id, first_name, last_name)")
     .maybeSingle();
 
-  if (error) return apiError(error.message, { status: 500 });
-  if (!data) return apiError("Note not found", { status: 404 });
+  if (error)
+    return apiError("Unable to update note. Please retry.", { status: 503 });
+  if (!data)
+    return apiError("A newer note version exists. Reload before editing.", {
+      status: 409,
+    });
 
   await writeAuditLog({
     ownerId,
@@ -60,25 +90,31 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   return apiOk({ note: data });
 });
 
-export const DELETE = withApiHandler<RouteContext>(async (_request, context) => {
-  const ownerId = await requireUserId();
-  const { id } = await context.params;
-  if (!isUuid(id)) return apiError("Invalid id", { status: 400 });
+export const DELETE = withApiHandler<RouteContext>(
+  async (_request, context) => {
+    const ownerId = await requireUserId();
+    const { id } = await context.params;
+    if (!isUuid(id)) return apiError("Invalid id", { status: 400 });
 
-  const { error } = await supabaseAdmin
-    .from("contact_notes")
-    .delete()
-    .eq("owner_id", ownerId)
-    .eq("id", id);
+    const { data: deleted, error } = await supabaseAdmin
+      .from("contact_notes")
+      .delete()
+      .eq("owner_id", ownerId)
+      .eq("id", id)
+      .select("id")
+      .maybeSingle();
 
-  if (error) return apiError(error.message, { status: 500 });
+    if (error)
+      return apiError("Unable to update note. Please retry.", { status: 503 });
 
-  await writeAuditLog({
-    ownerId,
-    action: "NOTE_DELETED",
-    entityType: "contact_note",
-    entityId: id,
-  });
+    if (!deleted) return apiError("Note not found.", { status: 404 });
+    await writeAuditLog({
+      ownerId,
+      action: "NOTE_DELETED",
+      entityType: "contact_note",
+      entityId: id,
+    }).catch(() => undefined);
 
-  return apiOk({ deleted: true });
-});
+    return apiOk({ deleted: true });
+  },
+);

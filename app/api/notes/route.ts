@@ -4,6 +4,9 @@ import { writeAuditLog } from "@/lib/audit";
 import { titleFromFreeform } from "@/lib/notes/freeform";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
+import { ownedRows } from "@/lib/delivery/owned-rows";
+import { relatedContactIds } from "@/lib/notes/workspace";
+import type { NoteRow } from "@/lib/notes/types";
 
 const KindSchema = z.enum(["note", "strategy", "goal"]);
 
@@ -21,26 +24,50 @@ export const GET = withApiHandler(async (request) => {
   const contactId = searchParams.get("contactId");
 
   if (contactId) {
-    const { data: contact, error } = await supabaseAdmin.from("contacts").select("id")
-      .eq("owner_id", ownerId).eq("id", contactId).maybeSingle();
-    if (error) return apiError("Unable to verify contact. Please retry.", { status: 503 });
+    const { data: contact, error } = await supabaseAdmin
+      .from("contacts")
+      .select("id")
+      .eq("owner_id", ownerId)
+      .eq("id", contactId)
+      .maybeSingle();
+    if (error)
+      return apiError("Unable to verify contact. Please retry.", {
+        status: 503,
+      });
     if (!contact) return apiError("Contact not found", { status: 404 });
   }
 
-  let query = supabaseAdmin
-    .from("contact_notes")
-    .select("*, contacts(id, first_name, last_name)")
-    .eq("owner_id", ownerId)
-    .order("updated_at", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(200);
-
-  if (kind && KindSchema.safeParse(kind).success) query = query.eq("kind", kind);
-  if (contactId) query = query.eq("contact_id", contactId);
-
-  const { data, error } = await query;
-  if (error) return apiError("Unable to load notes. Please retry.", { status: 503 });
-  return apiOk({ notes: data ?? [] });
+  if (contactId && !z.string().uuid().safeParse(contactId).success)
+    return apiError("Invalid contact", { status: 400 });
+  try {
+    const [rows, contacts] = await Promise.all([
+      ownedRows<NoteRow>("contact_notes", "*", ownerId),
+      ownedRows<{ id: string; first_name: string; last_name?: string }>(
+        "contacts",
+        "id, first_name, last_name",
+        ownerId,
+      ),
+    ]);
+    const byId = new Map(contacts.map((c) => [c.id, c]));
+    const notes = rows
+      .filter(
+        (n) =>
+          (!kind || !KindSchema.safeParse(kind).success || n.kind === kind) &&
+          (!contactId || relatedContactIds(n).includes(contactId)),
+      )
+      .sort((a, b) =>
+        (b.updated_at ?? b.created_at).localeCompare(
+          a.updated_at ?? a.created_at,
+        ),
+      )
+      .map((n) => ({
+        ...n,
+        contacts: n.contact_id ? (byId.get(n.contact_id) ?? null) : null,
+      }));
+    return apiOk({ notes });
+  } catch {
+    return apiError("Unable to load notes. Please retry.", { status: 503 });
+  }
 });
 
 export const POST = withApiHandler(async (request) => {
@@ -76,7 +103,8 @@ export const POST = withApiHandler(async (request) => {
     .select("*, contacts(id, first_name, last_name)")
     .single();
 
-  if (error) return apiError(error.message, { status: 500 });
+  if (error)
+    return apiError("Unable to save note. Please retry.", { status: 503 });
 
   await writeAuditLog({
     ownerId,
@@ -84,7 +112,7 @@ export const POST = withApiHandler(async (request) => {
     entityType: "contact_note",
     entityId: note.id,
     metadata: { kind: parsed.kind, contactId: parsed.contactId },
-  });
+  }).catch(() => undefined);
 
   return apiOk({ note }, { status: 201 });
 });
