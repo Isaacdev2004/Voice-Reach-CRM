@@ -4,9 +4,9 @@ import { LandingPage } from "@/components/pages/stitch/LandingPage";
 import { homepageSchema } from "@/lib/seo/schema";
 
 export const metadata: Metadata = {
-  title: "ARI CRM | Automated Lead Follow-Up for Realtors",
+  title: "MyARI CRM | Automated Lead Follow-Up for Real Estate Agents",
   description:
-    "ARI helps real estate agents capture, organize, and automatically follow up with leads so opportunities don't fall through the cracks. Start your 14-day free trial.",
+    "MyARI helps real estate agents capture, organize, and automatically follow up with leads so opportunities don't fall through the cracks. Start your 14-day free trial.",
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
 };

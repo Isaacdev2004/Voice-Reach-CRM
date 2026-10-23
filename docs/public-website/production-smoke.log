@@ -1,0 +1,5 @@
+
+> voicereach-backend-starter@0.1.0 test:public-production
+> node scripts/public-production-smoke.cjs
+
+48 public routes returned HTTP 200 with one H1 and a canonical link; sitemap and robots reachable in the local production build. Authentication-provider login and real contact delivery were not exercised.

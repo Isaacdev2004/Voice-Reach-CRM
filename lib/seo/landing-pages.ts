@@ -346,12 +346,12 @@ export const SEO_LANDING_PAGES: Record<SeoPageSlug, SeoLandingPageConfig> = {
     h1: "Your Old Leads Aren't Dead. Start the Conversation Again.",
     eyebrow: "Lead reactivation",
     intro:
-      "Most agents sit on hundreds of contacts who inquired months ago but never converted. Lead reactivation turns that dormant database into your lowest-cost source of new conversations - when done with segmentation and consent-aware outreach.",
+      "Most agents sit on hundreds of contacts who inquired months ago but never converted. Lead reactivation helps you revisit that dormant database for new conversations - when done with segmentation and consent-aware outreach.",
     sections: [
       {
         h2: "The opportunity already sitting in your database",
         paragraphs: [
-          "You already paid for those Zillow leads, open-house sign-ins, and website inquiries. Many went quiet - not because they weren't interested, but because life got in the way or follow-up stopped too soon.",
+          "You already paid for those Zillow leads, open-house sign-ins, and website inquiries. A quiet contact does not establish interest or disinterest. Review the actual conversation history and consent before deciding whether to follow up.",
           "Lead reactivation is structured re-engagement with a fresh, relevant message - not a one-off mass blast.",
         ],
       },

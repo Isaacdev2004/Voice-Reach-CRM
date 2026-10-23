@@ -1,0 +1,82 @@
+[
+  {
+    "route": "/",
+    "width": 1440,
+    "overflow": false,
+    "errors": 0,
+    "navigation": true,
+    "signupPlan": true
+  },
+  {
+    "route": "/",
+    "width": 1920,
+    "overflow": false,
+    "errors": 0,
+    "navigation": true,
+    "signupPlan": true
+  },
+  {
+    "route": "/",
+    "width": 1024,
+    "overflow": false,
+    "errors": 0,
+    "navigation": true,
+    "signupPlan": true
+  },
+  {
+    "route": "/",
+    "width": 768,
+    "overflow": false,
+    "errors": 0,
+    "navigation": true,
+    "signupPlan": true
+  },
+  {
+    "route": "/",
+    "width": 390,
+    "overflow": false,
+    "errors": 0,
+    "navigation": true,
+    "signupPlan": true
+  },
+  {
+    "route": "/features",
+    "width": 1440,
+    "overflow": false,
+    "errors": 0,
+    "navigation": true,
+    "signupPlan": true
+  },
+  {
+    "route": "/features",
+    "width": 1920,
+    "overflow": false,
+    "errors": 0,
+    "navigation": true,
+    "signupPlan": true
+  },
+  {
+    "route": "/features",
+    "width": 1024,
+    "overflow": false,
+    "errors": 0,
+    "navigation": true,
+    "signupPlan": true
+  },
+  {
+    "route": "/features",
+    "width": 768,
+    "overflow": false,
+    "errors": 0,
+    "navigation": true,
+    "signupPlan": true
+  },
+  {
+    "route": "/features",
+    "width": 390,
+    "overflow": false,
+    "errors": 0,
+    "navigation": true,
+    "signupPlan": true
+  }
+]

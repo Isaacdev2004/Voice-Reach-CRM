@@ -8,6 +8,7 @@ import { LEGAL_RELATED } from "@/lib/legal/links";
 export const metadata: Metadata = {
   title: "Terms of Service | ARI",
   description: `Terms of Service for ARI, operated by ${LEGAL_ENTITY_DBA}.`,
+  alternates: { canonical: "/terms" },
   robots: { index: true, follow: true },
 };
 

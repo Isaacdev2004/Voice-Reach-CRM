@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "SMS Consent & Opt-In | ARI",
   description:
     "How ARI collects prior express consent for SMS appointment reminders and relationship follow-ups. Reply STOP to opt out.",
+  alternates: { canonical: "/sms-consent" },
   robots: { index: true, follow: true },
 };
 
