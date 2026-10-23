@@ -1767,3 +1767,10 @@
 .public-site .approved-pricing-hero h1 {
   max-width: 430px;
 }
+/* Keep comparison headers aligned at tablet widths and annual CTAs compact. */
+.approved-pricing-intro { margin-bottom:16px; }
+.approved-price { margin-top:10px; }
+.public-site .approved-plan ul { padding-top:8px; margin-bottom:14px; }
+@media (min-width:768px) and (max-width:1000px) {
+  .public-site .public-prose .approved-pricing .approved-plan header { min-height:85px; }
+}
