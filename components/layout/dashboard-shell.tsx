@@ -178,7 +178,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <SetupBanner />
               {isPropertyFinderRoute ||
               isCampaignLibraryRoute ||
-              (normalizedPath === "/dashboard/notes" || normalizedPath === "/dashboard/tasks") ? (
+              [
+                "/dashboard/notes",
+                "/dashboard/tasks",
+                "/dashboard/activity",
+                "/dashboard/voice-scripts",
+                "/dashboard/settings",
+              ].includes(normalizedPath) ? (
                 <div className={DASHBOARD_MAIN_COLUMN}>{children}</div>
               ) : (
                 <div className={DASHBOARD_MAIN_COLUMN}>
@@ -207,6 +213,11 @@ export function DashboardShell({ children }: DashboardShellProps) {
           {normalizedPath !== "/dashboard" &&
           normalizedPath !== "/dashboard/contacts" &&
           normalizedPath !== "/dashboard/tasks" &&
+          ![
+            "/dashboard/settings",
+            "/dashboard/activity",
+            "/dashboard/voice-scripts",
+          ].includes(normalizedPath) &&
           !isPropertyFinderRoute &&
           !isCampaignLibraryRoute ? (
             <AiFloatingButton />

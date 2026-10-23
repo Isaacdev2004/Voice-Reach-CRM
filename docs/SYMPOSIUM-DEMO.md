@@ -57,3 +57,7 @@ Reference-layout evidence is under `docs/financing-studio/reference-layout` and 
 ## Tasks workspace demo
 
 Review [Tasks screenshots and release gates](tasks-workspace/REVIEW.md). Use synthetic staging data with outbound off. Demonstrate compact list/board/focus, real KPI filters, a reviewed custom checklist and a blocked milestone. Complete the prerequisite, then the next milestone; show the same tasks in Contacts/Calendar and real tracker progress. Review/edit an AI proposal before approving it; do not imply that dictation, AI, live provider sync or background reminders have been verified without their separate staging checks. The database workspace update is a migration, not a paid plan upgrade.
+
+## Premium Studio / Activity / Settings demo
+
+Use the isolated synthetic screenshots in `docs/studio-activity-review`, not production subscribers. Show read-only Test Voice Script and synthetic text personalization; explain that prerecorded audio is unchanged and provider acceptance is not delivery. Demonstrate Settings profile tabs, private branding previews and derived onboarding progress. Do not describe roster entries as real invitations, browser references as working API keys, or keyword suggestions as AI-verified intent. Keep live outbound off and do not send, call, charge or modify provider configuration. Authenticated staging/provider verification and migrations remain release gates.

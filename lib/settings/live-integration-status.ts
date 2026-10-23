@@ -24,7 +24,7 @@ export async function applyLiveIntegrationStatus(
         connected: providers.sms,
         accountLabel: providers.sms ? "Workspace configured" : undefined,
         secretHint: undefined,
-        lastSync: providers.sms ? new Date().toISOString() : undefined,
+        lastSync: undefined,
       };
     }
     if (id === "resend") {
@@ -35,7 +35,7 @@ export async function applyLiveIntegrationStatus(
         connected: providers.email,
         accountLabel: providers.email ? "Workspace configured" : undefined,
         secretHint: undefined,
-        lastSync: providers.email ? new Date().toISOString() : undefined,
+        lastSync: undefined,
       };
     }
     if (id === "slybroadcast") {
@@ -46,7 +46,7 @@ export async function applyLiveIntegrationStatus(
         connected: providers.voicemail,
         accountLabel: providers.voicemail ? "Workspace configured" : undefined,
         secretHint: undefined,
-        lastSync: providers.voicemail ? new Date().toISOString() : undefined,
+        lastSync: undefined,
       };
     }
     if (id === "slack") {
@@ -89,7 +89,7 @@ export async function applyLiveIntegrationStatus(
         ...item,
         connected: true,
         accountLabel: dotloop.account_label ?? "Dotloop account",
-        lastSync: dotloop.updated_at ?? new Date().toISOString(),
+        lastSync: undefined,
       };
     }
     if (id === "claude") {
@@ -99,9 +99,14 @@ export async function applyLiveIntegrationStatus(
         accountLabel: claudeReady
           ? process.env.ANTHROPIC_MODEL?.trim() || "claude-sonnet-4-5"
           : undefined,
-        lastSync: claudeReady ? new Date().toISOString() : undefined,
+        lastSync: undefined,
       };
     }
-    return item;
+    return {
+      ...item,
+      connected: false,
+      accountLabel: undefined,
+      lastSync: undefined,
+    };
   });
 }

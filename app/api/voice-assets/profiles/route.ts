@@ -48,18 +48,19 @@ export const GET = withApiHandler(async () => {
 const LinkVoiceSchema = z.object({
   label: z.string().min(2).max(80),
   providerVoiceId: z.string().min(8).max(80),
+  consent:z.literal(true),
   sampleAssetId: z.string().uuid().optional().nullable(),
 });
 
 export const POST = withApiHandler(async (request) => {
+  const ownerId = await requireUserId();
   if (!isElevenLabsConfigured()) {
-    return apiError("ElevenLabs is not configured. Add ELEVENLABS_API_KEY to Vercel environment variables.", {
+    return apiError("Voice linking is currently unavailable. Ask your workspace administrator to check the provider connection.", {
       status: 503,
       code: "elevenlabs_not_configured",
     });
   }
 
-  const ownerId = await requireUserId();
   const body = LinkVoiceSchema.parse(await request.json());
   const voiceId = body.providerVoiceId.trim();
 
@@ -71,19 +72,8 @@ export const POST = withApiHandler(async (request) => {
     );
   }
 
-  const { data: profile, error } = await supabaseAdmin
-    .from("voice_profiles")
-    .insert({
-      owner_id: ownerId,
-      provider: "elevenlabs",
-      provider_voice_id: voiceId,
-      label: body.label.trim(),
-      sample_asset_id: body.sampleAssetId ?? null,
-    })
-    .select("id, label, provider_voice_id, sample_asset_id, created_at")
-    .single();
-
-  if (error) return apiError(error.message, { status: 500 });
+  const {data:profile,error}=await supabaseAdmin.rpc("claim_subscriber_voice",{p_owner:ownerId,p_voice:voiceId,p_label:body.label.trim(),p_sample:body.sampleAssetId??null});
+  if(error)return apiError("This voice could not be linked to your account. Check authorization and the Voice Studio database update.",{status:409});
 
   await writeAuditLog({
     ownerId,

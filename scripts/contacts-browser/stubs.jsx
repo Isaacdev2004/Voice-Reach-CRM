@@ -15,4 +15,4 @@ export const useUser = () => {
  React.useEffect(()=>{const changed=()=>rerender(v=>v+1);window.addEventListener('review:auth',changed);return()=>window.removeEventListener('review:auth',changed)},[]);
  return {user:{...user,id:window.__owner || 'owner_a'},isLoaded:true,isSignedIn:true};
 };
-export const useClerk = () => ({signOut:async()=>{}});
+export const useClerk = () => ({signOut:async()=>{},openUserProfile:()=>{window.__securityOpened=true}});

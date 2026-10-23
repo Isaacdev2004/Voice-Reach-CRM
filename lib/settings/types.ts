@@ -1,10 +1,20 @@
-export type SettingsTab = "profile" | "workspace" | "api" | "team" | "billing";
+import type { BrandKit } from "./brand-kit";
+export type SettingsTab =
+  | "profile"
+  | "workspace"
+  | "api"
+  | "team"
+  | "billing"
+  | "integrations"
+  | "notifications"
+  | "brand";
 
 export type UserProfileSettings = {
   fullName: string;
   phone: string;
   timezone: string;
   jobTitle: string;
+  language?: string;
   avatarUrl?: string;
 };
 
@@ -67,6 +77,7 @@ export type SecuritySettings = {
 };
 
 export type UserSettings = {
+  brandKit?: BrandKit;
   profile: UserProfileSettings;
   workspace: WorkspaceSettings;
   integrations: IntegrationConfig[];
@@ -81,6 +92,12 @@ export type UserSettings = {
 };
 
 export type SettingsResponse = {
+  profileSync?: boolean;
+  billingVerification?: {
+    verified: boolean;
+    status: string;
+    checkedAt?: string;
+  };
   settings: UserSettings;
   email: string;
   clerkImageUrl?: string;

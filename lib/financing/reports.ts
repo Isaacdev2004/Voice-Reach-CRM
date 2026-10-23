@@ -1,6 +1,11 @@
 import { calculate, DISCLOSURE, usd, type Calculation } from "./calculators";
 import type { Partner, ReportContext } from "./schemas";
 export type Branding = {
+  logo?: string;
+  email?: string;
+  website?: string;
+  license?: string;
+  disclosures?: string;
   name: string;
   phone: string;
   headshot: string;
@@ -30,6 +35,12 @@ export function reportLines(
       "PRELIMINARY ESTIMATE",
       `Prepared: ${context.preparedDate || new Date().toISOString().slice(0, 10)}`,
       `Prepared by: ${[branding.name, branding.jobTitle, branding.brokerage, branding.phone].filter(Boolean).join(" | ") || "Not provided"}`,
+      ...(branding.email ? [`Email: ${branding.email}`] : []),
+      ...(branding.website ? [`Website: ${branding.website}`] : []),
+      ...(branding.license ? [`License: ${branding.license}`] : []),
+      ...(branding.disclosures
+        ? [`Advertising disclosures: ${branding.disclosures}`]
+        : []),
       `Client: ${client ? [client.first_name, client.last_name].filter(Boolean).join(" ") : "Not selected"}`,
       `Property: ${context.address || "Not provided"}`,
       `Location: ${[context.county, context.state].filter(Boolean).join(", ") || "Not provided"}`,

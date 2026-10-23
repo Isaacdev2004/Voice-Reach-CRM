@@ -3,10 +3,10 @@ import type { SettingsResponse, UserSettings } from "./types";
 
 const STORAGE_KEY = "voicereach-user-settings";
 
-export function loadSettingsLocal(): UserSettings {
-  if (typeof window === "undefined") return DEFAULT_SETTINGS;
+export function loadSettingsLocal(ownerId?: string): UserSettings {
+  if (typeof window === "undefined" || !ownerId) return DEFAULT_SETTINGS;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(`${STORAGE_KEY}:${ownerId}`);
     if (!raw) return DEFAULT_SETTINGS;
     return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } as UserSettings;
   } catch {
@@ -14,8 +14,9 @@ export function loadSettingsLocal(): UserSettings {
   }
 }
 
-export function saveSettingsLocal(settings: UserSettings) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+export function saveSettingsLocal(settings: UserSettings, ownerId?: string) {
+  if (!ownerId) return;
+  localStorage.setItem(`${STORAGE_KEY}:${ownerId}`, JSON.stringify(settings));
 }
 
 export async function fetchSettings(): Promise<SettingsResponse> {
@@ -25,7 +26,9 @@ export async function fetchSettings(): Promise<SettingsResponse> {
   return data;
 }
 
-export async function persistSettings(settings: UserSettings): Promise<SettingsResponse> {
+export async function persistSettings(
+  settings: UserSettings,
+): Promise<SettingsResponse> {
   const res = await fetch("/api/settings", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -36,7 +39,11 @@ export async function persistSettings(settings: UserSettings): Promise<SettingsR
   return data;
 }
 
-export function generateApiKey(): { id: string; fullKey: string; record: UserSettings["apiKeys"][0] } {
+export function generateApiKey(): {
+  id: string;
+  fullKey: string;
+  record: UserSettings["apiKeys"][0];
+} {
   const id = `key-${crypto.randomUUID()}`;
   const fullKey = `vr_live_${crypto.randomUUID().replace(/-/g, "").slice(0, 24)}`;
   return {

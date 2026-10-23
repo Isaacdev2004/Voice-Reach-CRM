@@ -1,3 +1,4 @@
+import { subscriberBranding } from "@/lib/settings/branding-service";
 import { apiSuccess } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -8,6 +9,7 @@ export const GET = financingHandler(async () => {
   const owner = await requireUserId();
   const contacts = await readContactSnapshot(supabaseAdmin, owner);
   const s = await loadSavedSettings(owner);
+  const brand = await subscriberBranding(owner);
   return apiSuccess({
     contacts: contacts.map((c) => ({
       id: c.id,
@@ -20,11 +22,28 @@ export const GET = financingHandler(async () => {
       budget: c.budget,
     })),
     branding: {
-      name: s?.profile.fullName ?? "",
-      phone: s?.profile.phone ?? "",
-      headshot: s?.profile.avatarUrl ?? "",
-      brokerage: s?.workspace.name ?? "",
-      jobTitle: s?.profile.jobTitle ?? "",
+      name: brand.kit.approved
+        ? brand.kit.agentName
+        : (s?.profile.fullName ?? ""),
+      phone: brand.kit.approved ? brand.kit.phone : (s?.profile.phone ?? ""),
+      headshot: brand.kit.approved
+        ? brand.headshotUrl
+        : (s?.profile.avatarUrl ?? ""),
+      brokerage: brand.kit.approved
+        ? brand.kit.businessName
+        : (s?.workspace.name ?? ""),
+      jobTitle: brand.kit.approved
+        ? brand.kit.jobTitle
+        : (s?.profile.jobTitle ?? ""),
+      ...(brand.kit.approved
+        ? {
+            logo: brand.logoUrl,
+            email: brand.kit.email,
+            website: brand.kit.website,
+            license: brand.kit.licenseNumber,
+            disclosures: brand.kit.disclosures,
+          }
+        : {}),
     },
   });
 });

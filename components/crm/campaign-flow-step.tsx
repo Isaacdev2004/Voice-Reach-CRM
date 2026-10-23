@@ -1,5 +1,6 @@
 "use client";
 
+import { CampaignVoiceTest } from "@/components/voice-studio/campaign-voice-test";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import type { CampaignStep, CampaignStepStatus } from "@/lib/crm/types";
@@ -94,6 +95,13 @@ export function CampaignFlowStep({
           "ring-2 ring-dashed ring-rose-gold/25 border-rose-gold/20",
       )}
     >
+      {isVoicemail && (
+        <CampaignVoiceTest
+          assetId={step.voiceAssetId}
+          campaignName="Campaign sequence"
+          stepName={step.title}
+        />
+      )}
       {editable ? (
         <div className="absolute right-2 top-2 flex gap-1">
           {onEdit ? (

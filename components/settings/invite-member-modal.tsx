@@ -1,6 +1,11 @@
 "use client";
 
-import { Modal, ModalField, ModalFooterActions, modalInputClass } from "@/components/crm/modal";
+import {
+  Modal,
+  ModalField,
+  ModalFooterActions,
+  modalInputClass,
+} from "@/components/crm/modal";
 import type { TeamMember } from "@/lib/settings/types";
 import { useState } from "react";
 
@@ -10,7 +15,11 @@ type InviteMemberModalProps = {
   onInvite: (member: TeamMember) => void;
 };
 
-export function InviteMemberModal({ open, onClose, onInvite }: InviteMemberModalProps) {
+export function InviteMemberModal({
+  open,
+  onClose,
+  onInvite,
+}: InviteMemberModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<TeamMember["role"]>("user");
@@ -26,7 +35,7 @@ export function InviteMemberModal({ open, onClose, onInvite }: InviteMemberModal
     e.preventDefault();
     if (!name.trim() || !email.trim()) return;
     setSending(true);
-    await new Promise((r) => setTimeout(r, 600));
+
     onInvite({
       id: `tm-${crypto.randomUUID()}`,
       name: name.trim(),
@@ -46,14 +55,14 @@ export function InviteMemberModal({ open, onClose, onInvite }: InviteMemberModal
         reset();
         onClose();
       }}
-      title="Invite team member"
-      description="They'll receive an email to join your workspace."
+      title="Add team roster member"
+      description="Organize a collaborator in your roster. This does not send an invitation or grant sign-in access; workspace access requires a supported organization service."
       icon="person_add"
       size="md"
       footer={
         <ModalFooterActions
           onCancel={onClose}
-          primaryLabel="Send invite"
+          primaryLabel="Add roster member"
           onPrimary={() => {}}
           primaryType="submit"
           formId="invite-member-form"
@@ -62,7 +71,11 @@ export function InviteMemberModal({ open, onClose, onInvite }: InviteMemberModal
         />
       }
     >
-      <form id="invite-member-form" onSubmit={handleSubmit} className="space-y-4">
+      <form
+        id="invite-member-form"
+        onSubmit={handleSubmit}
+        className="space-y-4"
+      >
         <ModalField label="Full name" required>
           <input
             className={modalInputClass}

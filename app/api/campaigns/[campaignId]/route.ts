@@ -210,6 +210,7 @@ const PatchSchema = z.object({
   voiceAssetId: z.string().uuid().nullable().optional(),
   /** When set with voiceAssetId, link that recording to this voicemail step */
   stepId: z.string().uuid().optional().nullable(),
+  assignmentConfirmed: z.boolean().optional(),
   name: z.string().min(1).optional(),
   /** mock = simulation; any other id (e.g. slybroadcast) = live when ALLOW_LIVE_OUTBOUND=true */
   provider: z.string().min(1).optional(),
@@ -231,15 +232,33 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     null;
 
   if (body.voiceAssetId) {
+    const assignedCampaign = await supabaseAdmin
+      .from("campaigns")
+      .select("live_launched")
+      .eq("owner_id", ownerId)
+      .eq("id", campaignId)
+      .maybeSingle();
+    if (assignedCampaign.error)
+      return apiError("Campaign could not be verified.", { status: 503 });
+    if (!assignedCampaign.data)
+      return apiError("Campaign not found.", { status: 404 });
+    if (assignedCampaign.data.live_launched && !body.assignmentConfirmed)
+      return apiError("Confirm the recording change for this live campaign.", {
+        status: 409,
+      });
     const { data: asset, error: assetError } = await supabaseAdmin
       .from("voice_assets")
-      .select("id, approved")
+      .select("id, approved, storage_path")
       .eq("id", body.voiceAssetId)
       .eq("owner_id", ownerId)
       .maybeSingle();
 
     if (assetError) return apiError(assetError.message, { status: 500 });
     if (!asset) return apiError("Voice asset not found", { status: 404 });
+    if (!asset.storage_path?.startsWith(`${ownerId}/`))
+      return apiError("Recording storage could not be verified.", {
+        status: 400,
+      });
     if (!asset.approved) {
       return apiError(
         "Approve the voice recording before linking it to a campaign.",

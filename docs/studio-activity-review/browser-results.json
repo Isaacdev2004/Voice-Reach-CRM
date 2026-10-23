@@ -1,0 +1,87 @@
+[
+  {
+    "width": 1440,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "draft save",
+      "exact step selection does not assign",
+      "safe preview",
+      "KPI filtering",
+      "search empty results",
+      "event details",
+      "conversation inbox",
+      "Settings profile and tabs",
+      "Brand Kit approval and cross-session persistence",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 1536,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "draft save",
+      "exact step selection does not assign",
+      "safe preview",
+      "KPI filtering",
+      "search empty results",
+      "event details",
+      "conversation inbox",
+      "Settings profile and tabs",
+      "Brand Kit approval and cross-session persistence",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 1920,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "draft save",
+      "exact step selection does not assign",
+      "safe preview",
+      "KPI filtering",
+      "search empty results",
+      "event details",
+      "conversation inbox",
+      "Settings profile and tabs",
+      "Brand Kit approval and cross-session persistence",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 768,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "draft save",
+      "exact step selection does not assign",
+      "safe preview",
+      "KPI filtering",
+      "search empty results",
+      "event details",
+      "conversation inbox",
+      "Settings profile and tabs",
+      "Brand Kit approval and cross-session persistence",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 390,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "draft save",
+      "exact step selection does not assign",
+      "safe preview",
+      "KPI filtering",
+      "search empty results",
+      "event details",
+      "conversation inbox",
+      "Settings profile and tabs",
+      "Brand Kit approval and cross-session persistence",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  }
+]

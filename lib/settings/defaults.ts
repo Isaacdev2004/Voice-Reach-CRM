@@ -5,16 +5,16 @@ export { PLAN_OPTIONS };
 
 export const DEFAULT_SETTINGS: UserSettings = {
   profile: {
-    fullName: "Marcus Sterling",
-    phone: "+1 (555) 000-1234",
+    fullName: "",
+    phone: "",
     timezone: "America/New_York",
-    jobTitle: "Senior CRM Administrator",
+    jobTitle: "",
   },
   workspace: {
-    name: "Enterprise CRM",
-    slug: "enterprise-crm",
+    name: "My workspace",
+    slug: "my-workspace",
     industry: "Real Estate",
-    defaultSenderName: "MyARI Team",
+    defaultSenderName: "",
     quietHoursStart: "21:00",
     quietHoursEnd: "08:00",
     requireConsentProof: true,
@@ -63,61 +63,15 @@ export const DEFAULT_SETTINGS: UserSettings = {
       connected: false,
     },
   ],
-  apiKeys: [
-    {
-      id: "key-default",
-      label: "Production CRM",
-      prefix: "vr_live_a8f2",
-      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-      lastUsed: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    },
-  ],
-  team: [
-    {
-      id: "tm-owner",
-      name: "Marcus Sterling",
-      email: "marcus.s@myari.io",
-      role: "owner",
-      status: "active",
-      lastActive: new Date().toISOString(),
-      avatarUrl:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuCm3S3egIq2IOQ_Kf9MFaN3lJpE7bAZzTu_WU2IyH12ovexfXNMT91goGMB42UA2zlfdXzJbk08bVNQKjl3gGxFhvkmDk08ZJnudZZjbYbH7v8Ve8siqxBc5rfV7zjno69MQx9dE7VPAxCPUtOfeNabIosI0AQO6xZNpW1tm_LtoJyyGFvkqtMwqOh-3WSAdgJadkVtriMpPSzWNagT9m5wK6fWUkwTH2A6OLV8I-3u03BqC0bvGJaiYDhdJJMZQZyYQi_FF-Im6V03",
-    },
-    {
-      id: "tm-2",
-      name: "Elena Rodriguez",
-      email: "elena.r@myari.io",
-      role: "admin",
-      status: "active",
-      lastActive: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-      avatarUrl:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuD9W1fAXkSeb-CXdYlvOYf-5nZozM299kEuePxfTVQUEn3M8mvBB_qiOo2yGV5kTkY5QaZylhv2JN3JsIkw4mgHFjyRn--85JkpaLTl4LLnLYGxZNKefU7p6LHQ_lGcMsrhoAOhWqSeuuBq1E8NsdG9zbPpaCqNwILjggLDsfZ2Q59fF6byykUX_20GbjK15wkS_kD_I_q8X498taxddImIZXNRdP0CvgYKA33z136-9V12ZxI3hltLjvl0DeLqWKqvRv3X1fsJGmBg",
-    },
-    {
-      id: "tm-3",
-      name: "James Wilson",
-      email: "j.wilson@myari.io",
-      role: "billing",
-      status: "active",
-      lastActive: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      avatarUrl:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuDP0pISUobue9AnFV0pRfxRpXPfGTNNIHpUaB0yYbuQ3m9sSodzN7BYORKaMAn5WisVyAuN54Utn1FhXhlLPoGSnlnytIyn8p-sJpcAL1aFbA-RBHOvokU-TIV9BtO6aMFygWxNqH2930RshKv5OvI9U8Jx9gg4iPwW5JNCjUF8mN6rada6XMCjFVPQ1XhUbDZm4PjdVzqvqjpiDNoXrP5y7KHPLBjJsWHZbxYX7t_vQtxlIB4CVaP6BTw2uIBzFKZzWRmYLgTJ9KYD",
-    },
-    {
-      id: "tm-4",
-      name: "Sarah Chen",
-      email: "sarah.c@myari.io",
-      role: "user",
-      status: "pending",
-    },
-  ],
+  apiKeys: [],
+  team: [],
   billing: {
     planId: "growth",
-    planName: "Growth",
-    monthlyPrice: 99,
-    voiceMinutesLimit: 250,
+    planName: "Choose a plan",
+    monthlyPrice: 0,
+    voiceMinutesLimit: 0,
     voiceMinutesUsed: 0,
-    subscriptionStatus: "active",
+    subscriptionStatus: "none",
   },
   notifications: {
     emailDigest: true,
@@ -125,7 +79,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     loginAlerts: true,
   },
   security: {
-    twoFactorEnabled: true,
+    twoFactorEnabled: false,
   },
   contactCategories: ["Residential", "Commercial"],
   updatedAt: new Date().toISOString(),

@@ -26,41 +26,58 @@ export async function linkVoiceAssetToCampaign(params: {
 }) {
   const { ownerId, campaignId, voiceAssetId, stepId } = params;
 
-  const [{ data: campaign, error: campaignError }, { data: steps, error: stepsError }] =
-    await Promise.all([
-      supabaseAdmin
-        .from("campaigns")
-        .select("id, voice_asset_id")
-        .eq("id", campaignId)
-        .eq("owner_id", ownerId)
-        .maybeSingle(),
-      supabaseAdmin
-        .from("campaign_steps")
-        .select("id, type, step_order, voice_asset_id, conditions")
-        .eq("campaign_id", campaignId)
-        .eq("owner_id", ownerId)
-        .order("step_order", { ascending: true }),
-    ]);
+  const [
+    { data: campaign, error: campaignError },
+    { data: steps, error: stepsError },
+  ] = await Promise.all([
+    supabaseAdmin
+      .from("campaigns")
+      .select("id, voice_asset_id")
+      .eq("id", campaignId)
+      .eq("owner_id", ownerId)
+      .maybeSingle(),
+    supabaseAdmin
+      .from("campaign_steps")
+      .select("id, type, step_order, voice_asset_id, conditions")
+      .eq("campaign_id", campaignId)
+      .eq("owner_id", ownerId)
+      .order("step_order", { ascending: true }),
+  ]);
 
   if (campaignError) throw new Error(campaignError.message);
   if (!campaign) throw new Error("Campaign not found");
   if (stepsError) throw new Error(stepsError.message);
 
-  const vmSteps = ((steps ?? []) as StepRow[]).filter((s) => s.type === "voicemail");
+  const vmSteps = ((steps ?? []) as StepRow[]).filter(
+    (s) => s.type === "voicemail",
+  );
 
   let targetStep: StepRow | null = null;
   if (stepId) {
     targetStep = vmSteps.find((s) => s.id === stepId) ?? null;
-    if (!targetStep) throw new Error("That step is not a voicemail step on this campaign.");
+    if (!targetStep)
+      throw new Error("That step is not a voicemail step on this campaign.");
   } else {
     targetStep = vmSteps.find((s) => !stepVoiceId(s)) ?? null;
   }
 
+  if (!targetStep && vmSteps.length)
+    throw new Error(
+      "Select the exact voicemail step to replace its recording.",
+    );
+
   // Always keep a campaign-level default for older send paths / first VM
-  if (!campaign.voice_asset_id || (!targetStep && vmSteps.length === 0)) {
+  if (
+    (!campaign.voice_asset_id &&
+      (!vmSteps.length || targetStep?.id === vmSteps[0]?.id)) ||
+    (!targetStep && vmSteps.length === 0)
+  ) {
     const { error } = await supabaseAdmin
       .from("campaigns")
-      .update({ voice_asset_id: voiceAssetId, updated_at: new Date().toISOString() })
+      .update({
+        voice_asset_id: voiceAssetId,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", campaignId)
       .eq("owner_id", ownerId);
     if (error) throw new Error(error.message);
@@ -101,10 +118,17 @@ export async function linkVoiceAssetToCampaign(params: {
     };
   }
 
-  // All voicemail steps already have a voice - update campaign default
+  if (vmSteps.length)
+    throw new Error(
+      "Select the exact voicemail step to replace its recording.",
+    );
+  // Legacy campaigns without sequence steps retain a default recording.
   const { error } = await supabaseAdmin
     .from("campaigns")
-    .update({ voice_asset_id: voiceAssetId, updated_at: new Date().toISOString() })
+    .update({
+      voice_asset_id: voiceAssetId,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", campaignId)
     .eq("owner_id", ownerId);
   if (error) throw new Error(error.message);
@@ -129,7 +153,9 @@ export async function resolveStepVoiceAssetId(params: {
   if (fromStep) return fromStep;
   // First voicemail step inherits campaign default when no per-step voice is set
   if (params.step.type === "voicemail" && params.campaignVoiceAssetId) {
-    const ordered = (params.allVmSteps ?? []).slice().sort((a, b) => a.step_order - b.step_order);
+    const ordered = (params.allVmSteps ?? [])
+      .slice()
+      .sort((a, b) => a.step_order - b.step_order);
     if (!ordered.length || ordered[0]?.id === params.step.id) {
       return params.campaignVoiceAssetId;
     }
