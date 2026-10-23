@@ -120,6 +120,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
     const root = document.documentElement;
     if (isCampaignLibraryRoute) {
       root.dataset.dashboardRoute = "campaigns";
+    } else if (isCalendarRoute) {
+      root.dataset.dashboardRoute = "calendar";
     } else if (isPropertyFinderRoute) {
       root.dataset.dashboardRoute = "properties";
     } else {
@@ -128,7 +130,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
     return () => {
       delete root.dataset.dashboardRoute;
     };
-  }, [isPropertyFinderRoute, isCampaignLibraryRoute]);
+  }, [isPropertyFinderRoute, isCampaignLibraryRoute, isCalendarRoute]);
 
   useEffect(() => {
     document.body.style.overflow = mobileNavOpen ? "hidden" : "";

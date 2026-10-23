@@ -97,10 +97,10 @@ const { chromium } = require("playwright"),
     args: ["--no-sandbox"],
   });
   const results = [];
-  const output = path.join(root, "docs/calendar-premium");
+  const output = path.join(root, "docs/calendar-reference");
   fs.mkdirSync(output, { recursive: true });
   try {
-    for (const width of [1440, 1920, 768, 390]) {
+    for (const width of [1536, 1440, 1920, 768, 390]) {
       const page = await browser.newPage({ viewport: { width, height: 1050 } }),
         errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
@@ -112,7 +112,7 @@ const { chromium } = require("playwright"),
         .first()
         .waitFor();
       await page
-        .getByRole("heading", { name: "Make every moment count." })
+        .getByRole("heading", { name: "Plan today. Close tomorrow." })
         .waitFor();
       assert.equal(
         await page.evaluate(
@@ -207,7 +207,7 @@ const { chromium } = require("playwright"),
           .locator(".calendar-event")
           .filter({ hasText: "Synthetic appointment" });
         const target = page.getByRole("button", {
-          name: "Schedule 2026-10-23 14:00",
+          name: "Schedule 2026-10-23 16:00",
           exact: true,
         });
         await draggable.dragTo(target);
