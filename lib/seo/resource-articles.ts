@@ -36,21 +36,36 @@ export type ResourceArticle = {
 export type ResourceCitation = { label: string; href?: string };
 
 export const RESOURCE_EDITORIAL = {
-  author: "ARI Team",
-  editorialNote: "Reviewed for accuracy by the ARI product team. Last updated October 2026.",
+  author: "MyARI Team",
+  editorialNote:
+    "Reviewed for accuracy by the MyARI product team. Last updated October 2026.",
   defaultCitations: [
-    { label: "NAR - real estate lead follow-up best practices", href: "https://www.nar.realtor/" },
-    { label: "InsideSales - lead response time research", href: "https://www.insidesales.com/" },
+    {
+      label: "NAR — general real estate member resources (external)",
+      href: "https://www.nar.realtor/",
+    },
   ] as ResourceCitation[],
 } as const;
 
 const PRODUCT_LINKS = {
   crm: { href: "/real-estate-crm", anchor: "real estate CRM for agents" },
-  followUp: { href: "/lead-follow-up", anchor: "automated lead follow-up software" },
-  reactivation: { href: "/lead-reactivation", anchor: "lead reactivation software" },
-  pricing: { href: "/pricing", anchor: "ARI CRM pricing" },
-  texts: { href: "/features/text-automation", anchor: "automated text follow-up" },
-  pipeline: { href: "/features/pipeline-management", anchor: "sales pipeline management" },
+  followUp: {
+    href: "/lead-follow-up",
+    anchor: "automated lead follow-up software",
+  },
+  reactivation: {
+    href: "/lead-reactivation",
+    anchor: "lead reactivation software",
+  },
+  pricing: { href: "/pricing", anchor: "MyARI CRM pricing" },
+  texts: {
+    href: "/features/text-automation",
+    anchor: "automated text follow-up",
+  },
+  pipeline: {
+    href: "/features/pipeline-management",
+    anchor: "sales pipeline management",
+  },
 } as const;
 
 export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
@@ -63,26 +78,30 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     publishedAt: "2026-10-01",
     readTimeMinutes: 12,
     category: "Lead follow-up",
-    productLinks: [PRODUCT_LINKS.crm, PRODUCT_LINKS.followUp, PRODUCT_LINKS.pricing],
+    productLinks: [
+      PRODUCT_LINKS.crm,
+      PRODUCT_LINKS.followUp,
+      PRODUCT_LINKS.pricing,
+    ],
     sections: [
       {
         h2: "Why follow-up is the highest-leverage skill in real estate",
         paragraphs: [
-          "Agents spend thousands on lead generation - Zillow, Facebook ads, open houses, sphere marketing - yet most deals are lost after the first contact. The problem usually isn't lead volume; it's inconsistent follow-up.",
+          "Lead generation through portals, advertising, open houses and your sphere needs a follow-up plan. Keep a clear next step for each eligible contact rather than relying on memory.",
           "Speed, persistence, and relevance win. This guide covers the systems top producers use to respond fast, nurture patiently, and re-engage leads who went quiet - without spending your entire day texting.",
         ],
       },
       {
         h2: "The 5-minute rule: speed-to-lead",
         paragraphs: [
-          "When a buyer or seller inquiry comes in, your odds of connecting drop sharply after the first few minutes. Aim to acknowledge every new lead within five minutes - even if the full conversation happens later.",
+          "Set a practical response target for new inquiries, such as acknowledging them within five minutes during working hours. This is an operational goal, not a guaranteed conversion result; respect consent and quiet hours.",
           "Automated text follow-up makes this realistic. A personalized first SMS can fire while you're in a showing, buying you time for a proper call when you're free.",
         ],
       },
       {
         h2: "How many times should you follow up?",
         paragraphs: [
-          "Most agents stop after one or two attempts. Research on sales follow-up consistently shows that the majority of conversions happen after the fifth touch or later - yet most reps quit far sooner.",
+          "A single unanswered attempt does not establish a lead's intentions. Plan a measured sequence of relevant touchpoints, then adjust to actual replies, consent, timing and preferences rather than a fixed conversion formula.",
           "A practical cadence for new real estate leads: Day 0 (same-day text + call), Day 1 (email), Day 3 (text check-in), Day 7 (voicemail or video text), Day 14 (value-add email), Day 30 (re-engagement). Adjust based on lead temperature and source.",
         ],
         bullets: [
@@ -107,9 +126,9 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
         ],
       },
       {
-        h2: "Put it into practice with ARI",
+        h2: "Put it into practice with MyARI",
         paragraphs: [
-          "ARI was built around this exact workflow: capture leads, automate follow-up, surface who needs a personal call, and re-engage dormant contacts. Start with a 14-day free trial and white-glove setup to import your database and launch your first campaign.",
+          "MyARI was built around this exact workflow: capture leads, automate follow-up, surface who needs a personal call, and re-engage dormant contacts. Start with a 14-day free trial and white-glove setup to import your database and launch your first campaign.",
         ],
       },
     ],
@@ -123,7 +142,11 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     publishedAt: "2026-10-01",
     readTimeMinutes: 9,
     category: "CRM",
-    productLinks: [PRODUCT_LINKS.crm, PRODUCT_LINKS.pipeline, PRODUCT_LINKS.followUp],
+    productLinks: [
+      PRODUCT_LINKS.crm,
+      PRODUCT_LINKS.pipeline,
+      PRODUCT_LINKS.followUp,
+    ],
     sections: [
       {
         h2: "Not all CRMs are built for real estate",
@@ -168,9 +191,9 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
         ],
       },
       {
-        h2: "What to look for in ARI",
+        h2: "What to look for in MyARI",
         paragraphs: [
-          "ARI combines all five: automated multi-channel follow-up, real estate pipeline stages, white-glove import, compliance gates, and built-in lead reactivation. Explore our feature pages or start a free trial to see it in action.",
+          "MyARI combines all five: automated multi-channel follow-up, real estate pipeline stages, white-glove import, compliance gates, and built-in lead reactivation. Explore our feature pages or start a free trial to see it in action.",
         ],
       },
     ],
@@ -184,12 +207,16 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     publishedAt: "2026-10-01",
     readTimeMinutes: 10,
     category: "Lead reactivation",
-    productLinks: [PRODUCT_LINKS.reactivation, PRODUCT_LINKS.followUp, PRODUCT_LINKS.texts],
+    productLinks: [
+      PRODUCT_LINKS.reactivation,
+      PRODUCT_LINKS.followUp,
+      PRODUCT_LINKS.texts,
+    ],
     sections: [
       {
         h2: "Your database is an asset you're probably ignoring",
         paragraphs: [
-          "Most agents focus entirely on new leads while hundreds of past inquiries sit untouched. Lead reactivation - reaching back out to dormant contacts - can restart conversations with people who already know your name, though results vary by list quality and timing.",
+          "Reviewing eligible past inquiries can help identify useful follow-up opportunities. Reactivation outcomes vary by consent, list quality, relevance and timing; no response should be treated as evidence of interest.",
         ],
       },
       {
@@ -225,7 +252,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Step 5: Automate reactivation in your CRM",
         paragraphs: [
-          "Manual reactivation doesn't scale. ARI's lead reactivation feature lets you segment dormant contacts, launch multi-channel campaigns, and auto-surface responders - so you focus on conversations, not mail merges.",
+          "Manual reactivation doesn't scale. MyARI's lead reactivation feature lets you segment dormant contacts, launch multi-channel campaigns, and auto-surface responders - so you focus on conversations, not mail merges.",
         ],
       },
     ],
@@ -235,21 +262,23 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     path: "/resources/how-many-times-follow-up-real-estate-lead",
     title: "How Many Times Should You Follow Up With a Real Estate Lead?",
     description:
-      "Research-backed guidance on follow-up frequency for real estate leads - how many touches, which channels, and when to stop.",
+      "Practical planning guidance on follow-up frequency for real estate leads - touchpoints, channels, consent and when to stop.",
     publishedAt: "2026-10-02",
     readTimeMinutes: 6,
     category: "Lead follow-up",
     productLinks: [PRODUCT_LINKS.followUp, PRODUCT_LINKS.crm],
     sections: [
       {
-        h2: "Most agents quit too early",
+        h2: "Plan for a useful next conversation",
         paragraphs: [
-          "The average agent contacts a lead two or three times before moving on. Industry studies suggest many conversions require more persistence - often several touches across multiple channels over several weeks.",
+          "Choose a measured cadence based on the inquiry, recorded preferences and permission to use each channel. There is no universal number of attempts that guarantees a response or conversion.",
         ],
       },
       {
         h2: "Recommended touchpoint count by lead type",
-        paragraphs: ["Adjust based on temperature, but these ranges work as starting points:"],
+        paragraphs: [
+          "These illustrative planning ranges are not research findings or outreach targets. Reduce or stop contact according to consent, replies, quiet hours and individual preferences:",
+        ],
         bullets: [
           "Hot portal inquiry: 8–12 touches in first 14 days",
           "Warm referral: 5–8 touches over 30 days",
@@ -266,7 +295,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "When to stop",
         paragraphs: [
-          "Stop when they opt out, explicitly say no, or after your defined sequence ends with no response. Move them to a long-term nurture or annual reactivation - don't delete them.",
+          "Stop and honor suppression rules when someone opts out or says no. Do not move an opted-out contact into another outreach campaign. If an eligible sequence ends without a response, review permission and preferences before considering any future nurture.",
         ],
       },
     ],
@@ -315,7 +344,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Automate the first touch, personalize the rest",
         paragraphs: [
-          "Load these templates into ARI's text automation for automated first responses on your schedule, then personalize follow-ups when leads reply. See our automated text follow-up feature for details.",
+          "Load these templates into MyARI's text automation for automated first responses on your schedule, then personalize follow-ups when leads reply. See our automated text follow-up feature for details.",
         ],
       },
     ],
@@ -332,7 +361,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     productLinks: [PRODUCT_LINKS.followUp, PRODUCT_LINKS.crm],
     sections: [
       {
-        h2: "Facebook leads go cold faster than almost any source",
+        h2: "Set expectations for Facebook inquiries",
         paragraphs: [
           "Meta leads often come from casual scrollers - not people actively searching on Zillow. Speed and persistence matter even more. After import, enroll them in a timely first touch and plan a longer nurture sequence.",
         ],
@@ -340,12 +369,14 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Import leads the same day",
         paragraphs: [
-          "Export from Meta Lead Ads or your lead tool into ARI via CSV the same day. Research suggests response speed affects connection rates. ARI supports CSV import and onboarding-assisted setup.",
+          "Export from Meta Lead Ads or your lead tool into MyARI via CSV the same day. A timely acknowledgement can help set expectations. MyARI supports CSV import and onboarding-assisted setup.",
         ],
       },
       {
         h2: "Use a Facebook-specific cadence",
-        paragraphs: ["These leads often need more education and trust-building:"],
+        paragraphs: [
+          "These leads often need more education and trust-building:",
+        ],
         bullets: [
           "Timely SMS acknowledging their form submission",
           "Day 1: email with buyer/seller guide",
@@ -367,7 +398,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     path: "/resources/real-estate-crm-vs-spreadsheet",
     title: "Real Estate CRM vs. Spreadsheet: When Should You Switch?",
     description:
-      "Signs you've outgrown spreadsheets for lead management - and what a real estate CRM like ARI adds that Excel and Google Sheets can't.",
+      "Signs you've outgrown spreadsheets for lead management - and what a real estate CRM like MyARI adds that Excel and Google Sheets can't.",
     publishedAt: "2026-10-02",
     readTimeMinutes: 6,
     category: "CRM",
@@ -411,29 +442,37 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Leads rarely go cold because they're not interested",
         paragraphs: [
-          "Most leads go cold because follow-up stopped too soon, response was too slow, or the agent disappeared after the first conversation. The interest was real - the system wasn't.",
+          "A quiet lead may have changed plans, missed your message or chosen not to respond. Inactivity alone does not establish intent. Review the recorded context and communication preferences before choosing a next step.",
         ],
       },
       {
         h2: "Reason #1: Slow response",
-        paragraphs: ["Portal and ad leads expect timely acknowledgment. Delay beyond 30 minutes and they've often contacted another agent."],
+        paragraphs: [
+          "Portal and ad leads expect timely acknowledgment. Delay beyond 30 minutes and they've often contacted another agent.",
+        ],
       },
       {
         h2: "Reason #2: Not enough touches",
-        paragraphs: ["Two calls and a text isn't a follow-up system. Plan 8–12 touches over two weeks for new inquiries."],
+        paragraphs: [
+          "Two calls and a text isn't a follow-up system. Plan 8–12 touches over two weeks for new inquiries.",
+        ],
       },
       {
         h2: "Reason #3: No long-term nurture",
-        paragraphs: ["Leads who aren't ready this month still need monthly touches. Without nurture, they forget you exist."],
+        paragraphs: [
+          "Leads who aren't ready this month still need monthly touches. Without nurture, they forget you exist.",
+        ],
       },
       {
         h2: "Reason #4: No reactivation",
-        paragraphs: ["Leads from six months ago still have value. Reactivation campaigns restart conversations that manual effort never reaches."],
+        paragraphs: [
+          "Leads from six months ago still have value. Reactivation campaigns restart conversations that manual effort never reaches.",
+        ],
       },
       {
         h2: "The fix: systematize follow-up",
         paragraphs: [
-          "Automate first response, run nurture sequences, set reminders for personal calls, and re-engage dormant contacts quarterly. ARI handles all four in one platform.",
+          "Automate first response, run nurture sequences, set reminders for personal calls, and re-engage dormant contacts quarterly. MyARI handles all four in one platform.",
         ],
       },
     ],
@@ -452,7 +491,7 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
       {
         h2: "Minutes, not hours",
         paragraphs: [
-          "Research on sales response time suggests contact rates often drop as minutes pass. For paid portal and ad leads, aim for the fastest acknowledgment you can sustain - often via a configured first SMS after import.",
+          "Set an acknowledgement target your team can sustain during working hours. A configured first SMS after import can help where consent and quiet-hour rules allow it; do not promise a response time your process cannot meet.",
         ],
       },
       {
@@ -462,9 +501,9 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
         ],
       },
       {
-        h2: "How to hit 5 minutes every time",
+        h2: "Build a sustainable acknowledgement process",
         paragraphs: [
-          "You can't manually respond to every lead in showings. Automated SMS after import is a scalable approach. Configure a first text in ARI on the schedule you set and follow up personally when you're available.",
+          "You can't manually respond to every lead in showings. Automated SMS after import is a scalable approach. Configure a first text in MyARI on the schedule you set and follow up personally when you're available.",
         ],
       },
     ],
@@ -478,7 +517,11 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
     publishedAt: "2026-10-02",
     readTimeMinutes: 8,
     category: "Lead follow-up",
-    productLinks: [PRODUCT_LINKS.followUp, PRODUCT_LINKS.crm, PRODUCT_LINKS.pricing],
+    productLinks: [
+      PRODUCT_LINKS.followUp,
+      PRODUCT_LINKS.crm,
+      PRODUCT_LINKS.pricing,
+    ],
     sections: [
       {
         h2: "A plan beats improvisation",
@@ -515,16 +558,18 @@ export const RESOURCE_ARTICLES: Record<ResourceArticleSlug, ResourceArticle> = {
         ],
       },
       {
-        h2: "Automate the plan in ARI",
+        h2: "Automate the plan in MyARI",
         paragraphs: [
-          "Load this cadence as an automated sequence in ARI. You handle replies; the system handles timing. Start your free trial - white-glove setup is included on every plan - to launch your first 30-day campaign.",
+          "Load this cadence as an automated sequence in MyARI. You handle replies; the system handles timing. Start your free trial - white-glove setup is included on every plan - to launch your first 30-day campaign.",
         ],
       },
     ],
   },
 };
 
-export const RESOURCE_ARTICLE_SLUGS = Object.keys(RESOURCE_ARTICLES) as ResourceArticleSlug[];
+export const RESOURCE_ARTICLE_SLUGS = Object.keys(
+  RESOURCE_ARTICLES,
+) as ResourceArticleSlug[];
 
 /** Cornerstone articles published in Week 3. */
 export const CORNERSTONE_ARTICLE_SLUGS: ResourceArticleSlug[] = [
@@ -537,6 +582,7 @@ export const CORNERSTONE_ARTICLE_SLUGS: ResourceArticleSlug[] = [
 export function getRotatingResourceArticle(date = new Date()): ResourceArticle {
   const start = new Date(date.getFullYear(), 0, 0);
   const dayOfYear = Math.floor((date.getTime() - start.getTime()) / 86_400_000);
-  const slug = RESOURCE_ARTICLE_SLUGS[dayOfYear % RESOURCE_ARTICLE_SLUGS.length]!;
+  const slug =
+    RESOURCE_ARTICLE_SLUGS[dayOfYear % RESOURCE_ARTICLE_SLUGS.length]!;
   return RESOURCE_ARTICLES[slug];
 }

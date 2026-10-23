@@ -44,43 +44,62 @@ function trackProgress(current: number, duration: number, fired: Set<number>) {
   for (const milestone of [25, 50, 75, 100]) {
     if (pct >= milestone && !fired.has(milestone)) {
       fired.add(milestone);
-      trackMarketingEvent(milestone === 100 ? "demo_video_complete" : "demo_video_progress", {
-        location: "landing",
-        percent: milestone,
-      });
+      trackMarketingEvent(
+        milestone === 100 ? "demo_video_complete" : "demo_video_progress",
+        {
+          location: "landing",
+          percent: milestone,
+        },
+      );
     }
   }
 }
 
-export function DemoVideo() {
+export function DemoVideo({
+  compact = false,
+  onEnded,
+}: { compact?: boolean; onEnded?: () => void } = {}) {
   const [loadError, setLoadError] = useState(false);
   const progressFired = useRef(new Set<number>());
-  const onPlay = () => trackMarketingEvent("demo_video_play", { location: "landing" });
-  const externalUrl = DEMO_VIDEO_URL && isExternalEmbed(DEMO_VIDEO_URL) ? DEMO_VIDEO_URL : null;
+  const onPlay = () =>
+    trackMarketingEvent("demo_video_play", { location: "landing" });
+  const externalUrl =
+    DEMO_VIDEO_URL && isExternalEmbed(DEMO_VIDEO_URL) ? DEMO_VIDEO_URL : null;
   const directUrl =
-    DEMO_VIDEO_URL && !isExternalEmbed(DEMO_VIDEO_URL) ? DEMO_VIDEO_URL : LOCAL_DEMO_VIDEO;
+    DEMO_VIDEO_URL && !isExternalEmbed(DEMO_VIDEO_URL)
+      ? DEMO_VIDEO_URL
+      : LOCAL_DEMO_VIDEO;
 
   return (
-    <section id="demo" className="scroll-mt-24 bg-ivory py-10 md:py-12 lg:py-14">
+    <section
+      id={compact ? undefined : "demo"}
+      className={
+        compact
+          ? "public-video-content"
+          : "scroll-mt-24 bg-ivory py-10 md:py-12 lg:py-14"
+      }
+    >
       <div className="landing-shell">
-        <div className="mx-auto max-w-[40rem] text-center lg:max-w-[44rem]">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep md:text-[13px]">
-            See ARI in action
-          </p>
-          <h2 className="mt-2 font-serif text-[32px] font-semibold text-ink md:text-[40px] lg:text-[44px]">
-            Follow Up Automatically - Without Losing the Human Touch
-          </h2>
-          <p className="mt-2 text-[17px] leading-relaxed text-slate-text lg:text-[18px]">
-            After a contact enters ARI and joins a campaign, automated follow-up runs on your
-            schedule - you handle replies and high-intent conversations.
-          </p>
-        </div>
-
+        {!compact && (
+          <div className="mx-auto max-w-[40rem] text-center lg:max-w-[44rem]">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.2em] text-rose-gold-deep md:text-[13px]">
+              See MyARI in action
+            </p>
+            <h2 className="mt-2 font-serif text-[32px] font-semibold text-ink md:text-[40px] lg:text-[44px]">
+              Follow Up Automatically - Without Losing the Human Touch
+            </h2>
+            <p className="mt-2 text-[17px] leading-relaxed text-slate-text lg:text-[18px]">
+              After a contact enters MyARI and joins a campaign, automated
+              follow-up runs on your schedule - you handle replies and
+              high-intent conversations.
+            </p>
+          </div>
+        )}
         <div className="mx-auto mt-6 max-w-4xl overflow-hidden rounded-2xl border border-outline-variant/15 bg-ink shadow-card md:mt-8">
           {externalUrl ? (
             <div className="relative aspect-video w-full">
               <iframe
-                title="ARI product demo"
+                title="MyARI product walkthrough"
                 src={embedUrl(externalUrl)}
                 className="absolute inset-0 h-full w-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -90,10 +109,12 @@ export function DemoVideo() {
             </div>
           ) : loadError ? (
             <div className="flex aspect-video w-full flex-col items-center justify-center gap-3 bg-ink px-6 text-center">
-              <p className="font-serif text-[20px] font-semibold text-ivory">Video unavailable</p>
+              <p className="font-serif text-[20px] font-semibold text-ivory">
+                Video unavailable
+              </p>
               <p className="max-w-md text-[14px] leading-relaxed text-ivory/75">
-                The demo file could not be loaded. Ask your team for a YouTube link and we can set{" "}
-                <code className="text-rose-gold">NEXT_PUBLIC_DEMO_VIDEO_URL</code> in Vercel.
+                The walkthrough could not be loaded. Please close it and try
+                again, or read the transcript below.
               </p>
             </div>
           ) : (
@@ -102,8 +123,9 @@ export function DemoVideo() {
                 className="h-full w-full object-contain"
                 controls
                 playsInline
-                preload="metadata"
-                poster="/brand/ari-dashboard-hero.png"
+                preload="none"
+                poster="/brand/marketing/walkthrough-poster.webp"
+                onEnded={onEnded}
                 onPlay={onPlay}
                 onTimeUpdate={(e) =>
                   trackProgress(
@@ -115,7 +137,6 @@ export function DemoVideo() {
                 onError={() => setLoadError(true)}
               >
                 <source src={directUrl} type="video/mp4" />
-                <track kind="captions" srcLang="en" label="English" default />
                 Your browser does not support embedded video.
               </video>
             </div>
@@ -126,7 +147,14 @@ export function DemoVideo() {
           <summary className="cursor-pointer text-[14px] font-semibold text-ink">
             Video transcript
           </summary>
-          <p className="mt-3 text-[14px] leading-relaxed text-slate-text">{DEMO_TRANSCRIPT}</p>
+          <p className="mt-3 text-[14px] leading-relaxed text-slate-text">
+            {DEMO_TRANSCRIPT}
+          </p>
+          <p className="mt-2 text-[13px] text-taupe">
+            Original narration and legacy illustrative footage are preserved;
+            the current product interface is shown in the screenshots on this
+            site. This text transcript is available without playing the video.
+          </p>
         </details>
       </div>
     </section>

@@ -10,7 +10,7 @@ const KEY_OBJECTIONS = [
     a: `Google Calendar and Dotloop (transactions). Messaging via Twilio SMS, email delivery, and Slybroadcast ringless voicemail. Import via CSV and onboarding-assisted migration.`,
   },
   {
-    q: "Does ARI help with outreach compliance?",
+    q: "Does MyARI help with outreach compliance?",
     a: `${SITE_OFFER.compliance.shortNote} You stay in control of who gets contacted and when.`,
   },
   {
@@ -38,7 +38,7 @@ const MORE_FAQ = [
   },
   {
     q: "Can I cancel anytime?",
-    a: "Absolutely. ARI is month-to-month with no long-term contract. Cancel from your account settings - your data exports anytime.",
+    a: "Absolutely. MyARI is month-to-month with no long-term contract. Cancel from your account settings - your data exports anytime.",
   },
 ];
 

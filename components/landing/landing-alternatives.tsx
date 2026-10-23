@@ -24,7 +24,7 @@ export function LandingAlternatives() {
                 <th className="px-4 py-3 font-semibold text-ink md:px-6"> </th>
                 <th className="px-4 py-3 font-semibold text-taupe md:px-6">Follow Up Boss</th>
                 <th className="px-4 py-3 font-semibold text-taupe md:px-6">kvCORE</th>
-                <th className="px-4 py-3 font-semibold text-rose-gold-deep md:px-6">ARI</th>
+                <th className="px-4 py-3 font-semibold text-rose-gold-deep md:px-6">MyARI</th>
               </tr>
             </thead>
             <tbody>

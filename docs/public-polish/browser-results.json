@@ -1,0 +1,198 @@
+[
+  {
+    "route": "/",
+    "width": 1440,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/",
+    "width": 1280,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/",
+    "width": 768,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/",
+    "width": 390,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/pricing",
+    "width": 1440,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/pricing",
+    "width": 1280,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/pricing",
+    "width": 768,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/pricing",
+    "width": 390,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features",
+    "width": 1440,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features",
+    "width": 1280,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features",
+    "width": 768,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features",
+    "width": 390,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/lead-management",
+    "width": 1440,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/lead-management",
+    "width": 1280,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/lead-management",
+    "width": 768,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/lead-management",
+    "width": 390,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/campaign-builder",
+    "width": 1440,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/campaign-builder",
+    "width": 1280,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/campaign-builder",
+    "width": 768,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/campaign-builder",
+    "width": 390,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/analytics",
+    "width": 1440,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/analytics",
+    "width": 1280,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/analytics",
+    "width": 768,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/features/analytics",
+    "width": 390,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/resources/ultimate-real-estate-lead-follow-up-guide",
+    "width": 1440,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/resources/ultimate-real-estate-lead-follow-up-guide",
+    "width": 1280,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/resources/ultimate-real-estate-lead-follow-up-guide",
+    "width": 768,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  },
+  {
+    "route": "/resources/ultimate-real-estate-lead-follow-up-guide",
+    "width": 390,
+    "overflow": false,
+    "errors": 0,
+    "controls": true
+  }
+]

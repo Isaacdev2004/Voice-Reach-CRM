@@ -3,7 +3,7 @@ import { Icon } from "@/components/ui/icon";
 import { SITE_OFFER } from "@/lib/marketing/site-offer";
 
 const SETUP_STEPS = [
-  "Lead import - we help bring your existing database into ARI",
+  "Lead import - we help bring your existing database into MyARI",
   "Pipeline setup - stages that match how you manage buyers and sellers",
   "First follow-up campaign - your initial automated sequence ready to run",
 ];
@@ -20,7 +20,7 @@ export function LandingWhiteGlove() {
             You bring the leads. We set up the system.
           </h2>
           <p className="mt-4 text-[16px] leading-relaxed text-slate-text md:text-[17px]">
-            Every ARI plan includes help importing your contacts, configuring your pipeline, and
+            Every MyARI plan includes help importing your contacts, configuring your pipeline, and
             building your first follow-up campaign. {SITE_OFFER.whiteGlove.setupWindow}
           </p>
           <ul className="mt-6 space-y-3">

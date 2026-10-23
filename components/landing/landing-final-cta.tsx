@@ -52,7 +52,7 @@ export function LandingFinalCta() {
             <div className="overflow-hidden rounded-2xl border border-outline-variant/15 shadow-[0_20px_50px_rgba(26,20,16,0.12)] lg:rounded-[1.25rem]">
               <Image
                 src={LIFESTYLE_IMAGE}
-                alt="Luxury coastal home with ARI mobile dashboard showing leads and follow-ups"
+                alt="Luxury coastal home with MyARI mobile dashboard showing leads and follow-ups"
                 width={900}
                 height={1125}
                 sizes="(max-width: 1024px) 100vw, 440px"

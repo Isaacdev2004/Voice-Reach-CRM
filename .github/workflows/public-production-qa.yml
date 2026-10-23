@@ -1,0 +1,29 @@
+name: Public production QA
+on:
+  status:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-public-production:
+    if: github.event_name == 'workflow_dispatch' || (github.event.context == 'Vercel' && github.event.state == 'success' && contains(github.event.branches.*.name, 'main'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Verify public routes, pricing toggle and actual video playback
+        run: node scripts/public-live-qa.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-production-qa
+          path: artifacts/public-production-qa/

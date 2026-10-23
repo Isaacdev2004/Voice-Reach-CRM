@@ -12,7 +12,7 @@ import { PRODUCT_CAPTURES as captures } from "./product-captures";
 export const HERO_IMAGES = {
   homeDashboard: captures.dashboard,
   campaignLibrary: captures.campaigns,
-  campaignBuilder: captures.sequence,
+  campaignBuilder: captures.builder,
   voiceScripts: captures.voice,
   crmDashboard: captures.contacts,
   followUpWorkflow: captures.sequence,

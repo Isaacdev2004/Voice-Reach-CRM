@@ -1,6 +1,6 @@
 /** Founding 100 launch offer - first 100 paying subscribers */
 export const FOUNDING_100 = {
-  name: "ARI Founding 100",
+  name: "MyARI Founding 100",
   seatsTotal: 100,
   trialDays: 14,
   headline: "Founding Realtor Program",

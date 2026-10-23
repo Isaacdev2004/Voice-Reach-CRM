@@ -31,14 +31,14 @@ export const metadata: Metadata = {
     siteName: siteMetadata.siteName,
     title: `${BRAND_NAME} | Never Let Another Lead Fall Through the Cracks`,
     description:
-      "Automate your lead follow-up, organize your pipeline, and turn more opportunities into clients with ARI.",
-    images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: "ARI real estate CRM dashboard" }],
+      "Automate your lead follow-up, organize your pipeline, and turn more opportunities into clients with MyARI.",
+    images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: "MyARI real estate CRM dashboard" }],
   },
   twitter: {
     card: "summary_large_image",
     title: `${BRAND_NAME} | Never Let Another Lead Fall Through the Cracks`,
     description:
-      "Automate your lead follow-up, organize your pipeline, and turn more opportunities into clients with ARI.",
+      "Automate your lead follow-up, organize your pipeline, and turn more opportunities into clients with MyARI.",
     images: [DEFAULT_OG_IMAGE],
   },
 };

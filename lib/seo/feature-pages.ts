@@ -50,17 +50,17 @@ const CORE_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Automated Follow-Up for Real Estate Agents",
     description:
-      "ARI automated follow-up runs SMS, email, and ringless voicemail sequences so every real estate lead gets a timely response - even when you're in showings.",
+      "MyARI automated follow-up runs SMS, email, and ringless voicemail sequences so every real estate lead gets a timely response - even when you're in showings.",
     h1: "Stay Connected, Effortlessly",
     eyebrow: "Automated follow-up",
     intro:
-      "Build automated follow-up sequences across SMS, email, and ringless voicemail - all inside ARI.",
+      "Build automated follow-up sequences across SMS, email, and ringless voicemail - all inside MyARI.",
     sections: [
       {
         h2: "Why automation beats manual follow-up",
         paragraphs: [
           "Agents lose deals when response time slips. Automated follow-up helps every lead hear from you on schedule - with messages you wrote, not generic templates.",
-          "ARI sequences combine timing, channel, and personalization so follow-up feels human while running in the background.",
+          "MyARI sequences combine timing, channel, and personalization so follow-up feels human while running in the background.",
         ],
       },
       {
@@ -76,7 +76,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Works with your real estate CRM",
         paragraphs: [
-          "Automated follow-up is built into ARI's pipeline - not a separate tool. When someone replies, they surface for personal outreach with full context.",
+          "Automated follow-up is built into MyARI's pipeline - not a separate tool. When someone replies, they surface for personal outreach with full context.",
           "Learn more about our dedicated lead follow-up software for Realtors.",
         ],
       },
@@ -101,7 +101,7 @@ const CORE_FEATURE_PAGES = {
     h1: "Lead Management Built for Real Estate",
     eyebrow: "Lead management",
     intro:
-      "Stop juggling spreadsheets and sticky notes. ARI centralizes contacts, lead sources, and activity history so you always know who to call next.",
+      "Stop juggling spreadsheets and sticky notes. MyARI centralizes contacts, lead sources, and activity history so you always know who to call next.",
     sections: [
       {
         h2: "Every lead in one place",
@@ -124,7 +124,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "From storage to action",
         paragraphs: [
-          "Lead management in ARI isn't passive - contacts connect directly to pipeline stages, tasks, and automated campaigns so data turns into conversations.",
+          "Lead management in MyARI isn't passive - contacts connect directly to pipeline stages, tasks, and automated campaigns so data turns into conversations.",
         ],
       },
     ],
@@ -143,11 +143,11 @@ const CORE_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Automated Text Follow-Up for Realtors",
     description:
-      "Send automated SMS follow-up to real estate leads with ARI - timely responses, drip sequences, and compliance-aware tools for TCPA-aware texting.",
+      "Send automated SMS follow-up to real estate leads with MyARI - timely responses, drip sequences, and compliance-aware tools for TCPA-aware texting.",
     h1: "Conversations That Start Faster",
     eyebrow: "SMS automation",
     intro:
-      "Text is the fastest way to reach modern buyers and sellers. ARI automates SMS follow-up so you respond in minutes - not hours - with compliance-aware controls for responsible outreach.",
+      "Text is the fastest way to reach modern buyers and sellers. MyARI automates SMS follow-up so you respond in minutes - not hours - with compliance-aware controls for responsible outreach.",
     sections: [
       {
         h2: "Speed-to-lead by text",
@@ -157,7 +157,7 @@ const CORE_FEATURE_PAGES = {
       },
       {
         h2: "SMS sequences that nurture",
-        paragraphs: ["Beyond the first text, ARI runs drip sequences that check in, share value, and re-engage quiet leads."],
+        paragraphs: ["Beyond the first text, MyARI runs drip sequences that check in, share value, and re-engage quiet leads."],
         bullets: [
           "Twilio-powered business SMS line",
           "Merge fields for personalization",
@@ -168,7 +168,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Compliance-aware tools",
         paragraphs: [
-          "Real estate texting has rules. ARI includes quiet hours, consent gates, and suppression/DNC tools to support responsible automated text follow-up.",
+          "Real estate texting has rules. MyARI includes quiet hours, consent gates, and suppression/DNC tools to support responsible automated text follow-up.",
         ],
       },
     ],
@@ -187,16 +187,16 @@ const CORE_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Automated Email Follow-Up for Real Estate",
     description:
-      "Automate real estate email follow-up with ARI - nurture sequences, market updates, and re-engagement emails tied to your CRM pipeline.",
+      "Automate real estate email follow-up with MyARI - nurture sequences, market updates, and re-engagement emails tied to your CRM pipeline.",
     h1: "Relationships Worth Nurturing",
     eyebrow: "Email automation",
     intro:
-      "Some leads need more than a text. ARI email automation delivers thoughtful nurture sequences, market touches, and re-engagement emails on schedule.",
+      "Some leads need more than a text. MyARI email automation delivers thoughtful nurture sequences, market touches, and re-engagement emails on schedule.",
     sections: [
       {
         h2: "Email where it works best",
         paragraphs: [
-          "Email excels for longer-form nurture - market reports, neighborhood updates, and check-ins that build trust over weeks. ARI automates these touches so they happen consistently.",
+          "Email excels for longer-form nurture - market reports, neighborhood updates, and check-ins that build trust over weeks. MyARI automates these touches so they happen consistently.",
         ],
       },
       {
@@ -231,7 +231,7 @@ const CORE_FEATURE_PAGES = {
     category: "CRM",
     title: "Real Estate Sales Pipeline Management",
     description:
-      "Track every lead through your real estate sales pipeline with ARI - stages, tasks, and automated follow-up so nothing falls through the cracks.",
+      "Track every lead through your real estate sales pipeline with MyARI - stages, tasks, and automated follow-up so nothing falls through the cracks.",
     h1: "Pipeline Management That Shows Who Needs You",
     eyebrow: "Pipeline",
     intro:
@@ -240,7 +240,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Visual pipeline for real estate",
         paragraphs: [
-          "Generic sales pipelines don't fit how agents work. ARI pipeline stages reflect buyer inquiries, listing appointments, active clients, and closed deals - so your board matches your business.",
+          "Generic sales pipelines don't fit how agents work. MyARI pipeline stages reflect buyer inquiries, listing appointments, active clients, and closed deals - so your board matches your business.",
         ],
         bullets: [
           "Drag-and-drop stage management",
@@ -277,11 +277,11 @@ const CORE_FEATURE_PAGES = {
     category: "Follow-up",
     title: "Lead Reactivation Feature for Real Estate CRM",
     description:
-      "Re-engage dormant real estate leads with ARI's lead reactivation feature - segmented SMS, email, and voicemail campaigns that restart conversations.",
+      "Re-engage dormant real estate leads with MyARI's lead reactivation feature - segmented SMS, email, and voicemail campaigns that restart conversations.",
     h1: "Reconnect With Opportunity",
     eyebrow: "Lead reactivation",
     intro:
-      "Your old leads aren't dead - they're waiting for the right message. ARI's reactivation tools segment dormant contacts and run structured re-engagement campaigns.",
+      "Your old leads aren't dead - they're waiting for the right message. MyARI's reactivation tools segment dormant contacts and run structured re-engagement campaigns.",
     sections: [
       {
         h2: "Turn your database into pipeline",
@@ -322,7 +322,7 @@ const CORE_FEATURE_PAGES = {
     category: "CRM",
     title: "Lead Reminders & Task Notifications for Agents",
     description:
-      "ARI notifications and task reminders tell real estate agents exactly who to call, text, or follow up with - so hot leads never slip through.",
+      "MyARI notifications and task reminders tell real estate agents exactly who to call, text, or follow up with - so hot leads never slip through.",
     h1: "Reminders That Keep You on Top of Every Lead",
     eyebrow: "Tasks & alerts",
     intro:
@@ -331,7 +331,7 @@ const CORE_FEATURE_PAGES = {
       {
         h2: "Never miss a hot lead",
         paragraphs: [
-          "When a prospect replies to an automated text or engages with outreach, ARI can create a task and notification so you follow up while intent is high. Alert types depend on your campaign configuration.",
+          "When a prospect replies to an automated text or engages with outreach, MyARI can create a task and notification so you follow up while intent is high. Alert types depend on your campaign configuration.",
         ],
         bullets: [
           "Task reminders tied to contacts and pipeline stages",

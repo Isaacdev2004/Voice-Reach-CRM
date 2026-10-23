@@ -24,40 +24,63 @@ function annualMonthlyEquivalent(monthly: number) {
   return Math.round((annualTotal(monthly) / 12) * 100) / 100;
 }
 
-export function LandingPricing() {
+export function LandingPricing({
+  compact = false,
+}: { compact?: boolean } = {}) {
   const [annual, setAnnual] = useState(false);
 
   return (
-    <section id="pricing" className="scroll-mt-[4.25rem] bg-cream py-12 md:py-20 lg:py-24">
+    <section
+      id="pricing"
+      className="scroll-mt-[4.25rem] bg-cream py-12 md:py-20 lg:py-24"
+    >
       <div className="landing-shell">
         <Reveal className="text-center">
           <h2 className="font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
             Start free. Scale when you&apos;re ready.
           </h2>
           <p className="mx-auto mt-3 w-full max-w-[40rem] px-2 text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
-            <strong className="font-semibold text-ink">Growth</strong> is our recommended plan for
-            active agents. {SITE_OFFER.trialDays}-day free trial on every plan. {SITE_OFFER.whiteGlove.shortLine}.
-            {SITE_OFFER.founding.active ? ` ${SITE_OFFER.founding.memberBenefit}` : ""}
+            <strong className="font-semibold text-ink">Growth</strong> is our
+            recommended plan for active agents.{" "}
+            {!compact && (
+              <>
+                {SITE_OFFER.trialDays}-day free trial on every plan.{" "}
+                {SITE_OFFER.whiteGlove.shortLine}.{" "}
+                {SITE_OFFER.founding.active
+                  ? ` ${SITE_OFFER.founding.memberBenefit}`
+                  : ""}
+              </>
+            )}
           </p>
 
           <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-outline-variant/20 bg-ivory p-1">
             <button
               type="button"
+              aria-pressed={!annual}
               onClick={() => {
                 setAnnual(false);
-                trackMarketingEvent("pricing_billing_toggle", { mode: "monthly", location: "landing-pricing" });
+                trackMarketingEvent("pricing_billing_toggle", {
+                  mode: "monthly",
+                  location: "landing-pricing",
+                });
               }}
               className={`rounded-full px-5 py-2 text-[13px] font-semibold transition-colors ${
-                !annual ? "bg-rose-gold text-ivory" : "text-taupe hover:text-ink"
+                !annual
+                  ? "bg-rose-gold text-ivory"
+                  : "text-taupe hover:text-ink"
               }`}
             >
               Monthly
             </button>
             <button
               type="button"
+              aria-pressed={annual}
               onClick={() => {
                 setAnnual(true);
-                trackMarketingEvent("pricing_billing_toggle", { mode: "annual", location: "landing-pricing" });
+                trackMarketingEvent("pricing_billing_toggle", {
+                  mode: "annual",
+                  location: "landing-pricing",
+                });
               }}
               className={`rounded-full px-5 py-2 text-[13px] font-semibold transition-colors ${
                 annual ? "bg-rose-gold text-ivory" : "text-taupe hover:text-ink"
@@ -68,7 +91,10 @@ export function LandingPricing() {
           </div>
         </Reveal>
 
-        <RevealStagger className="mt-12 grid items-stretch gap-6 md:grid-cols-3" stepMs={120}>
+        <RevealStagger
+          className="mt-12 grid items-stretch gap-6 md:grid-cols-3"
+          stepMs={120}
+        >
           {DISPLAY_PLANS.map((plan) => {
             const featured = Boolean(plan.featured);
             const monthly = plan.price;
@@ -90,34 +116,48 @@ export function LandingPricing() {
                   </span>
                 ) : null}
 
-                {plan.outcomeHeadline ? (
-                  <p
-                    className={`text-[15px] font-semibold leading-snug ${featured ? "text-ivory" : "text-ink"}`}
+                <header className="public-plan-heading">
+                  {plan.outcomeHeadline ? (
+                    <p
+                      className={`text-[15px] font-semibold leading-snug ${featured ? "text-ivory" : "text-ink"}`}
+                    >
+                      {plan.outcomeHeadline}
+                    </p>
+                  ) : null}
+                  <h3
+                    className={`mt-2 font-serif text-[20px] font-semibold ${featured ? "text-ivory/90" : "text-taupe"}`}
                   >
-                    {plan.outcomeHeadline}
+                    {plan.name}
+                  </h3>
+                  <p
+                    className={`mt-0.5 text-[13px] ${featured ? "text-ivory/75" : "text-taupe"}`}
+                  >
+                    {plan.description}
                   </p>
-                ) : null}
-                <h3
-                  className={`mt-2 font-serif text-[20px] font-semibold ${featured ? "text-ivory/90" : "text-taupe"}`}
+                  {plan.positioningLine ? (
+                    <p
+                      className={`mt-2 text-[13px] leading-snug ${featured ? "text-ivory/90" : "text-slate-text"}`}
+                    >
+                      {plan.positioningLine}
+                    </p>
+                  ) : null}
+                </header>
+                <div
+                  className={`mt-6 flex flex-wrap items-baseline gap-2 ${featured ? "text-ivory" : "text-ink"}`}
                 >
-                  {plan.name}
-                </h3>
-                <p className={`mt-0.5 text-[13px] ${featured ? "text-ivory/75" : "text-taupe"}`}>
-                  {plan.description}
-                </p>
-                {plan.positioningLine ? (
-                  <p className={`mt-2 text-[13px] leading-snug ${featured ? "text-ivory/90" : "text-slate-text"}`}>
-                    {plan.positioningLine}
-                  </p>
-                ) : null}
-
-                <div className={`mt-6 flex flex-wrap items-baseline gap-2 ${featured ? "text-ivory" : "text-ink"}`}>
                   {SITE_OFFER.founding.active &&
-                  FOUNDING_100.listPrices[plan.id as keyof typeof FOUNDING_100.listPrices] ? (
+                  FOUNDING_100.listPrices[
+                    plan.id as keyof typeof FOUNDING_100.listPrices
+                  ] ? (
                     <span
                       className={`font-serif text-[22px] line-through decoration-2 ${featured ? "text-ivory/55" : "text-taupe"}`}
                     >
-                      ${FOUNDING_100.listPrices[plan.id as keyof typeof FOUNDING_100.listPrices]}
+                      $
+                      {
+                        FOUNDING_100.listPrices[
+                          plan.id as keyof typeof FOUNDING_100.listPrices
+                        ]
+                      }
                     </span>
                   ) : null}
                   {annual ? (
@@ -125,28 +165,43 @@ export function LandingPricing() {
                       <span className="font-serif text-[40px] font-semibold leading-none">
                         ${yearlyTotal}
                       </span>
-                      <span className={featured ? "text-ivory/70" : "text-taupe"}>/yr</span>
+                      <span
+                        className={featured ? "text-ivory/70" : "text-taupe"}
+                      >
+                        /yr
+                      </span>
                     </>
                   ) : (
                     <>
                       <span className="font-serif text-[40px] font-semibold leading-none">
                         ${monthly}
                       </span>
-                      <span className={featured ? "text-ivory/70" : "text-taupe"}>/mo</span>
+                      <span
+                        className={featured ? "text-ivory/70" : "text-taupe"}
+                      >
+                        /mo
+                      </span>
                     </>
                   )}
                 </div>
                 {SITE_OFFER.founding.active ? (
-                  <p className={`mt-1 text-[12px] font-medium ${featured ? "text-sage-light" : "text-rose-gold-deep"}`}>
+                  <p
+                    className={`mt-1 text-[12px] font-medium ${featured ? "text-sage-light" : "text-rose-gold-deep"}`}
+                  >
                     Founding-member price
                   </p>
                 ) : null}
                 {annual ? (
-                  <p className={`mt-1 text-[12px] ${featured ? "text-ivory/75" : "text-taupe"}`}>
-                    ${monthly}/mo billed monthly · ${monthlyEquivalent}/mo billed yearly
+                  <p
+                    className={`mt-1 text-[12px] ${featured ? "text-ivory/75" : "text-taupe"}`}
+                  >
+                    ${monthly}/mo billed monthly · ${monthlyEquivalent}/mo
+                    billed yearly
                   </p>
                 ) : (
-                  <p className={`mt-1 text-[12px] ${featured ? "text-ivory/75" : "text-taupe"}`}>
+                  <p
+                    className={`mt-1 text-[12px] ${featured ? "text-ivory/75" : "text-taupe"}`}
+                  >
                     ${monthly}/mo billed monthly
                   </p>
                 )}
@@ -155,8 +210,14 @@ export function LandingPricing() {
                   href={`/sign-up?plan=${plan.id}`}
                   onClick={() => {
                     rememberPendingPlan(plan.id);
-                    trackMarketingEvent("pricing_plan_select", { location: "landing-pricing", plan: plan.id });
-                    trackMarketingEvent("start_trial_click", { location: "pricing", plan: plan.id });
+                    trackMarketingEvent("pricing_plan_select", {
+                      location: "landing-pricing",
+                      plan: plan.id,
+                    });
+                    trackMarketingEvent("start_trial_click", {
+                      location: "pricing",
+                      plan: plan.id,
+                    });
                   }}
                   className={`mt-6 block rounded-full py-3.5 text-center text-[14px] font-bold transition-opacity hover:opacity-95 ${
                     featured
@@ -174,7 +235,9 @@ export function LandingPricing() {
                   }`}
                 />
 
-                <ul className={`mt-6 flex-1 space-y-2.5 text-[13px] ${featured ? "text-ivory/90" : "text-slate-text"}`}>
+                <ul
+                  className={`mt-6 flex-1 space-y-2.5 text-[13px] ${featured ? "text-ivory/90" : "text-slate-text"}`}
+                >
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
                       <CheckCircleIcon
@@ -200,11 +263,12 @@ export function LandingPricing() {
                 {plan.name} - from ${plan.price}/mo
               </p>
               <p className="text-[13px] text-slate-text">
-                Teams &amp; brokerages · 5 users included · pooled messaging · custom volume
+                Teams &amp; brokerages · 5 users included · pooled messaging ·
+                custom volume
               </p>
             </div>
             <a
-              href={`mailto:${SALES_EMAIL}?subject=ARI Team Plan`}
+              href={`mailto:${SALES_EMAIL}?subject=MyARI Team Plan`}
               className="shrink-0 rounded-full border border-rose-gold px-6 py-2.5 text-[13px] font-semibold text-rose-gold-deep hover:bg-rose-gold/5"
             >
               Contact Sales

@@ -71,3 +71,28 @@ for (const text of [
   assert.ok(homepage.replace(/\s+/g, " ").includes(text));
 assert.ok(existsSync("public/brand/product-captures/dashboard-editorial.webp"));
 assert.ok(existsSync("public/brand/marketing/public-architectural-hero.webp"));
+
+// Public polish preserves the offer, source-backed routes and gated conversion path.
+const walkthrough = readFileSync(
+  "components/marketing/public-walkthrough.tsx",
+  "utf8",
+);
+const video = readFileSync("components/landing/demo-video.tsx", "utf8");
+assert.ok(walkthrough.includes('aria-labelledby="walkthrough-title"'));
+assert.ok(walkthrough.includes(".showModal()"));
+assert.ok(walkthrough.includes("video.pause()"));
+assert.ok(video.includes('preload="none"'));
+assert.ok(!video.includes('<track kind="captions"'));
+assert.ok(!video.includes("NEXT_PUBLIC_DEMO_VIDEO_URL</code>"));
+for (const article of Object.values(RESOURCE_ARTICLES)) {
+  for (const link of article.productLinks)
+    assert.ok(known.has(link.href), `${article.slug}: ${link.href}`);
+  for (const citation of article.citations ?? [])
+    if (citation.href) assert.ok(citation.href.startsWith("https://"));
+  assert.ok(!article.description.includes("Research-backed"));
+}
+assert.equal(
+  FEATURE_PAGES["campaign-builder"].path,
+  "/features/campaign-builder",
+);
+assert.ok(existsSync("public/brand/product-captures/builder.webp"));

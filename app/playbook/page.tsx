@@ -7,7 +7,7 @@ import { SITE_OFFER } from "@/lib/marketing/site-offer";
 import { pageMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Free Agent Follow-Up Playbook | ARI CRM",
+  title: "Free Agent Follow-Up Playbook | MyARI CRM",
   description:
     "Download the free real estate follow-up playbook — scripts, cadences, and a simple system to re-engage cold leads without another hard sell.",
   path: "/playbook",

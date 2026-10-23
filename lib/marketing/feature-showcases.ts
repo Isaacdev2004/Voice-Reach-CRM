@@ -5,6 +5,7 @@ type CaptureKey =
   | "contacts"
   | "campaigns"
   | "sequence"
+  | "builder"
   | "voice"
   | "calendar"
   | "assistant"
@@ -46,10 +47,10 @@ const relationships: Showcase = {
 };
 const outreach: Showcase = {
   pillar: "Outreach",
-  capture: "sequence",
+  capture: "builder",
   photo: photo.outreach,
   caption:
-    "An actual campaign sequence preview with supported communication steps.",
+    "The actual editable Campaign Builder with email, SMS and voicemail steps, timing and review controls.",
   steps: [
     "Choose or build a sequence for your audience.",
     "Review each message, delay and recipient's eligibility.",
