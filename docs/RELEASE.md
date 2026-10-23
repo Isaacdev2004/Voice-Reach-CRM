@@ -29,3 +29,19 @@
 - Enable **branch protection** on `main` (see `docs/GITHUB-SETUP.md`).
 - Never commit `.env` or service role keys.
 - Codex should open PRs only; human merges after CI.
+
+### Financing & Closing Studio (review branch)
+
+Adds closing calculators, owner-scoped lender/title management, original report exports and connected client follow-up at the preserved `/dashboard/mortgage` route. Requires review/application of the new Financing migration in staging before saved reports/partners work. Manual fees remain estimates; no title API or live sharing is enabled. See `docs/financing-studio/REVIEW.md` for scope, tests, limitations and compliance/provider approvals. Not deployed by this task.
+
+### Financing and Property Finder reference refinements
+
+Rearranges financing into property/loan/lender tools on the left and a combined payment chart plus rate history on the right. Adds stable original photographic covers to Property Finder actions, saved searches and client panels. Preserves all six Studio sections, search criteria, data ownership and existing destinations. See both `reference-layout/REVIEW.md` guides for screenshots and limitations. No additional database change or deployment is required/performed by this refinement.
+
+## Premium Tasks workspace (pending release)
+
+See [Tasks review](tasks-workspace/REVIEW.md) for visuals, metrics, tests and release gates. Requires reviewed `20261025000000_tasks_workspace.sql` on staging after prerequisite schema/migrations; no configured database was modified. Do not deploy automatically. Basic tasks remain available before the workspace update; dependencies/trackers/reviewed AI batches require it. Background notification delivery and Google series reconciliation remain separate provider/staging checks. Roll back the app before considering any database rollback; retain task/transaction records.
+
+## Premium Studio, Activity, Settings and Brand Kit (review branch)
+
+See [review and release gates](studio-activity-review/REVIEW.md). Includes Tasks hero/template refinements, safe Voice Studio previews, receiving-number-scoped inbound tracking, premium Activity/Settings and private approved branding. The four `20261026*`/`20261027*` migrations are **not applied** to the configured database. No production deployment or provider changes were performed. Server API-key issuance, organization invitations and a new direct SMS reply sender are explicitly unsupported rather than presented as functional.

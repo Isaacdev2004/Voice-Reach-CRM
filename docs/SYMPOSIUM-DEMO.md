@@ -47,3 +47,17 @@ Full narration: see product walkthrough script in team docs / chat history.
 1. Set `VOICE_WEBHOOK_SECRET` on production if using Slybroadcast dispo URL.
 2. Confirm `APP_BASE_URL` matches your Vercel domain (Twilio signatures).
 3. Audit Supabase **RLS/grants** in dashboard (see `docs/SECURITY-RLS.md`).
+
+### Financing Studio demo
+
+Use synthetic contacts and manually verified test amounts. Show calculation assumptions, report preview and local export. Apply the Financing migration to the demo/staging database before demonstrating saved reports/partners. Do not claim live valuations, official title pricing, guaranteed rates or verified legal compliance. Keep outbound messaging off.
+
+Reference-layout evidence is under `docs/financing-studio/reference-layout` and `docs/property-finder-premium/reference-layout`. The charts/client names in QA screenshots are synthetic. Demonstrate actual saved clients and optional preferred lenders in staging; show the genuine Zillow search empty state when there is no authorized listing feed.
+
+## Tasks workspace demo
+
+Review [Tasks screenshots and release gates](tasks-workspace/REVIEW.md). Use synthetic staging data with outbound off. Demonstrate compact list/board/focus, real KPI filters, a reviewed custom checklist and a blocked milestone. Complete the prerequisite, then the next milestone; show the same tasks in Contacts/Calendar and real tracker progress. Review/edit an AI proposal before approving it; do not imply that dictation, AI, live provider sync or background reminders have been verified without their separate staging checks. The database workspace update is a migration, not a paid plan upgrade.
+
+## Premium Studio / Activity / Settings demo
+
+Use the isolated synthetic screenshots in `docs/studio-activity-review`, not production subscribers. Show read-only Test Voice Script and synthetic text personalization; explain that prerecorded audio is unchanged and provider acceptance is not delivery. Demonstrate Settings profile tabs, private branding previews and derived onboarding progress. Do not describe roster entries as real invitations, browser references as working API keys, or keyword suggestions as AI-verified intent. Keep live outbound off and do not send, call, charge or modify provider configuration. Authenticated staging/provider verification and migrations remain release gates.

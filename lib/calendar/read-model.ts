@@ -54,9 +54,9 @@ export async function readCalendar(owner: string, from: string, to: string) {
       [c.first_name, c.last_name].filter(Boolean).join(" "),
     ]),
   );
-  const openTasks = tasks.filter((t) => !t.completed && t.due_at);
+  const openTasks = tasks.filter((t) => !t.completed && (t.due_at || t.reminder_at)).map(t=>({...t,due_at:t.due_at??t.reminder_at!}));
   const mirroredTaskIds = new Set(
-    openTasks.map((t) => t.calendar_event_id).filter(Boolean),
+    tasks.map((t) => t.calendar_event_id).filter(Boolean),
   );
   const calendars: CalendarInfo[] = [
     {
@@ -203,7 +203,7 @@ export async function readCalendar(owner: string, from: string, to: string) {
                   "primary") === "primary" &&
                   cal.primary)),
           );
-          if (local && mirroredTaskIds.has(local.external_event_id)) continue;
+          if (local && (mirroredTaskIds.has(local.external_event_id)||local.metadata?.taskId)) continue;
           if (local) linkedLocalIds.add(local.id);
           const kind =
             local?.metadata?.stepType === "callback" ? "callback" : "google";
@@ -287,6 +287,7 @@ export async function readCalendar(owner: string, from: string, to: string) {
       (r) =>
         Date.parse(r.starts_at) < Date.parse(to) &&
         Date.parse(r.ends_at) > Date.parse(from) &&
+        !r.metadata?.taskId &&
         !mirroredTaskIds.has(r.id) &&
         !mirroredTaskIds.has(r.external_event_id) &&
         !(

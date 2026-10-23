@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ContactTasksPanel } from "@/components/crm/contact-tasks-panel";
 import { AssignContactToCampaignModal } from "@/components/crm/assign-contact-to-campaign-modal";
+import {PropertyLifestyleArt} from "@/components/property-finder/property-lifestyle-art";
 import { PropertyFinderActionCards } from "@/components/property-finder/property-finder-action-cards";
 import { PropertyFinderBottomRow, type SuggestedStep } from "@/components/property-finder/property-finder-bottom-row";
 import { PropertyFinderHero } from "@/components/property-finder/property-finder-hero";
@@ -140,7 +141,7 @@ function PropertyFinderWorkspace({ownerId}: {ownerId?:string}) {
     <PropertyFinderHero />
     <PropertySearchWorkspace mode={mode} onModeChange={setMode} contacts={contacts} loading={loading} selectedId={contact?.id ?? ""} onSelectContact={pickContact} area={area} onAreaChange={changeArea} budget={budget} onBudgetChange={changeBudget} budgetNumber={budgetNumber} budgetError={parsedBudget.error} preferenceError={parsedPreferences.error} preferencesEditor={mode === "client" && contact ? <PropertyPreferencesEditor value={preferences} onChange={next => {setPreferences(next);setSaved(false);}} error={parsedPreferences.error} /> : null} searchUrl={searchUrl} saving={saving} saveError={saveError} saved={saved} onSave={() => void saveCriteria()} />
     {mode === "client" ? <div className="pf-client-tools">
-      {contact ? <section className="pf-client-share" aria-label="Selected client and Zillow sharing">
+      {contact ? <section className="pf-client-share" aria-label="Selected client and Zillow sharing"><PropertyLifestyleArt tile={6} className="pf-client-hero-art"/>
         <div><p className="pf-eyebrow">TAILORED TO YOUR CLIENT</p><h2>{contact.first_name} {contact.last_name ?? ""}</h2><p>{area.trim() || "Any area"}{budgetNumber ? ` · up to ${formatUsd(budgetNumber)}` : ""}</p><p className="pf-client-contact">{contact.email || contact.phone || "No contact details on file"}{contact.lead_type || contact.type ? ` · ${contact.lead_type || contact.type}` : ""}</p>{savedPropertyPreferenceLabels(contact).length ? <div className="pf-client-preference-tags">{savedPropertyPreferenceLabels(contact).map(value => <span key={value}>{value}</span>)}</div> : null}<Link href={`/dashboard/contacts/${contact.id}`} className="pf-text-action">Open client profile →</Link></div>
         <div className="pf-share-actions"><button type="button" className="pf-save-button" disabled={Boolean(parsedBudget.error)} onClick={() => void copyLink()}>{copied ? "Copied" : "Copy link"}</button>{smsHref && !parsedBudget.error ? <a href={smsHref}>Text client</a> : null}{emailHref && !parsedBudget.error ? <a href={emailHref}>Email client</a> : null}<a href={searchUrl} target="_blank" rel="noreferrer">Open Zillow <span aria-hidden="true"><Icon name="open_in_new" className="text-[16px]" /></span></a></div>
         {copyError ? <p role="alert" className="pf-form-error">Copy isn&apos;t available. Open Zillow and copy the address from your browser.</p> : null}
@@ -153,7 +154,7 @@ function PropertyFinderWorkspace({ownerId}: {ownerId?:string}) {
       </> : null}
       <details className="pf-recent-disclosure"><summary>Quick pick clients</summary><PropertyFinderRecentContacts contacts={contacts} recentIds={recentIds} selectedId={selectedId} onSelect={pickContact} /></details>
     </div> : null}
-    <PropertyFinderActionCards />
+    <PropertyFinderActionCards onSearch={()=>{setMode("properties");requestAnimationFrame(()=>{document.getElementById("client-workspace")?.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});document.getElementById("property-location")?.focus({preventScroll:true});});}} />
     <PropertyFinderSavedSearches contacts={contacts} selectedId={selectedId} onSelect={pickContactAndOpenWorkspace} loading={loading} error={error} onRetry={() => void refresh()} />
     <section className="pf-suggestions" aria-labelledby="suggested-properties-heading">
       <div className="pf-section-heading"><div><h2 id="suggested-properties-heading">Suggested properties</h2><p>Your clients&apos; next chapter starts with the right search.</p></div></div>

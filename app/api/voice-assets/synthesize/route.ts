@@ -7,6 +7,7 @@ import {
   synthesizeSpeech,
 } from "@/lib/providers/elevenlabs";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { previewPersonalization } from "@/lib/voice-studio/verification";
 import { z } from "zod";
 
 const BodySchema = z.object({
@@ -18,22 +19,27 @@ const BodySchema = z.object({
 });
 
 export const POST = withApiHandler(async (request) => {
+  const ownerId = await requireUserId();
   if (!isElevenLabsConfigured()) {
-    return apiError("ElevenLabs is not configured. Add ELEVENLABS_API_KEY to your environment.", {
-      status: 503,
-      code: "elevenlabs_not_configured",
-    });
+    return apiError(
+      "AI audio generation is currently unavailable. You can record or upload audio instead.",
+      {
+        status: 503,
+        code: "elevenlabs_not_configured",
+      },
+    );
   }
 
-  const ownerId = await requireUserId();
   const body = BodySchema.parse(await request.json());
 
-  const voiceId = await resolveOwnerVoiceId(ownerId, {
-    voiceId: body.voiceId,
-    voiceProfileId: body.voiceProfileId,
-  });
-
-  const audioBuffer = await synthesizeSpeech({ text: body.script, voiceId });
+  const personalization = previewPersonalization(body.script, {});
+  if (!personalization.ready)
+    return apiError(
+      "Replace missing or unsupported variables with the exact words to record before generating prerecorded audio.",
+      { status: 400 },
+    );
+  let voiceId:string,audioBuffer:ArrayBuffer;
+  try{voiceId=await resolveOwnerVoiceId(ownerId,{voiceId:body.voiceId,voiceProfileId:body.voiceProfileId});audioBuffer=await synthesizeSpeech({text:body.script,voiceId});}catch{return apiError("Audio could not be generated with the selected voice. Check the voice selection or try again later.",{status:503});}
   const bucket = process.env.SUPABASE_STORAGE_BUCKET || "voice-assets";
   const storagePath = `${ownerId}/ai-${crypto.randomUUID()}.mp3`;
 
@@ -44,7 +50,7 @@ export const POST = withApiHandler(async (request) => {
       upsert: false,
     });
 
-  if (uploadError) return apiError(uploadError.message, { status: 500 });
+  if (uploadError) return apiError("Generated audio could not be stored.", { status: 500 });
 
   const { data: voiceAsset, error: insertError } = await supabaseAdmin
     .from("voice_assets")
@@ -54,11 +60,12 @@ export const POST = withApiHandler(async (request) => {
       title: body.title,
       storage_path: storagePath,
       approved: false,
+      studio_metadata: { source: "ai", script: body.script },
     })
     .select("*")
     .single();
 
-  if (insertError) return apiError(insertError.message, { status: 500 });
+  if (insertError) return apiError("Generated recording could not be saved.", { status: 500 });
 
   await writeAuditLog({
     ownerId,

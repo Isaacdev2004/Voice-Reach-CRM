@@ -1,5 +1,9 @@
 "use client";
 
+import { AiLauncherButton } from "@/components/ai/ai-launcher-button";
+import { BrandKitPanel } from "@/components/settings/brand-kit-panel";
+import { EditorialWorkspaceHero } from "@/components/layout/editorial-workspace-hero";
+import "@/components/settings/settings-premium.css";
 import { ApiKeyModal } from "@/components/settings/api-key-modal";
 import { InAppBrowserBanner } from "@/components/auth/in-app-browser-banner";
 import { IntegrationConfigModal } from "@/components/settings/integration-config-modal";
@@ -19,7 +23,6 @@ import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
 import { isServerManagedIntegration } from "@/lib/settings/merge-integrations";
 import {
   fetchSettings,
-  generateApiKey,
   persistSettings,
   saveSettingsLocal,
 } from "@/lib/settings/storage";
@@ -29,7 +32,7 @@ import type {
   TeamMember,
   UserSettings,
 } from "@/lib/settings/types";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useClerk } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -39,10 +42,13 @@ type Toast = { message: string; tone: "success" | "error" };
 
 const TABS: { id: SettingsTab; label: string }[] = [
   { id: "profile", label: "Profile" },
+  { id: "brand", label: "Brand Kit" },
   { id: "workspace", label: "Workspace" },
-  { id: "api", label: "API keys" },
+  { id: "api", label: "API Keys" },
   { id: "team", label: "Team" },
+  { id: "integrations", label: "Integrations" },
   { id: "billing", label: "Billing" },
+  { id: "notifications", label: "Notifications" },
 ];
 
 const ROLE_LABELS: Record<TeamMember["role"], string> = {
@@ -54,10 +60,20 @@ const ROLE_LABELS: Record<TeamMember["role"], string> = {
 
 export function SettingsWorkspacePage() {
   const { user } = useUser();
+  return <SettingsSession key={user?.id || "signed-out"} />;
+}
+function SettingsSession() {
+  const { user } = useUser();
+  const { openUserProfile } = useClerk();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { openUpgrade, billing: sharedBilling, lastUpgradedAt, subscriptionActive } =
-    useUpgradePlan();
+  const {
+    openUpgrade,
+    billing: sharedBilling,
+    lastUpgradedAt,
+    subscriptionActive,
+  } = useUpgradePlan();
+  const [billingVerified, setBillingVerified] = useState<boolean | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -76,6 +92,9 @@ export function SettingsWorkspacePage() {
   } | null>(null);
   const [savedSnapshot, setSavedSnapshot] = useState<string>("");
   const [email, setEmail] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const loadSerial = useRef(0);
+  const saveLock = useRef(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
@@ -83,11 +102,14 @@ export function SettingsWorkspacePage() {
   const [profileEditing, setProfileEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [integrationModal, setIntegrationModal] = useState<IntegrationConfig | null>(null);
+  const [integrationModal, setIntegrationModal] =
+    useState<IntegrationConfig | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [apiKeyOpen, setApiKeyOpen] = useState(false);
   const [createdApiKey, setCreatedApiKey] = useState<string | null>(null);
-  const [teamMemberModal, setTeamMemberModal] = useState<TeamMember | null>(null);
+  const [teamMemberModal, setTeamMemberModal] = useState<TeamMember | null>(
+    null,
+  );
 
   const showToast = (message: string, tone: Toast["tone"] = "success") => {
     setToast({ message, tone });
@@ -95,20 +117,28 @@ export function SettingsWorkspacePage() {
   };
 
   const load = useCallback(async () => {
+    const serial = ++loadSerial.current;
     setLoading(true);
+    setLoadError("");
+    setSettings(null);
     try {
       const data = await fetchSettings();
+      if (serial !== loadSerial.current) return;
       setSettings(data.settings);
       setPlanUsage(data.planUsage ?? null);
+      setBillingVerified(data.billingVerification?.verified ?? false);
       setSavedSnapshot(JSON.stringify(data.settings));
       setEmail(data.email || user?.primaryEmailAddress?.emailAddress || "");
-      saveSettingsLocal(data.settings);
+      saveSettingsLocal(data.settings, user?.id);
     } catch (e) {
-      showToast(e instanceof Error ? e.message : "Could not load settings", "error");
+      if (serial === loadSerial.current)
+        setLoadError(
+          "Settings could not be loaded. Your saved account information has not changed.",
+        );
     } finally {
-      setLoading(false);
+      if (serial === loadSerial.current) setLoading(false);
     }
-  }, [user?.primaryEmailAddress?.emailAddress]);
+  }, [user?.primaryEmailAddress?.emailAddress, user?.id]);
 
   useEffect(() => {
     void load();
@@ -129,7 +159,7 @@ export function SettingsWorkspacePage() {
                   ...item,
                   connected: true,
                   accountLabel: data.accountEmail ?? "Google account",
-                  lastSync: data.lastUpdated ?? new Date().toISOString(),
+                  lastSync: undefined,
                 }
               : item,
           ),
@@ -154,7 +184,9 @@ export function SettingsWorkspacePage() {
               return {
                 ...item,
                 connected: Boolean(data.claude?.configured),
-                accountLabel: data.claude?.configured ? data.claude.model : undefined,
+                accountLabel: data.claude?.configured
+                  ? data.claude.model
+                  : undefined,
               };
             }
             if (item.id === "dotloop") {
@@ -182,10 +214,13 @@ export function SettingsWorkspacePage() {
     const requestedTab = searchParams.get("tab");
     if (
       requestedTab === "profile" ||
+      requestedTab === "brand" ||
       requestedTab === "workspace" ||
       requestedTab === "api" ||
       requestedTab === "team" ||
-      requestedTab === "billing"
+      requestedTab === "billing" ||
+      requestedTab === "integrations" ||
+      requestedTab === "notifications"
     ) {
       setTab(requestedTab);
     }
@@ -195,19 +230,21 @@ export function SettingsWorkspacePage() {
     const reason = searchParams.get("reason");
     if (calendar === "connected") {
       void load();
-      showToast("Google Calendar authorization saved. Open Calendar to verify synchronization.");
+      showToast(
+        "Google Calendar authorization saved. Open Calendar to verify synchronization.",
+      );
       router.replace("/dashboard/settings?tab=workspace", { scroll: false });
     } else if (calendar === "error") {
       const message =
         reason === "database_table_missing"
           ? "Calendar database not set up yet - we’re fixing this on our side."
-          : (reason === "access_denied" || reason === "authorization_declined")
+          : reason === "access_denied" || reason === "authorization_declined"
             ? "Google access was denied. Try Connect again and click Allow."
             : reason === "redirect_uri_mismatch"
               ? "Google redirect URL mismatch — your admin must add the exact callback URL from Vercel (APP_BASE_URL) in Google Cloud OAuth settings."
-            : reason === "missing_code_or_session"
-              ? "Session expired - click Connect again (stay signed in to MyARI)."
-              : "Google Calendar authorization could not be completed. Try again or contact your workspace administrator.";
+              : reason === "missing_code_or_session"
+                ? "Session expired - click Connect again (stay signed in to MyARI)."
+                : "Google Calendar authorization could not be completed. Try again or contact your workspace administrator.";
       showToast(message, "error");
       router.replace("/dashboard/settings?tab=workspace", { scroll: false });
     } else if (dotloop === "connected") {
@@ -218,7 +255,7 @@ export function SettingsWorkspacePage() {
       const message =
         reason === "database_table_missing"
           ? "Dotloop database not set up yet - run supabase/schema-integrations.sql."
-          : (reason === "access_denied" || reason === "authorization_declined")
+          : reason === "access_denied" || reason === "authorization_declined"
             ? "Dotloop access was denied. Try Connect again and click Allow."
             : reason === "missing_code_or_session"
               ? "Session expired - click Connect again (stay signed in)."
@@ -234,7 +271,7 @@ export function SettingsWorkspacePage() {
   }, [headerQuery]);
 
   useEffect(() => {
-    if (!lastUpgradedAt || !settings) return;
+    if (!lastUpgradedAt) return;
     setSettings((prev) =>
       prev
         ? {
@@ -252,7 +289,10 @@ export function SettingsWorkspacePage() {
         const parsed = JSON.parse(snap) as UserSettings;
         return JSON.stringify({
           ...parsed,
-          billing: { ...sharedBilling, voiceMinutesUsed: parsed.billing.voiceMinutesUsed },
+          billing: {
+            ...sharedBilling,
+            voiceMinutesUsed: parsed.billing.voiceMinutesUsed,
+          },
         });
       } catch {
         return snap;
@@ -265,37 +305,46 @@ export function SettingsWorkspacePage() {
     [settings, savedSnapshot],
   );
 
-  const update = useCallback((patch: Partial<UserSettings> | ((s: UserSettings) => UserSettings)) => {
-    setSettings((prev) => {
-      if (!prev) return prev;
-      return typeof patch === "function" ? patch(prev) : { ...prev, ...patch };
-    });
-  }, []);
+  const update = useCallback(
+    (patch: Partial<UserSettings> | ((s: UserSettings) => UserSettings)) => {
+      setSettings((prev) => {
+        if (!prev) return prev;
+        return typeof patch === "function"
+          ? patch(prev)
+          : { ...prev, ...patch };
+      });
+    },
+    [],
+  );
 
   const handleSave = async () => {
-    if (!settings) return;
+    if (!settings || saveLock.current) return;
+    saveLock.current = true;
     setSaving(true);
     try {
-      if (user) {
-        const parts = settings.profile.fullName.trim().split(/\s+/);
-        await user.update({
-          firstName: parts[0] ?? "",
-          lastName: parts.slice(1).join(" ") || "",
-        });
-      }
       const data = await persistSettings(settings);
       setSettings(data.settings);
       setSavedSnapshot(JSON.stringify(data.settings));
-      saveSettingsLocal(data.settings);
+      saveSettingsLocal(data.settings, user?.id);
       setProfileEditing(false);
-      showToast("All changes saved");
+      if (data.profileSync !== false) {
+        await user?.reload?.().catch(() => undefined);
+        showToast("All changes saved");
+      } else
+        showToast(
+          "Preferences saved. Your sign-in provider could not update the account name.",
+          "error",
+        );
     } catch (e) {
-      saveSettingsLocal(settings);
+      saveSettingsLocal(settings, user?.id);
       showToast(
-        e instanceof Error ? `${e.message} - saved on this device` : "Saved locally",
+        e instanceof Error
+          ? `${e.message} — not saved to the server`
+          : "Settings were not saved. Please retry.",
         "error",
       );
     } finally {
+      saveLock.current = false;
       setSaving(false);
     }
   };
@@ -307,10 +356,10 @@ export function SettingsWorkspacePage() {
     showToast("Changes discarded");
   };
 
-  const avatarUrl =
-    settings?.profile.avatarUrl || user?.imageUrl || settings?.team[0]?.avatarUrl;
+  const avatarUrl = user?.imageUrl || settings?.profile.avatarUrl;
 
-  const connectedCount = settings?.integrations.filter((i) => i.connected).length ?? 0;
+  const connectedCount =
+    settings?.integrations.filter((i) => i.connected).length ?? 0;
 
   const filteredTeam = useMemo(() => {
     if (!settings) return [];
@@ -332,21 +381,51 @@ export function SettingsWorkspacePage() {
     );
   }
 
-  if (!settings) return null;
+  if (!settings)
+    return (
+      <div className="settings-premium">
+        <EditorialWorkspaceHero
+          eyebrow="SETTINGS"
+          title="Make MyARI yours."
+          description="Personalize your workspace, preferences, and account experience."
+          image="/brand/heroes/settings-office.png"
+        />
+        <p role="alert">{loadError || "Settings are unavailable."}</p>
+        <button type="button" onClick={() => void load()}>
+          Retry loading settings
+        </button>
+      </div>
+    );
 
   return (
-    <div className={cn(DASHBOARD_PAGE_BODY, "mx-auto max-w-[1224px] pb-24")}>
+    <div className={cn(DASHBOARD_PAGE_BODY, "settings-premium pb-24")}>
+      <EditorialWorkspaceHero
+        eyebrow="SETTINGS"
+        title="Make MyARI yours."
+        description="Personalize your workspace, preferences, and account experience."
+        image="/brand/heroes/settings-office.png"
+      />
+      {billingVerified === false && (
+        <p className="brand-notice" role="status">
+          Subscription status could not be verified with the payment provider.
+          Review Billing before making account decisions.
+        </p>
+      )}
       {toast ? (
         <div
           className={cn(
-            "fixed bottom-6 right-6 z-[150] flex max-w-sm items-center gap-2 rounded-xl border px-4 py-3 shadow-card",
-            toast.tone === "success" ? "border-emerald-muted/30 bg-ivory" : "border-error/30",
+            "fixed top-20 right-6 z-[150] flex w-[min(420px,calc(100vw-3rem))] items-center gap-2 rounded-xl border px-4 py-3 shadow-card",
+            toast.tone === "success"
+              ? "border-emerald-muted/30 bg-ivory"
+              : "border-error/30",
           )}
           role="status"
         >
           <Icon
             name={toast.tone === "success" ? "check_circle" : "error"}
-            className={toast.tone === "success" ? "text-emerald-muted" : "text-error"}
+            className={
+              toast.tone === "success" ? "text-emerald-muted" : "text-error"
+            }
           />
           <span className="text-[14px] text-ink">{toast.message}</span>
         </div>
@@ -369,11 +448,17 @@ export function SettingsWorkspacePage() {
       </header>
 
       <div className="flex gap-4 overflow-x-auto border-b border-outline-variant/20 whitespace-nowrap pb-px [-webkit-overflow-scrolling:touch] sm:gap-6">
+        <AiLauncherButton label="Ask MyARI" />
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
-            onClick={() => setTab(t.id)}
+            onClick={() => {
+              setTab(t.id);
+              router.replace(`/dashboard/settings?tab=${t.id}`, {
+                scroll: false,
+              });
+            }}
             className={cn(
               "pb-3 text-[14px] font-medium transition-colors",
               tab === t.id
@@ -381,6 +466,23 @@ export function SettingsWorkspacePage() {
                 : "text-taupe hover:text-ink",
             )}
           >
+            <Icon
+              name={
+                (
+                  {
+                    profile: "person",
+                    workspace: "apartment",
+                    api: "key",
+                    team: "group",
+                    integrations: "link",
+                    billing: "credit_card",
+                    notifications: "notifications",
+                    brand: "palette",
+                  } as Record<string, string>
+                )[t.id]
+              }
+              className="text-[18px]"
+            />
             {t.label}
           </button>
         ))}
@@ -388,10 +490,18 @@ export function SettingsWorkspacePage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-8">
+          {tab === "brand" && (
+            <BrandKitPanel
+              settings={settings}
+              onChange={(kit) => update({ brandKit: kit })}
+            />
+          )}
           {tab === "profile" ? (
             <LuxuryCard padding="lg">
               <div className="mb-6 flex items-start justify-between">
-                <h2 className="font-serif text-[22px] font-semibold text-ink">Personal information</h2>
+                <h2 className="font-serif text-[22px] font-semibold text-ink">
+                  Personal information
+                </h2>
                 <button
                   type="button"
                   onClick={() => setProfileEditing((e) => !e)}
@@ -429,13 +539,38 @@ export function SettingsWorkspacePage() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
-                      if (!file) return;
-                      const url = URL.createObjectURL(file);
-                      update({
-                        profile: { ...settings.profile, avatarUrl: url },
-                      });
+                      if (!file || !user) return;
+                      if (
+                        !["image/jpeg", "image/png", "image/webp"].includes(
+                          file.type,
+                        ) ||
+                        file.size > 5 * 1024 * 1024
+                      ) {
+                        showToast(
+                          "Choose a JPG, PNG or WebP photo smaller than 5 MB.",
+                          "error",
+                        );
+                        return;
+                      }
+                      try {
+                        const result = await user.setProfileImage({ file });
+                        update({
+                          profile: {
+                            ...settings.profile,
+                            avatarUrl: result.publicUrl ?? undefined,
+                          },
+                        });
+                        showToast(
+                          "Profile photo updated with your sign-in provider.",
+                        );
+                      } catch {
+                        showToast(
+                          "Your sign-in provider could not update the photo.",
+                          "error",
+                        );
+                      }
                     }}
                   />
                 </div>
@@ -443,8 +578,13 @@ export function SettingsWorkspacePage() {
                   <h3 className="font-serif text-[20px] font-semibold text-ink">
                     {settings.profile.fullName}
                   </h3>
-                  <p className="text-[14px] text-slate-text">{settings.profile.jobTitle}</p>
+                  <p className="text-[14px] text-slate-text">
+                    {settings.profile.jobTitle}
+                  </p>
                   <p className="text-[13px] text-taupe">{email}</p>
+                  <p className="mt-2 text-xs text-taupe">
+                    Profile photo changes save immediately.
+                  </p>
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
@@ -476,9 +616,12 @@ export function SettingsWorkspacePage() {
                   },
                 ].map((field) => (
                   <div key={field.label} className="space-y-2">
-                    <label className="text-[13px] font-medium text-taupe">{field.label}</label>
+                    <label className="text-[13px] font-medium text-taupe">
+                      {field.label}
+                    </label>
                     <input
                       className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px] outline-none focus:border-rose-gold-deep/40 disabled:bg-champagne/50"
+                      aria-label={field.label}
                       value={field.value}
                       onChange={(e) => field.onChange(e.target.value)}
                       readOnly={field.readOnly || !profileEditing}
@@ -490,15 +633,30 @@ export function SettingsWorkspacePage() {
                   </div>
                 ))}
                 <div className="space-y-2">
-                  <label className="text-[13px] font-medium text-taupe">Timezone</label>
+                  <label className="text-[13px] font-medium text-taupe">
+                    Timezone
+                  </label>
                   <select
                     className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px] outline-none disabled:bg-champagne/50"
+                    aria-label="Timezone"
                     value={settings.profile.timezone}
                     onChange={(e) =>
-                      update({ profile: { ...settings.profile, timezone: e.target.value } })
+                      update({
+                        profile: {
+                          ...settings.profile,
+                          timezone: e.target.value,
+                        },
+                      })
                     }
                     disabled={!profileEditing}
                   >
+                    {!TIMEZONE_OPTIONS.some(
+                      (tz) => tz.value === settings.profile.timezone,
+                    ) && (
+                      <option value={settings.profile.timezone}>
+                        {settings.profile.timezone}
+                      </option>
+                    )}
                     {TIMEZONE_OPTIONS.map((tz) => (
                       <option key={tz.value} value={tz.value}>
                         {tz.label}
@@ -506,27 +664,82 @@ export function SettingsWorkspacePage() {
                     ))}
                   </select>
                 </div>
+                <label className="space-y-2">
+                  <span className="text-[13px] font-medium text-taupe">
+                    Language preference
+                  </span>
+                  <select
+                    aria-label="Language preference"
+                    disabled={!profileEditing}
+                    value={settings.profile.language || ""}
+                    onChange={(e) =>
+                      update({
+                        profile: {
+                          ...settings.profile,
+                          language: e.target.value,
+                        },
+                      })
+                    }
+                    className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-sm"
+                  >
+                    <option value="">Not specified</option>
+                    <option value="en-US">English (US)</option>
+                    <option value="es">Spanish</option>
+                  </select>
+                  <p className="text-xs text-taupe">
+                    Saved preference; the current interface remains in English.
+                  </p>
+                </label>
               </div>
+              {profileEditing && (
+                <div className="settings-profile-actions">
+                  <button
+                    type="button"
+                    onClick={handleDiscard}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleSave()}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving…" : "Save changes"}
+                  </button>
+                </div>
+              )}
             </LuxuryCard>
           ) : null}
 
           {tab === "workspace" ? (
             <>
               <LuxuryCard padding="lg">
-                <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">Workspace</h2>
+                <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">
+                  Workspace
+                </h2>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-[13px] font-medium text-taupe">Workspace name</label>
+                    <label className="text-[13px] font-medium text-taupe">
+                      Workspace name
+                    </label>
                     <input
                       className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
                       value={settings.workspace.name}
                       onChange={(e) =>
-                        update({ workspace: { ...settings.workspace, name: e.target.value } })
+                        update({
+                          workspace: {
+                            ...settings.workspace,
+                            name: e.target.value,
+                          },
+                        })
                       }
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[13px] font-medium text-taupe">URL slug</label>
+                    <label className="text-[13px] font-medium text-taupe">
+                      URL slug
+                    </label>
                     <input
                       className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
                       value={settings.workspace.slug}
@@ -534,30 +747,44 @@ export function SettingsWorkspacePage() {
                         update({
                           workspace: {
                             ...settings.workspace,
-                            slug: e.target.value.toLowerCase().replace(/\s+/g, "-"),
+                            slug: e.target.value
+                              .toLowerCase()
+                              .replace(/\s+/g, "-"),
                           },
                         })
                       }
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[13px] font-medium text-taupe">Industry</label>
+                    <label className="text-[13px] font-medium text-taupe">
+                      Industry
+                    </label>
                     <input
                       className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
                       value={settings.workspace.industry}
                       onChange={(e) =>
-                        update({ workspace: { ...settings.workspace, industry: e.target.value } })
+                        update({
+                          workspace: {
+                            ...settings.workspace,
+                            industry: e.target.value,
+                          },
+                        })
                       }
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[13px] font-medium text-taupe">Default sender name</label>
+                    <label className="text-[13px] font-medium text-taupe">
+                      Default sender name
+                    </label>
                     <input
                       className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
                       value={settings.workspace.defaultSenderName}
                       onChange={(e) =>
                         update({
-                          workspace: { ...settings.workspace, defaultSenderName: e.target.value },
+                          workspace: {
+                            ...settings.workspace,
+                            defaultSenderName: e.target.value,
+                          },
                         })
                       }
                     />
@@ -570,31 +797,42 @@ export function SettingsWorkspacePage() {
                   Compliance defaults
                 </h2>
                 <p className="mb-6 text-[14px] text-slate-text">
-                  TCPA quiet hours and consent requirements for outbound campaigns.
+                  TCPA quiet hours and consent requirements for outbound
+                  campaigns.
                 </p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-[13px] font-medium text-taupe">Quiet hours start</label>
+                    <label className="text-[13px] font-medium text-taupe">
+                      Quiet hours start
+                    </label>
                     <input
                       type="time"
                       className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
                       value={settings.workspace.quietHoursStart}
                       onChange={(e) =>
                         update({
-                          workspace: { ...settings.workspace, quietHoursStart: e.target.value },
+                          workspace: {
+                            ...settings.workspace,
+                            quietHoursStart: e.target.value,
+                          },
                         })
                       }
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[13px] font-medium text-taupe">Quiet hours end</label>
+                    <label className="text-[13px] font-medium text-taupe">
+                      Quiet hours end
+                    </label>
                     <input
                       type="time"
                       className="h-12 w-full rounded-full border border-outline-variant/25 bg-ivory px-5 text-[14px]"
                       value={settings.workspace.quietHoursEnd}
                       onChange={(e) =>
                         update({
-                          workspace: { ...settings.workspace, quietHoursEnd: e.target.value },
+                          workspace: {
+                            ...settings.workspace,
+                            quietHoursEnd: e.target.value,
+                          },
                         })
                       }
                     />
@@ -614,20 +852,30 @@ export function SettingsWorkspacePage() {
                     }
                     className="rounded border-outline-variant"
                   />
-                  <span className="text-[14px] text-ink">Require consent proof before sending</span>
+                  <span className="text-[14px] text-ink">
+                    Require consent proof before sending
+                  </span>
                 </label>
                 <Link
                   href="/dashboard/contacts"
                   className="mt-4 inline-flex items-center gap-1 text-[14px] font-medium text-rose-gold-deep hover:underline"
                 >
-                  Review contact consent <Icon name="arrow_forward" className="text-[16px]" />
+                  Review contact consent{" "}
+                  <Icon name="arrow_forward" className="text-[16px]" />
                 </Link>
               </LuxuryCard>
-
+            </>
+          ) : null}
+          {tab === "integrations" ? (
+            <>
               <LuxuryCard padding="lg">
                 <div className="mb-6 flex items-center justify-between">
-                  <h2 className="font-serif text-[22px] font-semibold text-ink">API integrations</h2>
-                  <span className="text-[13px] text-taupe">{connectedCount} configured</span>
+                  <h2 className="font-serif text-[22px] font-semibold text-ink">
+                    API integrations
+                  </h2>
+                  <span className="text-[13px] text-taupe">
+                    {connectedCount} configured
+                  </span>
                 </div>
                 <InAppBrowserBanner context="google-calendar" />
                 <div className="space-y-3">
@@ -647,22 +895,32 @@ export function SettingsWorkspacePage() {
                             <Icon name={integration.icon} />
                           </div>
                           <div>
-                            <p className="font-medium text-ink">{integration.name}</p>
+                            <p className="font-medium text-ink">
+                              {integration.name}
+                            </p>
                             <p className="flex items-center gap-2 text-[12px] text-taupe">
                               <span
                                 className={cn(
                                   "h-2 w-2 rounded-full",
-                                  integration.connected ? "bg-emerald-muted" : "bg-taupe/40",
+                                  integration.connected
+                                    ? "bg-emerald-muted"
+                                    : "bg-taupe/40",
                                 )}
                               />
-                              {integration.connected ? integration.id === "google-calendar" ? "Authorized — verify sync in Calendar" : "Connected" : "Not connected"}
+                              {integration.connected
+                                ? integration.id === "google-calendar" ||
+                                  integration.id === "dotloop"
+                                  ? "Authorization saved — verify sync"
+                                  : "Configured — provider verification pending"
+                                : "Not connected"}
                               {integration.lastSync
                                 ? ` · ${formatRelativeTime(integration.lastSync)}`
                                 : ""}
                             </p>
                           </div>
                         </div>
-                        {integration.id === "dotloop" && integration.connected ? (
+                        {integration.id === "dotloop" &&
+                        integration.connected ? (
                           <div className="flex shrink-0 items-center gap-2">
                             <a
                               href={DOTLOOP_APP_URL}
@@ -676,30 +934,37 @@ export function SettingsWorkspacePage() {
                               type="button"
                               onClick={() => {
                                 void (async () => {
-                                  const res = await fetch("/api/integrations/dotloop/status", {
-                                    method: "DELETE",
-                                  });
+                                  const res = await fetch(
+                                    "/api/integrations/dotloop/status",
+                                    {
+                                      method: "DELETE",
+                                    },
+                                  );
                                   if (res.ok) {
                                     setSettings((prev) =>
                                       prev
                                         ? {
                                             ...prev,
-                                            integrations: prev.integrations.map((item) =>
-                                              item.id === "dotloop"
-                                                ? {
-                                                    ...item,
-                                                    connected: false,
-                                                    accountLabel: undefined,
-                                                    lastSync: undefined,
-                                                  }
-                                                : item,
+                                            integrations: prev.integrations.map(
+                                              (item) =>
+                                                item.id === "dotloop"
+                                                  ? {
+                                                      ...item,
+                                                      connected: false,
+                                                      accountLabel: undefined,
+                                                      lastSync: undefined,
+                                                    }
+                                                  : item,
                                             ),
                                           }
                                         : prev,
                                     );
                                     showToast("Dotloop disconnected.");
                                   } else {
-                                    showToast("Could not disconnect Dotloop.", "error");
+                                    showToast(
+                                      "Could not disconnect Dotloop.",
+                                      "error",
+                                    );
                                   }
                                 })();
                               }}
@@ -709,116 +974,142 @@ export function SettingsWorkspacePage() {
                             </button>
                           </div>
                         ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (integration.id === "google-calendar" && !integration.connected) {
-                              const result = connectGoogleCalendar();
-                              if (result.blocked) {
-                                showToast(
-                                  "Open MyARI in Safari or Chrome, then connect Google Calendar.",
-                                  "error",
-                                );
-                              }
-                              return;
-                            }
-                            if (integration.id === "google-calendar" && integration.connected) {
-                              void (async () => {
-                                const res = await fetch("/api/integrations/google/status", {
-                                  method: "DELETE",
-                                });
-                                if (res.ok) {
-                                  setSettings((prev) =>
-                                    prev
-                                      ? {
-                                          ...prev,
-                                          integrations: prev.integrations.map((item) =>
-                                            item.id === "google-calendar"
-                                              ? {
-                                                  ...item,
-                                                  connected: false,
-                                                  accountLabel: undefined,
-                                                  lastSync: undefined,
-                                                }
-                                              : item,
-                                          ),
-                                        }
-                                      : prev,
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (
+                                integration.id === "google-calendar" &&
+                                !integration.connected
+                              ) {
+                                const result = connectGoogleCalendar();
+                                if (result.blocked) {
+                                  showToast(
+                                    "Open MyARI in Safari or Chrome, then connect Google Calendar.",
+                                    "error",
                                   );
-                                  showToast("Google Calendar disconnected.");
-                                } else {
-                                  showToast("Could not disconnect Google Calendar.", "error");
                                 }
-                              })();
-                              return;
-                            }
-                            if (integration.id === "dotloop" && !integration.connected) {
-                              const result = connectDotloop();
-                              if (result.blocked) {
-                                showToast(
-                                  "Open MyARI in Safari or Chrome, then connect Dotloop.",
-                                  "error",
-                                );
+                                return;
                               }
-                              return;
-                            }
-                            if (integration.id === "claude") {
-                              showToast(
+                              if (
+                                integration.id === "google-calendar" &&
                                 integration.connected
-                                  ? "Claude is live. Open AI Assist to generate emails, SMS, and scripts."
-                                  : "Add ANTHROPIC_API_KEY in Vercel to turn on live Claude drafts.",
-                                integration.connected ? "success" : "error",
-                              );
-                              return;
-                            }
-                            if (isServerManagedIntegration(integration.id)) {
-                              if (integration.id === "slack") {
+                              ) {
+                                void (async () => {
+                                  const res = await fetch(
+                                    "/api/integrations/google/status",
+                                    {
+                                      method: "DELETE",
+                                    },
+                                  );
+                                  if (res.ok) {
+                                    setSettings((prev) =>
+                                      prev
+                                        ? {
+                                            ...prev,
+                                            integrations: prev.integrations.map(
+                                              (item) =>
+                                                item.id === "google-calendar"
+                                                  ? {
+                                                      ...item,
+                                                      connected: false,
+                                                      accountLabel: undefined,
+                                                      lastSync: undefined,
+                                                    }
+                                                  : item,
+                                            ),
+                                          }
+                                        : prev,
+                                    );
+                                    showToast("Google Calendar disconnected.");
+                                  } else {
+                                    showToast(
+                                      "Could not disconnect Google Calendar.",
+                                      "error",
+                                    );
+                                  }
+                                })();
+                                return;
+                              }
+                              if (
+                                integration.id === "dotloop" &&
+                                !integration.connected
+                              ) {
+                                const result = connectDotloop();
+                                if (result.blocked) {
+                                  showToast(
+                                    "Open MyARI in Safari or Chrome, then connect Dotloop.",
+                                    "error",
+                                  );
+                                }
+                                return;
+                              }
+                              if (integration.id === "claude") {
                                 showToast(
-                                  "Slack isn’t connectable here yet. Use Notifications below for email and SMS alerts.",
-                                  "error",
+                                  integration.connected
+                                    ? "Claude is live. Open AI Assist to generate emails, SMS, and scripts."
+                                    : "Add ANTHROPIC_API_KEY in Vercel to turn on live Claude drafts.",
+                                  integration.connected ? "success" : "error",
                                 );
                                 return;
                               }
-                              showToast(
-                                integration.connected
-                                  ? `${integration.name} is configured for this workspace (Vercel). No keys are stored in Settings.`
-                                  : `${integration.name} isn’t configured yet. Your MyARI admin adds Twilio / Resend / Slybroadcast keys in Vercel, then redeploys.`,
-                                integration.connected ? "success" : "error",
-                              );
-                              return;
-                            }
-                            setIntegrationModal(integration);
-                          }}
-                          className={cn(
-                            "rounded-full px-5 py-2 text-[13px] font-medium transition-colors",
+                              if (isServerManagedIntegration(integration.id)) {
+                                if (integration.id === "slack") {
+                                  showToast(
+                                    "Slack isn’t connectable here yet. Use Notifications below for email and SMS alerts.",
+                                    "error",
+                                  );
+                                  return;
+                                }
+                                showToast(
+                                  integration.connected
+                                    ? `${integration.name} is configured for this workspace (Vercel). No keys are stored in Settings.`
+                                    : `${integration.name} isn’t configured yet. Your MyARI admin adds Twilio / Resend / Slybroadcast keys in Vercel, then redeploys.`,
+                                  integration.connected ? "success" : "error",
+                                );
+                                return;
+                              }
+                              setIntegrationModal(integration);
+                            }}
+                            className={cn(
+                              "rounded-full px-5 py-2 text-[13px] font-medium transition-colors",
+                              integration.connected
+                                ? "border border-outline-variant/30 text-ink hover:bg-ivory"
+                                : "bg-rose-gold text-ivory hover:opacity-95",
+                            )}
+                          >
+                            {integration.id === "google-calendar" &&
                             integration.connected
-                              ? "border border-outline-variant/30 text-ink hover:bg-ivory"
-                              : "bg-rose-gold text-ivory hover:opacity-95",
-                          )}
-                        >
-                          {integration.id === "google-calendar" && integration.connected
-                            ? "Disconnect"
-                            : isServerManagedIntegration(integration.id)
-                              ? integration.connected
-                                ? "Configured"
-                                : "Not set up"
-                              : integration.id === "claude" && integration.connected
-                                ? "Live"
-                                : integration.connected
-                                  ? "Configure"
-                                  : "Connect"}
-                        </button>
+                              ? "Disconnect"
+                              : isServerManagedIntegration(integration.id)
+                                ? integration.connected
+                                  ? "Configured"
+                                  : "Not set up"
+                                : integration.id === "claude" &&
+                                    integration.connected
+                                  ? "Configured"
+                                  : integration.connected
+                                    ? "Configure"
+                                    : "Connect"}
+                          </button>
                         )}
                       </div>
                     ))}
                 </div>
               </LuxuryCard>
-
+            </>
+          ) : null}
+          {tab === "notifications" ? (
+            <>
               <LuxuryCard padding="lg">
-                <h2 className="mb-4 font-serif text-[22px] font-semibold text-ink">Notifications</h2>
+                <h2 className="mb-4 font-serif text-[22px] font-semibold text-ink">
+                  Notifications
+                </h2>
                 {(
                   [
-                    { key: "emailDigest" as const, label: "Weekly email digest" },
+                    {
+                      key: "emailDigest" as const,
+                      label: "Weekly email digest",
+                    },
                     { key: "smsAlerts" as const, label: "SMS delivery alerts" },
                     { key: "loginAlerts" as const, label: "Login alerts" },
                   ] as const
@@ -851,26 +1142,35 @@ export function SettingsWorkspacePage() {
             <LuxuryCard padding="lg">
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="font-serif text-[22px] font-semibold text-ink">API keys</h2>
+                  <h2 className="font-serif text-[22px] font-semibold text-ink">
+                    API keys
+                  </h2>
                   <p className="text-[14px] text-slate-text">
-                    Authenticate server requests to MyARI APIs.
+                    Saved key references. Server API-key authentication,
+                    rotation and revocation are not implemented; sign-in
+                    authentication remains required.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
                     setCreatedApiKey(null);
-                    setApiKeyOpen(true);
+                    showToast(
+                      "API key issuance is not supported by the current server. No credential was created.",
+                      "error",
+                    );
                   }}
                   className="flex items-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory"
                 >
                   <Icon name="add" />
-                  Create key
+                  Key issuance unavailable
                 </button>
               </div>
               <div className="space-y-3">
                 {settings.apiKeys.length === 0 ? (
-                  <p className="py-8 text-center text-taupe">No API keys yet.</p>
+                  <p className="py-8 text-center text-taupe">
+                    No API keys yet.
+                  </p>
                 ) : (
                   settings.apiKeys.map((key) => (
                     <div
@@ -879,25 +1179,37 @@ export function SettingsWorkspacePage() {
                     >
                       <div>
                         <p className="font-medium text-ink">{key.label}</p>
-                        <p className="font-mono text-[12px] text-taupe">{key.prefix}••••••••</p>
+                        <p className="font-mono text-[12px] text-taupe">
+                          {key.prefix}••••••••
+                        </p>
                         <p className="text-[11px] text-taupe">
                           Created {formatRelativeTime(key.createdAt)}
-                          {key.lastUsed ? ` · Used ${formatRelativeTime(key.lastUsed)}` : ""}
+                          {key.lastUsed
+                            ? ` · Used ${formatRelativeTime(key.lastUsed)}`
+                            : ""}
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => {
-                          if (confirm(`Revoke "${key.label}"?`)) {
+                          if (
+                            confirm(
+                              `Remove saved reference "${key.label}"? This does not revoke a provider credential.`,
+                            )
+                          ) {
                             update({
-                              apiKeys: settings.apiKeys.filter((k) => k.id !== key.id),
+                              apiKeys: settings.apiKeys.filter(
+                                (k) => k.id !== key.id,
+                              ),
                             });
-                            showToast("API key revoked");
+                            showToast(
+                              "Saved key reference removed; save changes to persist.",
+                            );
                           }
                         }}
                         className="text-[13px] font-medium text-error hover:underline"
                       >
-                        Revoke
+                        Remove reference
                       </button>
                     </div>
                   ))
@@ -910,9 +1222,12 @@ export function SettingsWorkspacePage() {
             <LuxuryCard padding="lg">
               <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="font-serif text-[22px] font-semibold text-ink">Team management</h2>
+                  <h2 className="font-serif text-[22px] font-semibold text-ink">
+                    Team management
+                  </h2>
                   <p className="text-[14px] text-slate-text">
-                    Roles, permissions, and member status for {settings.workspace.name}.
+                    Roles, permissions, and member status for{" "}
+                    {settings.workspace.name}.
                   </p>
                 </div>
                 <button
@@ -921,7 +1236,7 @@ export function SettingsWorkspacePage() {
                   className="flex items-center gap-2 rounded-full bg-rose-gold px-6 py-2.5 text-[14px] font-medium text-ivory"
                 >
                   <Icon name="add" />
-                  Invite member
+                  Add roster member
                 </button>
               </div>
               <div className="overflow-x-auto">
@@ -954,8 +1269,12 @@ export function SettingsWorkspacePage() {
                               </div>
                             )}
                             <div>
-                              <p className="font-medium text-ink">{member.name}</p>
-                              <p className="text-[12px] text-taupe">{member.email}</p>
+                              <p className="font-medium text-ink">
+                                {member.name}
+                              </p>
+                              <p className="text-[12px] text-taupe">
+                                {member.email}
+                              </p>
                             </div>
                           </div>
                         </td>
@@ -966,9 +1285,12 @@ export function SettingsWorkspacePage() {
                           <span
                             className={cn(
                               "rounded-md px-2 py-0.5 text-[10px] font-bold uppercase",
-                              member.status === "active" && "bg-sage-light text-emerald-muted",
-                              member.status === "pending" && "bg-champagne text-bronze",
-                              member.status === "inactive" && "bg-champagne text-taupe",
+                              member.status === "active" &&
+                                "bg-sage-light text-emerald-muted",
+                              member.status === "pending" &&
+                                "bg-champagne text-bronze",
+                              member.status === "inactive" &&
+                                "bg-champagne text-taupe",
                             )}
                           >
                             {member.status}
@@ -1001,7 +1323,9 @@ export function SettingsWorkspacePage() {
 
           {tab === "billing" ? (
             <LuxuryCard padding="lg">
-              <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">Billing & usage</h2>
+              <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">
+                Billing & usage
+              </h2>
               <div className="mb-6 rounded-2xl border border-outline-variant/15 bg-champagne/40 p-6">
                 <p className="font-serif text-[24px] font-semibold text-ink">
                   {settings.billing.subscriptionStatus === "active"
@@ -1053,7 +1377,10 @@ export function SettingsWorkspacePage() {
                       <li className="flex justify-between gap-3 border-t border-outline-variant/20 pt-3">
                         <span>PAYG charges this month</span>
                         <span className="font-medium text-ink">
-                          ${((planUsage.paygEstimatedCents ?? 0) / 100).toFixed(2)}
+                          $
+                          {((planUsage.paygEstimatedCents ?? 0) / 100).toFixed(
+                            2,
+                          )}
                           <span className="block text-right text-[11px] font-normal text-taupe">
                             billed on next Stripe invoice
                           </span>
@@ -1062,7 +1389,9 @@ export function SettingsWorkspacePage() {
                     ) : null}
                   </ul>
                 ) : (
-                  <p className="mt-4 text-[13px] text-taupe">Usage loads with your plan limits.</p>
+                  <p className="mt-4 text-[13px] text-taupe">
+                    Usage loads with your plan limits.
+                  </p>
                 )}
                 <button
                   type="button"
@@ -1073,7 +1402,8 @@ export function SettingsWorkspacePage() {
                     ? "Change plan"
                     : "Choose a plan & pay"}
                 </button>
-                {settings.billing.subscriptionStatus === "active" || subscriptionActive ? (
+                {settings.billing.subscriptionStatus === "active" ||
+                subscriptionActive ? (
                   <button
                     type="button"
                     disabled={portalLoading}
@@ -1081,7 +1411,9 @@ export function SettingsWorkspacePage() {
                       setPortalLoading(true);
                       void (async () => {
                         try {
-                          const res = await fetch("/api/billing/portal", { method: "POST" });
+                          const res = await fetch("/api/billing/portal", {
+                            method: "POST",
+                          });
                           const data = await res.json().catch(() => ({}));
                           if (!res.ok) {
                             throw new Error(
@@ -1107,19 +1439,25 @@ export function SettingsWorkspacePage() {
                     }}
                     className="ml-3 mt-4 rounded-full border border-outline-variant/40 bg-ivory px-6 py-2.5 text-[14px] font-medium text-ink"
                   >
-                    {portalLoading ? "Opening…" : "Manage / cancel subscription"}
+                    {portalLoading
+                      ? "Opening…"
+                      : "Manage / cancel subscription"}
                   </button>
                 ) : null}
                 <p className="mt-3 text-[12px] text-taupe">
-                  Starter pay-as-you-go: MyARI tracks each live SMS ($0.03) and RVM ($0.10) and adds
-                  them to your next Stripe invoice automatically. Growth/Pro use included monthly
-                  allotments first.
+                  Starter pay-as-you-go: MyARI tracks each live SMS ($0.03) and
+                  RVM ($0.10) and adds them to your next Stripe invoice
+                  automatically. Growth/Pro use included monthly allotments
+                  first.
                 </p>
               </div>
               <p className="text-[14px] text-slate-text">
-                Each tier has its own contact and send limits. Higher tiers keep everything below and
-                raise the caps. View detailed metrics in{" "}
-                <Link href="/dashboard/analytics" className="text-rose-gold-deep hover:underline">
+                Each tier has its own contact and send limits. Higher tiers keep
+                everything below and raise the caps. View detailed metrics in{" "}
+                <Link
+                  href="/dashboard/analytics"
+                  className="text-rose-gold-deep hover:underline"
+                >
                   Analytics
                 </Link>
                 .
@@ -1130,7 +1468,9 @@ export function SettingsWorkspacePage() {
 
         <div className="space-y-6 lg:col-span-4">
           <LuxuryCard padding="lg">
-            <h3 className="mb-4 font-serif text-[20px] font-semibold text-ink">Workspace team</h3>
+            <h3 className="mb-4 font-serif text-[20px] font-semibold text-ink">
+              Workspace team
+            </h3>
             <div className="mb-4 flex -space-x-3">
               {settings.team.slice(0, 3).map((m) =>
                 m.avatarUrl ? (
@@ -1158,8 +1498,8 @@ export function SettingsWorkspacePage() {
               ) : null}
             </div>
             <p className="mb-4 text-[14px] text-slate-text">
-              {settings.team.filter((m) => m.status === "active").length} active members in{" "}
-              <strong>{settings.workspace.name}</strong>.
+              {settings.team.filter((m) => m.status === "active").length} active
+              members in <strong>{settings.workspace.name}</strong>.
             </p>
             <button
               type="button"
@@ -1173,9 +1513,44 @@ export function SettingsWorkspacePage() {
             </button>
           </LuxuryCard>
 
-          <LuxuryCard padding="lg" className="bg-ink text-ivory">
+          <LuxuryCard padding="lg">
+            <h3 className="font-serif text-[20px] text-ink">Account status</h3>
+            <dl className="settings-account-status">
+              <div>
+                <dt>Subscription</dt>
+                <dd>
+                  {settings.billing.subscriptionStatus || "Not available"}
+                </dd>
+              </div>
+              <div>
+                <dt>Account created</dt>
+                <dd>
+                  {user?.createdAt
+                    ? new Date(user.createdAt).toLocaleDateString()
+                    : "Not available"}
+                </dd>
+              </div>
+              <div>
+                <dt>Email verification</dt>
+                <dd>
+                  {user?.primaryEmailAddress?.verification?.status ||
+                    "Not available"}
+                </dd>
+              </div>
+            </dl>
+            <button
+              onClick={() => setTab("billing")}
+              className="text-sm text-rose-gold-deep"
+            >
+              View subscription details →
+            </button>
+          </LuxuryCard>
+          <LuxuryCard padding="lg" className="settings-security">
             <div className="mb-4 flex items-center gap-3">
-              <Icon name="verified_user" className="text-[24px] text-rose-gold" />
+              <Icon
+                name="verified_user"
+                className="text-[24px] text-rose-gold"
+              />
               <h3 className="font-serif text-[20px] font-semibold">Security</h3>
             </div>
             <ul className="space-y-4 text-[14px]">
@@ -1183,27 +1558,20 @@ export function SettingsWorkspacePage() {
                 <span>Two-factor auth</span>
                 <button
                   type="button"
-                  onClick={() =>
-                    update({
-                      security: {
-                        ...settings.security,
-                        twoFactorEnabled: !settings.security.twoFactorEnabled,
-                      },
-                    })
-                  }
-                  className={cn(
-                    "rounded-full px-3 py-1 text-[11px] font-bold uppercase",
-                    settings.security.twoFactorEnabled
-                      ? "bg-sage text-ivory"
-                      : "bg-champagne/20 text-champagne",
-                  )}
+                  onClick={() => openUserProfile()}
+                  className="rounded-full px-3 py-1 text-xs"
                 >
-                  {settings.security.twoFactorEnabled ? "Enabled" : "Off"}
+                  {user
+                    ? user.twoFactorEnabled
+                      ? "Enabled"
+                      : "Not enabled"
+                    : "Unable to verify"}{" "}
+                  · Manage
                 </button>
               </li>
               <li className="flex items-center justify-between">
                 <span>Login alerts</span>
-                <span className="rounded-full bg-sage/80 px-3 py-1 text-[11px] font-bold uppercase">
+                <span className="rounded-full bg-champagne px-3 py-1 text-[11px] font-bold uppercase">
                   {settings.notifications.loginAlerts ? "Active" : "Off"}
                 </span>
               </li>
@@ -1211,8 +1579,10 @@ export function SettingsWorkspacePage() {
                 <span>Last login</span>
                 <span className="text-[13px]">
                   {user?.lastSignInAt
-                    ? formatRelativeTime(new Date(user.lastSignInAt).toISOString())
-                    : "Just now"}
+                    ? formatRelativeTime(
+                        new Date(user.lastSignInAt).toISOString(),
+                      )
+                    : "Not available"}
                 </span>
               </li>
             </ul>
@@ -1229,26 +1599,21 @@ export function SettingsWorkspacePage() {
               Plan details
             </h3>
             <p className="font-serif text-[20px] font-semibold text-ink">
-              {settings.billing.subscriptionStatus === "active"
-                ? settings.billing.planName
-                : "No active plan"}
+              {billingVerified === false
+                ? "Unable to verify plan"
+                : settings.billing.subscriptionStatus === "active"
+                  ? settings.billing.planName
+                  : "No active plan"}
             </p>
             <p className="text-[14px] text-slate-text">
               {settings.billing.subscriptionStatus === "active"
-                ? `$${settings.billing.monthlyPrice} / month`
+                ? `Catalog plan price: $${settings.billing.monthlyPrice} / month. View actual invoices in Stripe.`
                 : "Complete Stripe checkout to activate"}
             </p>
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-champagne">
-              <div
-                className="h-full bg-sage"
-                style={{
-                  width: `${Math.min(100, (settings.billing.voiceMinutesUsed / settings.billing.voiceMinutesLimit) * 100)}%`,
-                }}
-              />
-            </div>
-            <p className="mt-2 text-[12px] text-taupe">
-              {settings.billing.voiceMinutesUsed.toLocaleString()} /{" "}
-              {settings.billing.voiceMinutesLimit.toLocaleString()} minutes
+            <p className="mt-3 text-xs text-taupe">
+              {planUsage
+                ? `${planUsage.rvmUsed} recorded voicemail sends · ${planUsage.smsUsed} SMS sends in the current usage period`
+                : "Messaging usage unavailable. Open Billing to retry."}
             </p>
             <button
               type="button"
@@ -1290,7 +1655,9 @@ export function SettingsWorkspacePage() {
               i.id === integration.id ? integration : i,
             ),
           });
-          showToast(`${integration.name} ${integration.connected ? "connected" : "disconnected"}`);
+          showToast(
+            `${integration.name} ${integration.connected ? "connected" : "disconnected"}`,
+          );
         }}
       />
 
@@ -1299,7 +1666,9 @@ export function SettingsWorkspacePage() {
         onClose={() => setInviteOpen(false)}
         onInvite={(member) => {
           update({ team: [...settings.team, member] });
-          showToast(`Invitation sent to ${member.email}`);
+          showToast(
+            `Roster entry added for ${member.email}. No invitation or sign-in access was granted.`,
+          );
         }}
       />
 
@@ -1310,12 +1679,11 @@ export function SettingsWorkspacePage() {
           setCreatedApiKey(null);
         }}
         createdKey={createdApiKey}
-        onCreate={(label) => {
-          const { fullKey, record } = generateApiKey();
-          record.label = label;
-          update({ apiKeys: [...settings.apiKeys, record] });
-          setCreatedApiKey(fullKey);
-          showToast("API key created - copy it now");
+        onCreate={() => {
+          showToast(
+            "Server API-key issuance is not supported. No credential was created.",
+            "error",
+          );
         }}
       />
 
@@ -1328,7 +1696,9 @@ export function SettingsWorkspacePage() {
             team: settings.team.map((m) => (m.id === member.id ? member : m)),
           });
           setTeamMemberModal(member);
-          showToast("Member updated");
+          showToast(
+            "Roster entry updated. Sign-in permissions are managed separately.",
+          );
         }}
         onRemove={(id) => {
           update({ team: settings.team.filter((m) => m.id !== id) });

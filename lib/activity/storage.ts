@@ -67,23 +67,41 @@ export async function acknowledgeOnServer(
   });
 }
 
+export function csvCell(value: unknown) {
+  let text = String(value ?? "");
+  if (/^[=+\-@\t\r]/.test(text)) text = "'" + text;
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
 export function exportActivityCsv(
   entries: import("./types").ActivityLogEntry[],
   formatTime: (iso: string) => string,
 ) {
-  const headers = ["id", "category", "title", "body", "time", "source", "action", "entity_type", "entity_id"];
+  const headers = [
+    "id",
+    "category",
+    "title",
+    "body",
+    "time",
+    "source",
+    "action",
+    "entity_type",
+    "entity_id",
+  ];
   const rows = entries.map((e) =>
     [
       e.id,
       e.category,
-      `"${e.title.replace(/"/g, '""')}"`,
-      `"${e.body.replace(/"/g, '""')}"`,
+      e.title,
+      e.body,
       formatTime(e.createdAt),
       e.source,
       e.action ?? "",
       e.entityType ?? "",
       e.entityId ?? "",
-    ].join(","),
+    ]
+      .map(csvCell)
+      .join(","),
   );
   const csv = [headers.join(","), ...rows].join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });

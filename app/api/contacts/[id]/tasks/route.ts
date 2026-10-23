@@ -6,15 +6,19 @@ import { isUuid } from "@/lib/contacts/is-uuid";
 import { insertContactTask } from "@/lib/tasks/insert-task";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
+import { ownedRows } from "@/lib/delivery/owned-rows";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 const CreateTaskSchema = z.object({
-  title: z.string().min(1).max(200),
+  title: z.string().trim().min(1).max(200),
   dueAt: z.string().datetime().optional().nullable(),
   reminderAt: z.string().datetime().optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
-  recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional().default("none"),
+  recurrence: z
+    .enum(["none", "daily", "weekly", "monthly"])
+    .optional()
+    .default("none"),
   addToCalendar: z.boolean().optional().default(false),
 });
 
@@ -34,17 +38,27 @@ export const GET = withApiHandler<RouteContext>(async (_request, context) => {
   const { id } = await context.params;
   if (!isUuid(id)) return apiError("Invalid contact id", { status: 400 });
 
-  const { data, error } = await supabaseAdmin
-    .from("contact_tasks")
-    .select("*")
-    .eq("owner_id", ownerId)
-    .eq("contact_id", id)
-    .order("completed", { ascending: true })
-    .order("due_at", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: false });
-
-  if (error) return apiError(error.message, { status: 500 });
-  return apiOk({ tasks: data ?? [] });
+  const contact = await loadContact(ownerId, id);
+  if (!contact) return apiError("Contact not found", { status: 404 });
+  try {
+    const rows = await ownedRows<{
+      id: string;
+      completed: boolean;
+      due_at: string | null;
+      created_at: string;
+    }>("contact_tasks", "*", ownerId, undefined, { contact_id: id });
+    rows.sort(
+      (a, b) =>
+        Number(a.completed) - Number(b.completed) ||
+        String(a.due_at ?? "z").localeCompare(String(b.due_at ?? "z")) ||
+        b.created_at.localeCompare(a.created_at),
+    );
+    return apiOk({ tasks: rows });
+  } catch {
+    return apiError("Tasks could not be loaded. Please retry.", {
+      status: 503,
+    });
+  }
 });
 
 export const POST = withApiHandler<RouteContext>(async (request, context) => {
@@ -66,13 +80,16 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
     recurrence: body.recurrence,
   });
 
-  if (error) return apiError(error.message, { status: 500 });
+  if (error)
+    return apiError("Tasks could not be loaded or saved. Please retry.", {
+      status: 503,
+    });
 
   let calendarEventId: string | undefined;
   if (body.addToCalendar && body.dueAt) {
     const sync = await syncTaskReminderToCalendar({
       ownerId,
-      taskId:task.id,
+      taskId: task.id,
       contact,
       taskTitle: body.title,
       dueAt: body.dueAt,
@@ -97,5 +114,13 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
     metadata: { contactId: id, title: body.title, calendarEventId },
   });
 
-  return apiOk({ task: { ...task, calendar_event_id: calendarEventId ?? task.calendar_event_id } }, { status: 201 });
+  return apiOk(
+    {
+      task: {
+        ...task,
+        calendar_event_id: calendarEventId ?? task.calendar_event_id,
+      },
+    },
+    { status: 201 },
+  );
 });

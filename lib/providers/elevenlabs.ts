@@ -28,7 +28,14 @@ export async function resolveOwnerVoiceId(
   ownerId: string,
   options?: { voiceProfileId?: string; voiceId?: string },
 ): Promise<string> {
-  if (options?.voiceId?.trim()) return options.voiceId.trim();
+  if (options?.voiceId?.trim()) {
+    const requested=options.voiceId.trim();
+    if(requested===defaultElevenLabsVoiceId())return requested;
+    const {supabaseAdmin}=await import("@/lib/supabaseAdmin");
+    const own=await supabaseAdmin.from("voice_profiles").select("provider_voice_id").eq("owner_id",ownerId).eq("provider_voice_id",requested).maybeSingle();
+    if(own.error||!own.data)throw new Error("Voice is not authorized for this account.");
+    return own.data.provider_voice_id;
+  }
 
   if (options?.voiceProfileId) {
     const { supabaseAdmin } = await import("@/lib/supabaseAdmin");
@@ -39,6 +46,7 @@ export async function resolveOwnerVoiceId(
       .eq("owner_id", ownerId)
       .maybeSingle();
     if (profile?.provider_voice_id) return profile.provider_voice_id;
+    throw new Error("Voice profile is not available to this account.");
   }
 
   const { supabaseAdmin } = await import("@/lib/supabaseAdmin");
@@ -68,6 +76,7 @@ export async function synthesizeSpeech(options: {
 
   const response = await fetch(`${ELEVENLABS_BASE}/text-to-speech/${voiceId}`, {
     method: "POST",
+    signal:AbortSignal.timeout(45000),
     headers: {
       "xi-api-key": apiKey,
       "Content-Type": "application/json",

@@ -1,461 +1,693 @@
 "use client";
-
-import { ActivityDetailModal } from "@/components/activity/activity-detail-modal";
-import { activityRowClass, toneIconClass, toneTitleClass } from "@/components/activity/activity-tone";
-import { LuxuryCard } from "@/components/crm/luxury-card";
-import { Icon } from "@/components/ui/icon";
-import { cn } from "@/lib/cn";
-import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
-import { formatRelativeTime, inDateRange } from "@/lib/activity/format";
-import type { ActivityCategory, ActivityFilterState, ActivityLogEntry } from "@/lib/activity/types";
-import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
-import {
-  acknowledgeOnServer,
-  exportActivityCsv,
-  fetchActivityLogs,
-  loadDismissedIds,
-  loadReadIds,
-  markDismissed,
-  markRead,
-} from "@/lib/activity/storage";
+import { AiLauncherButton } from "@/components/ai/ai-launcher-button";
+import { ConversationInbox } from "@/components/activity/conversation-inbox";
+import { EditorialWorkspaceHero } from "@/components/layout/editorial-workspace-hero";
+import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
-type Toast = { message: string; tone: "success" | "error" };
-
-const PAGE_SIZE = 12;
-
-const CATEGORY_OPTIONS: { value: ActivityCategory; label: string }[] = [
-  { value: "all", label: "All events" },
-  { value: "engagement", label: "Engagement" },
-  { value: "campaigns", label: "Campaigns" },
-  { value: "contacts", label: "Contacts" },
-  { value: "voice", label: "Voice studio" },
-  { value: "automation", label: "Automations" },
-  { value: "compliance", label: "Compliance" },
-  { value: "system", label: "System" },
+import Link from "next/link";
+import { Icon } from "@/components/ui/icon";
+import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
+import type { ActivityLogEntry } from "@/lib/activity/types";
+import {
+  activityKpis,
+  activityMatches,
+  type ActivityScope,
+} from "@/lib/activity/intelligence";
+import { exportActivityCsv } from "@/lib/activity/storage";
+import { inDateRange } from "@/lib/activity/format";
+import { useDashboardSearch } from "@/lib/hooks/use-dashboard-search";
+import "@/components/activity/activity-center.css";
+const scopes: [ActivityScope, string, string][] = [
+  ["all", "All Activity", "history"],
+  ["conversations", "Conversations", "forum"],
+  ["campaigns", "Campaigns", "send"],
+  ["contacts", "Contacts", "person"],
+  ["appointments", "Appointments & Tasks", "calendar_month"],
+  ["alerts", "Alerts", "warning"],
 ];
-
-const RANGE_OPTIONS: { value: ActivityFilterState["range"]; label: string }[] = [
-  { value: "today", label: "Today" },
-  { value: "7d", label: "Last 7 days" },
-  { value: "30d", label: "Last 30 days" },
-  { value: "all", label: "All time" },
-];
-
 export function ActivityLogsPage() {
-  const [entries, setEntries] = useState<ActivityLogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
-  const [filters, setFilters] = useState<ActivityFilterState>({
-    category: "all",
-    query: "",
-    range: "30d",
-    showDismissed: false,
-  });
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [selected, setSelected] = useState<ActivityLogEntry | null>(null);
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
-  const [exporting, setExporting] = useState(false);
-
-  const showToast = (message: string, tone: Toast["tone"] = "success") => {
-    setToast({ message, tone });
-    window.setTimeout(() => setToast(null), 4000);
-  };
-
+  const { user } = useUser();
+  return <ActivitySession key={user?.id || "signed-out"} />;
+}
+function ActivitySession() {
+  const [inbox, setInbox] = useState(false);
+  const { user } = useUser();
+  const headerSearch = useDashboardSearch();
+  const [entries, setEntries] = useState<ActivityLogEntry[]>([]),
+    [loading, setLoading] = useState(true),
+    [error, setError] = useState("");
+  const [scope, setScope] = useState<ActivityScope>("all"),
+    [system, setSystem] = useState(false),
+    [query, setQuery] = useState(""),
+    [range, setRange] = useState<"today" | "7d" | "30d" | "all">("30d");
+  const [contact, setContact] = useState(""),
+    [campaign, setCampaign] = useState(""),
+    [type, setType] = useState(""),
+    [status, setStatus] = useState("all"),
+    [sort, setSort] = useState("newest"),
+    [page, setPage] = useState(1);
+  const [read, setRead] = useState<Set<string>>(new Set()),
+    [dismissed, setDismissed] = useState<Set<string>>(new Set()),
+    [stateAvailable, setStateAvailable] = useState(false);
+  const [selected, setSelected] = useState<ActivityLogEntry | null>(null),
+    [detailTab, setDetailTab] = useState("Details"),
+    [notice, setNotice] = useState("");
+  const [summary, setSummary] = useState<
+      { title: string; href: string; detail?: string }[] | null
+    >(null),
+    [summarizing, setSummarizing] = useState(false);
   const refresh = useCallback(async () => {
     setLoading(true);
-    setLoadError(null);
+    setError("");
     try {
-      const { entries: remote } = await fetchActivityLogs();
-      setEntries(remote);
-    } catch (e) {
-      setLoadError(e instanceof Error ? e.message : "Could not load activity");
+      const r = await fetch("/api/activity", { cache: "no-store" });
+      const j = await r.json();
+      if (!r.ok) throw Error();
+      setEntries(j.entries ?? []);
+      setRead(
+        new Set(
+          (j.state ?? [])
+            .filter((s: { read: boolean }) => s.read)
+            .map((s: { event_id: string }) => s.event_id),
+        ),
+      );
+      setDismissed(
+        new Set(
+          (j.state ?? [])
+            .filter((s: { dismissed: boolean }) => s.dismissed)
+            .map((s: { event_id: string }) => s.event_id),
+        ),
+      );
+      setStateAvailable(!!j.stateAvailable);
+    } catch {
+      setEntries([]);
+      setSelected(null);
+      setError("Activity could not be loaded. Please retry.");
     } finally {
       setLoading(false);
     }
   }, []);
-
-  const headerQuery = useDashboardSearch();
-
   useEffect(() => {
-    setReadIds(loadReadIds());
-    setDismissedIds(loadDismissedIds());
+    setEntries([]);
+    setSelected(null);
+    setRead(new Set());
+    setDismissed(new Set());
     void refresh();
-  }, [refresh]);
-
+  }, [user?.id, refresh]);
   useEffect(() => {
-    if (headerQuery) {
-      setFilters((f) => ({ ...f, query: headerQuery }));
-      setVisibleCount(PAGE_SIZE);
+    if (headerSearch) setQuery(headerSearch);
+  }, [headerSearch]);
+  useEffect(
+    () => setPage(1),
+    [scope, system, query, range, contact, campaign, type, status, sort],
+  );
+  const saveRead = async (ids: string[], action = "read") => {
+    if (!ids.length) return;
+    try {
+      for (let offset = 0; offset < ids.length; offset += 500) {
+        const r = await fetch("/api/activity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ids: ids.slice(offset, offset + 500),
+            action,
+          }),
+        });
+        if (!r.ok) throw Error();
+      }
+      setRead((s) => new Set([...s, ...ids]));
+      if (action !== "read") setDismissed((s) => new Set([...s, ...ids]));
+      setNotice("Activity status saved.");
+    } catch {
+      setNotice("Read status could not be saved. Please retry.");
     }
-  }, [headerQuery]);
-
-  const filtered = useMemo(() => {
-    const q = filters.query.trim().toLowerCase();
-    return entries
-      .filter((e) => (filters.showDismissed ? true : !dismissedIds.has(e.id)))
-      .filter((e) => filters.category === "all" || e.category === filters.category)
-      .filter((e) => inDateRange(e.createdAt, filters.range))
-      .filter(
-        (e) =>
-          !q ||
-          e.title.toLowerCase().includes(q) ||
-          e.body.toLowerCase().includes(q) ||
-          e.action?.toLowerCase().includes(q),
+  };
+  const business = entries.filter(
+    (e) => e.category !== "system" && !dismissed.has(e.id),
+  );
+  const kpis = activityKpis(business);
+  const filtered = useMemo(
+    () =>
+      entries
+        .filter(
+          (e) =>
+            (system ? e.category === "system" : e.category !== "system") &&
+            !dismissed.has(e.id) &&
+            activityMatches(e, scope) &&
+            inDateRange(e.createdAt, range) &&
+            (!query ||
+              `${e.title} ${e.body} ${e.action ?? ""}`
+                .toLowerCase()
+                .includes(query.toLowerCase())) &&
+            (!contact ||
+              e.metadata?.contactId === contact ||
+              (e.entityType === "contact" && e.entityId === contact)) &&
+            (!campaign ||
+              e.metadata?.campaignId === campaign ||
+              (e.entityType === "campaign" && e.entityId === campaign)) &&
+            (!type || e.action === type) &&
+            (status === "all" ||
+              (status === "unread"
+                ? !read.has(e.id)
+                : status === "alerts"
+                  ? !!e.alert
+                  : read.has(e.id))),
+        )
+        .sort(
+          (a, b) =>
+            (sort === "newest" ? -1 : 1) *
+            a.createdAt.localeCompare(b.createdAt),
+        ),
+    [
+      entries,
+      system,
+      dismissed,
+      scope,
+      range,
+      query,
+      contact,
+      campaign,
+      type,
+      status,
+      sort,
+      read,
+    ],
+  );
+  const options = (kind: "contact" | "campaign") => [
+    ...new Set(
+      entries
+        .map((e) =>
+          String(
+            e.metadata?.[`${kind}Id`] ??
+              (e.entityType === kind ? e.entityId : ""),
+          ),
+        )
+        .filter((x) => x && x !== "null"),
+    ),
+  ];
+  const open = (e: ActivityLogEntry) => {
+    setSelected(e);
+    setDetailTab("Details");
+    if (stateAvailable && !read.has(e.id)) void saveRead([e.id]);
+  };
+  const intelligence = async () => {
+    setSummarizing(true);
+    try {
+      const r = await fetch("/api/activity/priorities");
+      const j = await r.json();
+      if (!r.ok) throw Error();
+      const list = (j.items ?? j.priorities ?? []) as {
+        title: string;
+        href: string;
+        detail?: string;
+      }[];
+      setSummary(list);
+      setNotice(
+        "Evidence-based daily priorities loaded. No tasks or messages were created.",
       );
-  }, [entries, filters, dismissedIds]);
-
-  const visible = filtered.slice(0, visibleCount);
-
-  const stats = useMemo(() => {
-    const today = entries.filter((e) => inDateRange(e.createdAt, "today") && !dismissedIds.has(e.id));
-    const alerts = entries.filter((e) => e.alert && !dismissedIds.has(e.id) && !readIds.has(e.id));
-    const unread = entries.filter((e) => !readIds.has(e.id) && !dismissedIds.has(e.id));
-    return {
-      today: today.length,
-      alerts: alerts.length,
-      unread: unread.length,
-      total: entries.filter((e) => !dismissedIds.has(e.id)).length,
-    };
-  }, [entries, readIds, dismissedIds]);
-
-  const handleMarkRead = (id: string) => {
-    markRead([id]);
-    setReadIds(loadReadIds());
-    showToast("Marked as read");
-  };
-
-  const handleMarkAllRead = () => {
-    const ids = filtered.map((e) => e.id);
-    markRead(ids);
-    setReadIds(loadReadIds());
-    showToast(`${ids.length} items marked as read`);
-  };
-
-  const handleDismiss = (id: string) => {
-    markDismissed([id]);
-    setDismissedIds(loadDismissedIds());
-    setDetailOpen(false);
-    showToast("Removed from feed");
-  };
-
-  const handleAcknowledge = async (id: string) => {
-    markRead([id]);
-    markDismissed([id]);
-    setReadIds(loadReadIds());
-    setDismissedIds(loadDismissedIds());
-    try {
-      await acknowledgeOnServer([id], "acknowledge");
     } catch {
-      /* local state is enough */
-    }
-    setDetailOpen(false);
-    showToast("Alert acknowledged");
-  };
-
-  const openDetail = (entry: ActivityLogEntry) => {
-    setSelected(entry);
-    setDetailOpen(true);
-    if (!readIds.has(entry.id)) {
-      markRead([entry.id]);
-      setReadIds(loadReadIds());
-    }
-  };
-
-  const handleExport = () => {
-    setExporting(true);
-    try {
-      exportActivityCsv(filtered, formatRelativeTime);
-      showToast(`Exported ${filtered.length} log entries`);
-    } catch {
-      showToast("Export failed", "error");
+      setNotice("Daily priorities could not be loaded. Please retry.");
     } finally {
-      setExporting(false);
+      setSummarizing(false);
     }
   };
-
+  const aiInsights = async () => {
+    setSummarizing(true);
+    try {
+      const r = await fetch("/api/activity/insights", { method: "POST" });
+      const j = await r.json();
+      if (!r.ok) throw Error();
+      setSummary(j.items ?? []);
+      setNotice(
+        "AI summary grounded in recent account audit records. Review the linked evidence; no actions were executed.",
+      );
+    } catch {
+      setNotice(
+        "AI activity insights are unavailable. Evidence-based daily priorities remain available.",
+      );
+    } finally {
+      setSummarizing(false);
+    }
+  };
   return (
-    <div className={DASHBOARD_PAGE_BODY}>
-      {toast ? (
-        <div
-          className={cn(
-            "fixed bottom-6 right-6 z-[150] flex max-w-sm items-center gap-2 rounded-xl border px-4 py-3 shadow-card",
-            toast.tone === "success" ? "border-emerald-muted/30 bg-ivory" : "border-error/30",
-          )}
-          role="status"
-        >
-          <Icon
-            name={toast.tone === "success" ? "check_circle" : "error"}
-            className={toast.tone === "success" ? "text-emerald-muted" : "text-error"}
-          />
-          <span className="text-[14px] text-ink">{toast.message}</span>
+    <div className={`${DASHBOARD_PAGE_BODY} ac-center`}>
+      <EditorialWorkspaceHero
+        eyebrow="ACTIVITY LOGS"
+        title="Every interaction tells a story."
+        description="See the conversations, actions, and milestones shaping your business."
+        image="/brand/heroes/activity-workspace.png"
+        quote="Stay informed. Respond faster. Close more."
+      />
+      <section className="ac-kpis" aria-label="Activity summary">
+        {[
+          {
+            label: "Interactions Today",
+            value: kpis.today,
+            icon: "chat_bubble",
+            scope: "today",
+            detail: "Business activity recorded today",
+          },
+          {
+            label: "Client Replies",
+            value: kpis.replies,
+            icon: "group",
+            scope: "replies",
+            detail: "Recorded replies and callbacks",
+          },
+          {
+            label: "Needs Attention",
+            value: kpis.attention,
+            icon: "error_outline",
+            scope: "alerts",
+            detail: "Recorded alerts requiring review",
+          },
+          {
+            label: "Campaign Activity",
+            value: kpis.campaigns,
+            icon: "send",
+            scope: "campaigns",
+            detail: "Campaign and delivery events",
+          },
+        ].map((k) => (
+          <button
+            key={k.label}
+            onClick={() => {
+              setSystem(false);
+              setScope(k.scope as ActivityScope);
+              setRange("all");
+              setQuery("");
+              setContact("");
+              setCampaign("");
+              setType("");
+              setStatus("all");
+            }}
+            className="ac-kpi"
+          >
+            <span className="ac-icon">
+              <Icon name={k.icon} />
+            </span>
+            <span>
+              <span>{k.label}</span>
+              <strong>{loading ? "…" : error ? "—" : k.value}</strong>
+              <small>{k.detail}</small>
+            </span>
+          </button>
+        ))}
+      </section>
+      {inbox && <ConversationInbox />}
+      <div className="ac-mode">
+        <div role="tablist" aria-label="Activity workspace">
+          <button
+            role="tab"
+            aria-selected={!system}
+            onClick={() => {
+              setSystem(false);
+              setScope("all");
+            }}
+          >
+            Business Activity
+          </button>
+          <button
+            role="tab"
+            aria-selected={system}
+            onClick={() => {
+              setSystem(true);
+              setScope("all");
+            }}
+          >
+            System & Audit Log
+          </button>
         </div>
-      ) : null}
-
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-end">
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => void refresh()}
-            disabled={loading}
-            className="flex h-11 items-center gap-2 rounded-full border border-outline-variant/30 bg-ivory px-5 text-[14px] font-medium text-ink transition-colors hover:bg-champagne disabled:opacity-50"
-          >
-            <Icon name="refresh" className={loading ? "animate-spin" : ""} />
-            Refresh
+        <div className="ac-mode-actions">
+          <button type="button" onClick={() => setInbox((v) => !v)}>
+            {inbox ? "Back to activity" : "Open conversation inbox"}
           </button>
           <button
             type="button"
-            onClick={handleMarkAllRead}
-            disabled={filtered.length === 0}
-            className="flex h-11 items-center gap-2 rounded-full border border-outline-variant/30 bg-ivory px-5 text-[14px] font-medium text-ink transition-colors hover:bg-champagne disabled:opacity-50"
+            disabled={summarizing}
+            onClick={() => void aiInsights()}
           >
-            <Icon name="done_all" />
-            Mark all read
+            AI Activity Insights
           </button>
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={exporting || filtered.length === 0}
-            className="flex h-11 items-center gap-2 rounded-full bg-rose-gold px-5 text-[14px] font-medium text-ivory shadow-sm transition-opacity hover:opacity-95 disabled:opacity-50"
-          >
-            <Icon name="download" />
-            {exporting ? "Exporting…" : "Export CSV"}
+          <AiLauncherButton label="Ask MyARI" />
+          <button onClick={() => void intelligence()} disabled={summarizing}>
+            <Icon name="auto_awesome" />
+            {summarizing ? "Loading…" : "Daily priorities"}
           </button>
         </div>
-      </header>
-
-      {loadError ? (
-        <p className="rounded-2xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] text-error">
-          {loadError} - showing cached or demo entries when available.
-        </p>
-      ) : null}
-
-      {stats.alerts > 0 ? (
-        <LuxuryCard padding="md" className="border-error/20 bg-error/[0.03]">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-error/10 text-error">
-                <Icon name="gavel" />
-              </div>
-              <div>
-                <p className="font-medium text-ink">
-                  {stats.alerts} compliance alert{stats.alerts === 1 ? "" : "s"} need attention
-                </p>
-                <p className="text-[14px] text-slate-text">
-                  Review consent and delivery issues before your next send.
-                </p>
-              </div>
-            </div>
+      </div>
+      {!system && (
+        <nav className="ac-categories" aria-label="Activity categories">
+          {scopes.map(([id, label, icon]) => (
             <button
-              type="button"
-              onClick={() =>
-                setFilters((f) => ({ ...f, category: "compliance", showDismissed: false }))
-              }
-              className="shrink-0 rounded-full bg-error/10 px-4 py-2 text-[13px] font-medium text-error"
+              key={id}
+              aria-pressed={scope === id}
+              onClick={() => setScope(id)}
             >
-              View alerts
+              <Icon name={icon} />
+              {label}{" "}
+              <small>
+                ({business.filter((e) => activityMatches(e, id)).length})
+              </small>
+            </button>
+          ))}
+        </nav>
+      )}
+      {notice && (
+        <p role="status" className="ac-notice">
+          {notice}
+        </p>
+      )}
+      {error && (
+        <div role="alert" className="ac-notice">
+          {error}
+          <button onClick={() => void refresh()}>Retry</button>
+        </div>
+      )}
+      {summary && (
+        <section className="ac-summary">
+          <div className="ac-detail-heading">
+            <h2>Daily priorities</h2>
+            <button
+              onClick={() => setSummary(null)}
+              aria-label="Close daily priorities"
+            >
+              ×
             </button>
           </div>
-        </LuxuryCard>
-      ) : null}
-
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {[
-          { label: "Total events", value: loading ? "…" : stats.total, icon: "history" },
-          { label: "Today", value: loading ? "…" : stats.today, icon: "today" },
-          { label: "Unread", value: loading ? "…" : stats.unread, icon: "mark_email_unread" },
-          { label: "Open alerts", value: loading ? "…" : stats.alerts, icon: "warning" },
-        ].map((stat) => (
-          <LuxuryCard key={stat.label} padding="md">
-            <div className="flex items-center justify-between">
-              <p className="text-[13px] text-taupe">{stat.label}</p>
-              <Icon name={stat.icon} className="text-[20px] text-rose-gold-deep/70" />
-            </div>
-            <p className="mt-1 font-serif text-[28px] font-semibold text-ink">{stat.value}</p>
-          </LuxuryCard>
-        ))}
-      </div>
-
-      <LuxuryCard padding="none" className="overflow-hidden">
-        <div className="flex flex-col gap-4 border-b border-outline-variant/10 p-5 lg:flex-row lg:items-center lg:justify-between">
-          <h2 className="font-serif text-[22px] font-semibold text-ink">Recent activity</h2>
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-            <div className="relative min-w-[200px] flex-1 sm:max-w-xs">
-              <Icon
-                name="search"
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-taupe"
-              />
+          <p>Verified account records · suggestions require your review.</p>
+          {summary.length ? (
+            summary.map((s, i) => (
+              <Link key={i} href={s.href || "/dashboard/tasks"}>
+                {s.title}
+                <small>{s.detail}</small>
+              </Link>
+            ))
+          ) : (
+            <p>No actionable priorities were returned for this view.</p>
+          )}
+        </section>
+      )}
+      <div className={`ac-workspace ${selected ? "ac-has-detail" : ""}`}>
+        <section className="ac-feed">
+          <div className="ac-toolbar">
+            <label className="ac-search">
+              <Icon name="search" />
               <input
                 type="search"
-                value={filters.query}
-                onChange={(e) => {
-                  setFilters((f) => ({ ...f, query: e.target.value }));
-                  setVisibleCount(PAGE_SIZE);
-                }}
-                placeholder="Search logs…"
-                className="h-10 w-full rounded-full border border-outline-variant/20 bg-champagne/50 pl-10 pr-4 text-[14px] outline-none focus:border-rose-gold-deep/40"
                 aria-label="Search activity logs"
+                placeholder="Search activity logs…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
               />
-            </div>
-            <select
-              value={filters.category}
-              onChange={(e) => {
-                setFilters((f) => ({
-                  ...f,
-                  category: e.target.value as ActivityCategory,
-                }));
-                setVisibleCount(PAGE_SIZE);
-              }}
-              className="h-10 rounded-full border border-outline-variant/20 bg-ivory px-4 text-[14px] outline-none"
-              aria-label="Filter by category"
-            >
-              {CATEGORY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filters.range}
-              onChange={(e) => {
-                setFilters((f) => ({
-                  ...f,
-                  range: e.target.value as ActivityFilterState["range"],
-                }));
-                setVisibleCount(PAGE_SIZE);
-              }}
-              className="h-10 rounded-full border border-outline-variant/20 bg-ivory px-4 text-[14px] outline-none"
-              aria-label="Filter by date"
-            >
-              {RANGE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <label className="flex cursor-pointer items-center gap-2 px-2 text-[13px] text-taupe">
-              <input
-                type="checkbox"
-                checked={filters.showDismissed}
-                onChange={(e) =>
-                  setFilters((f) => ({ ...f, showDismissed: e.target.checked }))
-                }
-                className="rounded border-outline-variant"
-              />
-              Show dismissed
             </label>
+            <select
+              aria-label="Contact filter"
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+            >
+              <option value="">All contacts</option>
+              {options("contact").map((id) => (
+                <option key={id} value={id}>
+                  {entries.find((e) => e.entityId === id)?.title ||
+                    `Contact ${id.slice(0, 8)}`}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Campaign filter"
+              value={campaign}
+              onChange={(e) => setCampaign(e.target.value)}
+            >
+              <option value="">All campaigns</option>
+              {options("campaign").map((id) => (
+                <option key={id} value={id}>
+                  {entries.find((e) => e.entityId === id)?.title ||
+                    `Campaign ${id.slice(0, 8)}`}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Activity type"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+            >
+              <option value="">All activity types</option>
+              {[...new Set(entries.map((e) => e.action).filter(Boolean))].map(
+                (t) => (
+                  <option key={t} value={t}>
+                    {t?.replace(/_/g, " ")}
+                  </option>
+                ),
+              )}
+            </select>
+            <select
+              aria-label="Date range"
+              value={range}
+              onChange={(e) => setRange(e.target.value as typeof range)}
+            >
+              <option value="today">Today</option>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="all">All time</option>
+            </select>
+            <select
+              aria-label="Read status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="all">All statuses</option>
+              <option value="unread">Unread</option>
+              <option value="read">Read</option>
+              <option value="alerts">Needs attention</option>
+            </select>
+            <select
+              aria-label="Sort activity"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </select>
+            <button
+              disabled={!stateAvailable || !filtered.length}
+              onClick={() => void saveRead(filtered.map((e) => e.id))}
+            >
+              <Icon name="done_all" />
+              Mark all read
+            </button>
+            <button onClick={() => void refresh()} disabled={loading}>
+              Refresh
+            </button>
+            <button
+              disabled={!filtered.length}
+              onClick={() =>
+                exportActivityCsv(filtered, (d) => new Date(d).toISOString())
+              }
+            >
+              Export CSV
+            </button>
           </div>
-        </div>
-
-        {loading ? (
-          <p className="p-12 text-center text-taupe">Loading activity…</p>
-        ) : visible.length === 0 ? (
-          <div className="p-12 text-center">
-            <Icon name="inbox" className="mx-auto text-[40px] text-taupe/50" />
-            <p className="mt-3 font-medium text-ink">No activity matches your filters</p>
-            <p className="mt-1 text-[14px] text-slate-text">
-              Try a wider date range or clear search.
+          {!stateAvailable && !loading && (
+            <p className="ac-note">
+              Persistent read status requires the included Activity database
+              migration.
             </p>
+          )}
+          <div className="ac-feed-heading">
+            <strong>{filtered.length} matching events</strong>
             <button
-              type="button"
               onClick={() => {
-                setFilters({
-                  category: "all",
-                  query: "",
-                  range: "all",
-                  showDismissed: false,
-                });
-                setVisibleCount(PAGE_SIZE);
+                setScope("all");
+                setQuery("");
+                setContact("");
+                setCampaign("");
+                setType("");
+                setStatus("all");
+                setRange("all");
               }}
-              className="mt-4 text-[14px] font-medium text-rose-gold-deep hover:underline"
             >
-              Reset filters
+              Clear filters
             </button>
           </div>
-        ) : (
-          <div className="divide-y divide-outline-variant/10">
-            {visible.map((item) => {
-              const unread = !readIds.has(item.id);
+          {loading ? (
+            <p className="ac-empty">Loading your activity…</p>
+          ) : !filtered.length ? (
+            <div className="ac-empty">
+              <Icon name="history" />
+              <h2>A clearer view of your business.</h2>
+              <p>No activity matches these filters. Try a wider date range.</p>
+            </div>
+          ) : (
+            filtered.slice((page - 1) * 12, page * 12).map((e, i, rows) => {
+              const date = new Date(e.createdAt).toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              });
+              const previous = i
+                ? new Date(rows[i - 1].createdAt).toLocaleDateString(
+                    undefined,
+                    {
+                      weekday: "long",
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  )
+                : "";
               return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => openDetail(item)}
-                  className={cn("w-full text-left", activityRowClass(item.alert, unread))}
-                >
-                  <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${toneIconClass(item.tone)}`}
+                <div key={e.id}>
+                  {date !== previous && <h3 className="ac-date">{date}</h3>}
+                  <button
+                    className="ac-row"
+                    aria-pressed={selected?.id === e.id}
+                    onClick={() => open(e)}
                   >
-                    <Icon name={item.icon} className="text-[20px]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <span
-                        className={cn(
-                          "text-[14px] font-semibold",
-                          toneTitleClass(item.tone, item.alert),
+                    <span className={`ac-icon ${e.alert ? "ac-alert" : ""}`}>
+                      <Icon name={e.icon} />
+                    </span>
+                    <span className="ac-row-copy">
+                      <strong>
+                        {e.title}
+                        {!read.has(e.id) && stateAvailable && (
+                          <i aria-label="Unread" />
                         )}
-                      >
-                        {item.title}
-                        {unread ? (
-                          <span className="ml-2 inline-block h-2 w-2 rounded-full bg-rose-gold-deep align-middle" />
-                        ) : null}
-                      </span>
-                      <span className="shrink-0 text-[12px] text-taupe">
-                        {formatRelativeTime(item.createdAt)}
-                      </span>
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-[14px] text-slate-text">{item.body}</p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-champagne px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-taupe">
-                        {item.category}
-                      </span>
-                      {item.source !== "audit" ? (
-                        <span className="text-[11px] text-taupe capitalize">{item.source}</span>
-                      ) : null}
-                      {item.href ? (
-                        <span className="text-[12px] font-medium text-rose-gold-deep">
-                          View details →
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                  <Icon name="chevron_right" className="shrink-0 self-center text-taupe" />
-                </button>
+                      </strong>
+                      <small>{e.body}</small>
+                    </span>
+                    <span className="ac-badge">
+                      {e.alert ? "Needs attention" : e.category}
+                    </span>
+                    <time dateTime={e.createdAt}>
+                      {new Date(e.createdAt).toLocaleTimeString(undefined, {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </time>
+                    <Icon name="chevron_right" />
+                  </button>
+                </div>
               );
-            })}
-          </div>
-        )}
-
-        {!loading && filtered.length > visibleCount ? (
-          <div className="border-t border-outline-variant/10 p-4 text-center">
-            <button
-              type="button"
-              onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
-              className="rounded-full border border-outline-variant/25 px-6 py-2 text-[14px] font-medium text-ink hover:bg-champagne"
-            >
-              Load more ({filtered.length - visibleCount} remaining)
+            })
+          )}
+          <footer className="ac-pagination">
+            <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
+              Previous
             </button>
-          </div>
-        ) : null}
-      </LuxuryCard>
-
-      <p className="text-center text-[13px] text-taupe">
-        Events sync from your account actions - contacts, campaigns, voice, and automations.
+            <span>
+              Page {page} of {Math.max(1, Math.ceil(filtered.length / 12))}
+            </span>
+            <button
+              disabled={page * 12 >= filtered.length}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </button>
+          </footer>
+        </section>
+        {selected && (
+          <aside className="ac-detail" aria-label="Activity details">
+            <div className="ac-detail-heading">
+              <h2>{selected.title}</h2>
+              <button
+                aria-label="Close event details"
+                onClick={() => setSelected(null)}
+              >
+                ×
+              </button>
+            </div>
+            <p>{new Date(selected.createdAt).toLocaleString()}</p>
+            <nav>
+              {["Details", "Context", "Actions"].map((t) => (
+                <button
+                  key={t}
+                  aria-pressed={detailTab === t}
+                  onClick={() => setDetailTab(t)}
+                >
+                  {t}
+                </button>
+              ))}
+            </nav>
+            {detailTab === "Details" ? (
+              <>
+                <div className="ac-event-body">{selected.body}</div>
+                <dl>
+                  {[
+                    ["Category", selected.category],
+                    ["Status", selected.metadata?.status],
+                    ["Channel", selected.metadata?.channel],
+                    ["Direction", selected.metadata?.direction],
+                  ]
+                    .filter(([, v]) => v)
+                    .map(([label, v]) => (
+                      <div key={String(label)}>
+                        <dt>{String(label)}</dt>
+                        <dd>{String(v)}</dd>
+                      </div>
+                    ))}
+                </dl>
+                <details>
+                  <summary>Technical event reference</summary>
+                  <p>{selected.action || selected.source}</p>
+                  <code>{selected.id}</code>
+                </details>
+              </>
+            ) : detailTab === "Context" ? (
+              <>
+                <p>Related records available for this event:</p>
+                {selected.href ? (
+                  <Link href={selected.href}>Open associated record →</Link>
+                ) : (
+                  <p>No associated record link is available.</p>
+                )}
+                <p>
+                  Raw provider payloads and internal credentials are excluded
+                  from this panel.
+                </p>
+              </>
+            ) : (
+              <div className="ac-detail-actions">
+                {selected.href && (
+                  <Link href={selected.href}>Open associated record →</Link>
+                )}
+                {!!(selected.entityType === "contact"
+                  ? selected.entityId
+                  : selected.metadata?.contactId) && (
+                  <Link
+                    href={`/dashboard/tasks?contactId=${encodeURIComponent(String(selected.entityType === "contact" ? selected.entityId : selected.metadata?.contactId))}&new=1`}
+                  >
+                    Create follow-up task
+                  </Link>
+                )}
+                <Link href="/dashboard/calendar">Schedule callback</Link>
+                <Link href="/dashboard/delivery">Open Delivery Audit</Link>
+                <button
+                  disabled={!stateAvailable}
+                  onClick={() => void saveRead([selected.id])}
+                >
+                  Mark read
+                </button>
+                <button
+                  disabled={!stateAvailable}
+                  onClick={() => {
+                    void saveRead([selected.id], "dismiss");
+                    setSelected(null);
+                  }}
+                >
+                  Dismiss from my feed
+                </button>
+              </div>
+            )}
+          </aside>
+        )}
+      </div>
+      <p className="ac-note">
+        Counts use the account records loaded by Activity and Delivery Audit.
+        Interactions Today uses your browser’s local date; other KPI cards cover
+        the loaded history. No trend is shown without historical evidence.
       </p>
-
-      <ActivityDetailModal
-        entry={selected}
-        open={detailOpen}
-        onClose={() => setDetailOpen(false)}
-        onMarkRead={handleMarkRead}
-        onDismiss={handleDismiss}
-        onAcknowledge={handleAcknowledge}
-        isRead={selected ? readIds.has(selected.id) : true}
-      />
     </div>
   );
 }

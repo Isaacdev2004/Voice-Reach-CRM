@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  PropertyLifestyleArt,
+  propertyIllustrationTile,
+} from "./property-lifestyle-art";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import type { ApiContact } from "@/lib/hooks/use-contacts";
@@ -68,10 +72,12 @@ export function PropertyFinderRecentContacts({
     <section>
       <div className="mb-4 flex items-center justify-between gap-2">
         <div>
-          <h2 className="font-serif text-[22px] font-semibold text-ink">Quick pick clients</h2>
+          <h2 className="font-serif text-[22px] font-semibold text-ink">
+            Quick pick clients
+          </h2>
           <p className="mt-1 text-[13px] text-slate-text">
-            Everyone stays visible here. &ldquo;Opened here&rdquo; means you selected them on Property
-            Finder — not live client activity.
+            Everyone stays visible here. &ldquo;Opened here&rdquo; means you
+            selected them on Property Finder — not live client activity.
           </p>
         </div>
         <Link
@@ -97,13 +103,17 @@ export function PropertyFinderRecentContacts({
                 }
               }}
               className={cn(
-                "flex min-w-[200px] max-w-[220px] shrink-0 cursor-pointer flex-col rounded-2xl border bg-ivory p-4 text-left shadow-card transition-colors",
+                "pf-client-pick-card flex min-w-[200px] max-w-[220px] shrink-0 cursor-pointer flex-col rounded-2xl border bg-ivory p-4 text-left shadow-card transition-colors",
                 active
                   ? "border-rose-gold/40 ring-1 ring-rose-gold/20"
                   : "border-outline-variant/10 hover:border-outline-variant/25",
               )}
             >
-              <div className="flex items-start justify-between gap-2">
+              <PropertyLifestyleArt
+                tile={propertyIllustrationTile(c.id)}
+                className="pf-client-pick-cover"
+              />
+              <div className="relative flex items-start justify-between gap-2">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-champagne font-serif text-[15px] font-semibold text-rose-gold-deep">
                   {initials(c)}
                 </span>
@@ -111,10 +121,14 @@ export function PropertyFinderRecentContacts({
                   <Icon name="more_horiz" className="text-[20px]" />
                 </span>
               </div>
-              <p className="mt-3 truncate text-[15px] font-semibold text-ink">{contactLabel(c)}</p>
+              <p className="mt-3 truncate text-[15px] font-semibold text-ink">
+                {contactLabel(c)}
+              </p>
               <p className="text-[12px] text-taupe">{roleLabel(c)}</p>
               {recentSet.has(c.id) ? (
-                <p className="mt-2 text-[11px] font-medium text-rose-gold-deep">Opened here</p>
+                <p className="mt-2 text-[11px] font-medium text-rose-gold-deep">
+                  Opened here
+                </p>
               ) : (
                 <p className="mt-2 text-[11px] text-taupe">In your contacts</p>
               )}

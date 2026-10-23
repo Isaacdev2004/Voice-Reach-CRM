@@ -24,7 +24,7 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   const parsed = PatchNoteSchema.parse(await request.json());
   const current = await supabaseAdmin
     .from("contact_notes")
-    .select("id, revision, metadata")
+    .select("*")
     .eq("owner_id", ownerId)
     .eq("id", id)
     .maybeSingle();
@@ -58,18 +58,27 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   }
   if (parsed.contactId !== undefined) {
     updates.contact_id = parsed.contactId;
-    updates.metadata = {
-      ...current.data.metadata,
-      contactIds: parsed.contactId ? [parsed.contactId] : [],
-    };
+    if (current.data.metadata !== undefined)
+      updates.metadata = {
+        ...current.data.metadata,
+        contactIds: parsed.contactId ? [parsed.contactId] : [],
+      };
   }
 
-  const { data, error } = await supabaseAdmin
+  let mutation = supabaseAdmin
     .from("contact_notes")
     .update(updates)
     .eq("owner_id", ownerId)
-    .eq("id", id)
-    .eq("revision", revision)
+    .eq("id", id);
+  if (revision !== undefined) mutation = mutation.eq("revision", revision);
+  else if (current.data.updated_at)
+    mutation = mutation.eq("updated_at", current.data.updated_at);
+  else
+    return apiError(
+      "Reload this note before editing. Your draft is preserved.",
+      { status: 409 },
+    );
+  const { data, error } = await mutation
     .select("*, contacts(id, first_name, last_name)")
     .maybeSingle();
 

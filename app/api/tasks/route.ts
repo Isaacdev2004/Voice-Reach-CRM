@@ -7,11 +7,13 @@ import type { Recurrence } from "@/lib/calendar/google";
 import { insertContactTask } from "@/lib/tasks/insert-task";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { z } from "zod";
+import {ownedRows} from "@/lib/delivery/owned-rows";
+import {readContactSnapshot} from "@/lib/contacts/read-snapshot";
 
 const RecurrenceSchema = z.enum(["none", "daily", "weekly", "monthly"]);
 
 const CreateTaskSchema = z.object({
-  title: z.string().min(1).max(200),
+  title: z.string().trim().min(1).max(200),
   dueAt: z.string().datetime().optional().nullable(),
   reminderAt: z.string().datetime().optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
@@ -23,17 +25,10 @@ const CreateTaskSchema = z.object({
 export const GET = withApiHandler(async () => {
   const ownerId = await requireUserId();
 
-  const { data, error } = await supabaseAdmin
-    .from("contact_tasks")
-    .select("*, contacts(id, first_name, last_name, phone)")
-    .eq("owner_id", ownerId)
-    .order("completed", { ascending: true })
-    .order("due_at", { ascending: true, nullsFirst: false })
-    .limit(200);
-
-  if (error) return apiOk({ tasks: [], error: error.message });
-
-  return apiOk({ tasks: data ?? [] });
+  try {
+    const [tasks,contacts]=await Promise.all([ownedRows<Record<string,unknown>>("contact_tasks","*",ownerId),readContactSnapshot(supabaseAdmin,ownerId)]);
+    return apiOk({tasks:tasks.map(t=>({...t,contacts:contacts.find(c=>c.id===t.contact_id)??null}))});
+  }catch{return apiError("Tasks could not be loaded. Please retry.",{status:503});}
 });
 
 async function loadContact(ownerId: string, contactId: string) {
@@ -67,7 +62,7 @@ export const POST = withApiHandler(async (request) => {
     recurrence,
   });
 
-  if (error) return apiError(error.message, { status: 500 });
+  if (error) return apiError("Task could not be saved. Please retry.", { status: 503 });
 
   let calendarEventId: string | undefined;
   if (body.addToCalendar && body.dueAt) {

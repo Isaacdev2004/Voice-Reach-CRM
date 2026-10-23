@@ -10,7 +10,7 @@ export const dashboardNav: NavItem[] = [
   { label: "Property Finder", href: "/dashboard/properties", icon: "location_on" },
   { label: "Campaigns", href: "/dashboard/campaigns", icon: "campaign" },
   { label: "Calendar", href: "/dashboard/calendar", icon: "calendar_today" },
-  { label: "Mortgage", href: "/dashboard/mortgage", icon: "calculate" },
+  { label: "Financing & Closing", href: "/dashboard/mortgage", icon: "calculate" },
   { label: "Notes & Strategy", href: "/dashboard/notes", icon: "edit_note" },
   { label: "Tasks", href: "/dashboard/tasks", icon: "task_alt" },
   { label: "Voice Scripts", href: "/dashboard/voice-scripts", icon: "description" },

@@ -66,3 +66,7 @@ Screenshots use synthetic owned records and an isolated HTTP fixture backend, wi
 **Readiness:** ready for code/design review and isolated staging setup, not verified for production rollout. Live AI quality, real microphone accuracy, provider transcription accuracy, authenticated staging persistence, and production records have not been verified.
 
 See [combined release review](release-review.md) for final audit results and publication scope.
+
+## Compatibility correction
+
+See [loading and linking correction](compatibility-fix.md). Basic note editing and a primary contact with its saved property context no longer require the advanced migration. Independent associations, multiple contacts, history and other advanced metadata features still require the reviewed migration. Error and empty states are now distinct.

@@ -1,6 +1,11 @@
 "use client";
 
-import { Modal, ModalField, ModalFooterActions, modalInputClass } from "@/components/crm/modal";
+import {
+  Modal,
+  ModalField,
+  ModalFooterActions,
+  modalInputClass,
+} from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
@@ -64,7 +69,12 @@ export function VoiceCloningStrip({
     }>("/api/voice-assets/profiles");
     if (!envelope.success) return;
 
-    const { profiles: loaded, envVoice: env, defaultProfileId, configured } = envelope.data;
+    const {
+      profiles: loaded,
+      envVoice: env,
+      defaultProfileId,
+      configured,
+    } = envelope.data;
     setProfiles(loaded ?? []);
     setEnvVoice(env);
     setApiConfigured(Boolean(configured));
@@ -93,7 +103,7 @@ export function VoiceCloningStrip({
     }
     if (!apiConfigured && !hasVoice) {
       setError(
-        "ElevenLabs is not configured. Add ELEVENLABS_API_KEY (sk_…) in Vercel and Redeploy - or Link my voice after the key is set.",
+        "AI audio generation is unavailable. Please ask your workspace administrator to check the provider connection.",
       );
       return;
     }
@@ -112,11 +122,14 @@ export function VoiceCloningStrip({
       payload.voiceProfileId = selectedVoiceKey;
     }
 
-    const envelope = await safeFetch<{ message: string }>("/api/voice-assets/synthesize", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    const envelope = await safeFetch<{ message: string }>(
+      "/api/voice-assets/synthesize",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
     setGenerating(false);
     if (envelope.success) {
       setMessage(envelope.data.message);
@@ -128,19 +141,20 @@ export function VoiceCloningStrip({
 
   const handleLinkVoice = async () => {
     if (!linkVoiceId.trim() || !linkLabel.trim()) return;
+    if(!window.confirm("I own this voice or have explicit permission to use it."))return;
     setLinking(true);
     setError(null);
-    const envelope = await safeFetch<{ message: string; voiceProfile: VoiceProfile }>(
-      "/api/voice-assets/profiles",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          label: linkLabel.trim(),
-          providerVoiceId: linkVoiceId.trim(),
-        }),
-      },
-    );
+    const envelope = await safeFetch<{
+      message: string;
+      voiceProfile: VoiceProfile;
+    }>("/api/voice-assets/profiles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        label: linkLabel.trim(),
+        providerVoiceId: linkVoiceId.trim(),
+      }),
+    });
     setLinking(false);
     if (envelope.success) {
       setProfiles((prev) => [envelope.data.voiceProfile, ...prev]);
@@ -155,16 +169,26 @@ export function VoiceCloningStrip({
 
   const handleClone = async () => {
     if (!sampleAssetId || !cloneLabel.trim()) return;
+    if (
+      !window.confirm(
+        "I own this voice or have the speaker’s explicit permission to create and use a voice clone.",
+      )
+    )
+      return;
     setCloning(true);
     setError(null);
-    const envelope = await safeFetch<{ message: string; voiceProfile: VoiceProfile }>(
-      "/api/voice-assets/clone",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label: cloneLabel.trim(), sampleAssetId }),
-      },
-    );
+    const envelope = await safeFetch<{
+      message: string;
+      voiceProfile: VoiceProfile;
+    }>("/api/voice-assets/clone", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        label: cloneLabel.trim(),
+        sampleAssetId,
+        consent: true,
+      }),
+    });
     setCloning(false);
     if (envelope.success) {
       setProfiles((prev) => [envelope.data.voiceProfile, ...prev]);
@@ -185,155 +209,163 @@ export function VoiceCloningStrip({
   };
 
   const hasVoice = Boolean(envVoice?.voiceId || profiles.length > 0);
-  const canGenerate = apiConfigured || hasVoice;
+  const canGenerate = apiConfigured;
 
   const stripBody = (
-        <div className="flex w-full min-w-0 flex-col gap-4">
-          {!embedded ? (
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bronze-light text-bronze">
-                <Icon name="settings_voice" className="text-[22px]" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
-                  AI voice (ElevenLabs)
-                </p>
-                <p className="mt-0.5 text-[14px] leading-relaxed text-slate-text">
-                  Write your script, pick a voice, generate audio, then link it to a campaign.
-                </p>
-              </div>
-            </div>
-          ) : null}
-
-          {!apiConfigured ? (
-            <div className="rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] leading-relaxed text-error">
-              <p className="font-medium">ElevenLabs API key missing or invalid</p>
-              <p className="mt-1 text-[13px]">
-                In Vercel → Environment Variables, set <code>ELEVENLABS_API_KEY</code> to the secret
-                starting with <strong>sk_</strong> (not the key ID), optional{" "}
-                <code>ELEVENLABS_VOICE_ID</code>, then Redeploy.
-              </p>
-            </div>
-          ) : !hasVoice ? (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[14px] leading-relaxed text-amber-950">
-              <p className="font-medium">Optional: use your own voice</p>
-              <ol className="mt-2 list-decimal space-y-1 pl-5">
-                <li>In ElevenLabs → Voices → copy your Voice ID</li>
-                <li>
-                  Click <strong>Link my voice</strong> and paste it
-                </li>
-                <li>
-                  Or generate now with the default voice, then swap later
-                </li>
-              </ol>
-            </div>
-          ) : (
-            <ol className="grid gap-2 text-[13px] text-slate-text sm:grid-cols-3">
-              <li className="rounded-xl bg-cream/80 px-3 py-2">
-                <span className="font-medium text-ink">1.</span> Edit your script
-              </li>
-              <li className="rounded-xl bg-cream/80 px-3 py-2">
-                <span className="font-medium text-ink">2.</span> Select voice under Speak as
-              </li>
-              <li className="rounded-xl bg-cream/80 px-3 py-2">
-                <span className="font-medium text-ink">3.</span> Generate → Approve → Campaign
-              </li>
-            </ol>
-          )}
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <label className="text-[12px] text-taupe">
-              <span className="mb-1 block font-medium text-ink">Speak as</span>
-              <select
-                className="w-full rounded-xl border border-outline-variant/25 bg-cream px-3 py-2 text-[13px]"
-                value={selectedVoiceKey}
-                onChange={(e) => setSelectedVoiceKey(e.target.value)}
-              >
-                {apiConfigured && !hasVoice ? (
-                  <option value="default">Default ElevenLabs voice</option>
-                ) : null}
-                {envVoice ? (
-                  <option value={`${ENV_VOICE_PREFIX}${envVoice.voiceId}`}>{envVoice.label}</option>
-                ) : null}
-                {profiles.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.label}
-                  </option>
-                ))}
-                {!canGenerate ? <option value="">Configure ElevenLabs first…</option> : null}
-              </select>
-            </label>
-            <label className="text-[12px] text-taupe sm:col-span-2">
-              <span className="mb-1 block font-medium text-ink">Recording title</span>
-              <input
-                className="w-full rounded-xl border border-outline-variant/25 bg-cream px-3 py-2 text-[13px]"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </label>
-            <div className="flex flex-wrap items-end gap-2">
-              <button
-                type="button"
-                onClick={() => void handleGenerate()}
-                disabled={generating}
-                className="flex-1 rounded-full bg-rose-gold px-4 py-2 text-[13px] font-medium text-ivory disabled:opacity-50"
-              >
-                {generating ? "Generating…" : "Generate audio"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setError(null);
-                  setLinkOpen(true);
-                }}
-                className="rounded-full border border-outline-variant/30 px-4 py-2 text-[13px] font-medium text-ink hover:bg-champagne"
-              >
-                Link my voice
-              </button>
-            </div>
+    <div className="flex w-full min-w-0 flex-col gap-4">
+      {!embedded ? (
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bronze-light text-bronze">
+            <Icon name="settings_voice" className="text-[22px]" />
           </div>
-
-          {message ? (
-            <p className="rounded-xl bg-sage-light/50 px-4 py-3 text-[13px] text-emerald-muted">
-              {message}
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
+              AI voice (ElevenLabs)
             </p>
-          ) : null}
-          {error ? (
-            <div className="rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-[13px] text-error">
-              <p>{error.includes("ELEVENLABS_CLONE") ? CLONE_BLOCKED_HINT : error}</p>
-              {error.includes("clone") || error.includes("Link my voice") ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setError(null);
-                    setLinkOpen(true);
-                  }}
-                  className="mt-2 font-medium text-rose-gold-deep underline"
-                >
-                  Open Link my voice
-                </button>
-              ) : null}
-            </div>
-          ) : null}
+            <p className="mt-0.5 text-[14px] leading-relaxed text-slate-text">
+              Write your script, pick a voice, generate audio, then link it to a
+              campaign.
+            </p>
+          </div>
+        </div>
+      ) : null}
 
-          <p className="text-[12px] text-taupe">
-            Advanced:{" "}
-            <button
-              type="button"
-              onClick={() => setCloneOpen(true)}
-              disabled={assets.length === 0}
-              className="text-rose-gold-deep hover:underline disabled:opacity-50"
-            >
-              Clone from recording (requires API cloning on your plan)
-            </button>
+      {!apiConfigured ? (
+        <div className="rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-[14px] leading-relaxed text-error">
+          <p className="font-medium">AI audio is currently unavailable</p>
+          <p className="mt-1 text-[13px]">
+            You can record or upload audio. Ask your workspace administrator to
+            check the voice provider connection.
           </p>
         </div>
+      ) : !hasVoice ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[14px] leading-relaxed text-amber-950">
+          <p className="font-medium">Optional: use your own voice</p>
+          <ol className="mt-2 list-decimal space-y-1 pl-5">
+            <li>In ElevenLabs → Voices → copy your Voice ID</li>
+            <li>
+              Click <strong>Link my voice</strong> and paste it
+            </li>
+            <li>Or generate now with the default voice, then swap later</li>
+          </ol>
+        </div>
+      ) : (
+        <ol className="grid gap-2 text-[13px] text-slate-text sm:grid-cols-3">
+          <li className="rounded-xl bg-cream/80 px-3 py-2">
+            <span className="font-medium text-ink">1.</span> Edit your script
+          </li>
+          <li className="rounded-xl bg-cream/80 px-3 py-2">
+            <span className="font-medium text-ink">2.</span> Select voice under
+            Speak as
+          </li>
+          <li className="rounded-xl bg-cream/80 px-3 py-2">
+            <span className="font-medium text-ink">3.</span> Generate → Approve
+            → Campaign
+          </li>
+        </ol>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <label className="text-[12px] text-taupe">
+          <span className="mb-1 block font-medium text-ink">Speak as</span>
+          <select
+            className="w-full rounded-xl border border-outline-variant/25 bg-cream px-3 py-2 text-[13px]"
+            value={selectedVoiceKey}
+            onChange={(e) => setSelectedVoiceKey(e.target.value)}
+          >
+            {apiConfigured && !hasVoice ? (
+              <option value="default">Default ElevenLabs voice</option>
+            ) : null}
+            {envVoice ? (
+              <option value={`${ENV_VOICE_PREFIX}${envVoice.voiceId}`}>
+                {envVoice.label}
+              </option>
+            ) : null}
+            {profiles.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+            {!canGenerate ? (
+              <option value="">Audio provider unavailable</option>
+            ) : null}
+          </select>
+        </label>
+        <label className="text-[12px] text-taupe sm:col-span-2">
+          <span className="mb-1 block font-medium text-ink">
+            Recording title
+          </span>
+          <input
+            className="w-full rounded-xl border border-outline-variant/25 bg-cream px-3 py-2 text-[13px]"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </label>
+        <div className="flex flex-wrap items-end gap-2">
+          <button
+            type="button"
+            onClick={() => void handleGenerate()}
+            disabled={generating || !canGenerate}
+            className="vs-primary flex-1 rounded-full bg-rose-gold px-4 py-2 text-[13px] font-medium text-ivory disabled:opacity-50"
+          >
+            {generating ? "Generating…" : "Generate audio"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              setLinkOpen(true);
+            }}
+            className="rounded-full border border-outline-variant/30 px-4 py-2 text-[13px] font-medium text-ink hover:bg-champagne"
+          >
+            Link my voice
+          </button>
+        </div>
+      </div>
+
+      {message ? (
+        <p className="rounded-xl bg-sage-light/50 px-4 py-3 text-[13px] text-emerald-muted">
+          {message}
+        </p>
+      ) : null}
+      {error ? (
+        <div className="rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-[13px] text-error">
+          <p>
+            {error.includes("ELEVENLABS_CLONE") ? CLONE_BLOCKED_HINT : error}
+          </p>
+          {error.includes("clone") || error.includes("Link my voice") ? (
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setLinkOpen(true);
+              }}
+              className="mt-2 font-medium text-rose-gold-deep underline"
+            >
+              Open Link my voice
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      <p className="text-[12px] text-taupe">
+        Advanced:{" "}
+        <button
+          type="button"
+          onClick={() => setCloneOpen(true)}
+          disabled={assets.length === 0}
+          className="text-rose-gold-deep hover:underline disabled:opacity-50"
+        >
+          Clone from recording (requires API cloning on your plan)
+        </button>
+      </p>
+    </div>
   );
 
   return (
     <>
       {embedded ? (
-        stripBody
+        <div className="vs-voice-strip">{stripBody}</div>
       ) : (
         <section className="rounded-[20px] border border-outline-variant/10 bg-ivory px-5 py-4 shadow-card">
           {stripBody}
@@ -352,7 +384,9 @@ export function VoiceCloningStrip({
             onCancel={() => setLinkOpen(false)}
             primaryLabel={linking ? "Linking…" : "Save voice"}
             onPrimary={() => void handleLinkVoice()}
-            primaryDisabled={linking || !linkVoiceId.trim() || !linkLabel.trim()}
+            primaryDisabled={
+              linking || !linkVoiceId.trim() || !linkLabel.trim()
+            }
             primaryLoading={linking}
           />
         }
@@ -375,9 +409,10 @@ export function VoiceCloningStrip({
             />
           </ModalField>
           <p className="text-[13px] leading-relaxed text-slate-text">
-            In ElevenLabs → <strong>Voices</strong> → select your cloned voice → copy{" "}
-            <strong>Voice ID</strong>. Or add <code className="text-[12px]">ELEVENLABS_VOICE_ID</code>{" "}
-            in Vercel for a workspace-wide default.
+            In ElevenLabs → <strong>Voices</strong> → select your cloned voice →
+            copy <strong>Voice ID</strong>. Or add{" "}
+            <code className="text-[12px]">ELEVENLABS_VOICE_ID</code> in Vercel
+            for a workspace-wide default.
           </p>
         </div>
       </Modal>

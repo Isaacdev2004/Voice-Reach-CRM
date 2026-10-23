@@ -1,80 +1,78 @@
-import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
-import { requireUserId } from "@/lib/auth";
-import { writeAuditLog } from "@/lib/audit";
-import { isUuid } from "@/lib/contacts/is-uuid";
+import { apiSuccess } from "@/lib/api-response";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { writeAuditLog } from "@/lib/audit";
+import {
+  tasksHandler,
+  saveTask,
+  taskMode,
+  TaskFailure,
+} from "@/lib/tasks/server";
+import { meta, priority, type TaskRecord } from "@/lib/tasks/workspace-model";
 import { z } from "zod";
-
-type RouteContext = { params: Promise<{ id: string; taskId: string }> };
-
-const PatchTaskSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  dueAt: z.string().datetime().optional().nullable(),
-  reminderAt: z.string().datetime().optional().nullable(),
-  notes: z.string().max(2000).optional().nullable(),
+type Context = { params: Promise<{ id: string; taskId: string }> };
+const Body = z.object({
+  title: z.string().trim().min(1).max(200).optional(),
+  dueAt: z.string().datetime({ offset: true }).nullable().optional(),
+  reminderAt: z.string().datetime({ offset: true }).nullable().optional(),
+  notes: z.string().max(2000).nullable().optional(),
   completed: z.boolean().optional(),
 });
-
-export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
-  const ownerId = await requireUserId();
-  const { id, taskId } = await context.params;
-  if (!isUuid(id) || !isUuid(taskId)) return apiError("Invalid id", { status: 400 });
-
-  const body = PatchTaskSchema.parse(await request.json());
-  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  if (body.title !== undefined) updates.title = body.title.trim();
-  if (body.dueAt !== undefined) updates.due_at = body.dueAt;
-  if (body.reminderAt !== undefined) updates.reminder_at = body.reminderAt;
-  if (body.notes !== undefined) updates.notes = body.notes?.trim() || null;
-  if (body.completed !== undefined) {
-    updates.completed = body.completed;
-    updates.completed_at = body.completed ? new Date().toISOString() : null;
-  }
-
-  const { data, error } = await supabaseAdmin
-    .from("contact_tasks")
-    .update(updates)
-    .eq("owner_id", ownerId)
-    .eq("contact_id", id)
-    .eq("id", taskId)
-    .select("*")
-    .maybeSingle();
-
-  if (error) return apiError(error.message, { status: 500 });
-  if (!data) return apiError("Task not found", { status: 404 });
-
-  await writeAuditLog({
-    ownerId,
-    action: "CONTACT_TASK_UPDATED",
-    entityType: "contact_task",
-    entityId: taskId,
-    metadata: { contactId: id, updates: Object.keys(updates) },
-  });
-
-  return apiOk({ task: data });
-});
-
-export const DELETE = withApiHandler<RouteContext>(async (_request, context) => {
-  const ownerId = await requireUserId();
-  const { id, taskId } = await context.params;
-  if (!isUuid(id) || !isUuid(taskId)) return apiError("Invalid id", { status: 400 });
-
-  const { error } = await supabaseAdmin
-    .from("contact_tasks")
-    .delete()
-    .eq("owner_id", ownerId)
-    .eq("contact_id", id)
-    .eq("id", taskId);
-
-  if (error) return apiError(error.message, { status: 500 });
-
-  await writeAuditLog({
-    ownerId,
-    action: "CONTACT_TASK_DELETED",
-    entityType: "contact_task",
-    entityId: taskId,
-    metadata: { contactId: id },
-  });
-
-  return apiOk({ deleted: true });
-});
+export async function PATCH(req: Request, context: Context) {
+  return tasksHandler(async (request, owner) => {
+    const ids = z
+        .object({ id: z.string().uuid(), taskId: z.string().uuid() })
+        .parse(await context.params),
+      b = Body.parse(await request.json());
+    const r = await supabaseAdmin
+      .from("contact_tasks")
+      .select("*")
+      .eq("owner_id", owner)
+      .eq("contact_id", ids.id)
+      .eq("id", ids.taskId)
+      .maybeSingle();
+    if (r.error) throw r.error;
+    if (!r.data) throw new TaskFailure("NOT_FOUND", 404);
+    const t = r.data as TaskRecord,
+      advanced = await taskMode(owner);
+    return apiSuccess(
+      await saveTask(owner, {
+        id: t.id,
+        expectedUpdatedAt: t.updated_at,
+        title: b.title ?? t.title,
+        contactId: t.contact_id,
+        notes: b.notes === undefined ? (t.notes ?? "") : (b.notes ?? ""),
+        dueAt: b.dueAt === undefined ? t.due_at : b.dueAt,
+        reminderAt: b.reminderAt === undefined ? t.reminder_at : b.reminderAt,
+        completed: b.completed ?? t.completed,
+        recurrence: t.recurrence ?? "none",
+        priority: advanced ? priority(t) : "unspecified",
+        sourceNoteId: advanced ? (t.source_note_id ?? null) : null,
+        workspace: advanced ? meta(t) : {},
+      }),
+    );
+  })(req, undefined);
+}
+export async function DELETE(req: Request, context: Context) {
+  return tasksHandler(async (_, owner) => {
+    const ids = z
+      .object({ id: z.string().uuid(), taskId: z.string().uuid() })
+      .parse(await context.params);
+    const r = await supabaseAdmin
+      .from("contact_tasks")
+      .delete()
+      .eq("owner_id", owner)
+      .eq("contact_id", ids.id)
+      .eq("id", ids.taskId)
+      .select("id");
+    if (r.error) throw r.error;
+    if (!r.data?.length) throw new TaskFailure("NOT_FOUND", 404);
+    await writeAuditLog({
+      ownerId: owner,
+      action: "CONTACT_TASK_DELETED",
+      entityType: "contact_task",
+      entityId: ids.taskId,
+      metadata: { contactId: ids.id },
+    });
+    return apiSuccess({ deleted: true });
+  })(req, undefined);
+}

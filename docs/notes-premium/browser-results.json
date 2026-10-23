@@ -75,5 +75,15 @@
       "second isolated browser session reads saved note",
       "tenant switch clears editor"
     ]
+  },
+  {
+    "checks": [
+      "basic schema loads existing notes",
+      "two consecutive timestamp-guarded saves",
+      "unavailable advanced features disabled",
+      "tasks survive calendar read failure",
+      "read failures never claim zero notes or Saved",
+      "basic desktop/mobile no overflow"
+    ]
   }
 ]

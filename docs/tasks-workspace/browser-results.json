@@ -1,0 +1,32 @@
+[
+  {
+    "width": 1440,
+    "noOverflow": true,
+    "consoleErrors": [],
+    "flows": "search + combined filter, board/focus/list, completion/reopen, task create"
+  },
+  {
+    "width": 1536,
+    "noOverflow": true,
+    "consoleErrors": [],
+    "flows": "search + combined filter, board/focus/list, completion/reopen, task create"
+  },
+  {
+    "width": 1920,
+    "noOverflow": true,
+    "consoleErrors": [],
+    "flows": "search + combined filter, board/focus/list, completion/reopen, task create"
+  },
+  {
+    "width": 768,
+    "noOverflow": true,
+    "consoleErrors": [],
+    "flows": "search + combined filter, board/focus/list, completion/reopen, task create"
+  },
+  {
+    "width": 390,
+    "noOverflow": true,
+    "consoleErrors": [],
+    "flows": "search + combined filter, board/focus/list, completion/reopen, task create"
+  }
+]

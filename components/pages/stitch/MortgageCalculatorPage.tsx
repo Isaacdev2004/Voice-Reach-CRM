@@ -1,19 +1,24 @@
 "use client";
 
+import { MortgagePaymentSummary } from "@/components/financing/mortgage-payment-summary";
+import type { ReactNode } from "react";
 import { MortgageMarketPanel } from "@/components/mortgage/mortgage-market-panel";
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import { modalInputClass } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
-import { calculateMortgage, formatUsd } from "@/lib/mortgage/calculate";
+import { calculateMortgage, formatUsdCents } from "@/lib/mortgage/calculate";
 import {
   getMortgagePartnerLabel,
   getMortgagePartnerUrl,
   MORTGAGE_RESOURCE_LINKS,
 } from "@/lib/mortgage/config";
 import { scrollToMortgageSection } from "@/lib/mortgage/scroll-to-section";
-import type { MortgageBenchmark, MortgageMarketRatesPayload } from "@/lib/mortgage/market-rates";
+import type {
+  MortgageBenchmark,
+  MortgageMarketRatesPayload,
+} from "@/lib/mortgage/market-rates";
 import {
   buildRateSnapshot,
   firstMonthSplit,
@@ -43,19 +48,16 @@ function parseRate(raw: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-const DEFAULT_HOME = 850_000;
-const DEFAULT_DOWN = 170_000;
+const DEFAULT_HOME = 0;
+const DEFAULT_DOWN = 0;
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-outline-variant/10 py-2.5 text-[13px] last:border-0">
-      <span className="text-slate-text">{label}</span>
-      <span className="font-medium tabular-nums text-ink">{value}</span>
-    </div>
-  );
-}
-
-function PaymentDonut({ principalPct, interestPct }: { principalPct: number; interestPct: number }) {
+function PaymentDonut({
+  principalPct,
+  interestPct,
+}: {
+  principalPct: number;
+  interestPct: number;
+}) {
   const p = Math.min(100, Math.max(0, principalPct));
   return (
     <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
@@ -67,8 +69,12 @@ function PaymentDonut({ principalPct, interestPct }: { principalPct: number; int
         aria-hidden
       >
         <div className="absolute inset-[12px] flex flex-col items-center justify-center rounded-full bg-ivory text-center">
-          <span className="text-[10px] uppercase tracking-wider text-taupe">P vs I</span>
-          <span className="font-serif text-[18px] font-semibold text-ink">Month 1</span>
+          <span className="text-[10px] uppercase tracking-wider text-taupe">
+            P vs I
+          </span>
+          <span className="font-serif text-[18px] font-semibold text-ink">
+            Month 1
+          </span>
         </div>
       </div>
       <ul className="flex-1 space-y-2 text-[13px]">
@@ -77,31 +83,55 @@ function PaymentDonut({ principalPct, interestPct }: { principalPct: number; int
             <span className="h-2.5 w-2.5 rounded-full bg-rose-gold-deep" />
             Principal
           </span>
-          <span className="font-medium text-ink">{Math.round(principalPct)}%</span>
+          <span className="font-medium text-ink">
+            {Math.round(principalPct)}%
+          </span>
         </li>
         <li className="flex items-center justify-between gap-2">
           <span className="flex items-center gap-2 text-slate-text">
             <span className="h-2.5 w-2.5 rounded-full bg-champagne" />
             Interest
           </span>
-          <span className="font-medium text-ink">{Math.round(interestPct)}%</span>
+          <span className="font-medium text-ink">
+            {Math.round(interestPct)}%
+          </span>
         </li>
       </ul>
     </div>
   );
 }
 
-export function MortgageCalculatorPage() {
-  const [homePriceText, setHomePriceText] = useState(formatMoneyInput(DEFAULT_HOME));
-  const [downPaymentText, setDownPaymentText] = useState(formatMoneyInput(DEFAULT_DOWN));
+export function MortgageCalculatorPage({
+  onEstimateChange,
+  initialEstimate,
+  propertyDetails,
+  partnerPanel,
+  onReviewReport,
+}: {
+  propertyDetails?: ReactNode;
+  partnerPanel?: ReactNode;
+  onReviewReport?: () => void;
+  onEstimateChange?: (
+    value: import("@/lib/financing/calculators").Calculation,
+  ) => void;
+  initialEstimate?: import("@/lib/mortgage/calculate").MortgageInputs;
+} = {}) {
+  const [homePriceText, setHomePriceText] = useState(
+    formatMoneyInput(DEFAULT_HOME),
+  );
+  const [downPaymentText, setDownPaymentText] = useState(
+    formatMoneyInput(DEFAULT_DOWN),
+  );
   const [interestRateText, setInterestRateText] = useState("7.40");
   const [termYearsText, setTermYearsText] = useState("30");
-  const [selectedScenario, setSelectedScenario] = useState<ScenarioId>("30-fixed");
-  const [annualTaxText, setAnnualTaxText] = useState("10,200");
-  const [annualInsuranceText, setAnnualInsuranceText] = useState("2,400");
+  const [selectedScenario, setSelectedScenario] =
+    useState<ScenarioId>("30-fixed");
+  const [annualTaxText, setAnnualTaxText] = useState("0");
+  const [annualInsuranceText, setAnnualInsuranceText] = useState("0");
   const [monthlyHoaText, setMonthlyHoaText] = useState("0");
 
-  const [marketRates, setMarketRates] = useState<MortgageMarketRatesPayload | null>(null);
+  const [marketRates, setMarketRates] =
+    useState<MortgageMarketRatesPayload | null>(null);
   const partnerUrl = getMortgagePartnerUrl();
   const partnerLabel = getMortgagePartnerLabel();
   const [ratesError, setRatesError] = useState<string | null>(null);
@@ -118,16 +148,31 @@ export function MortgageCalculatorPage() {
     setLoadingRates(true);
     setRatesError(null);
     try {
-      const res = await fetch(`/api/mortgage/market-rates?historyMonths=${months}`, {
-        cache: "no-store",
-      });
-      const data = (await res.json()) as MortgageMarketRatesPayload & { error?: string; success?: boolean };
-      if (!res.ok || data.success === false) {
+      const res = await fetch(
+        `/api/mortgage/market-rates?historyMonths=${months}`,
+        {
+          cache: "no-store",
+          signal: AbortSignal.timeout(15000),
+        },
+      );
+      const data = (await res.json()) as MortgageMarketRatesPayload & {
+        error?: string;
+        success?: boolean;
+      };
+      if (
+        !res.ok ||
+        data.success === false ||
+        !data?.benchmarks?.rate30 ||
+        !data?.benchmarks?.rate15 ||
+        !Array.isArray(data?.history30?.points)
+      ) {
         throw new Error(data.error ?? "Could not load market rates");
       }
       setMarketRates(data);
-    } catch (e) {
-      setRatesError(e instanceof Error ? e.message : "Current rate unavailable");
+    } catch {
+      setRatesError(
+        "Verified rates are unavailable. Retry or enter a manually sourced rate.",
+      );
       setMarketRates(null);
     } finally {
       setLoadingRates(false);
@@ -158,7 +203,10 @@ export function MortgageCalculatorPage() {
     const pmms15 = marketRates?.benchmarks.rate15.rate;
     const rate30 = pmms30 ?? (userRate || 7.4);
     const rate15 =
-      pmms15 ?? (selectedScenario === "15-fixed" ? userRate || rate30 - 0.69 : Math.max(0.1, rate30 - 0.69));
+      pmms15 ??
+      (selectedScenario === "15-fixed"
+        ? userRate || rate30 - 0.69
+        : Math.max(0.1, rate30 - 0.69));
     return buildRateSnapshot(rate30, rate15);
   }, [marketRates, interestRateText, selectedScenario]);
 
@@ -182,11 +230,69 @@ export function MortgageCalculatorPage() {
         monthlyHoa,
         includePmi: downPct < 20,
       }),
-    [homePrice, downPayment, interestRate, termYears, annualTax, annualInsurance, monthlyHoa, downPct],
+    [
+      homePrice,
+      downPayment,
+      interestRate,
+      termYears,
+      annualTax,
+      annualInsurance,
+      monthlyHoa,
+      downPct,
+    ],
   );
 
+  useEffect(() => {
+    if (!initialEstimate) return;
+    setHomePriceText(String(initialEstimate.homePrice));
+    setDownPaymentText(String(initialEstimate.downPayment));
+    setInterestRateText(String(initialEstimate.interestRate));
+    setTermYearsText(String(initialEstimate.termYears));
+    setAnnualTaxText(String(initialEstimate.annualTax));
+    setAnnualInsuranceText(String(initialEstimate.annualInsurance));
+    setMonthlyHoaText(String(initialEstimate.monthlyHoa));
+  }, [initialEstimate]);
+  useEffect(() => {
+    onEstimateChange?.({
+      kind: "mortgage",
+      homePrice,
+      downPayment,
+      interestRate,
+      termYears,
+      annualTax,
+      annualInsurance,
+      monthlyHoa,
+      includePmi: downPct < 20,
+      comparisons: (["30-fixed", "15-fixed", "arm-51"] as const).map((id) => {
+        const meta = scenarioMeta(id, rateSnapshot);
+        return {
+          label: meta.label,
+          rate: meta.rate,
+          termYears: meta.termYears,
+        };
+      }),
+      fees: [],
+    });
+  }, [
+    homePrice,
+    downPayment,
+    interestRate,
+    termYears,
+    annualTax,
+    annualInsurance,
+    monthlyHoa,
+    downPct,
+    onEstimateChange,
+    rateSnapshot,
+  ]);
+
   const monthOne = useMemo(
-    () => firstMonthSplit(result.loanAmount, interestRate, result.monthlyPrincipalInterest),
+    () =>
+      firstMonthSplit(
+        result.loanAmount,
+        interestRate,
+        result.monthlyPrincipalInterest,
+      ),
     [result.loanAmount, interestRate, result.monthlyPrincipalInterest],
   );
 
@@ -211,8 +317,8 @@ export function MortgageCalculatorPage() {
       const ok = window.confirm(
         `Apply the ${benchmark.label} PMMS benchmark (${benchmark.rate.toFixed(2)}%) and switch to a ${targetTerm}-year term? You can still edit the rate manually afterward.`,
       );
-      setInterestRateText(benchmark.rate.toFixed(2));
       if (ok) {
+        setInterestRateText(benchmark.rate.toFixed(2));
         setSelectedScenario(targetScenario);
         setTermYearsText(String(targetTerm));
       }
@@ -295,209 +401,300 @@ export function MortgageCalculatorPage() {
   };
 
   return (
-    <div className={DASHBOARD_PAGE_BODY}>
+    <div className={cn(DASHBOARD_PAGE_BODY, "fc-mortgage-workspace")}>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <div className="space-y-6 xl:col-span-7">
-          <div id="mortgage-market" className="scroll-mt-28">
-            <MortgageMarketPanel
-              data={marketRates}
-              loading={loadingRates}
-              error={ratesError}
-              onRefresh={() => void loadMarketRates(historyMonths)}
-              onUseRate={applyBenchmarkRate}
-              historyMonths={historyMonths}
-              historyPoints={marketRates?.history30.points ?? []}
-              onHistoryMonthsChange={handleHistoryMonthsChange}
-            />
-          </div>
+        <div className="space-y-6 xl:col-span-7 fc-mortgage-left">
+          {propertyDetails}
+          <div className="fc-loan-partner-grid">
+            <div id="mortgage-loan-details" className="scroll-mt-28">
+              <LuxuryCard padding="lg">
+                <div className="mb-5 flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-serif text-[22px] font-semibold text-ink">
+                      Loan details
+                    </h2>
+                    <p className="mt-1 text-[13px] text-slate-text">
+                      Adjust price, down payment, rate, and term.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={resetLoan}
+                    className="shrink-0 text-[13px] font-medium text-rose-gold-deep hover:underline"
+                  >
+                    Reset
+                  </button>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-[13px] font-medium text-taupe">
+                      Home price
+                    </span>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                        $
+                      </span>
+                      <input
+                        inputMode="numeric"
+                        className={cn(modalInputClass, "pl-7")}
+                        aria-label="Home price"
+                        value={homePriceText}
+                        onChange={(e) =>
+                          setHomePriceText(
+                            e.target.value.replace(/[^0-9,]/g, ""),
+                          )
+                        }
+                        onBlur={() =>
+                          setHomePriceText(formatMoneyInput(homePrice))
+                        }
+                      />
+                    </div>
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-[13px] font-medium text-taupe">
+                      Down payment ({downPct.toFixed(0)}%)
+                    </span>
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                        $
+                      </span>
+                      <input
+                        id="mortgage-down-payment-input"
+                        inputMode="numeric"
+                        className={cn(modalInputClass, "pl-7")}
+                        aria-label="Down payment"
+                        value={downPaymentText}
+                        onChange={(e) =>
+                          setDownPaymentText(
+                            e.target.value.replace(/[^0-9,]/g, ""),
+                          )
+                        }
+                        onBlur={() =>
+                          setDownPaymentText(formatMoneyInput(downPayment))
+                        }
+                      />
+                    </div>
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-[13px] font-medium text-taupe">
+                      Interest rate
+                    </span>
+                    <div className="relative">
+                      <input
+                        inputMode="decimal"
+                        className={cn(modalInputClass, "pr-8")}
+                        aria-label="Interest rate"
+                        value={interestRateText}
+                        onChange={(e) =>
+                          setInterestRateText(
+                            e.target.value.replace(/[^0-9.]/g, ""),
+                          )
+                        }
+                        onBlur={() => {
+                          if (interestRate > 0)
+                            setInterestRateText(interestRate.toFixed(2));
+                        }}
+                      />
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                        %
+                      </span>
+                    </div>
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-[13px] font-medium text-taupe">
+                      Loan term
+                    </span>
+                    <div className="relative">
+                      <input
+                        inputMode="numeric"
+                        className={cn(modalInputClass, "pr-14")}
+                        aria-label="Loan term"
+                        value={termYearsText}
+                        onChange={(e) =>
+                          setTermYearsText(
+                            e.target.value.replace(/[^0-9]/g, ""),
+                          )
+                        }
+                        onBlur={() => setTermYearsText(String(termYears))}
+                      />
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-taupe">
+                        years
+                      </span>
+                    </div>
+                  </label>
+                </div>
+                <div className="mt-6 border-t border-outline-variant/10 pt-5">
+                  <h3 className="font-serif text-[18px] font-semibold text-ink">
+                    Taxes, insurance & HOA
+                  </h3>
+                  <p className="mt-1 text-[13px] text-slate-text">
+                    Optional — included in your total monthly estimate below.
+                  </p>
+                  <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                    <label className="block">
+                      <span className="mb-2 block text-[13px] font-medium text-taupe">
+                        Property tax (annual)
+                      </span>
+                      <div className="relative">
+                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                          $
+                        </span>
+                        <input
+                          inputMode="numeric"
+                          className={cn(modalInputClass, "pl-7")}
+                          aria-label="Property tax (annual)"
+                          value={annualTaxText}
+                          onChange={(e) =>
+                            setAnnualTaxText(
+                              e.target.value.replace(/[^0-9,]/g, ""),
+                            )
+                          }
+                          onBlur={() =>
+                            setAnnualTaxText(formatMoneyInput(annualTax))
+                          }
+                        />
+                      </div>
+                    </label>
+                    <label className="block">
+                      <span className="mb-2 block text-[13px] font-medium text-taupe">
+                        Home insurance (annual)
+                      </span>
+                      <div className="relative">
+                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                          $
+                        </span>
+                        <input
+                          inputMode="numeric"
+                          className={cn(modalInputClass, "pl-7")}
+                          aria-label="Home insurance (annual)"
+                          value={annualInsuranceText}
+                          onChange={(e) =>
+                            setAnnualInsuranceText(
+                              e.target.value.replace(/[^0-9,]/g, ""),
+                            )
+                          }
+                          onBlur={() =>
+                            setAnnualInsuranceText(
+                              formatMoneyInput(annualInsurance),
+                            )
+                          }
+                        />
+                      </div>
+                    </label>
+                    <label className="block">
+                      <span className="mb-2 block text-[13px] font-medium text-taupe">
+                        HOA (monthly)
+                      </span>
+                      <div className="relative">
+                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
+                          $
+                        </span>
+                        <input
+                          inputMode="numeric"
+                          className={cn(modalInputClass, "pl-7")}
+                          aria-label="HOA (monthly)"
+                          value={monthlyHoaText}
+                          onChange={(e) =>
+                            setMonthlyHoaText(
+                              e.target.value.replace(/[^0-9,]/g, ""),
+                            )
+                          }
+                          onBlur={() =>
+                            setMonthlyHoaText(formatMoneyInput(monthlyHoa))
+                          }
+                        />
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </LuxuryCard>
+            </div>
 
-          <div id="mortgage-loan-details" className="scroll-mt-28">
-          <LuxuryCard padding="lg">
-            <div className="mb-5 flex items-start justify-between gap-3">
-              <div>
-                <h2 className="font-serif text-[22px] font-semibold text-ink">Loan details</h2>
-                <p className="mt-1 text-[13px] text-slate-text">Adjust price, down payment, rate, and term.</p>
-              </div>
-              <button
-                type="button"
-                onClick={resetLoan}
-                className="shrink-0 text-[13px] font-medium text-rose-gold-deep hover:underline"
-              >
-                Reset
-              </button>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block">
-                <span className="mb-2 block text-[13px] font-medium text-taupe">Home price</span>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
-                    $
-                  </span>
-                  <input
-                    inputMode="numeric"
-                    className={cn(modalInputClass, "pl-7")}
-                    value={homePriceText}
-                    onChange={(e) => setHomePriceText(e.target.value.replace(/[^0-9,]/g, ""))}
-                    onBlur={() => setHomePriceText(formatMoneyInput(homePrice))}
-                  />
-                </div>
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-[13px] font-medium text-taupe">
-                  Down payment ({downPct.toFixed(0)}%)
-                </span>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
-                    $
-                  </span>
-                  <input
-                    id="mortgage-down-payment-input"
-                    inputMode="numeric"
-                    className={cn(modalInputClass, "pl-7")}
-                    value={downPaymentText}
-                    onChange={(e) => setDownPaymentText(e.target.value.replace(/[^0-9,]/g, ""))}
-                    onBlur={() => setDownPaymentText(formatMoneyInput(downPayment))}
-                  />
-                </div>
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-[13px] font-medium text-taupe">Interest rate</span>
-                <div className="relative">
-                  <input
-                    inputMode="decimal"
-                    className={cn(modalInputClass, "pr-8")}
-                    value={interestRateText}
-                    onChange={(e) => setInterestRateText(e.target.value.replace(/[^0-9.]/g, ""))}
-                    onBlur={() => {
-                      if (interestRate > 0) setInterestRateText(interestRate.toFixed(2));
-                    }}
-                  />
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
-                    %
-                  </span>
-                </div>
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-[13px] font-medium text-taupe">Loan term</span>
-                <div className="relative">
-                  <input
-                    inputMode="numeric"
-                    className={cn(modalInputClass, "pr-14")}
-                    value={termYearsText}
-                    onChange={(e) => setTermYearsText(e.target.value.replace(/[^0-9]/g, ""))}
-                    onBlur={() => setTermYearsText(String(termYears))}
-                  />
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px] text-taupe">
-                    years
-                  </span>
-                </div>
-              </label>
-            </div>
-            <div className="mt-6 border-t border-outline-variant/10 pt-5">
-              <h3 className="font-serif text-[18px] font-semibold text-ink">Taxes, insurance & HOA</h3>
-              <p className="mt-1 text-[13px] text-slate-text">
-                Optional — included in your total monthly estimate below.
-              </p>
-              <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                <label className="block">
-                  <span className="mb-2 block text-[13px] font-medium text-taupe">Property tax (annual)</span>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
-                      $
-                    </span>
-                    <input
-                      inputMode="numeric"
-                      className={cn(modalInputClass, "pl-7")}
-                      value={annualTaxText}
-                      onChange={(e) => setAnnualTaxText(e.target.value.replace(/[^0-9,]/g, ""))}
-                      onBlur={() => setAnnualTaxText(formatMoneyInput(annualTax))}
-                    />
-                  </div>
-                </label>
-                <label className="block">
-                  <span className="mb-2 block text-[13px] font-medium text-taupe">Home insurance (annual)</span>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
-                      $
-                    </span>
-                    <input
-                      inputMode="numeric"
-                      className={cn(modalInputClass, "pl-7")}
-                      value={annualInsuranceText}
-                      onChange={(e) => setAnnualInsuranceText(e.target.value.replace(/[^0-9,]/g, ""))}
-                      onBlur={() => setAnnualInsuranceText(formatMoneyInput(annualInsurance))}
-                    />
-                  </div>
-                </label>
-                <label className="block">
-                  <span className="mb-2 block text-[13px] font-medium text-taupe">HOA (monthly)</span>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-taupe">
-                      $
-                    </span>
-                    <input
-                      inputMode="numeric"
-                      className={cn(modalInputClass, "pl-7")}
-                      value={monthlyHoaText}
-                      onChange={(e) => setMonthlyHoaText(e.target.value.replace(/[^0-9,]/g, ""))}
-                      onBlur={() => setMonthlyHoaText(formatMoneyInput(monthlyHoa))}
-                    />
-                  </div>
-                </label>
-              </div>
-            </div>
-          </LuxuryCard>
+            {partnerPanel}
           </div>
-
-          <div id="mortgage-scenarios" className="scroll-mt-28">
-          <LuxuryCard padding="lg">
-            <h2 className="font-serif text-[22px] font-semibold text-ink">Compare loan scenarios</h2>
-            <p className="mt-1 mb-4 text-[13px] text-slate-text">
-              Tap a scenario to apply its rate and term to your estimate.
+          <details className="fc-scenarios-disclosure" id="mortgage-scenarios">
+            <summary>Compare loan scenarios & assumptions</summary>
+            <p className="text-[12px] text-slate-text">
+              Enter verified property and loan amounts. Initial rates and
+              comparison spreads are illustrative until you explicitly apply an
+              available benchmark. Taxes and insurance start at zero and must be
+              entered for a fuller estimate.
             </p>
-            <ul className="grid gap-3 lg:grid-cols-3">
-              {scenarioIds.map((id) => {
-                const s = scenarioResult(id, rateSnapshot, homePrice, downPayment, escrow);
-                const active = selectedScenario === id;
-                const hasEscrow =
-                  escrow.annualTax > 0 || escrow.annualInsurance > 0 || escrow.monthlyHoa > 0;
-                return (
-                  <li key={id}>
-                    <button
-                      type="button"
-                      onClick={() => applyScenario(id)}
-                      className={cn(
-                        "flex h-full w-full flex-col rounded-2xl border p-4 text-left transition-shadow",
-                        active
-                          ? "border-rose-gold/50 bg-rose-gold/5 shadow-card"
-                          : "border-outline-variant/15 bg-cream/30 hover:border-rose-gold/25",
-                      )}
-                    >
-                      <p className="font-medium text-ink">{s.label}</p>
-                      <p className="mt-2 text-[12px] text-taupe">Rate {s.rate.toFixed(2)}%</p>
-                      <p className="mt-3 font-serif text-[22px] font-semibold text-rose-gold-deep">
-                        {formatUsd(hasEscrow ? s.monthlyTotal : s.monthlyPrincipalInterest)}
-                        <span className="text-[12px] font-normal text-taupe"> / mo</span>
-                      </p>
-                      {hasEscrow ? (
-                        <p className="text-[11px] text-taupe">
-                          P&amp;I {formatUsd(s.monthlyPrincipalInterest)}
+
+            <LuxuryCard padding="lg">
+              <h2 className="font-serif text-[22px] font-semibold text-ink">
+                Compare loan scenarios
+              </h2>
+              <p className="mt-1 mb-4 text-[13px] text-slate-text">
+                Tap a scenario to apply its rate and term. Unavailable
+                benchmarks and ARM rates use illustrative assumptions; ARM
+                totals assume the initial rate remains fixed and do not model
+                resets.
+              </p>
+              <ul className="grid gap-3 lg:grid-cols-3">
+                {scenarioIds.map((id) => {
+                  const s = scenarioResult(
+                    id,
+                    rateSnapshot,
+                    homePrice,
+                    downPayment,
+                    escrow,
+                  );
+                  const active = selectedScenario === id;
+                  const hasEscrow =
+                    escrow.annualTax > 0 ||
+                    escrow.annualInsurance > 0 ||
+                    escrow.monthlyHoa > 0;
+                  return (
+                    <li key={id}>
+                      <button
+                        type="button"
+                        onClick={() => applyScenario(id)}
+                        className={cn(
+                          "flex h-full w-full flex-col rounded-2xl border p-4 text-left transition-shadow",
+                          active
+                            ? "border-rose-gold/50 bg-rose-gold/5 shadow-card"
+                            : "border-outline-variant/15 bg-cream/30 hover:border-rose-gold/25",
+                        )}
+                      >
+                        <p className="font-medium text-ink">{s.label}</p>
+                        <p className="mt-2 text-[12px] text-taupe">
+                          Rate {s.rate.toFixed(2)}%
                         </p>
-                      ) : null}
-                      <p className="mt-2 text-[11px] text-slate-text">
-                        Interest {formatUsd(s.totalInterest)}
-                      </p>
-                      <p className="text-[11px] text-slate-text">Total paid {formatUsd(s.totalPaid)}</p>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </LuxuryCard>
-          </div>
+                        <p className="mt-3 font-serif text-[22px] font-semibold text-rose-gold-deep">
+                          {formatUsdCents(
+                            hasEscrow
+                              ? s.monthlyTotal
+                              : s.monthlyPrincipalInterest,
+                          )}
+                          <span className="text-[12px] font-normal text-taupe">
+                            {" "}
+                            / mo
+                          </span>
+                        </p>
+                        {hasEscrow ? (
+                          <p className="text-[11px] text-taupe">
+                            P&amp;I {formatUsdCents(s.monthlyPrincipalInterest)}
+                          </p>
+                        ) : null}
+                        <p className="mt-2 text-[11px] text-slate-text">
+                          Interest {formatUsdCents(s.totalInterest)}
+                        </p>
+                        <p className="text-[11px] text-slate-text">
+                          Total paid {formatUsdCents(s.totalPaid)}
+                        </p>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </LuxuryCard>
+          </details>
 
           <LuxuryCard padding="lg">
-            <h2 className="font-serif text-[22px] font-semibold text-ink">Mortgage reading & updates</h2>
+            <h2 className="font-serif text-[22px] font-semibold text-ink">
+              Helpful resources
+            </h2>
             <p className="mt-1 mb-4 text-[13px] text-slate-text">
               Market commentary and buyer education — opens in a new tab.
             </p>
@@ -525,7 +722,12 @@ export function MortgageCalculatorPage() {
                 return (
                   <li key={item.href}>
                     {external ? (
-                      <a href={item.href} target="_blank" rel="noopener noreferrer" className={className}>
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={className}
+                      >
                         {inner}
                       </a>
                     ) : (
@@ -541,146 +743,166 @@ export function MortgageCalculatorPage() {
         </div>
 
         <div className="space-y-6 xl:col-span-5">
-          <LuxuryCard padding="lg" className="bg-gradient-to-br from-[#f4e6dc] to-ivory">
-            <p className="text-[13px] font-medium text-taupe">Estimated monthly payment</p>
-            <p className="mt-1 font-serif text-[44px] font-semibold leading-none text-rose-gold-deep sm:text-[48px]">
-              {formatUsd(result.monthlyTotal)}
-            </p>
-            <p className="mt-2 text-[12px] text-taupe">
-              Principal &amp; interest {formatUsd(result.monthlyPrincipalInterest)}
-              {result.monthlyPmi > 0 ? ` · PMI ${formatUsd(result.monthlyPmi)}` : ""}
-            </p>
-            {pmmsTrend ? (
-              <p
-                className={cn(
-                  "mt-2 flex items-center gap-1 text-[12px] font-medium",
-                  pmmsTrend.delta < 0 ? "text-emerald-muted" : pmmsTrend.delta > 0 ? "text-taupe" : "text-slate-text",
-                )}
-              >
-                <Icon
-                  name={pmmsTrend.delta < 0 ? "trending_down" : pmmsTrend.delta > 0 ? "trending_up" : "horizontal_rule"}
-                  className="text-[16px]"
-                />
-                30-yr PMMS {pmmsTrend.delta >= 0 ? "+" : ""}
-                {pmmsTrend.delta.toFixed(2)} pts over {historyMonths} mo (benchmark, not a quote)
-              </p>
-            ) : null}
-            <div className="mt-6 rounded-2xl bg-ivory/80 p-4 backdrop-blur-sm">
-              <SummaryRow label="Loan amount" value={formatUsd(result.loanAmount)} />
-              <SummaryRow label="Down payment" value={`${result.downPaymentPercent.toFixed(0)}%`} />
-              <SummaryRow label="Interest rate" value={`${interestRate.toFixed(2)}%`} />
-              <SummaryRow label="Loan term" value={`${termYears} years`} />
-              <SummaryRow label="Total interest" value={formatUsd(result.totalInterest)} />
-              <SummaryRow label="Total paid" value={formatUsd(result.totalPaid)} />
-            </div>
-          </LuxuryCard>
+          <MortgagePaymentSummary
+            result={result}
+            rate={interestRate}
+            term={termYears}
+            onReview={onReviewReport}
+          />
+          <div id="mortgage-market" className="scroll-mt-28">
+            <MortgageMarketPanel
+              compact
+              data={marketRates}
+              loading={loadingRates}
+              error={ratesError}
+              onRefresh={() => void loadMarketRates(historyMonths)}
+              onUseRate={applyBenchmarkRate}
+              historyMonths={historyMonths}
+              historyPoints={marketRates?.history30.points ?? []}
+              onHistoryMonthsChange={handleHistoryMonthsChange}
+            />
+          </div>
 
-          <LuxuryCard padding="lg">
-            <h2 className="font-serif text-[20px] font-semibold text-ink">Monthly payment breakdown</h2>
-            <p className="mt-1 mb-4 text-[13px] text-slate-text">First-month principal vs interest split.</p>
-            <PaymentDonut principalPct={monthOne.principalPct} interestPct={monthOne.interestPct} />
-            <div className="mt-4 space-y-1 border-t border-outline-variant/10 pt-4 text-[13px] text-slate-text">
-              <div className="flex justify-between">
-                <span>Principal (month 1)</span>
-                <span className="font-medium text-ink">{formatUsd(monthOne.principal)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Interest (month 1)</span>
-                <span className="font-medium text-ink">{formatUsd(monthOne.interest)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Property taxes</span>
-                <span className="font-medium text-ink">{formatUsd(result.monthlyTax)} / mo</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Home insurance</span>
-                <span className="font-medium text-ink">{formatUsd(result.monthlyInsurance)} / mo</span>
-              </div>
-              <div className="flex justify-between">
-                <span>HOA</span>
-                <span className="font-medium text-ink">{formatUsd(result.monthlyHoa)} / mo</span>
-              </div>
-              {result.monthlyPmi > 0 ? (
+          <details className="fc-extended-mortgage">
+            <summary>Payment details, insights & next steps</summary>
+            <LuxuryCard padding="lg">
+              <h2 className="font-serif text-[20px] font-semibold text-ink">
+                Monthly payment breakdown
+              </h2>
+              <p className="mt-1 mb-4 text-[13px] text-slate-text">
+                First-month principal vs interest split. PMI uses an
+                illustrative 0.6% annual assumption; verify with a lender.
+              </p>
+              <p className="fc-muted">
+                Loan {formatUsdCents(result.loanAmount)} · Total interest{" "}
+                {formatUsdCents(result.totalInterest)} · Total paid{" "}
+                {formatUsdCents(result.totalPaid)}
+              </p>
+              <PaymentDonut
+                principalPct={monthOne.principalPct}
+                interestPct={monthOne.interestPct}
+              />
+              <div className="mt-4 space-y-1 border-t border-outline-variant/10 pt-4 text-[13px] text-slate-text">
                 <div className="flex justify-between">
-                  <span>PMI (est.)</span>
-                  <span className="font-medium text-ink">{formatUsd(result.monthlyPmi)} / mo</span>
+                  <span>Principal (month 1)</span>
+                  <span className="font-medium text-ink">
+                    {formatUsdCents(monthOne.principal)}
+                  </span>
                 </div>
-              ) : null}
-              <div className="flex justify-between border-t border-outline-variant/10 pt-2 font-medium text-ink">
-                <span>Total monthly</span>
-                <span>{formatUsd(result.monthlyTotal)}</span>
-              </div>
-            </div>
-          </LuxuryCard>
-
-          <LuxuryCard padding="lg">
-            <h2 className="font-serif text-[20px] font-semibold text-ink">Insights</h2>
-            <p className="mt-1 text-[13px] text-slate-text">
-              Tap an insight to jump to the matching calculator section.
-            </p>
-            <ul className="mt-4 space-y-3">
-              {insights.map((item) => (
-                <li key={item.title}>
-                  <a
-                    href={`#${item.targetId}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      runInsightAction(item);
-                    }}
-                    className="group flex w-full items-start gap-3 rounded-2xl border border-outline-variant/12 bg-champagne/20 px-4 py-3 text-left transition-colors hover:border-rose-gold/35 hover:bg-champagne/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-gold-deep"
-                  >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ivory text-rose-gold-deep shadow-sm">
-                      <Icon name={item.icon} className="text-[18px]" />
-                    </div>
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-medium text-ink group-hover:text-rose-gold-deep">
-                        {item.title}
-                      </span>
-                      <span className="mt-0.5 block text-[13px] leading-relaxed text-slate-text">
-                        {item.body}
-                      </span>
-                      <span className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-rose-gold-deep">
-                        {item.actionLabel}
-                        <Icon
-                          name="arrow_forward"
-                          className="text-[16px] transition-transform group-hover:translate-x-0.5"
-                        />
-                      </span>
+                <div className="flex justify-between">
+                  <span>Interest (month 1)</span>
+                  <span className="font-medium text-ink">
+                    {formatUsdCents(monthOne.interest)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Property taxes</span>
+                  <span className="font-medium text-ink">
+                    {formatUsdCents(result.monthlyTax)} / mo
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Home insurance</span>
+                  <span className="font-medium text-ink">
+                    {formatUsdCents(result.monthlyInsurance)} / mo
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>HOA</span>
+                  <span className="font-medium text-ink">
+                    {formatUsdCents(result.monthlyHoa)} / mo
+                  </span>
+                </div>
+                {result.monthlyPmi > 0 ? (
+                  <div className="flex justify-between">
+                    <span>PMI (est.)</span>
+                    <span className="font-medium text-ink">
+                      {formatUsdCents(result.monthlyPmi)} / mo
                     </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </LuxuryCard>
+                  </div>
+                ) : null}
+                <div className="flex justify-between border-t border-outline-variant/10 pt-2 font-medium text-ink">
+                  <span>Total monthly</span>
+                  <span>{formatUsdCents(result.monthlyTotal)}</span>
+                </div>
+              </div>
+            </LuxuryCard>
 
-          <LuxuryCard padding="lg">
-            <h2 className="font-serif text-[20px] font-semibold text-ink">Next steps</h2>
-            <ol className="mt-4 list-decimal space-y-3 pl-5 text-[14px] text-slate-text">
-              <li>Compare 30-year, 15-year, and ARM scenarios with your buyer.</li>
-              <li>Share estimates and discuss pre-approval timing.</li>
-              <li>Connect with your preferred lender or mortgage partner.</li>
-            </ol>
-            {partnerUrl ? (
-              <a
-                href={partnerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-rose-gold py-3.5 text-[14px] font-medium text-ivory transition-opacity hover:opacity-90"
-              >
-                {partnerLabel}
-                <Icon name="open_in_new" className="text-[18px]" />
-              </a>
-            ) : (
-              <p className="mt-6 rounded-2xl border border-outline-variant/15 bg-cream/50 px-4 py-3 text-[13px] leading-relaxed text-slate-text">
-                Your mortgage originator profile link will appear here once your team adds it in
-                workspace settings.
+            <LuxuryCard padding="lg">
+              <h2 className="font-serif text-[20px] font-semibold text-ink">
+                Insights
+              </h2>
+              <p className="mt-1 text-[13px] text-slate-text">
+                Tap an insight to jump to the matching calculator section.
               </p>
-            )}
-            <p className="mt-3 text-center text-[11px] text-taupe">
-              Estimates only — not a lender quote. Adjust taxes, insurance, and HOA above for a fuller
-              monthly picture.
-            </p>
-          </LuxuryCard>
+              <ul className="mt-4 space-y-3">
+                {insights.map((item) => (
+                  <li key={item.title}>
+                    <a
+                      href={`#${item.targetId}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        runInsightAction(item);
+                      }}
+                      className="group flex w-full items-start gap-3 rounded-2xl border border-outline-variant/12 bg-champagne/20 px-4 py-3 text-left transition-colors hover:border-rose-gold/35 hover:bg-champagne/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-gold-deep"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ivory text-rose-gold-deep shadow-sm">
+                        <Icon name={item.icon} className="text-[18px]" />
+                      </div>
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-medium text-ink group-hover:text-rose-gold-deep">
+                          {item.title}
+                        </span>
+                        <span className="mt-0.5 block text-[13px] leading-relaxed text-slate-text">
+                          {item.body}
+                        </span>
+                        <span className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-rose-gold-deep">
+                          {item.actionLabel}
+                          <Icon
+                            name="arrow_forward"
+                            className="text-[16px] transition-transform group-hover:translate-x-0.5"
+                          />
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </LuxuryCard>
+
+            <LuxuryCard padding="lg">
+              <h2 className="font-serif text-[20px] font-semibold text-ink">
+                Next steps
+              </h2>
+              <ol className="mt-4 list-decimal space-y-3 pl-5 text-[14px] text-slate-text">
+                <li>
+                  Compare 30-year, 15-year, and ARM scenarios with your buyer.
+                </li>
+                <li>Share estimates and discuss pre-approval timing.</li>
+                <li>Connect with your preferred lender or mortgage partner.</li>
+              </ol>
+              {partnerUrl ? (
+                <a
+                  href={partnerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-rose-gold py-3.5 text-[14px] font-medium text-ivory transition-opacity hover:opacity-90"
+                >
+                  {partnerLabel}
+                  <Icon name="open_in_new" className="text-[18px]" />
+                </a>
+              ) : (
+                <p className="mt-6 rounded-2xl border border-outline-variant/15 bg-cream/50 px-4 py-3 text-[13px] leading-relaxed text-slate-text">
+                  Your mortgage originator profile link will appear here once
+                  your team adds it in workspace settings.
+                </p>
+              )}
+              <p className="mt-3 text-center text-[11px] text-taupe">
+                Estimates only — not a lender quote. Adjust taxes, insurance,
+                and HOA above for a fuller monthly picture.
+              </p>
+            </LuxuryCard>
+          </details>
         </div>
       </div>
     </div>

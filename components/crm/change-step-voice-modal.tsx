@@ -1,6 +1,7 @@
 "use client";
 
 import { Modal, ModalField, ModalFooterActions } from "@/components/crm/modal";
+import { TestVoiceScript } from "@/components/voice-studio/test-voice-script";
 import { Icon } from "@/components/ui/icon";
 import type { VoiceAsset } from "@/lib/hooks/use-voice-assets";
 import type { CampaignStep } from "@/lib/crm/types";
@@ -68,7 +69,9 @@ export function ChangeStepVoiceModal({
 
   const handleSave = async () => {
     if (!campaignId) {
-      setError("Save the campaign as a template first, then you can assign a recording to this step.");
+      setError(
+        "Save the campaign as a template first, then you can assign a recording to this step.",
+      );
       return;
     }
     if (!selectedId) {
@@ -81,17 +84,31 @@ export function ChangeStepVoiceModal({
       return;
     }
 
+    if (
+      !window.confirm(
+        "Replace this campaign step’s recording with the selected approved version?",
+      )
+    )
+      return;
     setSaving(true);
     setError(null);
     try {
       const res = await fetch(`/api/campaigns/${campaignId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ voiceAssetId: selectedId, stepId: step.id }),
+        body: JSON.stringify({
+          voiceAssetId: selectedId,
+          stepId: step.id,
+          assignmentConfirmed: true,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Could not update recording");
-      onSaved(step.id, asset, data.link?.message ?? `Recording linked to ${step.title}.`);
+      onSaved(
+        step.id,
+        asset,
+        data.link?.message ?? `Recording linked to ${step.title}.`,
+      );
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not update recording");
@@ -120,16 +137,28 @@ export function ChangeStepVoiceModal({
     >
       {!campaignId ? (
         <p className="rounded-xl bg-champagne/60 px-4 py-3 text-[14px] text-slate-text">
-          Save this campaign as a template first so we have a campaign ID to link recordings to.
+          Save this campaign as a template first so we have a campaign ID to
+          link recordings to.
         </p>
       ) : null}
 
+      <TestVoiceScript
+        asset={assets.find((a) => a.id === selectedId) ?? null}
+        script={
+          assets.find((a) => a.id === selectedId)?.studio_metadata?.script ?? ""
+        }
+        campaignName="Selected campaign"
+        stepName={step.title}
+      />
       {assetsLoading ? (
         <p className="text-[14px] text-taupe">Loading recordings…</p>
       ) : approvedAssets.length === 0 ? (
         <div className="space-y-3 rounded-xl bg-champagne/60 px-4 py-3 text-[14px] text-slate-text">
           <p>No approved recordings yet.</p>
-          <Link href="/dashboard/voice-scripts" className="font-medium text-rose-gold-deep hover:underline">
+          <Link
+            href="/dashboard/voice-scripts"
+            className="font-medium text-rose-gold-deep hover:underline"
+          >
             Go to Voice Scripts → record or generate one
           </Link>
         </div>
@@ -152,17 +181,27 @@ export function ChangeStepVoiceModal({
                       onClick={() => setSelectedId(asset.id)}
                       className="min-w-0 flex-1 text-left"
                     >
-                      <span className="block truncate text-[14px] font-medium text-ink">{asset.title}</span>
+                      <span className="block truncate text-[14px] font-medium text-ink">
+                        {asset.title}
+                      </span>
                     </button>
                     {asset.playbackUrl ? (
                       <button
                         type="button"
                         onClick={() => playPreview(asset)}
                         className="shrink-0 text-rose-gold-deep"
-                        aria-label={playingId === asset.id ? "Pause preview" : "Preview recording"}
+                        aria-label={
+                          playingId === asset.id
+                            ? "Pause preview"
+                            : "Preview recording"
+                        }
                       >
                         <Icon
-                          name={playingId === asset.id ? "pause_circle" : "play_circle"}
+                          name={
+                            playingId === asset.id
+                              ? "pause_circle"
+                              : "play_circle"
+                          }
                           className="text-[28px]"
                         />
                       </button>
@@ -171,7 +210,9 @@ export function ChangeStepVoiceModal({
                       type="button"
                       onClick={() => setSelectedId(asset.id)}
                       className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
-                        selected ? "bg-rose-gold text-ivory" : "bg-champagne text-taupe"
+                        selected
+                          ? "bg-rose-gold text-ivory"
+                          : "bg-champagne text-taupe"
                       }`}
                     >
                       {selected ? "Selected" : "Select"}

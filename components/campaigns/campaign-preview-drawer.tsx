@@ -1,4 +1,5 @@
 "use client";
+import { CampaignVoiceTest } from "@/components/voice-studio/campaign-voice-test";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
@@ -310,6 +311,26 @@ export function CampaignPreviewDrawer({
                             {s.day_label ? ` · ${s.day_label}` : ""}
                             {s.time_label ? ` · ${s.time_label}` : ""}
                           </p>
+                          {s.type === "voicemail" && (
+                            <CampaignVoiceTest
+                              assetId={
+                                s.voice_asset_id ||
+                                String(s.conditions?.voiceAssetId || "") ||
+                                (i ===
+                                data.steps.findIndex(
+                                  (step) => step.type === "voicemail",
+                                )
+                                  ? (
+                                      data.campaign as typeof data.campaign & {
+                                        voice_asset_id?: string;
+                                      }
+                                    ).voice_asset_id
+                                  : null)
+                              }
+                              campaignName={data.campaign.name}
+                              stepName={`Step ${i + 1} · ${s.title}`}
+                            />
+                          )}
                           <details>
                             <summary>Message preview</summary>
                             <div className="cl-message">
@@ -494,6 +515,12 @@ export function CampaignPreviewDrawer({
                 href={`/dashboard/campaigns?edit=${campaign.id}#campaign-builder`}
               >
                 Edit
+              </Link>
+              <Link
+                className="cl-button"
+                href={`/dashboard/tasks?new=task&campaignId=${campaign.id}`}
+              >
+                Create follow-up task
               </Link>
               <button
                 className="cl-button"

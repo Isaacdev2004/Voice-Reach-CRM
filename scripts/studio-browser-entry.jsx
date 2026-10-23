@@ -1,0 +1,8 @@
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import {DashboardShell} from '../components/layout/dashboard-shell';
+import {VoiceScriptsStudioPage} from '../components/pages/stitch/VoiceScriptsStudioPage';
+import {SettingsWorkspacePage} from '../components/pages/stitch/SettingsWorkspacePage';
+import {ActivityLogsPage} from '../components/pages/stitch/ActivityLogsPage';
+window.__owner='owner_a';
+createRoot(document.getElementById('root')).render(<DashboardShell>{location.pathname.endsWith('/settings')?<SettingsWorkspacePage/>:location.pathname.endsWith('/activity')?<ActivityLogsPage/>:<VoiceScriptsStudioPage/>}</DashboardShell>);

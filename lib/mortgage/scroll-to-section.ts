@@ -5,9 +5,22 @@ export function scrollToMortgageSection(id: string): boolean {
   const el = document.getElementById(id);
   if (!el) return false;
 
+  // Deep links and insight actions must reveal collapsed calculator sections.
+  let ancestor: HTMLElement | null = el;
+  while (ancestor) {
+    if (ancestor.tagName === "DETAILS")
+      (ancestor as HTMLDetailsElement).open = true;
+    ancestor = ancestor.parentElement;
+  }
+
   const top =
     el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET_PX;
-  window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  window.scrollTo({
+    top: Math.max(0, top),
+    behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+      ? "auto"
+      : "smooth",
+  });
 
   el.classList.remove("mortgage-section-highlight");
   // Reflow so repeat clicks re-trigger the flash

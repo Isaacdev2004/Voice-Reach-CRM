@@ -1,3 +1,4 @@
+import { humanAction } from "./intelligence";
 import type { ActivityLogEntry } from "./types";
 
 type AuditRow = {
@@ -11,7 +12,10 @@ type AuditRow = {
 
 function entry(
   row: AuditRow,
-  partial: Omit<ActivityLogEntry, "id" | "createdAt" | "source" | "action" | "entityType" | "entityId"> & {
+  partial: Omit<
+    ActivityLogEntry,
+    "id" | "createdAt" | "source" | "action" | "entityType" | "entityId"
+  > & {
     entityId?: string | null;
     metadata?: Record<string, unknown>;
   },
@@ -38,8 +42,12 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
         icon: "edit",
         tone: "default",
         title: "Contact updated",
-        body: consent ? `Contact record updated (consent: ${consent}).` : "Contact record updated.",
-        href: row.entity_id ? `/dashboard/contacts/${row.entity_id}` : "/dashboard/contacts",
+        body: consent
+          ? `Contact record updated (consent: ${consent}).`
+          : "Contact record updated.",
+        href: row.entity_id
+          ? `/dashboard/contacts/${row.entity_id}`
+          : "/dashboard/contacts",
         metadata: meta,
       });
     }
@@ -50,7 +58,9 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
         icon: "person_remove",
         tone: "warning",
         title: "Contact deleted",
-        body: name ? `${name} was removed from your CRM.` : "A contact was removed from your CRM.",
+        body: name
+          ? `${name} was removed from your CRM.`
+          : "A contact was removed from your CRM.",
         href: "/dashboard/contacts",
         metadata: meta,
       });
@@ -75,8 +85,12 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
         icon: "person_add",
         tone: "success",
         title: "Contact created",
-        body: phone ? `New contact added with phone ${phone}.` : "A new contact was added to your CRM.",
-        href: row.entity_id ? `/dashboard/contacts/${row.entity_id}` : "/dashboard/contacts",
+        body: phone
+          ? `New contact added with phone ${phone}.`
+          : "A new contact was added to your CRM.",
+        href: row.entity_id
+          ? `/dashboard/contacts/${row.entity_id}`
+          : "/dashboard/contacts",
         metadata: meta,
       });
     }
@@ -107,7 +121,8 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
         metadata: meta,
       });
     case "CAMPAIGN_TEMPLATE_SAVED": {
-      const blueprint = meta.blueprint as { name?: string; audience?: string } | undefined;
+      const blueprint = meta.blueprint as
+        { name?: string; audience?: string } | undefined;
       return entry(row, {
         category: "campaigns",
         icon: "bookmark",
@@ -184,13 +199,16 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
       });
     }
     case "AUTOMATION_SAVED": {
-      const wf = meta.workflow as { name?: string; status?: string } | undefined;
+      const wf = meta.workflow as
+        { name?: string; status?: string } | undefined;
       return entry(row, {
         category: "automation",
         icon: "account_tree",
         tone: "default",
         title: "Workflow saved",
-        body: wf?.name ? `"${wf.name}" saved (${wf.status ?? "draft"}).` : "Automation workflow updated.",
+        body: wf?.name
+          ? `"${wf.name}" saved (${wf.status ?? "draft"}).`
+          : "Automation workflow updated.",
         href: "/dashboard/automations",
         metadata: { workflowName: wf?.name, status: wf?.status },
       });
@@ -211,11 +229,35 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
       return null;
     default:
       return entry(row, {
-        category: "system",
-        icon: "info",
+        category: [
+          "calendar_event",
+          "task",
+          "contact_task",
+          "task_transaction",
+        ].includes(row.entity_type)
+          ? "automation"
+          : "system",
+        icon: ["task", "contact_task"].includes(row.entity_type)
+          ? "task_alt"
+          : row.entity_type === "calendar_event"
+            ? "event"
+            : "info",
         tone: "default",
-        title: row.action.replace(/_/g, " ").toLowerCase(),
-        body: `${row.entity_type} event recorded.`,
+        title: humanAction(row.action),
+        body:
+          typeof meta.title === "string"
+            ? meta.title
+            : typeof meta.name === "string"
+              ? meta.name
+              : `${humanAction(row.entity_type)} updated.`,
+        href:
+          row.entity_type === "calendar_event"
+            ? "/dashboard/calendar"
+            : ["task", "contact_task", "task_transaction"].includes(
+                  row.entity_type,
+                )
+              ? "/dashboard/tasks"
+              : undefined,
         metadata: meta,
       });
   }
@@ -233,11 +275,14 @@ export function mapDeliveryRow(row: DeliveryRow): ActivityLogEntry | null {
   if (row.delivery_status === "not_sent") return null;
 
   const name = row.contacts
-    ? [row.contacts.first_name, row.contacts.last_name].filter(Boolean).join(" ")
+    ? [row.contacts.first_name, row.contacts.last_name]
+        .filter(Boolean)
+        .join(" ")
     : "Contact";
   const campaign = row.campaigns?.name ?? "Campaign";
 
-  const failed = row.delivery_status === "failed" || row.delivery_status === "blocked";
+  const failed =
+    row.delivery_status === "failed" || row.delivery_status === "blocked";
   const delivered = row.delivery_status === "delivered";
 
   return {
@@ -245,7 +290,9 @@ export function mapDeliveryRow(row: DeliveryRow): ActivityLogEntry | null {
     category: failed ? "compliance" : "engagement",
     icon: failed ? "block" : "voicemail",
     tone: failed ? "error" : "default",
-    title: failed ? `Delivery issue - ${name}` : `Recorded message status - ${name}`,
+    title: failed
+      ? `Delivery issue - ${name}`
+      : `Recorded message status - ${name}`,
     body: failed
       ? `${name} could not receive message in "${campaign}".`
       : `"${campaign}": ${row.delivery_status === "mock_sent" ? "simulation" : row.delivery_status}. Legacy recipient status is not independently verified delivery.`,
