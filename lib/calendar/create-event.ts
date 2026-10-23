@@ -1,10 +1,17 @@
+import { loadCalendarPreferences } from "./load-preferences";
+import { readCalendar } from "./read-model";
+import { conflictsFor } from "./conflicts";
 import { writeAuditLog } from "@/lib/audit";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { createGoogleCalendarEvent, getGoogleConnection, type Recurrence } from "./google";
+import { ownedRows } from "@/lib/delivery/owned-rows";
+import {
+  createGoogleCalendarEvent,
+  getGoogleConnection,
+  type Recurrence,
+} from "./google";
 import { expandRecurrenceOccurrences } from "./recurrence";
-
+import { validateInterval, zonedParts, wallTimeToInstant } from "./time";
 export type { Recurrence };
-
 export async function createOwnerCalendarEvent(options: {
   ownerId: string;
   title: string;
@@ -15,109 +22,237 @@ export async function createOwnerCalendarEvent(options: {
   recurrence?: Recurrence;
   meetingLink?: string | null;
   timeZone?: string;
-}): Promise<{
-  eventId: string;
-  googleEventId?: string;
-  htmlLink?: string;
-  syncedToGoogle: boolean;
-  instancesCreated: number;
-}> {
-  const start = new Date(options.startsAt);
-  const end = new Date(options.endsAt ?? new Date(start.getTime() + 60 * 60_000).toISOString());
-  const timeZone = options.timeZone ?? "America/New_York";
-  const recurrence = options.recurrence ?? "none";
-  const meetingLink = options.meetingLink?.trim() || null;
-
-  let googleEventId: string | undefined;
-  let htmlLink: string | undefined;
-  let syncedToGoogle = false;
-
-  const connection = await getGoogleConnection(options.ownerId).catch(() => null);
-  if (connection) {
-    const created = await createGoogleCalendarEvent({
-      connection,
-      title: options.title,
-      description: options.description,
-      start,
-      end,
-      timeZone,
-      recurrence,
-      meetingLink,
-    });
-    googleEventId = created.eventId;
-    htmlLink = created.htmlLink;
-    syncedToGoogle = true;
+  kind?: string;
+  appointmentType?: string;
+  appointmentStatus?: string;
+  allDay?: boolean;
+  startDate?: string;
+  endDate?: string;
+  syncToGoogle?: boolean;
+  clientRequestId?: string;
+  allowConflict?: boolean;
+}) {
+  const end =
+    options.endsAt ??
+    new Date(Date.parse(options.startsAt) + 3600000).toISOString();
+  validateInterval(options.startsAt, end);
+  if (!options.title.trim()) throw Error("Enter an appointment title.");
+  if (options.contactId) {
+    const contact = await supabaseAdmin
+      .from("contacts")
+      .select("id")
+      .eq("owner_id", options.ownerId)
+      .eq("id", options.contactId)
+      .maybeSingle();
+    if (contact.error || !contact.data) throw Error("Contact not found.");
   }
-
-  const seriesId = recurrence !== "none" ? crypto.randomUUID() : undefined;
-  const occurrences =
-    syncedToGoogle && recurrence !== "none"
-      ? [{ start, end }]
-      : expandRecurrenceOccurrences({ start, end, recurrence });
-
-  const rows = occurrences.map((occurrence, index) => ({
+  const requestId = options.clientRequestId ?? crypto.randomUUID();
+  const existing = await supabaseAdmin
+    .from("calendar_events")
+    .select("id, starts_at, title, metadata")
+    .eq("owner_id", options.ownerId)
+    .eq("id", requestId)
+    .maybeSingle();
+  if (existing.error) throw Error("Calendar is unavailable.");
+  if (existing.data) {
+    if (
+      Date.parse(existing.data.starts_at) !== Date.parse(options.startsAt) ||
+      existing.data.title !== options.title
+    )
+      throw Error("This request reference was already used.");
+    return {
+      eventId: existing.data.id,
+      syncedToGoogle: existing.data.metadata?.syncState === "synced",
+      instancesCreated: 1,
+      alreadySaved: true,
+    };
+  }
+  const preferences = await loadCalendarPreferences(options.ownerId);
+  const recurrence = options.recurrence ?? "none";
+  const instances = options.syncToGoogle
+    ? [{ start: new Date(options.startsAt), end: new Date(end) }]
+    : expandRecurrenceOccurrences({
+        start: new Date(options.startsAt),
+        end: new Date(end),
+        recurrence,
+        timeZone: options.timeZone,
+      });
+  if (options.allDay && !options.syncToGoogle) {
+    const span = Math.round(
+      (Date.parse(options.endDate + "T12:00Z") -
+        Date.parse(options.startDate + "T12:00Z")) /
+        86400000,
+    );
+    for (const i of instances) {
+      const d = zonedParts(
+        i.start,
+        options.timeZone ?? preferences.timezone,
+      ).date;
+      const next = new Date(d + "T12:00Z");
+      next.setUTCDate(next.getUTCDate() + span);
+      i.end = new Date(
+        wallTimeToInstant(
+          next.toISOString().slice(0, 10),
+          "00:00",
+          options.timeZone ?? preferences.timezone,
+          "earlier",
+        ),
+      );
+    }
+  }
+  if (!options.allowConflict) {
+    const connection = await getGoogleConnection(options.ownerId);
+    if (connection) {
+      for (const i of instances) {
+        const snapshot = await readCalendar(
+          options.ownerId,
+          i.start.toISOString(),
+          i.end.toISOString(),
+        );
+        if (!snapshot.connected) throw Error("EXTERNAL_UNVERIFIED");
+        if (
+          conflictsFor(
+            snapshot.agenda,
+            i.start.toISOString(),
+            i.end.toISOString(),
+            preferences,
+          ).length
+        )
+          throw Error("CALENDAR_OVERLAP");
+      }
+    }
+  }
+  const rows = await ownedRows<{
+    id: string;
+    starts_at: string;
+    ends_at: string;
+  }>("calendar_events", "id, starts_at, ends_at", options.ownerId);
+  if (
+    !options.allowConflict &&
+    instances.some((i) =>
+      rows.some(
+        (r) =>
+          Date.parse(r.starts_at) <
+            +i.end +
+              (preferences.bufferBefore +
+                preferences.bufferAfter +
+                preferences.travelMinutes) *
+                60000 &&
+          Date.parse(r.ends_at) >
+            +i.start -
+              (preferences.bufferBefore +
+                preferences.bufferAfter +
+                preferences.travelMinutes) *
+                60000,
+      ),
+    )
+  )
+    throw Error("CALENDAR_OVERLAP");
+  const version = crypto.randomUUID();
+  const records = instances.map((i, index) => ({
+    id: index ? crypto.randomUUID() : requestId,
     owner_id: options.ownerId,
     contact_id: options.contactId ?? null,
-    external_event_id:
-      syncedToGoogle && index === 0 && googleEventId
-        ? googleEventId
-        : `local-${crypto.randomUUID()}`,
-    provider: syncedToGoogle && index === 0 ? "google" : "local",
-    title: options.title,
-    starts_at: occurrence.start.toISOString(),
-    ends_at: occurrence.end.toISOString(),
+    external_event_id: `local-${index ? crypto.randomUUID() : requestId}`,
+    provider: "local",
+    title: options.title.trim(),
+    starts_at: i.start.toISOString(),
+    ends_at: i.end.toISOString(),
     metadata: {
-      htmlLink: index === 0 ? htmlLink : null,
-      description: options.description,
+      enforceConflict: !options.allowConflict,
+      gapMinutes:
+        preferences.bufferBefore +
+        preferences.bufferAfter +
+        preferences.travelMinutes,
+      appointmentType: options.appointmentType ?? "meeting",
+      status: options.appointmentStatus ?? "scheduled",
+      outcomeRecordedAt:
+        options.appointmentStatus && options.appointmentStatus !== "scheduled"
+          ? new Date().toISOString()
+          : undefined,
+      description: options.description ?? "",
       recurrence,
-      meetingLink,
-      seriesId,
+      meetingLink: options.meetingLink ?? null,
+      seriesId: recurrence !== "none" ? requestId : null,
       seriesIndex: index,
-      remindMinutesBefore: 15,
+      kind: options.kind ?? "crm",
+      timeZone: options.timeZone ?? "America/New_York",
+      allDay: !!options.allDay,
+      startDate: options.allDay
+        ? zonedParts(i.start, options.timeZone ?? "America/New_York").date
+        : undefined,
+      endDate: options.allDay
+        ? zonedParts(i.end, options.timeZone ?? "America/New_York").date
+        : undefined,
+      version,
+      syncState: options.syncToGoogle ? "pending" : "local",
     },
   }));
-
-  const { data: inserted, error } = await supabaseAdmin
-    .from("calendar_events")
-    .insert(rows)
-    .select("id");
-
-  if (error) throw new Error(error.message);
-
-  const eventId = inserted?.[0]?.id;
-  if (!eventId) throw new Error("Could not save calendar event");
-
+  const inserted = await supabaseAdmin.from("calendar_events").insert(records);
+  if (inserted.error)
+    throw Error("Appointment could not be saved. Refresh before retrying.");
+  let synced = false,
+    syncWarning: string | undefined;
+  if (options.syncToGoogle) {
+    try {
+      const connection = await getGoogleConnection(options.ownerId);
+      if (!connection) throw Error();
+      const created = await createGoogleCalendarEvent({
+        connection,
+        title: options.title,
+        description: options.description,
+        start: new Date(options.startsAt),
+        end: new Date(end),
+        timeZone: options.timeZone ?? "America/New_York",
+        recurrence,
+        meetingLink: options.meetingLink,
+        eventId: requestId.replace(/-/g, ""),
+        localId: requestId,
+        allDay: options.allDay,
+        startDate: options.startDate,
+        endDate: options.endDate,
+      });
+      const result = await supabaseAdmin
+        .from("calendar_events")
+        .update({
+          provider: "google",
+          external_event_id: created.eventId,
+          metadata: {
+            ...records[0].metadata,
+            etag: created.etag,
+            externalCalendarId: connection.calendar_id ?? "primary",
+            htmlLink: created.htmlLink,
+            syncState: "synced",
+          },
+        })
+        .eq("id", requestId)
+        .eq("owner_id", options.ownerId);
+      if (result.error) throw Error();
+      synced = true;
+    } catch {
+      syncWarning =
+        "Saved locally. Google synchronization needs review; do not recreate this appointment.";
+    }
+  }
   await writeAuditLog({
     ownerId: options.ownerId,
     action: "CALENDAR_EVENT_CREATED",
     entityType: "calendar_event",
-    entityId: eventId,
+    entityId: requestId,
     metadata: {
+      contactId: options.contactId,
       title: options.title,
-      syncedToGoogle,
-      googleEventId,
-      instancesCreated: rows.length,
+      syncedToGoogle: synced,
+      instancesCreated: records.length,
     },
   }).catch(() => undefined);
-
   return {
-    eventId,
-    googleEventId,
-    htmlLink,
-    syncedToGoogle,
-    instancesCreated: rows.length,
+    eventId: requestId,
+    syncedToGoogle: synced,
+    instancesCreated: records.length,
+    syncWarning,
   };
 }
-
-export function recurrenceLabel(recurrence: Recurrence): string {
-  switch (recurrence) {
-    case "daily":
-      return "Repeats daily";
-    case "weekly":
-      return "Repeats weekly";
-    case "monthly":
-      return "Repeats monthly";
-    default:
-      return "One time";
-  }
+export function recurrenceLabel(value: Recurrence) {
+  return value === "none" ? "One time" : `Repeats ${value}`;
 }
