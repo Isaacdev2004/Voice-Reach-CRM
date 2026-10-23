@@ -75,3 +75,45 @@ test("recent dashboard campaigns are chronological and do not mutate library rec
   assert.equal(recentDashboardCampaigns(rows)[0].id, id(7));
   assert.equal(rows[0].id, id(0));
 });
+test("active campaign counts agree with library lifecycle and exclude queued/unlaunched duplicates", () => {
+  const f = fixture();
+  const rows = [
+    { id: id(1), status: "sending", provider: "twilio", live_launched: true },
+    { id: id(2), status: "queued" },
+    { id: id(3), status: "sending", provider: "twilio", live_launched: false },
+    { id: id(4), status: "draft" },
+    { id: id(1), status: "sending", provider: "twilio", live_launched: true },
+  ];
+  assert.equal(f.load("lib/dashboard/home-kpis").countActiveCampaigns(rows), 1);
+  assert.equal(
+    f.load("lib/campaigns/library-data").campaignCounts(rows).active,
+    1,
+  );
+});
+test("confirmed campaigns are distinct owned campaigns, never mock sends or orphan message counts", () => {
+  const count = fixture().load(
+    "lib/dashboard/confirmed-campaigns",
+  ).confirmedCampaignCount;
+  const sent = (campaign_id) => ({
+    campaign_id,
+    provider: "twilio",
+    events: [{ event_type: "sent" }],
+  });
+  assert.equal(
+    count(
+      [{ id: id(1) }, { id: id(2) }],
+      [
+        sent(id(1)),
+        sent(id(1)),
+        sent(id(99)),
+        { ...sent(id(2)), provider: "mock" },
+        {
+          campaign_id: id(2),
+          provider: "resend",
+          events: [{ event_type: "submitted" }],
+        },
+      ],
+    ),
+    1,
+  );
+});

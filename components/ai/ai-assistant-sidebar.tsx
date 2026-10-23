@@ -3,26 +3,44 @@
 import { Modal, ModalFooterActions } from "@/components/crm/modal";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { outputToPlainText } from "@/lib/ai/parse-output";
 import { AiResultPanel } from "./ai-result-panel";
 import { useAiAssistant, type AiTaskType } from "./ai-assistant-context";
 
 const TASKS: { id: AiTaskType; label: string; description: string }[] = [
   {
+    id: "daily_briefing",
+    label: "Daily briefing",
+    description: "Verified CRM priorities",
+  },
+  {
     id: "follow_up",
     label: "Next best action",
     description: "Best next touchpoint",
   },
-  { id: "email_writer", label: "Email writer", description: "On-brand email draft" },
+  {
+    id: "email_writer",
+    label: "Email writer",
+    description: "On-brand email draft",
+  },
   { id: "sms_writer", label: "SMS writer", description: "Short warm message" },
   {
     id: "voicemail_script",
     label: "Voicemail script",
     description: "25-second script",
   },
-  { id: "note_summary", label: "Note summary", description: "3-bullet summary" },
-  { id: "campaign_idea", label: "Campaign idea", description: "Multi-touch sequence" },
+  {
+    id: "note_summary",
+    label: "Note summary",
+    description: "3-bullet summary",
+  },
+  {
+    id: "campaign_idea",
+    label: "Campaign idea",
+    description: "Multi-touch sequence",
+  },
   {
     id: "next_best_action",
     label: "Smart suggestion",
@@ -30,7 +48,10 @@ const TASKS: { id: AiTaskType; label: string; description: string }[] = [
   },
 ];
 
-const TONES: { id: "warm" | "professional" | "concise" | "luxury"; label: string }[] = [
+const TONES: {
+  id: "warm" | "professional" | "concise" | "luxury";
+  label: string;
+}[] = [
   { id: "luxury", label: "Luxury" },
   { id: "warm", label: "Warm" },
   { id: "professional", label: "Professional" },
@@ -39,21 +60,38 @@ const TONES: { id: "warm" | "professional" | "concise" | "luxury"; label: string
 
 export function AiAssistantSidebar() {
   const { state, closeAssistant, setBrief, setTask } = useAiAssistant();
+  const { user } = useUser();
+  const ownerRef = useRef(user?.id);
+  const pending = useRef<AbortController | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tone, setTone] = useState<(typeof TONES)[number]["id"]>(state.context.tone ?? "luxury");
+  const [tone, setTone] = useState<(typeof TONES)[number]["id"]>(
+    state.context.tone ?? "luxury",
+  );
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    ownerRef.current = user?.id;
+    pending.current?.abort();
+    setLoading(false);
+    setResult(null);
     if (state.open) {
       setResult(null);
       setError(null);
       setTone(state.context.tone ?? "luxury");
     }
-  }, [state.open, state.task, state.context.tone]);
+    return () => {
+      pending.current?.abort();
+    };
+  }, [state.open, state.task, state.context.tone, user?.id]);
 
   const run = async () => {
+    const owner = user?.id;
+    if (!owner) return;
+    pending.current?.abort();
+    const controller = new AbortController();
+    pending.current = controller;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -61,22 +99,33 @@ export function AiAssistantSidebar() {
       task: AiTaskType;
       output: Record<string, unknown>;
       provider: string;
-    }>("/api/ai/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        task: state.task,
-        brief: state.brief,
-        context: { ...state.context, tone },
-      }),
-    });
+    }>(
+      state.task === "daily_briefing"
+        ? "/api/dashboard/briefing"
+        : "/api/ai/generate",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-MyARI-Owner": owner },
+        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]),
+        body: JSON.stringify(
+          state.task === "daily_briefing"
+            ? { action: "generate" }
+            : {
+                task: state.task,
+                brief: state.brief,
+                context: { ...state.context, tone },
+              },
+        ),
+      },
+    );
+    if (controller.signal.aborted || ownerRef.current !== owner) return;
     setLoading(false);
     if (!envelope.success) {
-      setError(envelope.error);
+      setError(state.task === "daily_briefing" ? "Your verified briefing could not be prepared. Please try again." : envelope.error);
       return;
     }
     const out = envelope.data?.output;
-    if (!out || typeof out !== "object") {
+    if (!out || typeof out !== "object" || (state.task === "daily_briefing" && (!Array.isArray(out.bullets) || !out.bullets.length || out.bullets.some(b => typeof b !== "string")))) {
       setError("We couldn't generate a suggestion. Please try again.");
       return;
     }
@@ -86,7 +135,9 @@ export function AiAssistantSidebar() {
   const copyOutput = async () => {
     if (!result) return;
     try {
-      await navigator.clipboard.writeText(outputToPlainText(state.task, result));
+      await navigator.clipboard.writeText(
+        outputToPlainText(state.task, result),
+      );
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -133,7 +184,9 @@ export function AiAssistantSidebar() {
                   )}
                 >
                   <p className="text-[13px] font-medium text-ink">{t.label}</p>
-                  <p className="mt-0.5 text-[11px] text-taupe">{t.description}</p>
+                  <p className="mt-0.5 text-[11px] text-taupe">
+                    {t.description}
+                  </p>
                 </button>
               );
             })}
@@ -141,7 +194,9 @@ export function AiAssistantSidebar() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">Tone</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
+            Tone
+          </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {TONES.map((t) => (
               <button
@@ -163,7 +218,10 @@ export function AiAssistantSidebar() {
 
         {state.context.contactName ? (
           <p className="rounded-xl bg-champagne/40 px-3 py-2 text-[12px] text-taupe">
-            Context: <span className="font-medium text-ink">{state.context.contactName}</span>
+            Context:{" "}
+            <span className="font-medium text-ink">
+              {state.context.contactName}
+            </span>
           </p>
         ) : null}
 

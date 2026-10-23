@@ -82,6 +82,8 @@ export function DashboardHeaderProvider({
   const searchParams = useSearchParams();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const searchAttempt = useRef(0);
+  const notificationAttempt = useRef(0);
 
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -142,6 +144,7 @@ export function DashboardHeaderProvider({
   );
 
   const runContactSearch = useCallback(async (q: string) => {
+    const attempt = ++searchAttempt.current;
     if (q.trim().length < 2) {
       setContactHits([]);
       return;
@@ -150,11 +153,11 @@ export function DashboardHeaderProvider({
     try {
       const res = await fetch(`/api/contacts?q=${encodeURIComponent(q)}`);
       const data = (await res.json()) as { contacts?: ContactHit[] };
-      setContactHits((data.contacts ?? []).slice(0, 6));
+      if (attempt === searchAttempt.current) setContactHits((data.contacts ?? []).slice(0, 6));
     } catch {
-      setContactHits([]);
+      if (attempt === searchAttempt.current) setContactHits([]);
     } finally {
-      setSearching(false);
+      if (attempt === searchAttempt.current) setSearching(false);
     }
   }, []);
 
@@ -185,13 +188,23 @@ export function DashboardHeaderProvider({
     router.push(`/dashboard/contacts?q=${encodeURIComponent(trimmed)}`);
   };
 
+  const invalidateHeaderReads = useCallback(() => {
+    searchAttempt.current++; notificationAttempt.current++;
+  }, []);
+  useEffect(() => {
+    invalidateHeaderReads();
+    setContactHits([]); setNotifications([]); setNotificationsOpen(false); setQuery(""); setSearching(false);
+    return invalidateHeaderReads;
+  }, [user?.id, invalidateHeaderReads]);
   const loadNotifications = useCallback(async () => {
+    const attempt = ++notificationAttempt.current;
     try {
       const res = await fetch("/api/activity");
       const data = (await res.json()) as { entries?: ActivityLogEntry[] };
-      setNotifications((data.entries ?? []).slice(0, 12));
+      if (!res.ok) throw Error();
+      if (attempt === notificationAttempt.current) setNotifications((data.entries ?? []).slice(0, 12));
     } catch {
-      setNotifications([]);
+      if (attempt === notificationAttempt.current) setNotifications([]);
     }
   }, []);
 

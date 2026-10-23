@@ -108,6 +108,7 @@ export function normalizeAiOutput(
         output: { recommendation, reason, suggestedChannel },
       };
     }
+    case "daily_briefing":
     case "note_summary": {
       const bullets = asStringArray(raw.bullets);
       if (!bullets) return { ok: false, reason: "wrong_shape" };
@@ -153,6 +154,7 @@ export function outputToPlainText(task: AiTaskType, output: Record<string, unkno
       ]
         .filter(Boolean)
         .join("\n\n");
+    case "daily_briefing":
     case "note_summary": {
       const bullets = asStringArray(output.bullets);
       return bullets ? bullets.map((b) => `• ${b}`).join("\n") : "";

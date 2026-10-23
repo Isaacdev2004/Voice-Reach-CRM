@@ -5,6 +5,7 @@ import {
 } from "@/lib/campaigns/library-art";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { safeFetch } from "@/lib/api-response";
@@ -96,7 +97,8 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
   const [version, setVersion] = useState(0);
   const [tab, setTab] = useState<Tab>("all");
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("");
+  const routeQuery = useSearchParams();
+  const [status, setStatus] = useState(() => routeQuery.get("status") ?? "");
   const [channel, setChannel] = useState("");
   const [goal, setGoal] = useState("");
   const [audience, setAudience] = useState("");
@@ -209,7 +211,7 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
           `${c.name} ${c.description ?? ""}`
             .toLowerCase()
             .includes(query.trim().toLowerCase())) &&
-        (!status || c.status === status) &&
+        (!status || (status === "active" ? campaignCounts([c]).active === 1 : c.status === status)) &&
         (!channel || c.channels.includes(channel)) &&
         (!goal || c.goals?.includes(goal)) &&
         (!audience || c.audience === audience),
@@ -441,6 +443,7 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
               onChange={(e) => setStatus(e.target.value)}
             >
               <option value="">Status</option>
+              <option value="active">Active (sending)</option>
               {[...new Set(source.map((c) => c.status))].sort().map((s) => (
                 <option key={s} value={s}>
                   {s[0].toUpperCase() + s.slice(1)}

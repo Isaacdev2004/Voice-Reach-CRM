@@ -4,6 +4,10 @@
     {
       "path": "/api/campaigns/runner",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/dashboard/briefing/runner",
+      "schedule": "*/15 * * * *"
     }
   ],
   "functions": {
@@ -21,7 +25,10 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate"
+        }
       ]
     }
   ]

@@ -1,5 +1,5 @@
 "use client";
-import { DailyPriorities } from "@/components/activity/daily-priorities";
+import { DashboardBriefing } from "@/components/crm/dashboard-briefing";
 
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
@@ -28,8 +28,25 @@ function OwnerDashboard() {
   const [verifiedSent, setVerifiedSent] = useState<number | null>(null);
   const [campaigns, setCampaigns] = useState<CampaignRow[] | null>(null);
   const [campaignError, setCampaignError] = useState(false);
+  const [version, setVersion] = useState(0);
+  const [sentState, setSentState] = useState<
+    "loading" | "ready" | "unavailable"
+  >("loading");
 
   useEffect(() => {
+    const refresh = () => setVersion((v) => v + 1);
+    window.addEventListener("focus", refresh);
+    window.addEventListener("myari:activity-changed", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("myari:activity-changed", refresh);
+    };
+  }, []);
+  useEffect(() => {
+    setCampaignError(false);
+    setSentState("loading");
+    setVerifiedSent(null);
+    setCampaigns(null);
     const controller = new AbortController();
     const options = {
       cache: "no-store" as const,
@@ -54,19 +71,22 @@ function OwnerDashboard() {
           evidence.success !== false &&
           Number.isSafeInteger(evidence.confirmedSentCampaigns) &&
           evidence.confirmedSentCampaigns >= 0
-        )
+        ) {
           setVerifiedSent(evidence.confirmedSentCampaigns);
+          setSentState("ready");
+        } else if (!controller.signal.aborted) setSentState("unavailable");
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (!controller.signal.aborted) setSentState("unavailable");
+      });
     return () => controller.abort();
-  }, []);
+  }, [version]);
 
   const total = meta?.total;
   const activeLeads = meta?.counts?.activeLead ?? 0;
   const addedThisMonth = contactsAddedThisMonth(contacts);
   const sentCount = verifiedSent;
   const activeCount = campaigns ? countActiveCampaigns(campaigns) : null;
-  const launchedThisMonth = 0; // No launch history is inferred from mutable campaign status.
   const pipelineBudgets = useMemo(
     () => (loading || error ? null : sumActiveLeadBudgets(contacts)),
     [loading, contacts, error],
@@ -79,20 +99,12 @@ function OwnerDashboard() {
         ? undefined
         : `${addedThisMonth} current contacts added this month`;
 
-    const campaignDetail = campaignError
-      ? "Campaign information unavailable"
-      : campaigns === null
-        ? undefined
-        : activeCount === 0
-          ? "No campaigns in progress"
-          : `${activeCount} active ${activeCount === 1 ? "campaign" : "campaigns"}`;
-
-    const campaignChange =
-      campaigns === null
-        ? undefined
-        : launchedThisMonth > 0
-          ? `+${launchedThisMonth} launched this month`
-          : undefined;
+    const campaignDetail =
+      sentState === "loading"
+        ? "Verifying sent receipts…"
+        : sentState === "unavailable"
+          ? "Sent evidence unavailable"
+          : "Distinct campaigns with confirmed sends";
 
     const oppDetail =
       loading || error ? undefined : `${activeLeads} active in pipeline`;
@@ -111,8 +123,13 @@ function OwnerDashboard() {
       {
         id: "campaigns-sent",
         label: "Campaigns Sent",
-        value: sentCount === null ? "—" : String(sentCount),
-        change: campaignChange,
+        value:
+          sentState === "loading"
+            ? "…"
+            : sentCount === null
+              ? "Unavailable"
+              : String(sentCount),
+        change: undefined,
         changeTone: "up",
         detail: campaignDetail,
         icon: "campaign",
@@ -150,11 +167,8 @@ function OwnerDashboard() {
   }, [
     loading,
     total,
-    campaigns,
-    campaignError,
     sentCount,
-    activeCount,
-    launchedThisMonth,
+    sentState,
     addedThisMonth,
     activeLeads,
     pipelineBudgets,
@@ -163,7 +177,7 @@ function OwnerDashboard() {
   ]);
 
   return (
-    <div className={DASHBOARD_PAGE_BODY}>
+    <div className={`${DASHBOARD_PAGE_BODY} dashboard-home-content`}>
       <div className="dashboard-kpi-grid grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-stretch xl:grid-cols-4">
         {kpis.map((kpi) => (
           <Link
@@ -176,6 +190,11 @@ function OwnerDashboard() {
                   : "/dashboard/contacts?segment=active-lead"
             }
             className="dashboard-opportunity-link dashboard-kpi-link"
+            title={
+              kpi.id === "campaigns-sent"
+                ? "Distinct current campaigns with a real provider sent receipt. Earlier untracked sending is excluded."
+                : undefined
+            }
             aria-label={
               kpi.id === "opportunities"
                 ? "Opportunities — view Contacts"
@@ -187,17 +206,31 @@ function OwnerDashboard() {
         ))}
       </div>
 
-      <div className="dashboard-editorial-grid">
-        <div className="dashboard-pulse-column">
-          <MarketingPulse />
+      <div className="dashboard-active-campaigns">
+        <Link href="/dashboard/campaigns?status=active">
+          Active Campaigns:{" "}
+          {campaignError
+            ? "Unavailable"
+            : activeCount === null
+              ? "Verifying…"
+              : activeCount}{" "}
+          <span>Sending now · queued campaigns excluded →</span>
+        </Link>
+      </div>
+      <div className="dashboard-business-grid">
+        <div className="dashboard-work-column">
+          <DashboardBriefing />
+          <DashboardRecentCampaignsTable />
         </div>
-        <div className="dashboard-recommendations-column">
-          <DashboardRecommendedForYou />
+        <div className="dashboard-insights-column">
+          <div className="dashboard-pulse-column">
+            <MarketingPulse />
+          </div>
+          <div className="dashboard-recommendations-column">
+            <DashboardRecommendedForYou />
+          </div>
         </div>
       </div>
-
-      <DashboardRecentCampaignsTable />
-      <DailyPriorities dashboard />
     </div>
   );
 }

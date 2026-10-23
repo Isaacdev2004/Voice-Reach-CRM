@@ -61,7 +61,11 @@ function fixture() {
           return q;
         },
         eq(k, v) {
-          filters.push((r) => k.includes("->>") ? r[k.split("->>")[0]]?.[k.split("->>")[1]] === v : r[k] === v);
+          filters.push((r) => {
+            if (!k.includes("->")) return r[k] === v;
+            const value = k.split(/->>?/).reduce((value, part) => value?.[part], r);
+            return k.includes("->>") ? value != null && String(value) === String(v) : value === v;
+          });
           calls.push({ table, filter: k, value: v });
           return q;
         },

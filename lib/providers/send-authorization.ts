@@ -1,4 +1,5 @@
-import {normalizeE164} from "@/lib/communications/inbound";
+import { sharedReplyHeld } from "@/lib/communications/safety";
+import { normalizeE164 } from "@/lib/communications/inbound";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { evaluateEligibility } from "@/lib/compliance";
 import { isInQuietHours } from "@/lib/compliance/quiet-hours";
@@ -13,11 +14,24 @@ export async function authorizeLiveOutbound(
   if (!request.ownerId || !request.contactId)
     return ["An authorized subscriber and contact are required."];
   try {
-    if(request.channel==="sms"){
-      const phone=normalizeE164(request.to);if(!phone)return ["The SMS destination could not be verified."];
-      const suppression=await supabaseAdmin.from("communication_suppressions").select("phone").eq("owner_id",request.ownerId).eq("phone",phone).eq("channel","sms").limit(1);
-      if(suppression.error)return ["SMS suppression could not be verified."];
-      if(suppression.data?.length)return ["This phone number has opted out of SMS."];
+    if (request.channel === "sms") {
+      const phone = normalizeE164(request.to);
+      if (!phone) return ["The SMS destination could not be verified."];
+      const sender = request.from || process.env.TWILIO_FROM_NUMBER;
+      if (sender && (await sharedReplyHeld(sender, phone)))
+        return [
+          "SMS is paused for this number while an inbound reply awaits authorized routing review.",
+        ];
+      const suppression = await supabaseAdmin
+        .from("communication_suppressions")
+        .select("phone")
+        .eq("owner_id", request.ownerId)
+        .eq("phone", phone)
+        .eq("channel", "sms")
+        .limit(1);
+      if (suppression.error) return ["SMS suppression could not be verified."];
+      if (suppression.data?.length)
+        return ["This phone number has opted out of SMS."];
     }
     const { data: contact, error } = await supabaseAdmin
       .from("contacts")

@@ -75,6 +75,7 @@ export function AiResultPanel({ task, output, contactId }: AiResultPanelProps) {
           ) : null}
         </div>
       );
+    case "daily_briefing":
     case "note_summary": {
       const bullets = Array.isArray(output.bullets) ? (output.bullets as unknown[]) : [];
       return (
@@ -85,6 +86,7 @@ export function AiResultPanel({ task, output, contactId }: AiResultPanelProps) {
               <li key={i}>{String(b)}</li>
             ))}
           </ul>
+          {task === "daily_briefing" && Array.isArray(output.sources) && <div className="mt-3 flex flex-col gap-2">{(output.sources as {id: string; href: string; title: string}[]).filter(s => s.href.startsWith("/dashboard/")).map(s => <a className="text-rose-gold-deep underline" href={s.href} key={s.id}>{s.title} →</a>)}</div>}
         </div>
       );
     }
