@@ -19,9 +19,10 @@ export function TasksHero({
     <section className="tw-hero">
       <div className="tw-hero-photo">
         <Image
-          src="/brand/heroes/tasks-home-office.png"
-          alt="Sunlit architectural home office with greenery and a refined writing desk"
+          src="/brand/heroes/tasks-coastal-office.png"
+          alt="Coastal writing desk with a laptop, coffee and warm natural light"
           fill
+          style={{ objectFit: "cover", objectPosition: "center" }}
           priority
           sizes="(max-width:768px) 100vw, 1400px"
         />

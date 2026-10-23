@@ -81,3 +81,7 @@ Ready for design/code review, **not yet cleared for production deployment**. No 
 6. Obtain deployment approval. Nothing in this task merges or deploys automatically.
 
 Rollback: first disable new workspace writes and revert the application commit; preserve task/transaction/audit data. Do not drop the new columns/tables while tasks or approved batches reference them. Remove triggers/functions only through a reviewed migration with a backup; do not reverse database changes blindly.
+
+## Coastal hero and useful-template refinement
+
+The follow-up replaces the garden office with a coastal desk image and explicitly fits the nested image without stretching. Desktop task fields align consistently. Each of the eight templates has individual actionable instructions and relevant proposed offsets. Buyer/listing closing milestones now derive from an optional actual closing date and stay undated when it is unavailable. The Property Finder link only preselects a property when the client has a real property address. Existing subscriber values and workflow logic are preserved; see the model/route/browser regressions and updated screenshots.

@@ -72,7 +72,16 @@ export function PropertyFinderClientBar({
   };
 
   return (
-    <div ref={rootRef} className="relative w-full max-w-full" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); setOpen(false); } }}>
+    <div
+      ref={rootRef}
+      className="relative w-full max-w-full"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          setOpen(false);
+        }
+      }}
+    >
       <div className="flex w-full flex-col overflow-hidden rounded-2xl bg-ivory shadow-card sm:flex-row sm:items-stretch">
         <button
           type="button"
@@ -87,7 +96,12 @@ export function PropertyFinderClientBar({
             <p className="whitespace-normal text-[11px] font-semibold uppercase tracking-[0.12em] text-taupe">
               Select a client
             </p>
-            <p className={cn("truncate text-[14px] font-medium", selected ? "text-ink" : "text-taupe")}>
+            <p
+              className={cn(
+                "truncate text-[14px] font-medium",
+                selected ? "text-ink" : "text-taupe",
+              )}
+            >
               {loading
                 ? "Loading…"
                 : selected
@@ -113,10 +127,28 @@ export function PropertyFinderClientBar({
             aria-expanded={open}
             aria-controls={listId}
             aria-autocomplete="list"
-            aria-activedescendant={open && filtered[activeIndex] ? `${listId}-${filtered[activeIndex].id}` : undefined}
-            onKeyDown={event => {
-              if (event.key === "ArrowDown" || event.key === "ArrowUp") {event.preventDefault();setOpen(true);setActiveIndex(index => filtered.length ? (index + (event.key === "ArrowDown" ? 1 : -1) + filtered.length) % filtered.length : 0);}
-              if (event.key === "Enter" && open && filtered[activeIndex]) {event.preventDefault();pick(filtered[activeIndex].id);}
+            aria-activedescendant={
+              open && filtered[activeIndex]
+                ? `${listId}-${filtered[activeIndex].id}`
+                : undefined
+            }
+            onKeyDown={(event) => {
+              if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                event.preventDefault();
+                setOpen(true);
+                setActiveIndex((index) =>
+                  filtered.length
+                    ? (index +
+                        (event.key === "ArrowDown" ? 1 : -1) +
+                        filtered.length) %
+                      filtered.length
+                    : 0,
+                );
+              }
+              if (event.key === "Enter" && open && filtered[activeIndex]) {
+                event.preventDefault();
+                pick(filtered[activeIndex].id);
+              }
             }}
             value={query}
             onChange={(e) => {
@@ -132,7 +164,20 @@ export function PropertyFinderClientBar({
         </div>
       </div>
 
-      {selected&&<div className="flex flex-wrap gap-3 px-3 py-2 text-[12px] text-rose-gold-deep"><Link href={`/dashboard/tasks?new=task&contactId=${selected.id}&propertyId=${selected.id}`}>Create property task →</Link><Link href={`/dashboard/tasks?tab=checklists&contactId=${selected.id}`}>Transaction checklists →</Link></div>}
+      {selected && (
+        <div className="flex flex-wrap gap-3 px-3 py-2 text-[12px] text-rose-gold-deep">
+          <Link
+            href={`/dashboard/tasks?new=task&contactId=${selected.id}${selected.property_address ? `&propertyId=${selected.id}` : ""}`}
+          >
+            Create property task →
+          </Link>
+          <Link
+            href={`/dashboard/tasks?tab=checklists&contactId=${selected.id}`}
+          >
+            Transaction checklists →
+          </Link>
+        </div>
+      )}
       {open ? (
         <ul
           className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(280px,45vh)] overflow-y-auto rounded-2xl border border-outline-variant/20 bg-ivory py-1 shadow-card"
@@ -141,9 +186,11 @@ export function PropertyFinderClientBar({
           aria-label="Subscriber clients"
         >
           {filtered.length === 0 ? (
-            <li className="px-4 py-3 text-[13px] text-taupe">No clients match your search</li>
+            <li className="px-4 py-3 text-[13px] text-taupe">
+              No clients match your search
+            </li>
           ) : (
-            filtered.map((c,index) => (
+            filtered.map((c, index) => (
               <li key={c.id} role="presentation">
                 <button
                   type="button"
@@ -153,12 +200,20 @@ export function PropertyFinderClientBar({
                   onClick={() => pick(c.id)}
                   className={cn(
                     "flex w-full flex-col items-start px-4 py-2.5 text-left hover:bg-champagne",
-                    c.id === value ? "bg-rose-gold/10" : index === activeIndex ? "bg-champagne/50" : "",
+                    c.id === value
+                      ? "bg-rose-gold/10"
+                      : index === activeIndex
+                        ? "bg-champagne/50"
+                        : "",
                   )}
                 >
-                  <span className="text-[14px] font-medium text-ink">{contactLabel(c)}</span>
+                  <span className="text-[14px] font-medium text-ink">
+                    {contactLabel(c)}
+                  </span>
                   {(c.email || c.phone) && (
-                    <span className="truncate text-[12px] text-taupe">{c.email ?? c.phone}</span>
+                    <span className="truncate text-[12px] text-taupe">
+                      {c.email ?? c.phone}
+                    </span>
                   )}
                 </button>
               </li>

@@ -49,9 +49,10 @@ export function TemplateAssignment({
     setNotice("");
     setId(crypto.randomUUID());
   }, [template]);
-  let dates: string[] = [];
+  let dates: (string | null)[] = [];
   try {
-    if (draft && base) dates = proposedDeadlines(draft, base, timezone);
+    if (draft && base)
+      dates = proposedDeadlines(draft, base, timezone, closing || null);
   } catch {
     /* Invalid dates remain unassignable. */
   }
@@ -224,7 +225,20 @@ export function TemplateAssignment({
                   </label>
                   <div className="tw-form-grid">
                     <label>
-                      Calendar days from anchor
+                      <select
+                        aria-label={`Milestone ${i + 1} date anchor`}
+                        value={step.anchor}
+                        onChange={(e) =>
+                          edit(i, {
+                            anchor: e.target.value as "start" | "closing",
+                          })
+                        }
+                      >
+                        <option value="start">Calendar days from anchor</option>
+                        <option value="closing">
+                          Calendar days from actual closing
+                        </option>
+                      </select>
                       <input
                         aria-label={`Milestone ${i + 1} days`}
                         type="number"
@@ -256,10 +270,12 @@ export function TemplateAssignment({
                   <p className="tw-muted">
                     Proposed:{" "}
                     {dates[i]
-                      ? new Date(dates[i]).toLocaleString(undefined, {
+                      ? new Date(dates[i]!).toLocaleString(undefined, {
                           timeZone: timezone,
                         })
-                      : "Choose an anchor date"}{" "}
+                      : step.anchor === "closing"
+                        ? "No due date — provide an actual closing date"
+                        : "Choose an anchor date"}{" "}
                     · {timezone}
                   </p>
                   <label>

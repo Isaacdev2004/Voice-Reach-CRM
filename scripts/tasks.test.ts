@@ -172,3 +172,11 @@ assert.equal(
 console.log(
   "PASS Tasks model: exact timezone counts/filter consistency, actual priorities, combined filters/empty, dependency cycles, editable templates/proposed dates, missing milestones, structured grounded AI/malformed/foreign responses.",
 );
+// Every built-in is actionable; closing milestones never invent an unknown closing date.
+for (const template of TASK_TEMPLATES) {
+  assert.equal(new Set(template.steps.map(s=>s.notes)).size,template.steps.length);
+  assert.ok(template.steps.every(s=>s.notes.length>60));
+}
+const buyerClosing=TASK_TEMPLATES.find(t=>t.id==="buyer-contract")!;
+assert.ok(proposedDeadlines(buyerClosing,"2026-10-23","UTC").slice(6).every(d=>d===null));
+assert.deepEqual(proposedDeadlines(buyerClosing,"2026-10-23","UTC","2026-10-30").slice(6),["2026-10-25T09:00:00.000Z","2026-10-29T09:00:00.000Z","2026-10-30T09:00:00.000Z"]);

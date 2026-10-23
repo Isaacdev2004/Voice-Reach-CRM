@@ -26,7 +26,12 @@ export const POST = tasksHandler(async (req, owner) => {
   if (input.assigneeId && !c.members.some((m) => m.id === input.assigneeId))
     throw new TaskFailure("ASSIGNEE");
   const ids = input.template.steps.map(() => crypto.randomUUID()),
-    dates = proposedDeadlines(input.template, input.baseDate, input.timezone);
+    dates = proposedDeadlines(
+      input.template,
+      input.baseDate,
+      input.timezone,
+      input.closingDate,
+    );
   const tasks = input.template.steps.map((s, i) => {
     if (s.dependsOn.some((n) => n >= i)) throw new TaskFailure("CYCLE");
     return {

@@ -1253,3 +1253,35 @@
   padding: 10px 0;
   line-height: 1.4;
 }
+/* Keep the photograph's natural proportions at every viewport. */
+.tw-hero-photo img {
+  object-fit: cover;
+  object-position: center;
+}
+.tw-task-row > input {
+  color: #a77b58;
+}
+@media (min-width: 1400px) {
+  .tw-task-group > .tw-task-row {
+    display: grid;
+    grid-template-columns: 16px minmax(175px, 1.8fr) minmax(90px, 1fr) minmax(
+        80px,
+        0.9fr
+      ) minmax(55px, 0.6fr) 60px minmax(85px, 0.9fr) 22px;
+    gap: 9px;
+  }
+  .tw-task-group > .tw-task-row .tw-task-title {
+    min-width: 0;
+  }
+  .tw-contact-cell,
+  .tw-property-cell {
+    min-width: 0;
+  }
+  .tw-contact-cell a,
+  .tw-property-cell a {
+    overflow-wrap: anywhere;
+  }
+  .tw-task-group > .tw-task-row .tw-row-menu {
+    justify-self: end;
+  }
+}

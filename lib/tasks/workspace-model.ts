@@ -309,6 +309,7 @@ export const TaskEditSchema = z.object({
 });
 export type TaskEdit = z.infer<typeof TaskEditSchema>;
 export const TemplateStepSchema = z.object({
+  anchor: z.enum(["start", "closing"]).default("start"),
   title: z.string().trim().min(1).max(200),
   notes: z.string().max(2000).default(""),
   days: z.number().int().min(-365).max(730),
@@ -353,10 +354,17 @@ export function proposedDeadlines(
   template: TaskTemplate,
   base: string,
   zone: string,
+  closing: string | null = null,
 ) {
   wallTimeToInstant(base, "09:00", zone);
   return template.steps.map((s) =>
-    wallTimeToInstant(addCalendarDays(base, s.days), "09:00", zone),
+    s.anchor === "closing" && !closing
+      ? null
+      : wallTimeToInstant(
+          addCalendarDays(s.anchor === "closing" ? closing! : base, s.days),
+          "09:00",
+          zone,
+        ),
   );
 }
 export type TaskTransaction = {
