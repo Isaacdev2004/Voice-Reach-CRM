@@ -1,0 +1,185 @@
+
+> voicereach-backend-starter@0.1.0 test:unit
+> node --import tsx scripts/verify-unit.ts && npm run test:contacts-metrics && npm run test:contacts-workspace && npm run test:property-finder && npm run test:campaign-library && npm run test:campaign-audit && npm run test:delivery
+
+verify-regressions: ok
+verify-unit: ok
+
+> voicereach-backend-starter@0.1.0 test:contacts-metrics
+> node --import tsx scripts/contacts-metrics.test.ts
+
+✔ all rows beyond the default response cap are counted exactly once; every page has an owner filter (10.839189ms)
+✔ existing lifecycle definitions and every segment filter form the same disjoint partition (0.186227ms)
+✔ API tenant isolation ignores caller-supplied owner parameters (4.320627ms)
+✔ stage changes and hard deletions update counts and cohort membership on the next read (2.264694ms)
+✔ API rows, filtered length and global metrics agree for stages, search and category (1.622828ms)
+✔ partial pages, changing totals and unexpected tenant rows fail closed instead of publishing counts (2.924808ms)
+✔ unauthenticated and invalid-stage requests cannot query contacts (0.458503ms)
+✔ browser rejects duplicated, inconsistent or unverified totals rather than falling back to zero (0.247769ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 94.895771
+
+> voicereach-backend-starter@0.1.0 test:contacts-workspace
+> node --import tsx scripts/contacts-workspace.test.ts && node scripts/contacts-routes.test.cjs
+
+✔ combined filters, search by full name/category/tags, lifecycle counts and empty results share one cohort (1.611661ms)
+✔ sorting preserves input; newest consent and opt-outs control labels without changing eligibility rules (4.733963ms)
+✔ URL state survives round trips, validates enum/page values, and supports old market links (0.324694ms)
+✔ every bulk action rejects mixed, foreign, or missing selections before any writes (18.604908ms)
+✔ authorized bulk updates deduplicate selections, retain tenant boundary and refreshable lifecycle counts (1.4361ms)
+✔ bulk auth, validation and failures never write or expose internal database details (8.973609ms)
+✔ consent snapshots exclude historical foreign or mislinked child records (0.160099ms)
+✔ contact views survive tab return, honor explicit links and Clear all, and stay owner-scoped (0.53683ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 86.126165
+✔ actual Add, profile edit and delete routes use authenticated owner and reject foreign contacts (515.636896ms)
+✔ actual CSV import preserves categories and types without granting consent from the filename (140.129884ms)
+✔ actual note save/read/relink routes persist data and prevent cross-account associations (29.353832ms)
+✔ actual category counts use the shared category rule; failed rename/remove never report success (31.992565ms)
+✔ property preferences persist on the existing contact and cannot write another subscriber or unknown columns (95.378951ms)
+✔ uninstalled optional columns fail safely while old area/budget saves continue to work (72.164074ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 893.519929
+
+> voicereach-backend-starter@0.1.0 test:property-finder
+> node --import tsx scripts/property-finder.test.ts
+
+✔ existing Zillow paths support location/price only, safely encoding area without adding pretend filters (0.840712ms)
+✔ budget parsing preserves blanks and valid values; rejects invalid and negative data (0.518533ms)
+✔ saved criteria derive only from actual fields, including preferences-only searches and valid zero values (1.281259ms)
+✔ optional fields validate, preserve omitted data and clear only explicitly edited preferences (1.803587ms)
+✔ returning client context is isolated by authenticated owner and checked against current records (0.151676ms)
+✔ quick action destinations and campaign routes are preserved without unsupported client query context (0.09411ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10.877677
+
+> voicereach-backend-starter@0.1.0 test:campaign-library
+> node --import tsx scripts/campaign-library.test.ts && node scripts/campaign-library-routes.test.cjs
+
+Campaign library: accurate statuses/counts, sequence offsets, real metrics, progress, safe draft import/duplicate passed.
+✔ library exact distinct enrollments, full pagination and tenant filtering (390.354195ms)
+✔ preview refuses foreign campaigns and never follows foreign contact references (178.56568ms)
+✔ failures are safe and counts are never silently partial (176.607574ms)
+✔ authentication and IDs validated before reads (89.528439ms)
+✔ saved descriptions and goals use newest owned blueprint; status/enrollment updates recalculate (52.283059ms)
+✔ existing builder template action saves draft without enrollment or schedule execution (145.013838ms)
+✔ incomplete pages and duplicate primary keys fail closed (55.349653ms)
+✔ installing an existing playbook reports existing state without changing live execution (100.445178ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1194.24047
+
+> voicereach-backend-starter@0.1.0 test:campaign-audit
+> node scripts/campaign-delivery-audit.test.cjs
+
+✔ all steps: cold-lead-reengage (5) (1045.320948ms)
+✔ all steps: speed-to-lead (6) (723.939457ms)
+✔ all steps: listing-alert-drip (5) (503.888374ms)
+✔ all steps: long-term-buyer-nurture (7) (573.16477ms)
+✔ all steps: engaged-no-tour (5) (747.28791ms)
+✔ all steps: post-tour-follow-up (6) (454.831018ms)
+✔ all steps: luxury-seller-follow-up (6) (321.127972ms)
+✔ all steps: seller-valuation-follow-up (5) (289.881466ms)
+✔ all steps: open-house-follow-up (4) (197.440125ms)
+✔ all steps: past-client-anniversary (4) (292.428109ms)
+✔ all steps: pre-approval-push (3) (128.000449ms)
+✔ all messages handle complete, partial, missing and malformed contacts without leaking data (11.746665ms)
+✔ JSON recommendations, arrays, code fences, empty copy, broken variables and links never reach provider (457.945171ms)
+✔ atomic claims, repeated ticks, replies, opt-outs and mismatched owners cannot duplicate sends (342.157866ms)
+✔ mock sequence preview is read-only and enforces contact ownership (266.03352ms)
+✔ scheduler preserves completed history and original enrollment anchors on resume (215.650085ms)
+✔ wall clock and immediate delays honor IANA zones and DST quiet-hour boundaries (81.390974ms)
+✔ last live boundary blocks missing consent, DNC, foreign destinations, invalid identity and quiet hours (11.736639ms)
+✔ provider payload uses escaped HTML; failures are not recorded as delivery (3.909623ms)
+✔ webhook dedup distinguishes lifecycle events for the same provider message (2.691769ms)
+✔ active campaign edits and foreign recordings are rejected before any mutation (162.877501ms)
+✔ every proposed copy is separately reviewable, schema-valid, personalized and non-activating (21.120023ms)
+✔ provider failures do not turn into automatic retries or fabricated delivery events (119.358122ms)
+✔ skipped outreach never counts as a completed sequence (12.991979ms)
+✔ a concurrently running predecessor defers the next outreach step (55.507388ms)
+✔ final live authorization rechecks pause state rather than trusting a worker cache (5.938845ms)
+✔ authenticated delivery events update accurate status and do not suppress later lifecycle events (85.118446ms)
+✔ signed SMS STOP is idempotent and START cannot erase DNC or create consent (57.780733ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7267.344011
+
+> voicereach-backend-starter@0.1.0 test:delivery
+> node --import tsx scripts/delivery-analytics.test.ts && node scripts/delivery-routes.test.cjs
+
+✔ queued, accepted, sent and mocked submissions never become delivered (1.197864ms)
+✔ failure categories and unknown provider outcomes never inflate success (0.360237ms)
+✔ duplicate and out of order events deduplicate without queued-state regression (9.787487ms)
+✔ receipt recording time never substitutes for provider delivery timestamp (0.132677ms)
+✔ unique messages, attempts, contacts and retries have separate denominators (0.149683ms)
+✔ owner, provider, and message mismatches cannot supply delivery evidence (0.970755ms)
+✔ channel health is independent and inactivity is not an outage (0.354087ms)
+✔ all reporting uses the same UTC cohort and distinct-message calculations (6.109319ms)
+✔ combined search, campaign/contact/channel/status/date filters and stable pagination (0.379826ms)
+✔ missing event history and unsupported provider do not invent confirmation or health timestamps (0.506595ms)
+✔ analytics date ranges begin at UTC midnight and include exactly the labeled calendar days (0.123554ms)
+✔ unmeasured channel and funnel rates stay unavailable and provider shares count attempts (0.75877ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 69.94628
+✔ delivery list/detail API enforces owner filters and does not expose message text in index (422.653719ms)
+✔ delivery API fails safely on database failure and rejects invalid filters (153.132191ms)
+✔ signed SMS receipts correlate by stored provider reference and are idempotent (135.47212ms)
+✔ bad signatures, missing IDs, unknown status and unmatched references cannot create delivery (89.779004ms)
+✔ native Resend signatures are timestamp bounded, body bound, and lifecycle-specific (77.195491ms)
+✔ voicemail requires authentication and never treats ambiguous completed disposition as delivered (30.034665ms)
+✔ complaint suppression is owner scoped and safely repeated on webhook replay (71.572625ms)
+✔ submission tracking requires durable pre-submit evidence and records acceptance without inventing delivery (39.587918ms)
+✔ reconciliation is disabled without explicit rollout authorization and never sends (92.075035ms)
+✔ analytics and campaign preview use shared evidence instead of mutable recipient success flags (175.912426ms)
+✔ mocked reconciliation records real status-read evidence without submitting or resending (35.61696ms)
+✔ rate limited reconciliation logs only that channel as delayed and does not retry (64.87131ms)
+✔ live requests cannot silently fall back to simulation when a provider is missing (133.5534ms)
+✔ reconciliation API requires authentication, explicit confirmation, and enabled rollout (86.685915ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1671.69274

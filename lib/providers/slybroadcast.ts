@@ -88,7 +88,7 @@ export const slybroadcastProvider: ProviderAdapter = {
     const dispoUrl =
       process.env.SLYBROADCAST_DISPO_URL?.trim() ||
       (process.env.APP_BASE_URL
-        ? `${process.env.APP_BASE_URL.replace(/\/$/, "")}/api/webhooks/voice?provider=slybroadcast`
+        ? `${process.env.APP_BASE_URL.replace(/\/$/, "")}${process.env.DELIVERY_EVIDENCE_ENABLED === "true" ? "/api/webhooks/delivery/slybroadcast" : "/api/webhooks/voice?provider=slybroadcast"}`
         : undefined);
     if (dispoUrl) {
       const callback = new URL(dispoUrl);

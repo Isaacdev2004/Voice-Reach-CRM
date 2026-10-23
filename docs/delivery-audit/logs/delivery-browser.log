@@ -1,0 +1,74 @@
+
+> voicereach-backend-starter@0.1.0 test:delivery-browser
+> node scripts/delivery-browser.test.cjs
+
+Checking delivery viewport 1440
+Checking delivery viewport 1920
+Checking delivery viewport 768
+Checking delivery viewport 390
+{
+  "artifacts": "/tmp/myari-delivery-4OpOFa",
+  "results": [
+    {
+      "width": 1440,
+      "pagination": true,
+      "combinedFilters": true,
+      "searchAndClear": true,
+      "detailsAndTimeline": true,
+      "keyboardClose": true,
+      "ownerSwitch": true,
+      "errorAndEmpty": true,
+      "noPageOverflow": true,
+      "approvedMockReconciliation": true,
+      "noSendsOrLiveCalls": true,
+      "pageErrors": []
+    },
+    {
+      "width": 1920,
+      "pagination": true,
+      "combinedFilters": true,
+      "searchAndClear": true,
+      "detailsAndTimeline": true,
+      "keyboardClose": true,
+      "ownerSwitch": true,
+      "errorAndEmpty": true,
+      "noPageOverflow": true,
+      "approvedMockReconciliation": false,
+      "noSendsOrLiveCalls": true,
+      "pageErrors": []
+    },
+    {
+      "width": 768,
+      "pagination": true,
+      "combinedFilters": true,
+      "searchAndClear": true,
+      "detailsAndTimeline": true,
+      "keyboardClose": true,
+      "ownerSwitch": true,
+      "errorAndEmpty": true,
+      "noPageOverflow": true,
+      "approvedMockReconciliation": false,
+      "noSendsOrLiveCalls": true,
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "pagination": true,
+      "combinedFilters": true,
+      "searchAndClear": true,
+      "detailsAndTimeline": true,
+      "keyboardClose": true,
+      "ownerSwitch": true,
+      "errorAndEmpty": true,
+      "noPageOverflow": true,
+      "approvedMockReconciliation": false,
+      "noSendsOrLiveCalls": true,
+      "pageErrors": []
+    }
+  ]
+}
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

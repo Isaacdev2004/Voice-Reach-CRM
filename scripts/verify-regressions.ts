@@ -44,10 +44,11 @@ const snapshot = buildAnalyticsSnapshot({ range: "7d", contacts: [],
     { id: "new", campaign_id: "c", delivery_status: "delivered", created_at: now, updated_at: now },
     { id: "old", campaign_id: "c", delivery_status: "delivered", created_at: "2020-01-01", updated_at: "2020-01-01" },
   ] });
-assert.equal(snapshot.totals.outreach, 1);
-assert.equal(snapshot.providers[0].count, 1);
-assert.equal(snapshot.campaigns[0].volume, 1);
-assert.equal(snapshot.campaigns[0].roi, "Unavailable");
+// Mutable recipient rollups are not verified provider evidence.
+assert.equal(snapshot.totals.outreach, 0);
+assert.deepEqual(snapshot.providers, []);
+assert.deepEqual(snapshot.campaigns, []);
+assert.equal(snapshot.kpis.find(k=>k.id==="delivery")?.value, "Unavailable");
 assert.equal(snapshot.funnel.find((f) => f.id === "engagement")?.count, 0);
 
 

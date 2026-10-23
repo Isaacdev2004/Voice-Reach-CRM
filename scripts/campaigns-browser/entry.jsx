@@ -106,6 +106,7 @@ const enrich = (c) => ({
   enrollmentCount: c.id === id(1) ? 1 : 0,
 });
 const preview = (c) => ({
+  deliveryMetrics: { sent: 1, delivered: 1, opened: 1, replied: 0 }, // Synthetic authoritative API fixture, not derived from step runs.
   campaign: enrich(c),
   steps: w.__steps[c.id] || [],
   recipients:

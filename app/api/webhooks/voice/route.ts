@@ -1,3 +1,5 @@
+import { evidenceEnabled } from "@/lib/delivery/store";
+import { processDeliveryWebhook } from "@/lib/delivery/webhook";
 import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 import { getAdapter } from "@/lib/providers/registry";
 import { recordEngagementEvent } from "@/lib/engagement/record";
@@ -7,6 +9,16 @@ import { verifyVoiceWebhookRequest } from "@/lib/webhooks/voice-webhook-auth";
 import { NextResponse } from "next/server";
 
 async function handle(request: Request): Promise<NextResponse> {
+  if (evidenceEnabled()) {
+    const result = await processDeliveryWebhook(
+      request,
+      new URL(request.url).searchParams.get("provider") ?? "",
+    );
+    return NextResponse.json(
+      { result: result.result },
+      { status: result.status },
+    );
+  }
   if (!verifyVoiceWebhookRequest(request)) {
     return apiError("Unauthorized webhook", {
       status: 401,
@@ -16,7 +28,8 @@ async function handle(request: Request): Promise<NextResponse> {
 
   const url = new URL(request.url);
   const providerId = url.searchParams.get("provider") ?? "mock";
-  if(!["twilio","resend","slybroadcast"].includes(providerId))return apiSuccess({eventType:"unsupported_provider_ignored"});
+  if (!["twilio", "resend", "slybroadcast"].includes(providerId))
+    return apiSuccess({ eventType: "unsupported_provider_ignored" });
   const adapter = getAdapter(providerId);
 
   let raw: Record<string, unknown> = {};
@@ -34,15 +47,13 @@ async function handle(request: Request): Promise<NextResponse> {
   const externalId = event.externalId ?? null;
   if (await isDuplicateProviderWebhook(adapter.id, externalId, event.eventType))
     return apiSuccess({ provider: adapter.id, eventType: "duplicate_ignored" });
-  const logged = await supabaseAdmin
-    .from("provider_webhooks")
-    .insert({
-      provider: adapter.id,
-      external_id: externalId,
-      event_type: event.eventType,
-      raw,
-      processed: false,
-    });
+  const logged = await supabaseAdmin.from("provider_webhooks").insert({
+    provider: adapter.id,
+    external_id: externalId,
+    event_type: event.eventType,
+    raw,
+    processed: false,
+  });
   if (logged.error?.code === "23505")
     return apiSuccess({ provider: adapter.id, eventType: "duplicate_ignored" });
   if (logged.error)
@@ -73,10 +84,19 @@ async function handle(request: Request): Promise<NextResponse> {
         metadata: { provider: event.provider, raw: event.raw },
       });
 
-      if (["delivered","listened","failed","blocked"].includes(event.eventType)) {
+      if (
+        ["delivered", "listened", "failed", "blocked"].includes(event.eventType)
+      ) {
         await supabaseAdmin
           .from("campaign_recipients")
-          .update({ delivery_status: event.eventType === "failed" ? "failed" : event.eventType === "blocked" ? "blocked" : "delivered" })
+          .update({
+            delivery_status:
+              event.eventType === "failed"
+                ? "failed"
+                : event.eventType === "blocked"
+                  ? "blocked"
+                  : "delivered",
+          })
           .eq("id", event.recipientId)
           .eq("owner_id", recipient.owner_id);
       }

@@ -37,8 +37,10 @@ export function ProviderSplitChart({
         style={{ background: gradient }}
       >
         <div className="flex h-[68%] w-[68%] flex-col items-center justify-center rounded-full bg-ivory shadow-inner">
-          <span className="font-serif text-[26px] font-semibold text-ink">{displayTotal}</span>
-          <span className="text-[12px] text-taupe">Total delivered</span>
+          <span className="font-serif text-[26px] font-semibold text-ink">
+            {displayTotal}
+          </span>
+          <span className="text-[12px] text-taupe">Dispatch attempts</span>
         </div>
       </div>
       <div className="w-full space-y-3">
@@ -52,8 +54,10 @@ export function ProviderSplitChart({
               <span className="text-[14px] text-ink">{p.name}</span>
             </div>
             <span className="text-[14px] font-semibold text-ink">
-              {p.percent}%{" "}
-              <span className="font-normal text-taupe">({p.count.toLocaleString()})</span>
+              {p.percent.toFixed(1)}%{" "}
+              <span className="font-normal text-taupe">
+                ({p.count.toLocaleString()})
+              </span>
             </span>
           </div>
         ))}

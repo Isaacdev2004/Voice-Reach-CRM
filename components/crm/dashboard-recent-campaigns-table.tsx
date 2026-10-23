@@ -46,6 +46,7 @@ type CampaignMetricRow = {
   id: string;
   volume: number;
   deliveryRate: number;
+  contacts?: number;
 };
 
 function metricsForCampaign(
@@ -59,7 +60,7 @@ function metricsForCampaign(
   }
   return {
     steps: "—",
-    contacts: row.volume > 0 ? String(row.volume) : "—",
+    contacts: typeof row.contacts === "number" ? String(row.contacts) : "—",
     open: row.volume > 0 ? `${row.deliveryRate}%` : "—",
     reply: "—",
   };

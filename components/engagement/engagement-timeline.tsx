@@ -21,7 +21,8 @@ type EngagementEvent = {
     | "blocked"
     | "failed"
     | "task_completed";
-  channel: "voicemail" | "sms" | "email" | "video" | "task" | "callback" | "system";
+  channel:
+    "voicemail" | "sms" | "email" | "video" | "task" | "callback" | "system";
   score: number;
   occurred_at: string;
   metadata: Record<string, unknown>;
@@ -75,7 +76,7 @@ function eventTitle(event: EngagementEvent): string {
   if (event.event_type === "delivered" && event.metadata?.provider === "mock") {
     return "Simulated delivery";
   }
-  return LABELS[event.event_type];
+  return `${LABELS[event.event_type]}${event.metadata?.evidence === "verified" ? " · verified event" : " · recorded activity (unverified)"}`;
 }
 
 type Props = {
@@ -106,7 +107,9 @@ export function EngagementTimeline({
 
     (async () => {
       setLoading(true);
-      const envelope = await safeFetch<ApiResponse>(`/api/engagement?${params.toString()}`);
+      const envelope = await safeFetch<ApiResponse>(
+        `/api/engagement?${params.toString()}`,
+      );
       setLoading(false);
       if (envelope.success) {
         setEvents(envelope.data.events);
@@ -138,8 +141,12 @@ export function EngagementTimeline({
       {showScore && score !== null ? (
         <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-rose-gold/10 to-bronze-light/15 px-4 py-3">
           <div>
-            <p className="text-[11px] uppercase tracking-wider text-taupe">Engagement score</p>
-            <p className="font-serif text-[28px] font-semibold text-rose-gold-deep">{score}</p>
+            <p className="text-[11px] uppercase tracking-wider text-taupe">
+              Engagement score
+            </p>
+            <p className="font-serif text-[28px] font-semibold text-rose-gold-deep">
+              {score}
+            </p>
           </div>
           <Icon name="favorite" className="text-[28px] text-rose-gold-deep" />
         </div>
@@ -160,11 +167,16 @@ export function EngagementTimeline({
                 TONE_BY_TYPE[event.event_type],
               )}
             >
-              <Icon name={ICON_BY_TYPE[event.event_type]} className="text-[20px]" />
+              <Icon
+                name={ICON_BY_TYPE[event.event_type]}
+                className="text-[20px]"
+              />
             </div>
             <div className="min-w-0 flex-1 pt-1">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h4 className="text-[14px] font-medium text-ink">{eventTitle(event)}</h4>
+                <h4 className="text-[14px] font-medium text-ink">
+                  {eventTitle(event)}
+                </h4>
                 <time className="text-[12px] text-taupe">
                   {new Date(event.occurred_at).toLocaleString()}
                 </time>
@@ -174,22 +186,19 @@ export function EngagementTimeline({
                 {event.score ? ` · +${event.score}` : ""}
               </p>
               {event.metadata?.provider === "mock" &&
-              (event.event_type === "delivered" || event.event_type === "failed") ? (
+              (event.event_type === "delivered" ||
+                event.event_type === "failed") ? (
                 <p className="mt-1 rounded-lg bg-amber-50 px-2 py-1.5 text-[12px] leading-snug text-amber-950">
-                  Simulated only - nothing was sent to a real phone or inbox. Use{" "}
-                  <strong>Live send</strong> after Twilio / Slybroadcast / Resend are configured.
+                  Simulated only - nothing was sent to a real phone or inbox.
+                  Use <strong>Live send</strong> after Twilio / Slybroadcast /
+                  Resend are configured.
                 </p>
-              ) : typeof event.metadata?.error === "string" && event.metadata.error ? (
-                <p className="mt-1 text-[12px] leading-snug text-error/90">
-                  {event.metadata.error}
-                  {typeof event.metadata.provider === "string"
-                    ? ` · provider: ${event.metadata.provider}`
-                    : ""}
-                </p>
-              ) : typeof event.metadata?.provider === "string" &&
-                event.event_type === "delivered" ? (
+              ) : event.metadata?.evidence === "verified" ? (
                 <p className="mt-1 text-[12px] text-taupe">
-                  Sent via {event.metadata.provider} (live)
+                  Authenticated provider evidence ·{" "}
+                  {event.metadata.timestampKind === "received"
+                    ? "time received; provider timestamp unavailable"
+                    : "provider timestamp"}
                 </p>
               ) : null}
             </div>

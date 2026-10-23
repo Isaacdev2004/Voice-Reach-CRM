@@ -1,6 +1,6 @@
+import { readDelivery } from "@/lib/delivery/store";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { mapAuditRow, mapDeliveryRow } from "@/lib/activity/map-audit";
-import { SEED_ACTIVITY } from "@/lib/activity/seed";
 import type { ActivityLogEntry } from "@/lib/activity/types";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
@@ -26,7 +26,7 @@ export const GET = withApiHandler(async () => {
     supabaseAdmin
       .from("campaign_recipients")
       .select(
-        "id, delivery_status, updated_at, contacts(first_name, last_name), campaigns(name)",
+        "id, delivery_status, updated_at, contacts(owner_id, first_name, last_name), campaigns(owner_id, name)",
       )
       .eq("owner_id", ownerId)
       .neq("delivery_status", "not_sent")
@@ -34,7 +34,8 @@ export const GET = withApiHandler(async () => {
       .limit(40),
   ]);
 
-  if (auditRes.error) return apiError(auditRes.error.message, { status: 500 });
+  if (auditRes.error || deliveryRes.error)
+    return apiError("Activity is temporarily unavailable.", { status: 503 });
 
   const auditEntries: ActivityLogEntry[] = [];
   for (const row of auditRes.data ?? []) {
@@ -52,38 +53,54 @@ export const GET = withApiHandler(async () => {
   const deliveryEntries: ActivityLogEntry[] = [];
   if (!deliveryRes.error) {
     for (const raw of deliveryRes.data ?? []) {
-      const contacts = Array.isArray(raw.contacts) ? raw.contacts[0] : raw.contacts;
-      const campaigns = Array.isArray(raw.campaigns) ? raw.campaigns[0] : raw.campaigns;
+      const contacts = Array.isArray(raw.contacts)
+        ? raw.contacts[0]
+        : raw.contacts;
+      const campaigns = Array.isArray(raw.campaigns)
+        ? raw.campaigns[0]
+        : raw.campaigns;
       const mapped = mapDeliveryRow({
         id: raw.id,
         delivery_status: raw.delivery_status,
         updated_at: raw.updated_at,
-        contacts: contacts ?? null,
-        campaigns: campaigns ?? null,
+        contacts: contacts?.owner_id === ownerId ? contacts : null,
+        campaigns: campaigns?.owner_id === ownerId ? campaigns : null,
       });
       if (mapped) deliveryEntries.push(mapped);
     }
   }
 
-  const merged = [...auditEntries, ...deliveryEntries].sort(
+  const evidence = await readDelivery(ownerId).catch(() => null);
+  const verifiedEntries: ActivityLogEntry[] = (evidence?.records ?? []).map(
+    (r) => ({
+      id: `evidence-${r.id}`,
+      category: "engagement",
+      icon: "fact_check",
+      tone: r.failure ? "error" : "default",
+      title: `${r.contact} · ${r.indicator}`,
+      body: `${r.campaign} · ${r.channel} · ${r.step}`,
+      createdAt: r.events.at(-1)?.received_at ?? r.created_at,
+      source: "delivery",
+      alert: !!r.failure,
+      href: `/dashboard/delivery`,
+      metadata: { messageId: r.id, status: r.status },
+    }),
+  );
+  const merged = [
+    ...auditEntries,
+    ...(evidence ? verifiedEntries : deliveryEntries),
+  ].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 
-  const seen = new Set(merged.map((e) => e.id));
-  const includeSeed = merged.length < 8;
-  const entries = includeSeed
-    ? [...merged, ...SEED_ACTIVITY.filter((s) => !seen.has(s.id))].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
-    : merged;
-
+  const entries = merged;
   return apiOk({
     entries,
     counts: {
       total: entries.length,
       audit: auditEntries.length,
-      delivery: deliveryEntries.length,
-      seed: includeSeed ? SEED_ACTIVITY.length : 0,
+      delivery: evidence ? verifiedEntries.length : deliveryEntries.length,
+      seed: 0,
     },
   });
 });

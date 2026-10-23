@@ -1,0 +1,98 @@
+
+> voicereach-backend-starter@0.1.0 test:campaign-library-browser
+> node scripts/campaign-library-browser.test.cjs
+
+Checking viewport 1440
+Checking viewport 1920
+Checking viewport 768
+Checking viewport 390
+{
+  "artifacts": "/tmp/myari-campaigns-1Z6Vik",
+  "results": [
+    {
+      "width": 1440,
+      "hero": true,
+      "realFixtureCounts": true,
+      "uniqueCovers": true,
+      "combinedFilters": true,
+      "sortAndGridList": true,
+      "pinsPersist": true,
+      "drawerTabsAndKeyboard": true,
+      "realSequenceContactsPerformance": true,
+      "confirmationWithoutExecution": true,
+      "simulationDraftImportDuplicate": true,
+      "existingCustomBuilder": true,
+      "personalizedMessagePreview": true,
+      "templatePreview": true,
+      "tenantIsolation": true,
+      "errorAndEmpty": true,
+      "noOverflow": true,
+      "pageErrors": []
+    },
+    {
+      "width": 1920,
+      "hero": true,
+      "realFixtureCounts": true,
+      "uniqueCovers": true,
+      "combinedFilters": true,
+      "sortAndGridList": true,
+      "pinsPersist": true,
+      "drawerTabsAndKeyboard": true,
+      "realSequenceContactsPerformance": true,
+      "confirmationWithoutExecution": true,
+      "simulationDraftImportDuplicate": true,
+      "existingCustomBuilder": true,
+      "personalizedMessagePreview": true,
+      "templatePreview": true,
+      "tenantIsolation": true,
+      "errorAndEmpty": true,
+      "noOverflow": true,
+      "pageErrors": []
+    },
+    {
+      "width": 768,
+      "hero": true,
+      "realFixtureCounts": true,
+      "uniqueCovers": true,
+      "combinedFilters": true,
+      "sortAndGridList": true,
+      "pinsPersist": true,
+      "drawerTabsAndKeyboard": true,
+      "realSequenceContactsPerformance": true,
+      "confirmationWithoutExecution": true,
+      "simulationDraftImportDuplicate": true,
+      "existingCustomBuilder": true,
+      "personalizedMessagePreview": true,
+      "templatePreview": true,
+      "tenantIsolation": true,
+      "errorAndEmpty": true,
+      "noOverflow": true,
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "hero": true,
+      "realFixtureCounts": true,
+      "uniqueCovers": true,
+      "combinedFilters": true,
+      "sortAndGridList": true,
+      "pinsPersist": true,
+      "drawerTabsAndKeyboard": true,
+      "realSequenceContactsPerformance": true,
+      "confirmationWithoutExecution": true,
+      "simulationDraftImportDuplicate": true,
+      "existingCustomBuilder": true,
+      "personalizedMessagePreview": true,
+      "templatePreview": true,
+      "tenantIsolation": true,
+      "errorAndEmpty": true,
+      "noOverflow": true,
+      "pageErrors": []
+    }
+  ]
+}
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

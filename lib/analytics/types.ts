@@ -27,7 +27,7 @@ export type FunnelStage = {
   id: string;
   label: string;
   count: number;
-  percent: number;
+  percent: number | null;
 };
 
 export type CampaignMetric = {
@@ -35,6 +35,7 @@ export type CampaignMetric = {
   name: string;
   subtitle: string;
   volume: number;
+  contacts?: number;
   delivered: number;
   roi: string;
   roiTone: "good" | "warn" | "neutral";
@@ -47,7 +48,7 @@ export type ChannelMetric = {
   channel: string;
   icon: string;
   sent: number;
-  rate: number;
+  rate: number | null;
 };
 
 export type AnalyticsSnapshot = {

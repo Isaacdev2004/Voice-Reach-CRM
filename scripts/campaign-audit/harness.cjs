@@ -17,6 +17,9 @@ function fixture() {
     voice_assets: [],
     audit_logs: [],
     provider_webhooks: [],
+    outbound_messages: [],
+    outbound_delivery_events: [],
+    provider_sync_runs: [],
   };
   const calls = [],
     payloads = [],
@@ -120,10 +123,12 @@ function fixture() {
               const all = tables[table] ?? [];
               let rows = all.filter((r) => filters.every((f) => f(r)));
               const count = rows.length;
+              if (mode === "insert" && table === "outbound_delivery_events" && all.some(r=>r.provider===value.provider&&r.event_key===value.event_key)) return {data:null,error:{code:"23505"},count};
               if (mode === "insert") {
                 rows = (Array.isArray(value) ? value : [value]).map((r) => ({
                   id: id(seq++),
                   created_at: "2026-10-22T12:00:00Z",
+                  ...(table === "outbound_delivery_events" ? {received_at:"2026-10-23T12:00:00Z"}:{}),
                   ...r,
                 }));
                 tables[table].push(...rows);

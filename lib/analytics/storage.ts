@@ -3,7 +3,9 @@ import type { AnalyticsRange, AnalyticsSnapshot } from "./types";
 export async function fetchAnalytics(
   range: AnalyticsRange = "30d",
 ): Promise<AnalyticsSnapshot> {
-  const res = await fetch(`/api/analytics?range=${range}`, { cache: "no-store" });
+  const res = await fetch(`/api/analytics?range=${range}`, {
+    cache: "no-store",
+  });
   const data = (await res.json()) as AnalyticsSnapshot & { error?: string };
   if (!res.ok) throw new Error(data.error ?? "Failed to load analytics");
   return data;
@@ -28,7 +30,7 @@ export function exportAnalyticsCsv(snapshot: AnalyticsSnapshot) {
     ...snapshot.providers.map((p) => `${p.name},${p.count},${p.percent}`),
     "",
     "Funnel stage,Count,Share %",
-    ...snapshot.funnel.map((f) => `${f.label},${f.count},${f.percent}`),
+    ...snapshot.funnel.map((f) => `${f.label},${f.count},${f.percent ?? "Unavailable"}`),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -78,14 +80,14 @@ export function exportAnalyticsPdf(snapshot: AnalyticsSnapshot) {
   <table>
     <thead><tr><th>Stage</th><th>Count</th><th>Share</th></tr></thead>
     <tbody>
-      ${snapshot.funnel.map((f) => `<tr><td>${f.label}</td><td>${f.count.toLocaleString()}</td><td>${f.percent}%</td></tr>`).join("")}
+      ${snapshot.funnel.map((f) => `<tr><td>${f.label}</td><td>${f.count.toLocaleString()}</td><td>${f.percent === null ? "Unavailable" : `${f.percent.toFixed(1)}%`}</td></tr>`).join("")}
     </tbody>
   </table>
   <h2>Provider split</h2>
   <table>
     <thead><tr><th>Provider</th><th>Volume</th><th>Share</th></tr></thead>
     <tbody>
-      ${snapshot.providers.map((p) => `<tr><td>${p.name}</td><td>${p.count.toLocaleString()}</td><td>${p.percent}%</td></tr>`).join("")}
+      ${snapshot.providers.map((p) => `<tr><td>${p.name}</td><td>${p.count.toLocaleString()}</td><td>${p.percent.toFixed(1)}%</td></tr>`).join("")}
     </tbody>
   </table>
   <script>window.onload = () => { window.print(); }</script>

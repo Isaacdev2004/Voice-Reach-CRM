@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { DashboardRecentCampaignsTable } from "@/components/crm/dashboard-recent-campaigns-table";
 import { DashboardRecommendedForYou } from "@/components/crm/dashboard-recommended-for-you";
@@ -7,10 +8,8 @@ import { KpiCard } from "@/components/crm/kpi-card";
 import { MarketingPulse } from "@/components/crm/marketing-pulse";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import {
-  campaignsLaunchedThisMonth,
   contactsAddedThisMonth,
   countActiveCampaigns,
-  countSentCampaigns,
   formatPipelineValueDisplay,
   sumActiveLeadBudgets,
   type CampaignRow,
@@ -20,13 +19,29 @@ import { useContacts } from "@/lib/hooks/use-contacts";
 import { useEffect, useMemo, useState } from "react";
 
 export function OperationalDashboardPage() {
+  const { user } = useUser();
+  return <OwnerDashboard key={user?.id ?? "signed-out"} />;
+}
+function OwnerDashboard() {
   const { contacts, loading, meta, error } = useContacts();
+  const [verifiedSent, setVerifiedSent] = useState<number | null>(null);
   const [campaigns, setCampaigns] = useState<CampaignRow[] | null>(null);
 
   useEffect(() => {
     void (async () => {
       try {
-        const res = await fetch("/api/campaigns");
+        const [res, evidenceRes] = await Promise.all([
+          fetch("/api/campaigns"),
+          fetch("/api/analytics?range=all"),
+        ]);
+        if (evidenceRes.ok) {
+          const evidence = await evidenceRes.json();
+          setVerifiedSent(
+            typeof evidence.confirmedSentCampaigns === "number"
+              ? evidence.confirmedSentCampaigns
+              : null,
+          );
+        }
         const data = await res.json().catch(() => ({}));
         setCampaigns((data.campaigns ?? []) as CampaignRow[]);
       } catch {
@@ -38,9 +53,9 @@ export function OperationalDashboardPage() {
   const total = meta?.total;
   const activeLeads = meta?.counts?.activeLead ?? 0;
   const addedThisMonth = contactsAddedThisMonth(contacts);
-  const sentCount = campaigns ? countSentCampaigns(campaigns) : null;
+  const sentCount = verifiedSent;
   const activeCount = campaigns ? countActiveCampaigns(campaigns) : null;
-  const launchedThisMonth = campaigns ? campaignsLaunchedThisMonth(campaigns) : 0;
+  const launchedThisMonth = 0; // No launch history is inferred from mutable campaign status.
   const pipelineBudgets = useMemo(
     () => (loading || error ? null : sumActiveLeadBudgets(contacts)),
     [loading, contacts, error],
@@ -49,7 +64,9 @@ export function OperationalDashboardPage() {
   const kpis: DashboardKpi[] = useMemo(() => {
     const contactChange = undefined; // No historical stage/total snapshots are stored.
     const monthDetail =
-      loading || error ? undefined : `${addedThisMonth} current contacts added this month`;
+      loading || error
+        ? undefined
+        : `${addedThisMonth} current contacts added this month`;
 
     const campaignDetail =
       campaigns === null
@@ -65,13 +82,14 @@ export function OperationalDashboardPage() {
           ? `+${launchedThisMonth} launched this month`
           : undefined;
 
-    const oppDetail = loading || error ? undefined : `${activeLeads} active in pipeline`;
+    const oppDetail =
+      loading || error ? undefined : `${activeLeads} active in pipeline`;
 
     return [
       {
         id: "contacts",
         label: "Total Contacts",
-        value: loading ? "…" : total?.toLocaleString() ?? "—",
+        value: loading ? "…" : (total?.toLocaleString() ?? "—"),
         change: contactChange,
         changeTone: "neutral",
         detail: monthDetail,
@@ -81,7 +99,7 @@ export function OperationalDashboardPage() {
       {
         id: "campaigns-sent",
         label: "Campaigns Sent",
-        value: sentCount === null ? "…" : String(sentCount),
+        value: sentCount === null ? "—" : String(sentCount),
         change: campaignChange,
         changeTone: "up",
         detail: campaignDetail,
@@ -100,8 +118,9 @@ export function OperationalDashboardPage() {
       {
         id: "pipeline",
         label: "Active Lead Budgets",
-        value:
-          loading ? "…" : pipelineBudgets === null
+        value: loading
+          ? "…"
+          : pipelineBudgets === null
             ? "—"
             : formatPipelineValueDisplay(pipelineBudgets),
         change: undefined,
@@ -133,13 +152,20 @@ export function OperationalDashboardPage() {
   return (
     <div className={DASHBOARD_PAGE_BODY}>
       <div className="dashboard-kpi-grid grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-stretch xl:grid-cols-4">
-        {kpis.map((kpi) => (
+        {kpis.map((kpi) =>
           kpi.id === "opportunities" ? (
-            <Link key={kpi.id} href="/dashboard/contacts?segment=active-lead" className="dashboard-opportunity-link" aria-label="Opportunities — view Contacts">
+            <Link
+              key={kpi.id}
+              href="/dashboard/contacts?segment=active-lead"
+              className="dashboard-opportunity-link"
+              aria-label="Opportunities — view Contacts"
+            >
               <KpiCard {...kpi} compact luxury />
             </Link>
-          ) : <KpiCard key={kpi.id} {...kpi} compact luxury />
-        ))}
+          ) : (
+            <KpiCard key={kpi.id} {...kpi} compact luxury />
+          ),
+        )}
       </div>
 
       <div className="dashboard-editorial-grid">

@@ -120,6 +120,14 @@ export async function sendToContact(params: {
       ? "mock"
       : pickAdapterForChannel(params.channel, params.providerId).id;
 
+  if (params.providerId !== "mock" && providerId === "mock")
+    return {
+      ok: false,
+      status: "blocked",
+      skipped: true,
+      skipReason: "provider_unavailable",
+      error: "A live delivery provider is not configured for this channel.",
+    };
   if (providerId !== "mock" && !isLiveOutboundAllowed()) {
     return {
       ok: false,
