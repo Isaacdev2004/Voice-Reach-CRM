@@ -62,17 +62,16 @@ export function withApiHandler<TContext = unknown>(
         return apiError("Sign in required", { status: 401, code: "unauthorized" });
       }
       if (isConfigError(err)) {
-        return apiError(err.message, { status: 503, code: "service_unconfigured" });
+        return apiError("This service is temporarily unavailable. Please try again later.", { status: 503, code: "service_unconfigured" });
       }
       if (err instanceof Error && err.message.startsWith("Missing ")) {
         return apiError(
-          "Database not connected yet. Production credentials are being configured - please check back shortly.",
+          "This service is temporarily unavailable. Please try again later.",
           { status: 503, code: "service_unconfigured" },
         );
       }
-      const message = err instanceof Error ? err.message : "Request failed";
-      console.error("[api]", message, err);
-      return apiError(message, { status: 500 });
+      console.error("[api] request failed");
+      return apiError("Something went wrong. Please try again.", { status: 500, code: "internal_error" });
     }
   };
 }

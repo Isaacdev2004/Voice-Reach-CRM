@@ -82,3 +82,8 @@ Dashboard / briefing / Twilio follow-up: see [final audit](DASHBOARD-BRIEFING-TW
 ### Dashboard bottom finish — 2026-10-23
 
 Dashboard visual check: scroll to the final recommendation and confirm the complete rounded card and bottom breathing room remain visible on desktop and mobile.
+
+
+### Complete platform audit — 2026-10-23
+
+Local platform review preserves the luxury design and enlarges/deepens the beige sidebar logo. Demonstrate with synthetic data only; keep live outbound disabled. Known quota and production-grant release gates are in the [platform audit](platform-audit/REPORT.md).

@@ -1,0 +1,1520 @@
+[
+  {
+    "path": "/sign-in/[[...sign-in]]",
+    "file": "app/(auth)/sign-in/[[...sign-in]]/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/sign-up/[[...sign-up]]",
+    "file": "app/(auth)/sign-up/[[...sign-up]]/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/activity",
+    "file": "app/(dashboard)/dashboard/activity/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/analytics",
+    "file": "app/(dashboard)/dashboard/analytics/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/automations",
+    "file": "app/(dashboard)/dashboard/automations/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/automations/rules",
+    "file": "app/(dashboard)/dashboard/automations/rules/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/calendar",
+    "file": "app/(dashboard)/dashboard/calendar/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/campaigns/[campaignId]",
+    "file": "app/(dashboard)/dashboard/campaigns/[campaignId]/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/campaigns",
+    "file": "app/(dashboard)/dashboard/campaigns/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/contacts/[id]",
+    "file": "app/(dashboard)/dashboard/contacts/[id]/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/contacts",
+    "file": "app/(dashboard)/dashboard/contacts/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/delivery",
+    "file": "app/(dashboard)/dashboard/delivery/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/mortgage",
+    "file": "app/(dashboard)/dashboard/mortgage/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/notes",
+    "file": "app/(dashboard)/dashboard/notes/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard",
+    "file": "app/(dashboard)/dashboard/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/partners",
+    "file": "app/(dashboard)/dashboard/partners/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/properties",
+    "file": "app/(dashboard)/dashboard/properties/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/settings",
+    "file": "app/(dashboard)/dashboard/settings/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/tasks",
+    "file": "app/(dashboard)/dashboard/tasks/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dashboard/voice-scripts",
+    "file": "app/(dashboard)/dashboard/voice-scripts/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/acceptable-use",
+    "file": "app/acceptable-use/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/activity/insights",
+    "file": "app/api/activity/insights/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/activity/priorities",
+    "file": "app/api/activity/priorities/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/activity",
+    "file": "app/api/activity/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/ai/generate",
+    "file": "app/api/ai/generate/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/analytics",
+    "file": "app/api/analytics/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/automations",
+    "file": "app/api/automations/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/automations/rules",
+    "file": "app/api/automations/rules/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/billing/add-payment-method",
+    "file": "app/api/billing/add-payment-method/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/billing/checkout",
+    "file": "app/api/billing/checkout/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/billing/checkout-public",
+    "file": "app/api/billing/checkout-public/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Public or separately gated — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/billing/claim",
+    "file": "app/api/billing/claim/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST",
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/billing/portal",
+    "file": "app/api/billing/portal/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/billing/start-trial",
+    "file": "app/api/billing/start-trial/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/calendar/book/[token]",
+    "file": "app/api/calendar/book/[token]/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST",
+      "DELETE"
+    ],
+    "auth": "Scoped public token",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/calendar/booking-requests",
+    "file": "app/api/calendar/booking-requests/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/calendar/events/[eventId]",
+    "file": "app/api/calendar/events/[eventId]/route.ts",
+    "kind": "API",
+    "methods": [
+      "PATCH",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/calendar/events",
+    "file": "app/api/calendar/events/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/calendar/external",
+    "file": "app/api/calendar/external/route.ts",
+    "kind": "API",
+    "methods": [
+      "PATCH",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/calendar/feed/[token]",
+    "file": "app/api/calendar/feed/[token]/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Scoped public token",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/calendar/links",
+    "file": "app/api/calendar/links/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/calendar/preferences",
+    "file": "app/api/calendar/preferences/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "PUT"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaign-attachments/signed-upload",
+    "file": "app/api/campaign-attachments/signed-upload/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns/[campaignId]/recipients",
+    "file": "app/api/campaigns/[campaignId]/recipients/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns/[campaignId]",
+    "file": "app/api/campaigns/[campaignId]/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "PATCH"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns/[campaignId]/run-due",
+    "file": "app/api/campaigns/[campaignId]/run-due/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns/[campaignId]/send",
+    "file": "app/api/campaigns/[campaignId]/send/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns/[campaignId]/test-run",
+    "file": "app/api/campaigns/[campaignId]/test-run/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns/builder",
+    "file": "app/api/campaigns/builder/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns/from-template",
+    "file": "app/api/campaigns/from-template/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns/library/[campaignId]",
+    "file": "app/api/campaigns/library/[campaignId]/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns/library",
+    "file": "app/api/campaigns/library/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns/preview",
+    "file": "app/api/campaigns/preview/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns",
+    "file": "app/api/campaigns/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/campaigns/runner",
+    "file": "app/api/campaigns/runner/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST",
+      "GET"
+    ],
+    "auth": "Worker bearer secret — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/communications",
+    "file": "app/api/communications/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "PATCH"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/compliance/audit",
+    "file": "app/api/compliance/audit/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contact",
+    "file": "app/api/contact/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Public or separately gated — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contacts/[id]/calls",
+    "file": "app/api/contacts/[id]/calls/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contacts/[id]",
+    "file": "app/api/contacts/[id]/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "PATCH",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contacts/[id]/tasks/[taskId]",
+    "file": "app/api/contacts/[id]/tasks/[taskId]/route.ts",
+    "kind": "API",
+    "methods": [
+      "PATCH",
+      "DELETE"
+    ],
+    "auth": "Delegated/custom — inspect source",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contacts/[id]/tasks",
+    "file": "app/api/contacts/[id]/tasks/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contacts/[id]/timeline",
+    "file": "app/api/contacts/[id]/timeline/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contacts/bulk",
+    "file": "app/api/contacts/bulk/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contacts/categories",
+    "file": "app/api/contacts/categories/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contacts/import",
+    "file": "app/api/contacts/import/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contacts/relationship-pulse/enroll",
+    "file": "app/api/contacts/relationship-pulse/enroll/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contacts/relationship-pulse",
+    "file": "app/api/contacts/relationship-pulse/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/contacts",
+    "file": "app/api/contacts/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/dashboard/briefing/preferences",
+    "file": "app/api/dashboard/briefing/preferences/route.ts",
+    "kind": "API",
+    "methods": [
+      "PUT"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/dashboard/briefing",
+    "file": "app/api/dashboard/briefing/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/dashboard/briefing/runner",
+    "file": "app/api/dashboard/briefing/runner/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Worker bearer secret — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/delivery/reconcile",
+    "file": "app/api/delivery/reconcile/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/delivery",
+    "file": "app/api/delivery/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/engagement",
+    "file": "app/api/engagement/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/financing/context",
+    "file": "app/api/financing/context/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/financing/partners",
+    "file": "app/api/financing/partners/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/financing/reports",
+    "file": "app/api/financing/reports/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/health/db",
+    "file": "app/api/health/db/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/health",
+    "file": "app/api/health/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Public or separately gated — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/integrations/dotloop/callback",
+    "file": "app/api/integrations/dotloop/callback/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/integrations/dotloop/connect",
+    "file": "app/api/integrations/dotloop/connect/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/integrations/dotloop/status",
+    "file": "app/api/integrations/dotloop/status/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/integrations/google/authorize",
+    "file": "app/api/integrations/google/authorize/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/integrations/google/callback",
+    "file": "app/api/integrations/google/callback/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/integrations/google/status",
+    "file": "app/api/integrations/google/status/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/integrations/status",
+    "file": "app/api/integrations/status/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/marketing/attribution",
+    "file": "app/api/marketing/attribution/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/marketing/playbook",
+    "file": "app/api/marketing/playbook/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Delegated/custom — inspect source",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/mortgage/market-rates",
+    "file": "app/api/mortgage/market-rates/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Public or separately gated — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/mortgage/rates",
+    "file": "app/api/mortgage/rates/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Public or separately gated — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/notes/[id]",
+    "file": "app/api/notes/[id]/route.ts",
+    "kind": "API",
+    "methods": [
+      "PATCH",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/notes/[id]/tasks",
+    "file": "app/api/notes/[id]/tasks/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/notes/[id]/versions",
+    "file": "app/api/notes/[id]/versions/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/notes/assist",
+    "file": "app/api/notes/assist/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/notes/planner",
+    "file": "app/api/notes/planner/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/notes",
+    "file": "app/api/notes/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/notes/transcribe",
+    "file": "app/api/notes/transcribe/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/notes/workspace",
+    "file": "app/api/notes/workspace/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/partners/invitations",
+    "file": "app/api/partners/invitations/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST",
+      "PATCH"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/partners",
+    "file": "app/api/partners/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/partners/shared-assets",
+    "file": "app/api/partners/shared-assets/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST",
+      "PATCH"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/property-finder/history",
+    "file": "app/api/property-finder/history/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/providers/status",
+    "file": "app/api/providers/status/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/settings/brand-kit/assets",
+    "file": "app/api/settings/brand-kit/assets/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/settings/brand-kit/assist",
+    "file": "app/api/settings/brand-kit/assist/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/settings/brand-kit",
+    "file": "app/api/settings/brand-kit/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/settings/onboarding",
+    "file": "app/api/settings/onboarding/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/settings",
+    "file": "app/api/settings/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/tasks/ai",
+    "file": "app/api/tasks/ai/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Delegated/custom — inspect source",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/tasks/checklists",
+    "file": "app/api/tasks/checklists/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Delegated/custom — inspect source",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/tasks/preferences",
+    "file": "app/api/tasks/preferences/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Delegated/custom — inspect source",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/tasks/proposals",
+    "file": "app/api/tasks/proposals/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Delegated/custom — inspect source",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/tasks",
+    "file": "app/api/tasks/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/tasks/templates",
+    "file": "app/api/tasks/templates/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Delegated/custom — inspect source",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/tasks/transactions",
+    "file": "app/api/tasks/transactions/route.ts",
+    "kind": "API",
+    "methods": [
+      "PATCH"
+    ],
+    "auth": "Delegated/custom — inspect source",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/tasks/workspace",
+    "file": "app/api/tasks/workspace/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST",
+      "DELETE"
+    ],
+    "auth": "Delegated/custom — inspect source",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-assets/[id]",
+    "file": "app/api/voice-assets/[id]/route.ts",
+    "kind": "API",
+    "methods": [
+      "PATCH",
+      "DELETE"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-assets/approve",
+    "file": "app/api/voice-assets/approve/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-assets/clone",
+    "file": "app/api/voice-assets/clone/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-assets/profiles",
+    "file": "app/api/voice-assets/profiles/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-assets",
+    "file": "app/api/voice-assets/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-assets/signed-upload",
+    "file": "app/api/voice-assets/signed-upload/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-assets/synthesize",
+    "file": "app/api/voice-assets/synthesize/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-studio/capabilities",
+    "file": "app/api/voice-studio/capabilities/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-studio/drafts",
+    "file": "app/api/voice-studio/drafts/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "PUT"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-studio/transcribe",
+    "file": "app/api/voice-studio/transcribe/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-studio/transcripts",
+    "file": "app/api/voice-studio/transcripts/route.ts",
+    "kind": "API",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/voice-studio/write",
+    "file": "app/api/voice-studio/write/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Direct requireUserId",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/webhooks/delivery/[provider]",
+    "file": "app/api/webhooks/delivery/[provider]/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Provider signature/secret — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/webhooks/stripe",
+    "file": "app/api/webhooks/stripe/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST",
+      "GET"
+    ],
+    "auth": "Provider signature/secret — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/webhooks/twilio/calls",
+    "file": "app/api/webhooks/twilio/calls/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Provider signature/secret — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/webhooks/twilio/sms",
+    "file": "app/api/webhooks/twilio/sms/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST"
+    ],
+    "auth": "Provider signature/secret — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/api/webhooks/voice",
+    "file": "app/api/webhooks/voice/route.ts",
+    "kind": "API",
+    "methods": [
+      "POST",
+      "GET"
+    ],
+    "auth": "Provider signature/secret — inspect handler",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/book/[token]",
+    "file": "app/book/[token]/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/checkout",
+    "file": "app/checkout/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/contact",
+    "file": "app/contact/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/crm-for-small-business",
+    "file": "app/crm-for-small-business/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/dpa",
+    "file": "app/dpa/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/features/[slug]",
+    "file": "app/features/[slug]/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/features",
+    "file": "app/features/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/lead-follow-up",
+    "file": "app/lead-follow-up/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/lead-reactivation",
+    "file": "app/lead-reactivation/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/",
+    "file": "app/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/playbook",
+    "file": "app/playbook/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/pricing",
+    "file": "app/pricing/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/privacy",
+    "file": "app/privacy/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/real-estate-crm",
+    "file": "app/real-estate-crm/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/realtor-lead-follow-up",
+    "file": "app/realtor-lead-follow-up/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/refunds",
+    "file": "app/refunds/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/resources/[slug]",
+    "file": "app/resources/[slug]/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/resources",
+    "file": "app/resources/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/sms-consent",
+    "file": "app/sms-consent/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/tcpa-consent",
+    "file": "app/tcpa-consent/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  },
+  {
+    "path": "/terms",
+    "file": "app/terms/page.tsx",
+    "kind": "Page",
+    "methods": [],
+    "auth": "Layout/proxy or public",
+    "review": "Source inventory; runtime coverage is listed separately in REPORT.md"
+  }
+]

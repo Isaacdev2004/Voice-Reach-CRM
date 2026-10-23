@@ -1,0 +1,119 @@
+
+> voicereach-backend-starter@0.1.0 test:studio-browser
+> node scripts/studio-browser.test.cjs
+
+layout 1440 { inner: 1440, html: 1440, body: 1440, layout: 1136, overflow: [] }
+layout 1440 {
+  inner: 1440,
+  html: 1440,
+  body: 1440,
+  layout: undefined,
+  overflow: []
+}
+layout 1536 { inner: 1536, html: 1536, body: 1536, layout: 1232, overflow: [] }
+layout 1536 {
+  inner: 1536,
+  html: 1536,
+  body: 1536,
+  layout: undefined,
+  overflow: []
+}
+layout 1920 { inner: 1920, html: 1920, body: 1920, layout: 1336, overflow: [] }
+layout 1920 {
+  inner: 1920,
+  html: 1920,
+  body: 1920,
+  layout: undefined,
+  overflow: []
+}
+layout 768 { inner: 768, html: 768, body: 768, layout: 720, overflow: [] }
+layout 768 { inner: 768, html: 768, body: 768, layout: undefined, overflow: [] }
+layout 390 { inner: 390, html: 390, body: 390, layout: 358, overflow: [] }
+layout 390 { inner: 390, html: 390, body: 390, layout: undefined, overflow: [] }
+[
+  {
+    "width": 1440,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "draft save",
+      "exact step selection does not assign",
+      "safe preview",
+      "KPI filtering",
+      "search empty results",
+      "event details",
+      "conversation inbox",
+      "Settings profile and tabs",
+      "Brand Kit approval and cross-session persistence",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 1536,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "draft save",
+      "exact step selection does not assign",
+      "safe preview",
+      "KPI filtering",
+      "search empty results",
+      "event details",
+      "conversation inbox",
+      "Settings profile and tabs",
+      "Brand Kit approval and cross-session persistence",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 1920,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "draft save",
+      "exact step selection does not assign",
+      "safe preview",
+      "KPI filtering",
+      "search empty results",
+      "event details",
+      "conversation inbox",
+      "Settings profile and tabs",
+      "Brand Kit approval and cross-session persistence",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 768,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "draft save",
+      "exact step selection does not assign",
+      "safe preview",
+      "KPI filtering",
+      "search empty results",
+      "event details",
+      "conversation inbox",
+      "Settings profile and tabs",
+      "Brand Kit approval and cross-session persistence",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  },
+  {
+    "width": 390,
+    "overflow": false,
+    "pageErrors": [],
+    "checks": [
+      "draft save",
+      "exact step selection does not assign",
+      "safe preview",
+      "KPI filtering",
+      "search empty results",
+      "event details",
+      "conversation inbox",
+      "Settings profile and tabs",
+      "Brand Kit approval and cross-session persistence",
+      "mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px"
+    ]
+  }
+]

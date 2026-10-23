@@ -17,7 +17,7 @@ export const GET = withApiHandler(async () => {
 export const DELETE = withApiHandler(async () => {
   const ownerId = await requireUserId();
   const { error } = await deleteDotloopConnection(ownerId);
-  if (error) return apiError(error.message, { status: 500 });
+  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
   await writeAuditLog({
     ownerId,
     action: "DOTLOOP_DISCONNECTED",

@@ -1,3 +1,4 @@
+import { ownsPartner, ownsSharedAsset } from "@/lib/partners/ownership";
 import { apiError, apiSuccess, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
@@ -19,6 +20,8 @@ const ApproveSchema = z.object({
 export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const body = ShareSchema.parse(await request.json());
+  if (!(await ownsPartner(ownerId, body.partnerId))) return apiError("Partner not found.", { status: 404 });
+  if (!(await ownsSharedAsset(ownerId, body.assetType, body.assetId))) return apiError("This asset is unavailable for sharing.", { status: 404 });
 
   const { data, error } = await supabaseAdmin
     .from("partner_shared_assets")
@@ -32,7 +35,7 @@ export const POST = withApiHandler(async (request) => {
     .select("*")
     .single();
 
-  if (error) return apiError(error.message, { status: 500 });
+  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
 
   await writeAuditLog({
     ownerId,
@@ -60,7 +63,7 @@ export const PATCH = withApiHandler(async (request) => {
     .select("*")
     .single();
 
-  if (error) return apiError(error.message, { status: 500 });
+  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
 
   await writeAuditLog({
     ownerId,

@@ -38,7 +38,7 @@ export const POST = withApiHandler<RouteContext>(async (request, context) => {
     .eq("owner_id", ownerId)
     .maybeSingle();
 
-  if (campaignError) return apiError(campaignError.message, { status: 500 });
+  if (campaignError) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
   if (!campaign) return apiError("Campaign not found", { status: 404, code: "not_found" });
 
   const enrollment = await enrollContacts(ownerId, campaignId, {
@@ -126,7 +126,7 @@ export const DELETE = withApiHandler<RouteContext>(async (request, context) => {
     .eq("owner_id", ownerId)
     .maybeSingle();
 
-  if (campaignError) return apiError(campaignError.message, { status: 500 });
+  if (campaignError) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
   if (!campaign) return apiError("Campaign not found", { status: 404, code: "not_found" });
 
   try {

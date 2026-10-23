@@ -1,0 +1,5 @@
+
+> voicereach-backend-starter@0.1.0 test:platform-db
+> node scripts/platform-database.test.cjs
+
+Legacy public-role exposure reproduced from repository schemas; browser reads denied on 21 tables and writes denied; server access retained.

@@ -29,7 +29,7 @@ export const GET = withApiHandler(async () => {
         warning: "Run supabase/schema-calendar.sql to enable saved voice profiles.",
       });
     }
-    return apiError(error.message, { status: 500 });
+    return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
   }
 
   const profiles = data ?? [];

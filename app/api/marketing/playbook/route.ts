@@ -78,7 +78,7 @@ export const POST = withApiHandler(async (request) => {
   });
 
   if (!welcome.ok) {
-    console.warn("[playbook-lead] welcome email failed for", body.email);
+    console.warn("[playbook-lead] welcome email failed");
   }
 
   return apiOk({ ok: true });
