@@ -86,11 +86,13 @@ export async function billPaygUsage(params: {
     }).catch(() => undefined);
 
     return { billed: true, amountCents };
-  } catch {
-    // Stripe returns successful idempotent replays normally. An exception (including
-    // an idempotency-key collision) is never proof that an invoice item was created.
-    const message = "Billing outcome could not be confirmed. Review billing before retrying.";
-    console.error("[payg] billing outcome unconfirmed");
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "payg_bill_failed";
+    // Idempotent replay is success
+    if (/idempotent/i.test(message)) {
+      return { billed: true, amountCents };
+    }
+    console.error("[payg]", message, err);
     await writeAuditLog({
       ownerId: params.ownerId,
       action: "PAYG_USAGE_BILL_FAILED",

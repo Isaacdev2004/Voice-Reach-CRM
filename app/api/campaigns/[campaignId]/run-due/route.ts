@@ -21,7 +21,7 @@ export const POST = withApiHandler<RouteContext>(async (_request, context) => {
     .eq("owner_id", ownerId)
     .maybeSingle();
 
-  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
   if (!campaign) return apiError("Campaign not found", { status: 404, code: "not_found" });
 
   const result = await runDueStepRuns({ ownerId, campaignId, limit: 50 });

@@ -62,7 +62,7 @@ export const POST = withApiHandler(async (request) => {
     .select("*")
     .single();
 
-  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
 
   const steps: CampaignBlueprintStep[] = campaign.steps.map((step) => ({
     id: step.id,

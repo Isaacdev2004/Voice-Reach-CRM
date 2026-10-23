@@ -21,7 +21,7 @@ export const GET = withApiHandler(async () => {
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
 
-  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
   return apiOk({ campaigns: data ?? [] });
 });
 
@@ -63,7 +63,7 @@ export const POST = withApiHandler(async (request) => {
     .select("*")
     .single();
 
-  if (campaignError) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+  if (campaignError) return apiError(campaignError.message, { status: 500 });
 
   const recipients = ids.map((contactId) => ({
     owner_id: ownerId,
@@ -75,7 +75,7 @@ export const POST = withApiHandler(async (request) => {
     .from("campaign_recipients")
     .insert(recipients);
   if (recipientsError)
-    return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+    return apiError(recipientsError.message, { status: 500 });
 
   await writeAuditLog({
     ownerId,

@@ -44,7 +44,7 @@ export const GET = withApiHandler(async () => {
     .select("*")
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
-  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
   return apiSuccess({ rules: data ?? [] });
 });
 
@@ -77,7 +77,7 @@ export const POST = withApiHandler(async (request) => {
         .select("*")
         .single();
 
-  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
 
   await writeAuditLog({
     ownerId,
@@ -101,7 +101,7 @@ export const DELETE = withApiHandler(async (request) => {
     .delete()
     .eq("id", id)
     .eq("owner_id", ownerId);
-  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
 
   await writeAuditLog({
     ownerId,

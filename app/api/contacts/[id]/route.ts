@@ -120,7 +120,7 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     if (body.propertyPreferences && ["42703","PGRST204"].includes(updateError.code)) return apiError("Additional property preferences are not available in this workspace yet. Your changes have not been saved.", {status:503,code:"property_preferences_unavailable"});
     const mapped = apiErrorFromSupabase(updateError);
     if (mapped) return mapped;
-    return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+    return apiError(updateError.message, { status: 500 });
   }
 
   if (body.consent !== undefined) {
@@ -137,7 +137,7 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
     if (consentError) {
       const mapped = apiErrorFromSupabase(consentError);
       if (mapped) return mapped;
-      return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+      return apiError(consentError.message, { status: 500 });
     }
   }
 
@@ -183,7 +183,7 @@ export const DELETE = withApiHandler<RouteContext>(async (_request, context) => 
   if (deleteError) {
     const mapped = apiErrorFromSupabase(deleteError);
     if (mapped) return mapped;
-    return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+    return apiError(deleteError.message, { status: 500 });
   }
 
   await writeAuditLog({

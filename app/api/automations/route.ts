@@ -41,7 +41,7 @@ export const GET = withApiHandler(async () => {
     .order("created_at", { ascending: false })
     .limit(100);
 
-  if (error) return apiError("Information could not be saved or loaded. Please try again.", { status: 500 });
+  if (error) return apiError(error.message, { status: 500 });
 
   const byId = new Map<string, z.infer<typeof WorkflowSchema>>();
   for (const row of data ?? []) {

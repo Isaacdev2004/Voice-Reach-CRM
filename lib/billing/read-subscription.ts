@@ -33,8 +33,6 @@ export async function readSubscriptionStatus(owner: string): Promise<{
     const active = subscriptions.data.find(
       (s) => s.status === "active" || s.status === "trialing",
     );
-    if (!active && subscriptions.data.some((s) => s.status !== "canceled"))
-      return { verified: false, status: "none" };
     return {
       verified: true,
       status: active

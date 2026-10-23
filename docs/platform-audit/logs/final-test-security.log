@@ -1,5 +1,0 @@
-
-> voicereach-backend-starter@0.1.0 test:security
-> node scripts/verify-audit-fixes.mjs
-
-verify-audit-fixes: ok

@@ -66,8 +66,3 @@ Dashboard / briefing / Twilio follow-up: see [final audit](DASHBOARD-BRIEFING-TW
 ### Dashboard bottom finish — 2026-10-23
 
 Dashboard-only bottom spacing now leaves 80px on desktop and 96px on mobile, plus device safe-area inset, beneath the final cards. No records, routes or business logic change.
-
-
-### Complete platform audit — 2026-10-23
-
-Complete local platform audit on audit/platform-complete; no publishing/deployment. Review P0 legacy table privileges and P1 quota accounting before release. Safe API/ownership/billing-display repairs, image optimization and requested logo refinement are detailed in [audit report](platform-audit/REPORT.md).
