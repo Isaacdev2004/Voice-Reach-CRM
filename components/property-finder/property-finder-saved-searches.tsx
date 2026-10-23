@@ -111,6 +111,7 @@ export function PropertyFinderSavedSearches({
                       {criteria.preferences.slice(0, 3).join(" · ")}
                     </span>
                   ) : null}
+                  {!criteria.area || !criteria.budget ? <span className="pf-complete-preferences">Complete Preferences →</span> : null}
                 </span>
                 <span className="pf-saved-arrow" aria-hidden="true">
                   <Icon name="chevron_right" />

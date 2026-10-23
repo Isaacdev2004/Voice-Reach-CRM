@@ -30,3 +30,12 @@ export function zillowSearchUrl(options: { area?: string | null; budget?: number
   }
   return "https://www.zillow.com/homes/for_sale/";
 }
+
+/** Restrict history and outbound navigation to this adapter's supported, canonical paths. */
+export function isPropertySearchUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.origin === "https://www.zillow.com" && !url.username && !url.password && !url.search && !url.hash &&
+      /^\/homes\/for_sale\/(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)?(?:0-[1-9][0-9]*_price\/)?$/.test(url.pathname);
+  } catch { return false; }
+}

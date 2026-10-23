@@ -15,7 +15,7 @@
     "test:regressions": "node --import tsx scripts/verify-regressions.ts",
     "test:contacts-workspace": "node --import tsx scripts/contacts-workspace.test.ts && node scripts/contacts-routes.test.cjs",
     "test:contacts-browser": "node scripts/contacts-browser.test.cjs",
-    "test:property-finder": "node --import tsx scripts/property-finder.test.ts",
+    "test:property-finder": "node --import tsx scripts/property-finder.test.ts && node scripts/property-finder-routes.test.cjs",
     "test:property-finder-browser": "node scripts/property-finder-browser.test.cjs",
     "test:campaign-library": "node --import tsx scripts/campaign-library.test.ts && node scripts/campaign-library-routes.test.cjs",
     "test:campaign-library-browser": "node scripts/campaign-library-browser.test.cjs",

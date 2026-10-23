@@ -35,6 +35,14 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
   const meta = row.metadata ?? {};
 
   switch (row.action) {
+    case "PROPERTY_SEARCH_ACTION":
+      return entry(row, {
+        category: "contacts", icon: "home_work", tone: "default",
+        title: meta.kind === "search_requested" ? "Property search requested" : meta.kind === "link_copied" ? "Property search link copied" : "Property search composer opened",
+        body: "An agent action in Property Finder. Sending, delivery and client views are not inferred.",
+        href: row.entity_id ? `/dashboard/properties?contactId=${row.entity_id}` : "/dashboard/properties",
+        metadata: meta,
+      });
     case "CONTACT_UPDATED": {
       const consent = meta.consent as string | undefined;
       return entry(row, {

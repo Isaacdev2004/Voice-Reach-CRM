@@ -357,6 +357,8 @@ export async function readContactActivity(
           typeof a.metadata.title === "string" ? a.metadata.title : undefined,
         href: "/dashboard/mortgage?contactId=" + encodeURIComponent(contact),
       });
+    } else if (a.action === "PROPERTY_SEARCH_ACTION") {
+      items.push({id:"property-search:"+a.id,type:"property",title:a.metadata.kind === "search_requested" ? "Property search requested" : a.metadata.kind === "link_copied" ? "Property search link copied" : "Property search composer opened",at:a.created_at,status:"Agent action recorded",detail:"Sending, delivery and client views are not inferred.",href:`/dashboard/properties?contactId=${contact}`});
     } else if (a.action === "CONTACT_UPDATED") {
       const fields = Array.isArray(a.metadata.fields) ? a.metadata.fields : [];
       items.push({

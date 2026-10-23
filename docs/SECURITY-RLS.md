@@ -31,3 +31,7 @@ Replace `using (true)` policies with `owner_id = current_setting('app.owner_id')
 ## Dashboard presentation refinement
 
 Uses existing authenticated contact snapshots, owned campaign-library records, analytics and priority APIs. No API, permission, SQL, schema, consent or outbound change. Frontend failed reads remain unavailable rather than false zeros/empty successes; account-keyed instances and abortable reads prevent stale display. QA uses synthetic subscribers with all writes blocked. [Review](dashboard-typography-review/REVIEW.md).
+
+## Property Finder refinement — 2026-10-23
+
+See [Property Finder audit](PROPERTY-FINDER-AUDIT.md) for data sources, changes, synthetic QA, screenshots and integration limitations. History uses existing owner-scoped audit records with immutable retry IDs; no new migration. Search remains external Zillow links, with location/maximum price only. Additional preferences are optional, not live listing filters. No production contacts, schedules, messages or provider credentials were modified during tests.

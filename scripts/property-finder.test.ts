@@ -3,7 +3,7 @@ import test from "node:test";
 import { propertyBudget, savedPropertyCriteria, rememberPropertyClient, restoredPropertyClient } from "../lib/property-finder/criteria";
 import { changedPropertyPreferences, parsePropertyPreferences, propertyPreferenceDraft, savedPropertyPreferenceLabels } from "../lib/property-finder/preferences";
 import { PatchContactSchema } from "../lib/contacts/schemas";
-import { zillowSearchUrl } from "../lib/property-finder/zillow";
+import { isPropertySearchUrl, zillowSearchUrl } from "../lib/property-finder/zillow";
 import { PROPERTY_FINDER_ACTION_CARDS } from "../lib/property-finder/home-ui";
 import type { ApiContact } from "../lib/hooks/use-contacts";
 
@@ -59,4 +59,11 @@ test("quick action destinations and campaign routes are preserved without unsupp
 test("Property Finder action artwork is unique and stable without changing routes",()=>{
  assert.equal(new Set(PROPERTY_FINDER_ACTION_CARDS.map(c=>`${c.image}:${c.imageTile}`)).size,4);
  assert.ok(PROPERTY_FINDER_ACTION_CARDS.every(c=>c.image.startsWith("/brand/")&&Number.isInteger(c.imageTile)));
+});
+
+
+test("history accepts canonical adapter output, never redirect parameters or lookalike hosts", () => {
+  for (const options of [{}, {area:"Orlando, FL"}, {budget:650000}, {area:"Winter Park",budget:1}]) assert.equal(isPropertySearchUrl(zillowSearchUrl(options)),true);
+  for (const url of ["javascript:alert(1)","https://www.zillow.com.evil.test/homes/for_sale/","https://www.zillow.com/homes/for_sale/?token=secret","https://user:pass@www.zillow.com/homes/for_sale/","https://www.zillow.com/homes/for_sale/#unsafe"]) assert.equal(isPropertySearchUrl(url),false);
+  for (const value of ["0.01","1e100"]) assert.ok(propertyBudget(value).error);
 });

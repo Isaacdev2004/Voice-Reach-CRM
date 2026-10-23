@@ -66,3 +66,7 @@ Verify two separate subscriber sessions, stale-save conflicts, profile photo per
 ## Dashboard typography review
 
 Run `npm run test:dashboard-browser` for synthetic 1440/1920/768/390px captures with writes blocked. Check hero copy/actions, all four KPI destinations, actual campaign enrollment/step counts versus delivery metrics, row navigation, recommendation failure, empty/error priorities and subscriber switching. No live data reconciliation is claimed. [Report](dashboard-typography-review/REVIEW.md).
+
+## Property Finder refinement — 2026-10-23
+
+See [Property Finder audit](PROPERTY-FINDER-AUDIT.md) for data sources, changes, synthetic QA, screenshots and integration limitations. History uses existing owner-scoped audit records with immutable retry IDs; no new migration. Search remains external Zillow links, with location/maximum price only. Additional preferences are optional, not live listing filters. No production contacts, schedules, messages or provider credentials were modified during tests.

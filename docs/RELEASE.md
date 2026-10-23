@@ -49,3 +49,7 @@ See [review and release gates](studio-activity-review/REVIEW.md). Includes Tasks
 ## Dashboard typography refinement
 
 Focused main-based visual/data-presentation refinement; no migrations or provider changes. The user explicitly requested automatic deployment after checks. Merge only this CI-green dashboard PR to trigger the existing Vercel production integration, then verify the exact main commit deployment status. Separate unmerged AI assistant PR #26 is excluded. See [before/after and QA](dashboard-typography-review/REVIEW.md).
+
+## Property Finder refinement — 2026-10-23
+
+See [Property Finder audit](PROPERTY-FINDER-AUDIT.md) for data sources, changes, synthetic QA, screenshots and integration limitations. History uses existing owner-scoped audit records with immutable retry IDs; no new migration. Search remains external Zillow links, with location/maximum price only. Additional preferences are optional, not live listing filters. No production contacts, schedules, messages or provider credentials were modified during tests.

@@ -33,7 +33,7 @@ export function PropertyFinderActionCards({
             image={card.image}
             className="pf-action-photo"
           />
-          <span className="pf-action-fade" aria-hidden="true" />
+          <div className="pf-action-content">
           <span className="pf-action-icon" aria-hidden="true">
             <Icon name={ICONS[card.id]} />
           </span>
@@ -44,6 +44,7 @@ export function PropertyFinderActionCards({
           <span className="pf-action-arrow" aria-hidden="true">
             <Icon name="arrow_forward" />
           </span>
+          </div>
         </Link>
       ))}
     </nav>
