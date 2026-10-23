@@ -6,8 +6,8 @@ import { LEGAL_POLICY_META } from "@/lib/legal/policy-meta";
 import { LEGAL_RELATED } from "@/lib/legal/links";
 
 export const metadata: Metadata = {
-  title: "Data Processing Agreement | ARI",
-  description: `Data Processing Agreement (DPA) for ARI, operated by ${LEGAL_ENTITY_DBA}.`,
+  title: "Data Processing Agreement | MyARI",
+  description: `Data Processing Agreement (DPA) for MyARI, operated by ${LEGAL_ENTITY_DBA}.`,
   alternates: { canonical: "/dpa" },
   robots: { index: true, follow: true },
 };

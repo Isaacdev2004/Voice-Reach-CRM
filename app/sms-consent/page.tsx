@@ -5,9 +5,9 @@ import { LEGAL_POLICY_META } from "@/lib/legal/policy-meta";
 import { LEGAL_RELATED } from "@/lib/legal/links";
 
 export const metadata: Metadata = {
-  title: "SMS Consent & Opt-In | ARI",
+  title: "SMS Consent & Opt-In | MyARI",
   description:
-    "How ARI collects prior express consent for SMS appointment reminders and relationship follow-ups. Reply STOP to opt out.",
+    "How MyARI collects prior express consent for SMS appointment reminders and relationship follow-ups. Reply STOP to opt out.",
   alternates: { canonical: "/sms-consent" },
   robots: { index: true, follow: true },
 };

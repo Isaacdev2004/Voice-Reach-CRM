@@ -6,8 +6,8 @@ import { LEGAL_POLICY_META } from "@/lib/legal/policy-meta";
 import { LEGAL_RELATED } from "@/lib/legal/links";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | ARI",
-  description: `Privacy practices for ARI, operated by ${LEGAL_ENTITY_DBA}.`,
+  title: "Privacy Policy | MyARI",
+  description: `Privacy practices for MyARI, operated by ${LEGAL_ENTITY_DBA}.`,
   alternates: { canonical: "/privacy" },
   robots: { index: true, follow: true },
 };

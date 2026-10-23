@@ -2,7 +2,7 @@
 
 ## Scope and branding
 
-Targeted public refinements on top of PR36; the approved architecture, photography, navigation, authenticated CRM and SEO routes remain. Customer-facing product references now use **MyARI** across public component copy, feature/solution/resource data, pricing, metadata, alt text and shared offer descriptions. Code identifiers, APIs, environment-variable names, URLs and legal-entity text were not globally replaced. The existing video, approved logo artwork and original transcript retain historic ARI references rather than rewriting recorded content. No billing configuration, authentication implementation, subscriber records or production secrets changed (`git diff` against 45aca8f for billing/API/auth code is empty).
+Targeted public refinements on top of PR36; the approved architecture, photography, navigation, authenticated CRM and SEO routes remain. Customer-facing product references now use **MyARI** across public component copy, feature/solution/resource data, pricing, metadata, alt text and shared offer descriptions. Code identifiers, APIs, environment-variable names, URLs and legal-entity text were not globally replaced. The existing video, approved logo artwork and original transcript retain historic ARI references rather than rewriting recorded content. Legal-page marketing metadata uses MyARI; established legal-document definitions, entity names and consent wording remain unchanged rather than altering contractual text. No billing configuration, authentication implementation, subscriber records or production secrets changed (`git diff` against 45aca8f for billing/API/auth code is empty).
 
 ## Walkthrough and accessibility
 
