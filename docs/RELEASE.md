@@ -37,3 +37,7 @@ Adds closing calculators, owner-scoped lender/title management, original report 
 ### Financing and Property Finder reference refinements
 
 Rearranges financing into property/loan/lender tools on the left and a combined payment chart plus rate history on the right. Adds stable original photographic covers to Property Finder actions, saved searches and client panels. Preserves all six Studio sections, search criteria, data ownership and existing destinations. See both `reference-layout/REVIEW.md` guides for screenshots and limitations. No additional database change or deployment is required/performed by this refinement.
+
+## Premium Tasks workspace (pending release)
+
+See [Tasks review](tasks-workspace/REVIEW.md) for visuals, metrics, tests and release gates. Requires reviewed `20261025000000_tasks_workspace.sql` on staging after prerequisite schema/migrations; no configured database was modified. Do not deploy automatically. Basic tasks remain available before the workspace update; dependencies/trackers/reviewed AI batches require it. Background notification delivery and Google series reconciliation remain separate provider/staging checks. Roll back the app before considering any database rollback; retain task/transaction records.

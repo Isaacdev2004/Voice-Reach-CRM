@@ -181,7 +181,7 @@ export async function readContactActivity(
           ? "Completed"
           : "Completed (completion time not recorded)"
         : "Open",
-      href: `/dashboard/contacts/${contact}`,
+      href: `/dashboard/tasks?contactId=${contact}&taskId=${t.id}`,
     });
   for (const n of notes.filter((n) => relatedContactIds(n).includes(contact)))
     items.push({
@@ -349,6 +349,8 @@ export async function readContactActivity(
         detail:
           typeof a.metadata.notes === "string" ? a.metadata.notes : undefined,
       });
+    } else if (["TASK_CHECKLIST_ASSIGNED","TASK_TRANSACTION_UPDATED"].includes(a.action)) {
+      items.push({id:"transaction:"+a.id,type:"update",title:a.action==="TASK_CHECKLIST_ASSIGNED"?"Transaction checklist assigned":"Transaction details updated",at:a.created_at,status:"Recorded",detail:typeof a.metadata.title==="string"?a.metadata.title:undefined,href:`/dashboard/tasks?tab=checklists&contactId=${contact}`});
     } else if (a.action === "FINANCING_REPORT_SAVED") {
       items.push({
         id: "financing:" + a.id,

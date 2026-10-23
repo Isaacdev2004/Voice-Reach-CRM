@@ -60,7 +60,7 @@ export function StandaloneTaskModal({ open, onClose, onSaved }: StandaloneTaskMo
       .then((data) => {
         const list = (data.contacts ?? []) as ContactOption[];
         setContacts(list);
-        if (list.length > 0) setContactId(list[0].id);
+        // Personal tasks stay unassociated unless the subscriber selects a contact.
       })
       .catch(() => setContacts([]));
   }, [open]);
@@ -87,6 +87,7 @@ export function StandaloneTaskModal({ open, onClose, onSaved }: StandaloneTaskMo
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not create task");
 
+      window.dispatchEvent(new Event("myari:activity-changed"));
       onSaved();
       onClose();
     } catch (err) {

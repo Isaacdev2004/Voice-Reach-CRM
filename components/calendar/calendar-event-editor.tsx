@@ -433,6 +433,7 @@ export function CalendarEventEditor({
         ) : null}
         {error ? <p role="alert">{error}</p> : null}
         <button disabled={busy}>{busy ? "Saving…" : "Save"}</button>
+        {item?.crmEventId&&<Link href={`/dashboard/tasks?new=task&eventId=${item.crmEventId}${contact?`&contactId=${contact.id}`:''}`}>Create follow-up task from this event</Link>}
         {contact ? (
           <details>
             <summary>Related contact tasks</summary>

@@ -291,7 +291,7 @@ export function getDashboardHeroForPath(
   pathname: string,
 ): DashboardPageHeroConfig | null {
   if (!pathname.startsWith("/dashboard")) return null;
-  if (pathname === "/dashboard/calendar") return null;
+  if (pathname === "/dashboard/calendar" || pathname === "/dashboard/tasks") return null;
   if (isPropertyFinderDashboardPath(pathname)) return null;
   if (pathname !== "/dashboard" && /\/dashboard\/[^/]+\/[^/]+/.test(pathname)) {
     return null;

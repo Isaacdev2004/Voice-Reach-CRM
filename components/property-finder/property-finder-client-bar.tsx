@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
@@ -131,6 +132,7 @@ export function PropertyFinderClientBar({
         </div>
       </div>
 
+      {selected&&<div className="flex flex-wrap gap-3 px-3 py-2 text-[12px] text-rose-gold-deep"><Link href={`/dashboard/tasks?new=task&contactId=${selected.id}&propertyId=${selected.id}`}>Create property task →</Link><Link href={`/dashboard/tasks?tab=checklists&contactId=${selected.id}`}>Transaction checklists →</Link></div>}
       {open ? (
         <ul
           className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 max-h-[min(280px,45vh)] overflow-y-auto rounded-2xl border border-outline-variant/20 bg-ivory py-1 shadow-card"

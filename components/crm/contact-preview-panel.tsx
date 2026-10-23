@@ -34,7 +34,7 @@ export function ContactPreviewPanel({ contact, consent }: {
         {contact.phone ? <a href={`tel:${contact.phone}`} aria-label={`Call ${name}`}><Icon name="call" /></a> : null}
         {contact.email ? <a href={`mailto:${contact.email}`} aria-label={`Email ${name}`}><Icon name="mail" /></a> : null}
         <Link href={`/dashboard/contacts/${contact.id}`} aria-label={`Open profile for ${name}`}><Icon name="person" /></Link>
-        <AiLauncherButton contactId={contact.id} contactName={name} contactNotes={contact.notes ?? undefined} label="AI insights" />
+        <Link href={`/dashboard/tasks?new=task&contactId=${contact.id}`} aria-label={`Create task for ${name}`}><Icon name="add_task" /></Link><Link href={`/dashboard/tasks?tab=checklists&contactId=${contact.id}`} aria-label={`Transaction checklists for ${name}`}><Icon name="checklist" /></Link><AiLauncherButton contactId={contact.id} contactName={name} contactNotes={contact.notes ?? undefined} label="AI insights" />
       </div>
       <div className="contact-preview-tabs" role="tablist" aria-label="Contact information">
         {TABS.map((item, index) => (

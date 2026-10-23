@@ -1,4 +1,5 @@
 import type { Recurrence } from "@/lib/calendar/google";
+import { taskMode, taskContext } from "./server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export type ContactTaskInsert = {
@@ -20,6 +21,9 @@ export async function insertContactTask(row: ContactTaskInsert) {
     reminder_at: row.reminder_at ?? row.due_at ?? null,
     notes: row.notes ?? null,
     recurrence: row.recurrence ?? "none",
+    ...((await taskMode(row.owner_id))
+      ? { workspace: { timezone: (await taskContext(row.owner_id)).timezone } }
+      : {}),
   };
 
   let result = await supabaseAdmin
@@ -28,7 +32,12 @@ export async function insertContactTask(row: ContactTaskInsert) {
     .select("*, contacts(id, first_name, last_name, phone)")
     .single();
 
-  if (result.error && /recurrence|column/.test(result.error.message)) {
+  if (
+    result.error &&
+    payload.recurrence === "none" &&
+    ["42703", "PGRST204"].includes(result.error.code) &&
+    /recurrence/.test(result.error.message)
+  ) {
     const { recurrence: _r, ...withoutRecurrence } = payload;
     result = await supabaseAdmin
       .from("contact_tasks")
@@ -39,7 +48,7 @@ export async function insertContactTask(row: ContactTaskInsert) {
 
   if (result.error?.message?.includes("contact_tasks")) {
     throw new Error(
-      "Tasks database not set up. Run supabase/schema-contact-tasks.sql in your Supabase SQL editor.",
+      "Tasks are temporarily unavailable. Please retry or contact support.",
     );
   }
 

@@ -42,6 +42,9 @@ export function useContactTasks(contactId: string | undefined) {
 
   useEffect(() => {
     void refresh();
+    const changed=()=>void refresh();
+    window.addEventListener("myari:activity-changed",changed);
+    return()=>window.removeEventListener("myari:activity-changed",changed);
   }, [refresh]);
 
   const createTask = async (input: {

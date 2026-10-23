@@ -495,6 +495,7 @@ export function CampaignPreviewDrawer({
               >
                 Edit
               </Link>
+              <Link className="cl-button" href={`/dashboard/tasks?new=task&campaignId=${campaign.id}`}>Create follow-up task</Link>
               <button
                 className="cl-button"
                 disabled={busy || !data?.steps.length}
