@@ -42,6 +42,8 @@ w.fetch=async(input,init={})=>{
   const file=init.body.get('file');const text=await file.text();if(!text.includes('CSV Fixture'))return response({success:false,error:'Invalid fixture'},400);
   w.__records.push({id:id(101),owner_id:w.__owner,first_name:'CSV Fixture',phone:'+15555550101',type:'Cold Lead',category:'Residential',consent_records:[]});return response({success:true,imported:1,errors:[]});
  }
+ const timelineMatch=url.pathname.match(/^\/api\/contacts\/([a-f0-9-]{36})\/timeline$/);
+ if(timelineMatch){if(!own.some(c=>c.id===timelineMatch[1]))return response({success:false,error:'Not found'},404);return response({success:true,items:w.__notes.filter(n=>n.owner_id===w.__owner&&n.contact_id===timelineMatch[1]).map(n=>({id:'note:'+n.id,type:'note',title:n.title||'Contact note',detail:n.body,at:n.created_at,status:'Saved note',href:'/dashboard/notes?note='+n.id})),nextCursor:null,limitations:[],timezone:'America/New_York'});}
  const contactMatch=url.pathname.match(/^\/api\/contacts\/([a-f0-9-]{36})$/);
  if(contactMatch){
   const contact=own.find(record=>record.id===contactMatch[1]);

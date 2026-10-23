@@ -1,6 +1,6 @@
 # Notes & Strategy workspace — review report
 
-Development branch: `feature/notes-planner-workspace`, based on the Calendar / Phase 18 work. No GitHub publication, production migration, deployment, real recording, or production note edits were performed for this implementation.
+Development branch: `feature/notes-planner-workspace`, based on the Calendar / Phase 18 work. Prepared for GitHub review-branch publication. No production migration, deployment, real recording, or production note edits were performed for this implementation.
 
 ## Visual changes
 
@@ -61,6 +61,8 @@ Screenshots use synthetic owned records and an isolated HTTP fixture backend, wi
 2. Configure `ANTHROPIC_API_KEY` (and optional `ANTHROPIC_MODEL`) for summaries and `OPENAI_API_KEY` for authorized uploads. These were not provisioned/authorized for live checks in this workspace. Dictation also depends on browser support and microphone permission over HTTPS or localhost. Do not use real client audio in QA.
 3. Run authorized synthetic authenticated staging checks across two subscriber accounts and two devices, including actual Supabase/PostgREST query behavior, concurrent requests, migration permissions, provider failures, and task-calendar sync. The embedded PostgreSQL test validates the actual SQL, but not hosted infrastructure or multiple network connections.
 4. Validate provider retention agreements, deployment body limits, and recording-consent operational policy before enabling audio workflows. No new storage bucket is required; uploads are transient. The app does not verify legal consent independently.
-5. Review imagery and desktop/mobile screenshots before publication. No deployment is included. The unrelated Calendar reference correction is being handled separately.
+5. Review imagery and desktop/mobile screenshots before publication. No deployment is included. The Calendar reference correction is documented in `docs/calendar-reference/README.md` and included in the combined review branch.
 
 **Readiness:** ready for code/design review and isolated staging setup, not verified for production rollout. Live AI quality, real microphone accuracy, provider transcription accuracy, authenticated staging persistence, and production records have not been verified.
+
+See [combined release review](release-review.md) for final audit results and publication scope.

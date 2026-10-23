@@ -29,10 +29,12 @@ const { chromium } = require("playwright"),
   });
   const cssRoot = path.join(root, ".next/static/css");
   const iconFont = process.env.CONTACTS_ICON_FONT;
+  const reviewFonts = process.env.REVIEW_FONTS_DIR;
   const css =
     (iconFont
       ? "@font-face{font-family:'Material Symbols Outlined';src:url(/review-icons.ttf)}.material-symbols-outlined{font-family:'Material Symbols Outlined'}"
       : "") +
+    (reviewFonts ? fs.readFileSync(path.join(reviewFonts,"faces.css"),"utf8") : "") +
     fs
       .readdirSync(cssRoot)
       .filter((x) => x.endsWith(".css"))
@@ -79,9 +81,9 @@ const { chromium } = require("playwright"),
       return res.end();
     }
     const local = file.startsWith("/review-fonts/")
-      ? path.join(root, ".next/static/media", path.basename(file))
+      ? path.join(reviewFonts || path.join(root,".next/static/media"), path.basename(file))
       : path.resolve(root, "public", "." + file);
-    if (!local.startsWith(root + path.sep)) {
+    if (!local.startsWith(root + path.sep) && !(reviewFonts && local.startsWith(path.resolve(reviewFonts)+path.sep))) {
       res.statusCode = 403;
       return res.end();
     }
