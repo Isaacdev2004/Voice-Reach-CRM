@@ -45,7 +45,10 @@ const TAG_BY_KEY: Record<
   },
 };
 
-const THUMB_BY_KEY: Record<(typeof DASHBOARD_RECOMMENDED_KEYS)[number], string> = {
+const THUMB_BY_KEY: Record<
+  (typeof DASHBOARD_RECOMMENDED_KEYS)[number],
+  string
+> = {
   "cold-lead-reengage": "/brand/heroes/contacts.jpg",
   "long-term-buyer-nurture": "/brand/heroes/dashboard-interior.jpg",
   "listing-alert-drip": "/brand/heroes/properties.jpg",
@@ -54,6 +57,7 @@ const THUMB_BY_KEY: Record<(typeof DASHBOARD_RECOMMENDED_KEYS)[number], string> 
 
 export function DashboardRecommendedForYou() {
   const router = useRouter();
+  const [error, setError] = useState(false);
   const [creatingKey, setCreatingKey] = useState<string | null>(null);
 
   const items = DASHBOARD_RECOMMENDED_KEYS.map((key) => {
@@ -67,24 +71,43 @@ export function DashboardRecommendedForYou() {
   }[];
 
   const createFromTemplate = async (templateKey: string) => {
+    if (creatingKey) return;
+    setError(false);
     setCreatingKey(templateKey);
-    const envelope = await safeFetch<{ campaignId: string }>("/api/campaigns/from-template", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ templateKey, createAutomation: true }),
-    });
+    const envelope = await safeFetch<{ campaignId: string }>(
+      "/api/campaigns/from-template",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateKey, createAutomation: true }),
+      },
+    );
     setCreatingKey(null);
+    if (!envelope.success || !envelope.data?.campaignId) {
+      setError(true);
+      return;
+    }
     if (envelope.success) {
       router.push(`/dashboard/campaigns/${envelope.data.campaignId}`);
     }
   };
 
   return (
-    <LuxuryCard padding="md" className={cn("flex h-full flex-col", DASHBOARD_SECTION_CARD)}>
+    <LuxuryCard
+      padding="md"
+      className={cn("flex h-full flex-col", DASHBOARD_SECTION_CARD)}
+    >
       <div className={DASHBOARD_SECTION_HEADER}>
         <div>
-          <h2 className={cn(DASHBOARD_SECTION_TITLE, "dashboard-section-heading")}><Icon name="auto_awesome" />Recommended for You</h2>
-          <p className={DASHBOARD_SECTION_SUBTITLE}>Playbooks tuned to your pipeline</p>
+          <h2
+            className={cn(DASHBOARD_SECTION_TITLE, "dashboard-section-heading")}
+          >
+            <Icon name="auto_awesome" />
+            Recommended for You
+          </h2>
+          <p className={DASHBOARD_SECTION_SUBTITLE}>
+            Playbooks tuned to your pipeline
+          </p>
         </div>
         <Link
           href="/dashboard/campaigns"
@@ -94,12 +117,17 @@ export function DashboardRecommendedForYou() {
         </Link>
       </div>
 
+      {error ? (
+        <p role="alert" className="dashboard-recommendation-error">
+          This playbook could not be opened. Please try again.
+        </p>
+      ) : null}
       <ul className="flex flex-1 flex-col divide-y divide-outline-variant/10">
         {items.map(({ tpl, tag, thumb }) => (
           <li key={tpl.templateKey} className="first:pt-0 last:pb-0 py-1.5">
             <button
               type="button"
-              disabled={creatingKey === tpl.templateKey}
+              disabled={creatingKey !== null}
               onClick={() => void createFromTemplate(tpl.templateKey)}
               className="dashboard-recommendation group flex w-full items-center gap-3 rounded-xl p-1.5 text-left transition-colors hover:bg-cream/70 disabled:opacity-60"
             >
@@ -128,7 +156,10 @@ export function DashboardRecommendedForYou() {
               >
                 {tag.label}
               </span>
-              <Icon name="chevron_right" className="shrink-0 text-[18px] text-taupe" />
+              <Icon
+                name="chevron_right"
+                className="shrink-0 text-[18px] text-taupe"
+              />
             </button>
           </li>
         ))}

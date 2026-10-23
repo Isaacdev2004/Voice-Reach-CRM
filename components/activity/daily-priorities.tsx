@@ -12,9 +12,11 @@ type Priority = {
 };
 export function DailyPriorities({
   compact = false,
+  dashboard = false,
   timezone,
 }: {
   compact?: boolean;
+  dashboard?: boolean;
   timezone?: string;
 }) {
   const { user } = useUser();
@@ -63,7 +65,8 @@ export function DailyPriorities({
   }, [user?.id, timezone, version, refresh]);
   return (
     <section
-      className={`rounded-2xl border border-[#eee7de] bg-[#fffdfa] p-4 ${compact ? "" : "my-3"}`}
+      data-morning-briefing-source="verified-priorities"
+      className={`${dashboard ? "dashboard-priorities " : ""}rounded-2xl border border-[#eee7de] bg-[#fffdfa] p-4 ${compact ? "" : "my-3"}`}
     >
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-serif text-[19px] text-ink">Daily priorities</h2>
@@ -117,6 +120,14 @@ export function DailyPriorities({
           ))}
         </ul>
       )}
+      {dashboard ? (
+        <div className="dashboard-priorities-actions">
+          <Link href="/dashboard/tasks">Review tasks →</Link>
+          <Link href="/dashboard/calendar">Open calendar →</Link>
+          <Link href="/dashboard/activity">Review conversations →</Link>
+          <span>Reply status is not tracked in this summary.</span>
+        </div>
+      ) : null}
     </section>
   );
 }

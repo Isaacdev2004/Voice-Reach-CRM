@@ -45,3 +45,7 @@ See [Tasks review](tasks-workspace/REVIEW.md) for visuals, metrics, tests and re
 ## Premium Studio, Activity, Settings and Brand Kit (review branch)
 
 See [review and release gates](studio-activity-review/REVIEW.md). Includes Tasks hero/template refinements, safe Voice Studio previews, receiving-number-scoped inbound tracking, premium Activity/Settings and private approved branding. The four `20261026*`/`20261027*` migrations are **not applied** to the configured database. No production deployment or provider changes were performed. Server API-key issuance, organization invitations and a new direct SMS reply sender are explicitly unsupported rather than presented as functional.
+
+## Dashboard typography refinement
+
+Focused main-based visual/data-presentation refinement; no migrations or provider changes. The user explicitly requested automatic deployment after checks. Merge only this CI-green dashboard PR to trigger the existing Vercel production integration, then verify the exact main commit deployment status. Separate unmerged AI assistant PR #26 is excluded. See [before/after and QA](dashboard-typography-review/REVIEW.md).

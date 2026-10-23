@@ -11,17 +11,21 @@ import {
   DASHBOARD_SECTION_SUBTITLE,
   DASHBOARD_SECTION_TITLE,
 } from "@/lib/dashboard/layout";
+import { useRouter } from "next/navigation";
+import {
+  dashboardCampaignMetrics,
+  recentDashboardCampaigns,
+  type DashboardCampaign,
+  type DashboardCampaignMetric,
+} from "@/lib/dashboard/campaign-display";
 import { useEffect, useState } from "react";
 
-type CampaignRow = {
-  id: string;
-  name: string;
-  status: string;
-  provider: string;
-  created_at: string;
-};
+type CampaignRow = DashboardCampaign;
 
 const STATUS_LABEL: Record<string, { label: string; className: string }> = {
+  active: { label: "Active", className: "bg-sage-light text-emerald-muted" },
+  paused: { label: "Paused", className: "bg-champagne text-taupe" },
+  archived: { label: "Archived", className: "bg-champagne text-taupe" },
   draft: { label: "Draft", className: "bg-champagne text-taupe" },
   queued: { label: "Queued", className: "bg-bronze-light text-bronze" },
   sending: { label: "Sending", className: "bg-sage-light text-emerald-muted" },
@@ -32,6 +36,7 @@ const STATUS_LABEL: Record<string, { label: string; className: string }> = {
 
 function formatDate(iso: string) {
   try {
+    if (!Number.isFinite(Date.parse(iso))) return "—";
     return new Date(iso).toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
@@ -42,28 +47,12 @@ function formatDate(iso: string) {
   }
 }
 
-type CampaignMetricRow = {
-  id: string;
-  volume: number;
-  deliveryRate: number;
-  contacts?: number;
-};
-
+type CampaignMetricRow = DashboardCampaignMetric;
 function metricsForCampaign(
-  campaignId: string,
-  status: string,
+  campaign: CampaignRow,
   byId: Map<string, CampaignMetricRow>,
 ) {
-  const row = byId.get(campaignId);
-  if (!row || status === "draft") {
-    return { steps: "—", contacts: "—", open: "—", reply: "—" };
-  }
-  return {
-    steps: "—",
-    contacts: typeof row.contacts === "number" ? String(row.contacts) : "—",
-    open: row.volume > 0 ? `${row.deliveryRate}%` : "—",
-    reply: "—",
-  };
+  return dashboardCampaignMetrics(campaign, byId.get(campaign.id));
 }
 
 const THUMBS = [
@@ -74,39 +63,68 @@ const THUMBS = [
 ];
 
 export function DashboardRecentCampaignsTable() {
+  const router = useRouter();
+  const [error, setError] = useState(false),
+    [version, setVersion] = useState(0);
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
-  const [metricById, setMetricById] = useState<Map<string, CampaignMetricRow>>(new Map());
+  const [metricById, setMetricById] = useState<Map<string, CampaignMetricRow>>(
+    new Map(),
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    void (async () => {
-      try {
-        const [campRes, analyticsRes] = await Promise.all([
-          fetch("/api/campaigns"),
-          fetch("/api/analytics?range=30d"),
-        ]);
-        const data = await campRes.json().catch(() => ({}));
-        setCampaigns((data.campaigns ?? []).slice(0, 6));
-
-        const analytics = (await analyticsRes.json().catch(() => ({}))) as {
-          campaigns?: CampaignMetricRow[];
-        };
-        const map = new Map<string, CampaignMetricRow>();
-        for (const m of analytics.campaigns ?? []) {
-          map.set(m.id, m);
-        }
-        setMetricById(map);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+    const controller = new AbortController();
+    const options = {
+      cache: "no-store" as const,
+      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]),
+    };
+    setLoading(true);
+    setError(false);
+    setMetricById(new Map());
+    void fetch("/api/analytics?range=30d", options)
+      .then(async (res) => {
+        const analytics = await res.json();
+        if (
+          !res.ok ||
+          analytics.fromLiveData !== true ||
+          !Array.isArray(analytics.campaigns)
+        )
+          return;
+        if (!controller.signal.aborted)
+          setMetricById(
+            new Map(
+              analytics.campaigns.map((m: CampaignMetricRow) => [m.id, m]),
+            ),
+          );
+      })
+      .catch(() => undefined);
+    void fetch("/api/campaigns/library", options)
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok || data.success === false || !Array.isArray(data.campaigns))
+          throw Error();
+        if (!controller.signal.aborted)
+          setCampaigns(recentDashboardCampaigns(data.campaigns));
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setError(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [version]);
 
   return (
     <LuxuryCard padding="md" className={DASHBOARD_SECTION_CARD}>
       <div className={cn(DASHBOARD_SECTION_HEADER, "sm:items-end")}>
         <div>
-          <h2 className={cn(DASHBOARD_SECTION_TITLE, "dashboard-section-heading")}><Icon name="campaign" />Recent Campaigns</h2>
+          <h2
+            className={cn(DASHBOARD_SECTION_TITLE, "dashboard-section-heading")}
+          >
+            <Icon name="campaign" />
+            Recent Campaigns
+          </h2>
           <p className={DASHBOARD_SECTION_SUBTITLE}>
             Track performance and pick up where you left off.
           </p>
@@ -129,9 +147,22 @@ export function DashboardRecentCampaignsTable() {
       </div>
 
       {loading ? (
-        <p className="py-8 text-center text-[14px] text-taupe">Loading campaigns…</p>
+        <p className="py-8 text-center text-[14px] text-taupe">
+          Loading campaigns…
+        </p>
+      ) : error ? (
+        <div className="dashboard-compact-state" role="alert">
+          <p>Campaigns could not be loaded.</p>
+          <button
+            type="button"
+            onClick={() => setVersion((v) => v + 1)}
+            className="text-rose-gold-deep"
+          >
+            Try again
+          </button>
+        </div>
       ) : campaigns.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-outline-variant/30 bg-cream/40 px-6 py-10 text-center">
+        <div className="dashboard-compact-state rounded-xl border border-dashed border-outline-variant/30 bg-cream/40">
           <p className="text-[14px] text-slate-text">No campaigns yet.</p>
           <Link
             href="/dashboard/campaigns"
@@ -148,7 +179,7 @@ export function DashboardRecentCampaignsTable() {
                 label: c.status,
                 className: "bg-champagne text-taupe",
               };
-              const metrics = metricsForCampaign(c.id, c.status, metricById);
+              const metrics = metricsForCampaign(c, metricById);
               const thumb = THUMBS[idx % THUMBS.length];
               return (
                 <li key={c.id}>
@@ -157,81 +188,123 @@ export function DashboardRecentCampaignsTable() {
                     className="flex items-center gap-3 px-1 py-3.5"
                   >
                     <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-champagne">
-                      <Image src={thumb} alt="" fill className="object-cover" sizes="44px" />
+                      <Image
+                        src={thumb}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        sizes="44px"
+                      />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-ink">{c.name}</p>
+                      <p className="line-clamp-2 font-medium text-ink">
+                        {c.name}
+                      </p>
                       <p className="mt-0.5 text-[12px] text-taupe">
                         {status.label}
-                        {metrics.contacts !== "—" ? ` · ${metrics.contacts} contacts` : ""}
-                        {metrics.open !== "—" ? ` · ${metrics.open} delivery` : ""}
+                        {metrics.contacts !== "—"
+                          ? ` · ${metrics.contacts} contacts`
+                          : ""}
+                        {metrics.delivery !== "—"
+                          ? ` · ${metrics.delivery} delivery`
+                          : ""}
                       </p>
-                      <p className="mt-0.5 text-[11px] text-taupe">{formatDate(c.created_at)}</p>
+                      <p className="mt-0.5 text-[11px] text-taupe">
+                        {formatDate(c.created_at)}
+                      </p>
                     </div>
-                    <Icon name="chevron_right" className="shrink-0 text-[22px] text-taupe" />
+                    <Icon
+                      name="chevron_right"
+                      className="shrink-0 text-[22px] text-taupe"
+                    />
                   </Link>
                 </li>
               );
             })}
           </ul>
-        <div className="hidden overflow-x-auto -mx-2 px-2 md:block">
-          <table className="dashboard-recent-table w-full min-w-[640px] border-collapse text-left text-[13px]">
-            <thead>
-              <tr className="border-b border-outline-variant/15 text-[11px] font-semibold uppercase tracking-wider text-taupe">
-                <th className="pb-3 pr-4 font-semibold">Campaign</th>
-                <th className="pb-3 pr-4 font-semibold">Status</th>
-                <th className="pb-3 pr-4 font-semibold">Steps</th>
-                <th className="pb-3 pr-4 font-semibold">Contacts</th>
-                <th className="pb-3 pr-4 font-semibold">Delivery rate</th>
-                <th className="pb-3 pr-4 font-semibold">Reply rate</th>
-                <th className="pb-3 font-semibold">Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {campaigns.map((c, idx) => {
-                const status = STATUS_LABEL[c.status] ?? {
-                  label: c.status,
-                  className: "bg-champagne text-taupe",
-                };
-                const metrics = metricsForCampaign(c.id, c.status, metricById);
-                const thumb = THUMBS[idx % THUMBS.length];
-                return (
-                  <tr
-                    key={c.id}
-                    className="border-b border-outline-variant/10 transition-colors last:border-0"
+          <div className="hidden overflow-x-auto -mx-2 px-2 md:block">
+            <table className="dashboard-recent-table w-full min-w-[640px] border-collapse text-left text-[13px]">
+              <thead>
+                <tr className="border-b border-outline-variant/15 text-[11px] font-semibold uppercase tracking-wider text-taupe">
+                  <th className="pb-3 pr-4 font-semibold">Campaign</th>
+                  <th className="pb-3 pr-4 font-semibold">Status</th>
+                  <th className="pb-3 pr-4 font-semibold">Steps</th>
+                  <th
+                    className="pb-3 pr-4 font-semibold"
+                    title="Current unique campaign enrollments"
                   >
-                    <td className="py-4 pr-4">
-                      <Link
-                        href={`/dashboard/campaigns/${c.id}`}
-                        className="flex items-center gap-3 font-medium text-ink hover:text-rose-gold-deep"
-                      >
-                        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-champagne">
-                          <Image src={thumb} alt="" fill className="object-cover" sizes="40px" />
-                        </div>
-                        <span className="min-w-0 truncate">{c.name}</span>
-                      </Link>
-                    </td>
-                    <td className="py-4 pr-4">
-                      <span
-                        className={cn(
-                          "inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize",
-                          status.className,
-                        )}
-                      >
-                        {status.label}
-                      </span>
-                    </td>
-                    <td className="py-4 pr-4 text-slate-text">{metrics.steps}</td>
-                    <td className="py-4 pr-4 text-slate-text">{metrics.contacts}</td>
-                    <td className="py-4 pr-4 text-slate-text">{metrics.open}</td>
-                    <td className="py-4 pr-4 text-slate-text">{metrics.reply}</td>
-                    <td className="py-4 text-taupe">{formatDate(c.created_at)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    Contacts
+                  </th>
+                  <th className="pb-3 pr-4 font-semibold">Delivery rate</th>
+                  <th className="pb-3 pr-4 font-semibold">Reply rate</th>
+                  <th className="pb-3 font-semibold">Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {campaigns.map((c, idx) => {
+                  const status = STATUS_LABEL[c.status] ?? {
+                    label: c.status,
+                    className: "bg-champagne text-taupe",
+                  };
+                  const metrics = metricsForCampaign(c, metricById);
+                  const thumb = THUMBS[idx % THUMBS.length];
+                  return (
+                    <tr
+                      key={c.id}
+                      className="dashboard-campaign-row border-b border-outline-variant/10 transition-colors last:border-0"
+                      onClick={(event) => {
+                        if (!(event.target as HTMLElement).closest("a,button"))
+                          router.push(`/dashboard/campaigns/${c.id}`);
+                      }}
+                    >
+                      <td className="py-4 pr-4">
+                        <Link
+                          href={`/dashboard/campaigns/${c.id}`}
+                          className="flex items-center gap-3 font-medium text-ink hover:text-rose-gold-deep"
+                        >
+                          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-champagne">
+                            <Image
+                              src={thumb}
+                              alt=""
+                              fill
+                              className="object-cover"
+                              sizes="40px"
+                            />
+                          </div>
+                          <span className="min-w-0 line-clamp-2">{c.name}</span>
+                        </Link>
+                      </td>
+                      <td className="py-4 pr-4">
+                        <span
+                          className={cn(
+                            "inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize",
+                            status.className,
+                          )}
+                        >
+                          {status.label}
+                        </span>
+                      </td>
+                      <td className="py-4 pr-4 text-slate-text">
+                        {metrics.steps}
+                      </td>
+                      <td className="py-4 pr-4 text-slate-text">
+                        {metrics.contacts}
+                      </td>
+                      <td className="py-4 pr-4 text-slate-text">
+                        {metrics.delivery}
+                      </td>
+                      <td className="py-4 pr-4 text-slate-text">
+                        {metrics.reply}
+                      </td>
+                      <td className="py-4 text-taupe">
+                        {formatDate(c.created_at)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
     </LuxuryCard>

@@ -61,3 +61,7 @@ Review [Tasks screenshots and release gates](tasks-workspace/REVIEW.md). Use syn
 ## Premium Studio / Activity / Settings demo
 
 Use the isolated synthetic screenshots in `docs/studio-activity-review`, not production subscribers. Show read-only Test Voice Script and synthetic text personalization; explain that prerecorded audio is unchanged and provider acceptance is not delivery. Demonstrate Settings profile tabs, private branding previews and derived onboarding progress. Do not describe roster entries as real invitations, browser references as working API keys, or keyword suggestions as AI-verified intent. Keep live outbound off and do not send, call, charge or modify provider configuration. Authenticated staging/provider verification and migrations remain release gates.
+
+## Dashboard typography QA
+
+The compact hero preserves exact approved copy and original photo. Review real KPI links, measured delivery rates, library enrollment/step counts and compact priorities; unknown reply metrics remain dashes. Never represent synthetic review screenshots as subscriber records. Existing live-outbound settings remain unchanged. [Before/after](dashboard-typography-review/REVIEW.md).
