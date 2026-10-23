@@ -250,3 +250,13 @@
 .dashboard-business-grid .dashboard-recent-table th,.dashboard-business-grid .dashboard-recent-table td { padding-inline:6px; }
 .dashboard-business-grid .dashboard-recommendations-column ul { display:block; }
 @media(max-width:1399px) { .dashboard-business-grid { grid-template-columns:1fr; } }
+
+/* Give the final dashboard cards a deliberate finish above the viewport edge. */
+.dashboard-luxury main > div:last-child {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+@media (max-width: 767px) {
+  .dashboard-luxury main > div:last-child {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+}
