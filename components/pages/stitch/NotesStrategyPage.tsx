@@ -1,4 +1,5 @@
 "use client";
+import { useAiRecordContext } from "@/components/ai/ai-assistant-context";
 import Image from "next/image";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
@@ -53,6 +54,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
     params = useSearchParams(),
     deep = useRef(false),
     editor = useRef<HTMLTextAreaElement>(null);
+  useAiRecordContext({page:"/dashboard/notes",noteId:draft.id??undefined});
   const [category, setCategory] = useState("All Notes"),
     [query, setQuery] = useState(""),
     [tag, setTag] = useState(""),

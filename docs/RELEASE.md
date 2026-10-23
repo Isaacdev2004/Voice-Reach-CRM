@@ -45,3 +45,7 @@ See [Tasks review](tasks-workspace/REVIEW.md) for visuals, metrics, tests and re
 ## Premium Studio, Activity, Settings and Brand Kit (review branch)
 
 See [review and release gates](studio-activity-review/REVIEW.md). Includes Tasks hero/template refinements, safe Voice Studio previews, receiving-number-scoped inbound tracking, premium Activity/Settings and private approved branding. The four `20261026*`/`20261027*` migrations are **not applied** to the configured database. No production deployment or provider changes were performed. Server API-key issuance, organization invitations and a new direct SMS reply sender are explicitly unsupported rather than presented as functional.
+
+## Ask MyARI CRM assistant
+
+Claude is retained. Added owner-scoped read tools, persistent conversation/proposal history, editable exact-version approvals, atomic internal task/reminder/note saves, explicitly draft-only higher-impact requests and an on-demand evidence briefing. No production changes or provider sends. See [review and release gates](ai-assistant-review/REVIEW.md). New migration `20261028000000_ai_crm_assistant.sql` is unapplied.

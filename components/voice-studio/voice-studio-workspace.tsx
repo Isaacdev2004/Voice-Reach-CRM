@@ -1,4 +1,5 @@
 "use client";
+import { useAiRecordContext } from "@/components/ai/ai-assistant-context";
 import { AudioWaveform } from "@/components/voice-studio/audio-waveform";
 
 import { useUser } from "@clerk/nextjs";
@@ -65,6 +66,7 @@ export function VoiceStudioWorkspace({
 
   const [title, setTitle] = useState("Untitled voice script");
   const [draftId, setDraftId] = useState("");
+  useAiRecordContext({page:"/dashboard/voice-scripts",scriptId:isUuid(draftId)?draftId:undefined,campaignId:isUuid(campaignId)?campaignId:undefined});
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [stepId, setStepId] = useState("");

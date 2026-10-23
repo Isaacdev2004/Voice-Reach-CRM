@@ -1,4 +1,5 @@
 "use client";
+import { useAiRecordContext } from "@/components/ai/ai-assistant-context";
 
 import { useContactViewMemory } from "@/lib/hooks/use-contact-view-memory";
 import { notifyContactsChanged } from "@/lib/contacts/change-events";
@@ -115,6 +116,7 @@ function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
   const page = Math.min(state.page, pages);
   const pageRows = sortedRows.slice((page - 1) * pageSize, page * pageSize);
   const previewContact = pageRows.find(c => c.id === previewId) ?? pageRows[0];
+  useAiRecordContext({page:"/dashboard/contacts",contactId:previewContact?.id});
   const total = meta?.total;
 
   const selectableRows = pageRows;

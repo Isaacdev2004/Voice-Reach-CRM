@@ -1,0 +1,23 @@
+{
+  "build": "passed",
+  "typecheck": "passed",
+  "lint": {
+    "errors": 0,
+    "existingWarnings": 7
+  },
+  "fullUnitSuite": "passed",
+  "assistantRegressionCases": 19,
+  "isolatedPostgres": "passed",
+  "security": "passed",
+  "regressions": "passed",
+  "browserWidths": [
+    1440,
+    1920,
+    768,
+    390
+  ],
+  "liveProvidersVerified": false,
+  "productionRecordsVerified": false,
+  "productionMigrationsApplied": false,
+  "deployed": false
+}

@@ -61,3 +61,7 @@ Review [Tasks screenshots and release gates](tasks-workspace/REVIEW.md). Use syn
 ## Premium Studio / Activity / Settings demo
 
 Use the isolated synthetic screenshots in `docs/studio-activity-review`, not production subscribers. Show read-only Test Voice Script and synthetic text personalization; explain that prerecorded audio is unchanged and provider acceptance is not delivery. Demonstrate Settings profile tabs, private branding previews and derived onboarding progress. Do not describe roster entries as real invitations, browser references as working API keys, or keyword suggestions as AI-verified intent. Keep live outbound off and do not send, call, charge or modify provider configuration. Authenticated staging/provider verification and migrations remain release gates.
+
+## Ask MyARI review demo
+
+Use synthetic staging contacts only; keep `ALLOW_LIVE_OUTBOUND` off. Open the drawer, summarize a selected saved contact, inspect source links, edit a task proposal, save the edit and explicitly confirm once. Reopen history and confirm one record after retry. Demonstrate an email proposal as an approved draft, not a sent message. Open Daily briefing and show unavailable/unverified data honestly. Never demo fabricated account counts or live sends. [Screenshots and report](ai-assistant-review/REVIEW.md).

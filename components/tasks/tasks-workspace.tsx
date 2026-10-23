@@ -1,4 +1,5 @@
 "use client";
+import { useAiRecordContext } from "@/components/ai/ai-assistant-context";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
@@ -142,6 +143,7 @@ function Workspace({ owner, name }: { owner?: string; name: string }) {
       assigneeId: string;
     } | null>(null),
     [transactionError, setTransactionError] = useState("");
+  useAiRecordContext({page:"/dashboard/tasks",taskId:editor?.task?.id,contactId:editor?.task?.contact_id});
   const proposalBatch = useRef(crypto.randomUUID()),
     proposalIds = useRef<string[]>([]);
   const loadedPrefs = useRef(false),
@@ -189,6 +191,7 @@ function Workspace({ owner, name }: { owner?: string; name: string }) {
       if (active.current && serial === refreshSerial.current) setLoading(false);
     }
   }, [owner, request]);
+  useEffect(()=>{const reload=()=>{void refresh();};window.addEventListener("myari-assistant-record-saved",reload);return()=>window.removeEventListener("myari-assistant-record-saved",reload);},[refresh]);
   const loadTemplates = useCallback(async () => {
     try {
       const d = await request<{ templates: TaskTemplate[] }>(

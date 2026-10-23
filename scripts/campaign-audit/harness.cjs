@@ -70,6 +70,12 @@ function fixture() {
           filters.push((r) => r[k] !== v);
           return q;
         },
+        or(expression){
+          const clauses=expression.split(',').map(part=>/^([a-z_]+)\.ilike\.%([\s\S]*)%$/.exec(part));
+          if(clauses.some(v=>!v))throw Error('Unsupported synthetic OR expression');
+          filters.push(r=>clauses.some(v=>String(r[v[1]]??'').toLowerCase().includes(v[2].toLowerCase())));
+          calls.push({table,filter:'or',value:expression});return q;
+        },
         ilike(k,v){filters.push(r=>String(r[k]??'').replace(/\D/g,'').endsWith(String(v).replace(/\D/g,'')));return q;},
         in(k, v) {
           filters.push((r) => v.includes(r[k]));

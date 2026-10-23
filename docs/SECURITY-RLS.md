@@ -27,3 +27,7 @@ Replace `using (true)` policies with `owner_id = current_setting('app.owner_id')
 ## Calendar scheduling proposal
 
 `20261023020000_calendar_workspace.sql` restricts new `calendar_share_links`, `calendar_booking_requests`, and preference/booking functions to `service_role`. Dashboard handlers derive the owner from `requireUserId`; public feed/booking handlers derive it from a 256-bit hashed capability token, never an owner supplied by a guest. Private feeds expose Busy times only. Management tokens are separately hashed. Calendar OAuth tokens use a server-only AES-256-GCM key, and ETags protect external changes. See `docs/calendar-premium/README.md` for staging-only verification requirements; this migration has not been applied automatically.
+
+## Ask MyARI authorization
+
+New assistant tables have RLS and browser-role revocation. Service-only invoker RPCs enforce owner-scoped conversation/proposal operations, exact-version revision, approval row locks, contact ownership revalidation and atomic task/note/audit inserts. Tool registry exposes fixed read-only owner-scoped sources, no arbitrary database/URL/execution tools. Prompt text is untrusted; response citations/actions are validated. New assistant attempt budgets fail closed. No claim of organizational RBAC, universal DLP or consolidated limits on older AI endpoints. See [security findings and remaining gates](ai-assistant-review/REVIEW.md).
