@@ -49,10 +49,10 @@ const THUMB_BY_KEY: Record<
   (typeof DASHBOARD_RECOMMENDED_KEYS)[number],
   string
 > = {
-  "cold-lead-reengage": "/brand/heroes/contacts.jpg",
-  "long-term-buyer-nurture": "/brand/heroes/dashboard-interior.jpg",
-  "listing-alert-drip": "/brand/heroes/properties.jpg",
-  "past-client-anniversary": "/brand/heroes/properties.jpg",
+  "cold-lead-reengage": "/brand/dashboard/reengagement.webp",
+  "long-term-buyer-nurture": "/brand/dashboard/buyer-nurture.webp",
+  "listing-alert-drip": "/brand/dashboard/listing-alert.webp",
+  "past-client-anniversary": "/brand/dashboard/anniversary.webp",
 };
 
 export function DashboardRecommendedForYou() {
@@ -137,7 +137,7 @@ export function DashboardRecommendedForYou() {
                   alt=""
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transform-none"
-                  sizes="64px"
+                  sizes="60px"
                 />
               </div>
               <div className="dashboard-recommendation-copy min-w-0 flex-1">

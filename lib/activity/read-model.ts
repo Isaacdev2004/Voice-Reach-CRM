@@ -1,3 +1,4 @@
+import { sharedReceiver } from "@/lib/communications/safety";
 import { loadCalendarPreferences } from "@/lib/calendar/load-preferences";
 import { getGoogleConnection, getGoogleEvent } from "@/lib/calendar/google";
 import { wallTimeToInstant, zonedParts } from "@/lib/calendar/time";
@@ -318,6 +319,7 @@ export async function readContactActivity(
       "Historical engagement is recorded activity, not verified delivery evidence.",
     );
   for (const e of engagement) {
+    if (["replied", "callback"].includes(e.event_type) && sharedReceiver(String(e.metadata?.to ?? ""))) continue;
     const reference = String(e.metadata?.provider_message_id ?? "");
     if (reference && evidenceIds.has(reference)) continue;
     items.push({
@@ -334,7 +336,9 @@ export async function readContactActivity(
   }
   for (const a of audits) {
     if (!(a.entity_type === "contact" && a.entity_id === contact)) continue;
-    if (a.action === "CALL_LOGGED") {
+    if (a.action === "TWILIO_CALL_EVENT") {
+      items.push({ id:"twilio-call:"+a.id,type:"call",title:"Twilio call-leg event",at:a.created_at,status:String(a.metadata.status??"unknown"),detail:"Recorded provider leg status; completed alone is not proof a person answered." });
+    } else if (a.action === "CALL_LOGGED") {
       items.push({
         id: "call:" + a.id,
         type: "call",

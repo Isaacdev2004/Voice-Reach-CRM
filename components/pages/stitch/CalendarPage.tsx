@@ -179,6 +179,7 @@ function CalendarWorkspace() {
         date,
         time: prefs.workStart,
         contactId: q.get("contactId") ?? undefined,
+        kind: q.get("kind") === "callback" ? "callback" : "crm",
       });
   }, [ready, q, date, prefs.workStart]);
   const refresh = () => setRevision((r) => r + 1);

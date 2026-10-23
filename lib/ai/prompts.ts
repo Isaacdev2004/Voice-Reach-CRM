@@ -4,6 +4,7 @@
  */
 
 export type AiTaskType =
+  | "daily_briefing"
   | "email_writer"
   | "sms_writer"
   | "voicemail_script"

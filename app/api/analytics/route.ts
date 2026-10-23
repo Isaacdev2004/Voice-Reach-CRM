@@ -4,6 +4,7 @@ import { requireUserId } from "@/lib/auth";
 import { ownedRows } from "@/lib/delivery/owned-rows";
 import { readDelivery } from "@/lib/delivery/store";
 import { z } from "zod";
+import { confirmedCampaignCount } from "@/lib/dashboard/confirmed-campaigns";
 export const GET = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const range = z
@@ -26,12 +27,7 @@ export const GET = withApiHandler(async (request) => {
         campaigns,
         records: evidence.records,
       }),
-      confirmedSentCampaigns: new Set(
-        evidence.records
-          .filter((r) => r.events.some((e) => e.event_type === "sent"))
-          .map((r) => r.campaign_id)
-          .filter(Boolean),
-      ).size,
+      confirmedSentCampaigns: confirmedCampaignCount(campaigns, evidence.records),
       coverage: evidence.coverage,
       health: evidence.health,
     });

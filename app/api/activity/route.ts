@@ -1,3 +1,4 @@
+import { sharedReceiver } from "@/lib/communications/safety";
 import { readDelivery } from "@/lib/delivery/store";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { mapAuditRow, mapDeliveryRow } from "@/lib/activity/map-audit";
@@ -109,7 +110,7 @@ export const GET = withApiHandler(async () => {
       status: 503,
     });
   const replyEntries: ActivityLogEntry[] = engagement
-    .filter((e) => ["replied", "callback", "opt_out"].includes(e.event_type))
+    .filter((e) => ["replied", "callback", "opt_out"].includes(e.event_type) && !sharedReceiver(String(e.metadata?.to ?? "")))
     .map((e) => ({
       id: `engagement-${e.id}`,
       category: "engagement",

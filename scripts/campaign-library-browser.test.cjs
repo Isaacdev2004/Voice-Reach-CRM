@@ -113,6 +113,9 @@ const root = path.resolve(__dirname, "..");
         if (msg.type() === "error") errors.push(`console: ${msg.text()}`);
       });
       console.log("Checking viewport", width);
+      await page.goto(base + "/dashboard/campaigns?status=active");
+      await page.waitForFunction(() => document.querySelectorAll(".cl-card").length === 1);
+      assert.equal(await page.getByLabel("Campaign status", {exact:true}).inputValue(), "active");
       await page.goto(base + "/dashboard/campaigns");
       await page
         .getByRole("heading", {

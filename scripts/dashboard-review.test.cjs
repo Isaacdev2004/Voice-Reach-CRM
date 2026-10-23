@@ -66,7 +66,11 @@ const { chromium } = require("playwright"),
         fs.existsSync(file)
       )
         data = fs.readFileSync(file);
-      type = url.pathname.endsWith(".png") ? "image/png" : "image/jpeg";
+      type = url.pathname.endsWith(".webp")
+        ? "image/webp"
+        : url.pathname.endsWith(".png")
+          ? "image/png"
+          : "image/jpeg";
     } else
       data =
         '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/app.css"></head><body><div id="root"></div><script src="/app.js"></script></body></html>';
@@ -79,7 +83,11 @@ const { chromium } = require("playwright"),
   });
   await new Promise((r) => server.listen(0, "127.0.0.1", r));
   const origin = "http://127.0.0.1:" + server.address().port,
-    output = path.join(root, "docs/dashboard-typography-review", phase);
+    output = path.join(
+      root,
+      process.env.DASHBOARD_REVIEW_DIRECTORY || "docs/dashboard-final-review",
+      phase,
+    );
   fs.mkdirSync(output, { recursive: true });
   const browser = await chromium.launch({
     headless: true,
@@ -89,15 +97,124 @@ const { chromium } = require("playwright"),
   const id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
   const results = [];
   try {
-    for (const width of [1440, 1920, 768, 390]) {
+    for (const width of [1440, 1920, 1280, 768, 390]) {
       const page = await browser.newPage({ viewport: { width, height: 1080 } });
       const errors = [],
         writes = [];
       page.on("pageerror", (e) => errors.push(e.message));
       let mode = "populated";
+      const prefs = {
+        show: true,
+        enabled: false,
+        time: "08:30",
+        timezone: "America/New_York",
+        weekdaysOnly: true,
+        delivery: "dashboard",
+        categories: [
+          "tasks",
+          "appointments",
+          "replies",
+          "calls",
+          "transactions",
+          "delivery",
+          "activity",
+        ],
+        limit: 2,
+        collapsed: false,
+        layout: "compact",
+        dismissed: [],
+        order: [],
+      };
+      const ownerPrefs = new Map();
+      let prefRevision = 0;
+      const briefing = () => {
+        const saved = ownerPrefs.get("owner_a") || {
+          preferences: prefs,
+          version: null,
+        };
+        return {
+          success: true,
+          ...saved,
+          cached: null,
+          output: { bullets: [] },
+          snapshot: {
+            items:
+              mode === "empty"
+                ? []
+                : [
+                    {
+                      id: "task:1",
+                      category: "tasks",
+                      title: "Prepare the property shortlist",
+                      reason: "An open task is due today.",
+                      at: new Date().toISOString(),
+                      href: "/dashboard/tasks?taskId=" + id(20),
+                      rank: 2,
+                      contactId: id(1),
+                    },
+                    {
+                      id: "task:2",
+                      category: "tasks",
+                      title: "Review client follow-up",
+                      reason: "An open task is past its deadline.",
+                      at: new Date().toISOString(),
+                      href: "/dashboard/tasks?taskId=" + id(21),
+                      rank: 0,
+                      contactId: id(2),
+                    },
+                  ],
+            total: mode === "empty" ? 0 : 2,
+            counts: { tasks: 2 },
+            updatedAt: new Date().toISOString(),
+            since: null,
+            limitations: ["Synthetic source coverage"],
+          },
+        };
+      };
       await page.route("**/api/**", async (route) => {
         const req = route.request(),
           u = new URL(req.url());
+        if (u.pathname === "/api/dashboard/briefing/preferences") {
+          const b = req.postDataJSON();
+          const saved = {
+            preferences: b.preferences,
+            version: id(700 + ++prefRevision),
+          };
+          ownerPrefs.set("owner_a", saved);
+          return route.fulfill({ json: { success: true, ...saved } });
+        }
+        if (u.pathname === "/api/dashboard/briefing") {
+          if (mode === "error")
+            return route.fulfill({
+              status: 503,
+              json: { success: false, error: "Unavailable" },
+            });
+          if (req.method() === "POST") {
+            const b = req.postDataJSON();
+            if (b.action === "visit")
+              return route.fulfill({ json: { success: true, recorded: true } });
+            return route.fulfill({
+              json: {
+                success: true,
+                data: {
+                  task: "daily_briefing",
+                  provider: "verified-records",
+                  output: {
+                    bullets: ["Verified priorities only."],
+                    sources: [
+                      {
+                        id: "task:1",
+                        title: "Prepare the property shortlist",
+                        href: "/dashboard/tasks",
+                      },
+                    ],
+                  },
+                },
+              },
+            });
+          }
+          return route.fulfill({ json: briefing() });
+        }
         if (req.method() !== "GET") {
           writes.push({ path: u.pathname, body: req.postData() });
           return route.fulfill({
@@ -311,6 +428,9 @@ const { chromium } = require("playwright"),
             document.querySelector(".dashboard-luxury-kpi-value"),
           ).fontSize,
         ),
+        briefingHeight: document
+          .querySelector("#morning-briefing")
+          ?.getBoundingClientRect().height,
         overflow: document.documentElement.scrollWidth > innerWidth,
       }));
       assert.equal(measured.overflow, false);
@@ -338,7 +458,7 @@ const { chromium } = require("playwright"),
         await page.locator('a[href="/dashboard/analytics?range=30d"]').count(),
       );
       if (phase === "after") {
-        assert.ok(width < 1024 || measured.hero <= 306);
+        assert.ok(width < 1024 || measured.hero <= 284);
         assert.ok(
           width < 768 || (measured.headline >= 38 && measured.headline <= 42),
         );
@@ -382,6 +502,114 @@ const { chromium } = require("playwright"),
             .first()
             .waitFor();
         }
+        const photographs = await page
+          .locator(".dashboard-recommendation-photo img")
+          .evaluateAll((images) =>
+            images.map((i) => ({
+              src: i.getAttribute("src"),
+              width: i.naturalWidth,
+              rendered: i.getBoundingClientRect().width,
+            })),
+          );
+        assert.equal(new Set(photographs.map((i) => i.src)).size, 4);
+        assert.ok(photographs.every((i) => i.width >= i.rendered * 2));
+        const priority = page.locator("#morning-briefing");
+        await priority
+          .getByRole("heading", { name: "AI Morning Briefing", exact: true })
+          .waitFor();
+        assert.ok(
+          (await priority.locator(".dashboard-priority-list li").count()) <= 3,
+        );
+        await priority
+          .getByRole("button", { name: /View full briefing/ })
+          .click();
+        await priority
+          .getByText("An open task is due today.", { exact: true })
+          .waitFor();
+        await priority
+          .getByRole("button", { name: /Show compact briefing/ })
+          .click();
+        await priority
+          .getByText("Prepare the property shortlist", { exact: true })
+          .waitFor();
+        assert.equal(await page.locator("#morning-briefing").count(), 1);
+        assert.equal(
+          await page
+            .locator(".dashboard-work-column #morning-briefing")
+            .count(),
+          1,
+        );
+        assert.equal(
+          await page
+            .locator(".dashboard-insights-column .dashboard-pulse-column")
+            .count(),
+          1,
+        );
+        await priority
+          .getByRole("button", { name: "Briefing preferences", exact: true })
+          .click();
+        const preferences = page.getByRole("dialog", {
+          name: "Morning briefing preferences",
+          exact: true,
+        });
+        await preferences
+          .getByLabel("Visible priorities", { exact: true })
+          .fill("1");
+        await preferences
+          .getByRole("button", { name: "Save preferences", exact: true })
+          .click();
+        await preferences.waitFor({ state: "detached" });
+        await page.waitForFunction(
+          () =>
+            document.querySelectorAll(".dashboard-priority-list li").length ===
+            1,
+        );
+        await page.reload();
+        await page.waitForFunction(
+          () =>
+            document.querySelectorAll(".dashboard-priority-list li").length ===
+            1,
+        );
+        await page
+          .getByRole("button", { name: "Ask MyARI briefing", exact: false })
+          .click();
+        const assistant = page.getByRole("dialog", {
+          name: "MyARI AI",
+          exact: true,
+        });
+        await assistant.waitFor();
+        await assistant
+          .getByRole("button", { name: "Generate", exact: true })
+          .click();
+        await assistant
+          .getByText("Verified priorities only.", { exact: true })
+          .waitFor();
+        assert.equal(
+          await assistant
+            .getByRole("link", { name: /Prepare the property shortlist/ })
+            .getAttribute("href"),
+          "/dashboard/tasks",
+        );
+        await page.keyboard.press("Escape");
+        await page
+          .getByRole("button", { name: /Quick create/i })
+          .filter({ visible: true })
+          .click();
+        const quick = page.getByRole("dialog", {
+          name: "Quick create",
+          exact: true,
+        });
+        await quick.getByRole("button", { name: /New task/ }).waitFor();
+        await page.keyboard.press("Escape");
+        const search = page.getByRole("combobox", {
+          name: "Search dashboard",
+          exact: true,
+        });
+        await search.fill("Alex");
+        await search.press("Enter");
+        assert.equal(new URL(page.url()).searchParams.get("q"), "Alex");
+        await page.goto(origin + "/dashboard");
+        await page.locator(".dashboard-recommendation").first().waitFor();
         await page.locator(".dashboard-recommendation").first().click();
         await page
           .getByRole("alert")
@@ -402,7 +630,7 @@ const { chromium } = require("playwright"),
         mode = "empty";
         await page.reload();
         await page.getByText("No campaigns yet.", { exact: true }).waitFor();
-        await page.getByText(/No overdue or due-today tasks/).waitFor();
+        await page.getByText(/No matching priorities/).waitFor();
         await page.screenshot({
           path: path.join(output, "empty-1440.png"),
           fullPage: true,
@@ -419,7 +647,7 @@ const { chromium } = require("playwright"),
         assert.equal(
           (
             await page.locator(".dashboard-luxury-kpi-value").allTextContents()
-          ).filter((v) => v === "—").length,
+          ).filter((v) => v === "—" || v === "Unavailable").length,
           4,
         );
         await page.screenshot({

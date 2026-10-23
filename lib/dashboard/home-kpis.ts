@@ -2,13 +2,16 @@ import { contactSegment } from "@/lib/contacts/lifecycle";
 import type { ApiContact } from "@/lib/hooks/use-contacts";
 
 export type CampaignRow = {
+  id: string;
   status: string;
+  provider?: string;
+  live_launched?: boolean | null;
   created_at?: string;
   confirmedSent?: boolean;
 };
 
 const SENT_STATUSES = new Set(["sent", "partial", "sending"]);
-const ACTIVE_STATUSES = new Set(["sending", "queued"]);
+
 
 function startOfMonth(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -62,7 +65,7 @@ export function countSentCampaigns(campaigns: CampaignRow[]): number {
 }
 
 export function countActiveCampaigns(campaigns: CampaignRow[]): number {
-  return campaigns.filter((c) => ACTIVE_STATUSES.has(c.status)).length;
+  return [...new Map(campaigns.map(c => [c.id, c])).values()].filter(c => c.status === "sending" && (c.provider === "mock" || c.live_launched !== false)).length;
 }
 
 export function campaignsLaunchedThisMonth(campaigns: CampaignRow[]): number {

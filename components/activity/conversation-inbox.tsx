@@ -10,6 +10,7 @@ type Message = {
   to_number: string;
   body: string;
   status: string;
+  callEvidence?: {label:string;duration:number|null};
   classification: string;
   duration: number | null;
   received_at: string;
@@ -122,7 +123,7 @@ export function ConversationInbox() {
               <article key={m.id}>
                 <p>
                   {m.kind === "call"
-                    ? `Call · ${m.status}${m.duration !== null ? ` · ${m.duration} seconds` : ""}`
+                    ? `Call · ${m.callEvidence?.label ?? "Outcome unverified"}${(m.callEvidence?.duration ?? m.duration) != null ? ` · ${m.callEvidence?.duration ?? m.duration} seconds (recorded leg)` : ""}`
                     : m.body}
                 </p>
                 <small>

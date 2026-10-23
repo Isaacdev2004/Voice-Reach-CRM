@@ -235,7 +235,7 @@ export function DashboardRecentCampaignsTable() {
                   >
                     Contacts
                   </th>
-                  <th className="pb-3 pr-4 font-semibold">Delivery rate</th>
+                  <th className="pb-3 pr-4 font-semibold" title="Provider-confirmed delivery for attempts in the last 30 days">Delivery rate</th>
                   <th className="pb-3 pr-4 font-semibold">Reply rate</th>
                   <th className="pb-3 font-semibold">Created</th>
                 </tr>

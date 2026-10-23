@@ -1,0 +1,57 @@
+[
+  {
+    "width": 1440,
+    "hero": 268,
+    "headline": 38,
+    "description": 16,
+    "kpi": 32,
+    "briefingHeight": 218.390625,
+    "overflow": false,
+    "errors": [],
+    "writesBlocked": 1
+  },
+  {
+    "width": 1920,
+    "hero": 270.65625,
+    "headline": 42,
+    "description": 16,
+    "kpi": 32,
+    "briefingHeight": 172.390625,
+    "overflow": false,
+    "errors": [],
+    "writesBlocked": 1
+  },
+  {
+    "width": 1280,
+    "hero": 268,
+    "headline": 38,
+    "description": 16,
+    "kpi": 32,
+    "briefingHeight": 148.390625,
+    "overflow": false,
+    "errors": [],
+    "writesBlocked": 1
+  },
+  {
+    "width": 768,
+    "hero": 268,
+    "headline": 38,
+    "description": 16,
+    "kpi": 32,
+    "briefingHeight": 254.390625,
+    "overflow": false,
+    "errors": [],
+    "writesBlocked": 1
+  },
+  {
+    "width": 390,
+    "hero": 493.375,
+    "headline": 31.2,
+    "description": 15,
+    "kpi": 30,
+    "briefingHeight": 272.390625,
+    "overflow": false,
+    "errors": [],
+    "writesBlocked": 1
+  }
+]
