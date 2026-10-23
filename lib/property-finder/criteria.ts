@@ -4,7 +4,7 @@ import type { ApiContact } from "@/lib/hooks/use-contacts";
 export function propertyBudget(raw: string): { value: number | null; error: string | null } {
   if (!raw.trim()) return {value:null,error:null};
   const value = Number(raw.replace(/,/g,""));
-  if (!Number.isFinite(value) || value <= 0) return {value:null,error:"Enter a maximum price greater than zero, or leave it blank."};
+  if (!Number.isFinite(value) || value < 1 || !Number.isSafeInteger(Math.round(value))) return {value:null,error:"Enter a maximum price of at least $1 within the supported numeric range, or leave it blank."};
   return {value,error:null};
 }
 

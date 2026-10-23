@@ -13,6 +13,7 @@ w.__records.push({id:'00000000-0000-4000-8000-000000000050',owner_id:'owner_b',f
 w.__records[0].preferred_sqft=1800;w.__records[0].preferred_beds=3;w.__records[0].preferred_baths=2.5;w.__records[0].preferred_garage_spaces=2;w.__records[0].preferred_lot_sqft=5000;w.__records[0].preferred_property_type='Condo';
 w.__records[4].preferred_beds=0;
 w.__records=JSON.parse(sessionStorage.getItem('property-qa-records')||'null')||w.__records;
+w.__history=[];
 w.__tasks=JSON.parse(sessionStorage.getItem('property-qa-tasks')||'[]');w.__requests=[];
 const response=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json'}});
 w.fetch=async(input,init={})=>{
@@ -25,10 +26,12 @@ w.fetch=async(input,init={})=>{
  if(/^\/api\/contacts\/[a-f0-9-]{36}$/.test(url.pathname)&&method==='PATCH'){
   const contact=owned.find(record=>record.id===url.pathname.split('/').at(-1));if(!contact)return response({success:false,error:'Not found'},404);
   if(w.__failSave)return response({success:false,error:'private database detail'},500);
-  const body=JSON.parse(init.body);if(w.__missingPrefs&&body.propertyPreferences)return response({success:false,code:'property_preferences_unavailable',error:'private schema detail'},503);if(body.propertyPreferences){const columns={squareFeet:'preferred_sqft',beds:'preferred_beds',baths:'preferred_baths',garageSpaces:'preferred_garage_spaces',lotSquareFeet:'preferred_lot_sqft',propertyType:'preferred_property_type'};for(const [key,value] of Object.entries(body.propertyPreferences))contact[columns[key]]=value;}if('preferredArea'in body)contact.preferred_area=body.preferredArea;if('budget'in body)contact.budget=body.budget;
+  const body=JSON.parse(init.body);if(w.__delaySave)await new Promise(resolve=>{w.__finishSave=resolve;});if(w.__missingPrefs&&body.propertyPreferences)return response({success:false,code:'property_preferences_unavailable',error:'private schema detail'},503);if(body.propertyPreferences){const columns={squareFeet:'preferred_sqft',beds:'preferred_beds',baths:'preferred_baths',garageSpaces:'preferred_garage_spaces',lotSquareFeet:'preferred_lot_sqft',propertyType:'preferred_property_type'};for(const [key,value] of Object.entries(body.propertyPreferences))contact[columns[key]]=value;}if('preferredArea'in body)contact.preferred_area=body.preferredArea;if('budget'in body)contact.budget=body.budget;
   sessionStorage.setItem('property-qa-records',JSON.stringify(w.__records));return response({success:true,contact});
  }
  const contactMatch=url.pathname.match(/^\/api\/contacts\/([a-f0-9-]{36})$/);if(contactMatch&&method==='GET'){const contact=owned.find(record=>record.id===contactMatch[1]);return contact?response({success:true,contact}):response({success:false,error:'Not found'},404);}
+ if(url.pathname==='/api/property-finder/history'){if(w.__failHistory)return response({success:false,error:'private history detail'},503);if(method==='POST'){const body=JSON.parse(init.body);w.__history.push({id:body.eventId,owner_id:w.__owner,entity_id:body.contactId,metadata:{kind:body.kind,url:body.url},created_at:new Date().toISOString()});return response({success:true,recorded:true});}return response({success:true,entries:w.__history.filter(row=>row.owner_id===w.__owner)});}
+ if(url.pathname==='/api/ai/generate'){w.__aiRequest=JSON.parse(init.body);return response({success:true,data:{provider:'synthetic-test',task:'next_best_action',output:{recommendation:'Confirm preferred neighborhoods before refining the Zillow search.',reason:'Only the client preferences supplied by this fixture are available.',suggestedChannel:'email'}}});}
  if(url.pathname==='/api/notes')return response({success:true,notes:[]});
  if(url.pathname==='/api/engagement')return response({success:true,data:{events:[],score:null}});
  if(url.pathname==='/api/tasks')return response({success:true,tasks:w.__tasks.filter(task=>task.owner_id===w.__owner)});

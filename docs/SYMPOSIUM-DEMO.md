@@ -65,3 +65,7 @@ Use the isolated synthetic screenshots in `docs/studio-activity-review`, not pro
 ## Dashboard typography QA
 
 The compact hero preserves exact approved copy and original photo. Review real KPI links, measured delivery rates, library enrollment/step counts and compact priorities; unknown reply metrics remain dashes. Never represent synthetic review screenshots as subscriber records. Existing live-outbound settings remain unchanged. [Before/after](dashboard-typography-review/REVIEW.md).
+
+## Property Finder refinement — 2026-10-23
+
+See [Property Finder audit](PROPERTY-FINDER-AUDIT.md) for data sources, changes, synthetic QA, screenshots and integration limitations. History uses existing owner-scoped audit records with immutable retry IDs; no new migration. Search remains external Zillow links, with location/maximum price only. Additional preferences are optional, not live listing filters. No production contacts, schedules, messages or provider credentials were modified during tests.

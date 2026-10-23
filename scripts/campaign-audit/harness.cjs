@@ -132,6 +132,7 @@ function fixture() {
               const all = tables[table] ?? [];
               let rows = all.filter((r) => filters.every((f) => f(r)));
               const count = rows.length;
+              if (mode === "insert" && table === "audit_logs" && value.id && all.some(r => r.id === value.id)) return {data:null,error:{code:"23505"},count};
               if (mode === "insert" && table === "outbound_delivery_events" && all.some(r=>r.provider===value.provider&&r.event_key===value.event_key)) return {data:null,error:{code:"23505"},count};
               if(mode==="upsert"){const existing=all.find(r=>r.owner_id===value.owner_id&&r.provider===value.provider&&r.external_event_id===value.external_event_id);if(existing){Object.assign(existing,value);rows=[existing];}else{mode="insert";}}
               if (mode === "insert") {

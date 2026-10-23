@@ -220,7 +220,7 @@ function OwnedRelationshipProfile({ contactId }: RelationshipProfilePageProps) {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <LuxuryCard padding="lg" className="lg:col-span-5">
-          <div className="mb-6 flex items-center justify-between">
+          <div id="activity" className="mb-6 flex scroll-mt-24 items-center justify-between">
             <h2 className="font-serif text-[22px] font-semibold text-ink">Relationship timeline</h2>
             {apiContact ? (
               <span className="rounded-full bg-emerald-muted/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-muted">

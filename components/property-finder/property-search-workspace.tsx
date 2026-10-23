@@ -12,6 +12,7 @@ export function PropertySearchWorkspace(props: {
   area: string; onAreaChange: (value: string) => void; budget: string; onBudgetChange: (value: string) => void;
   budgetNumber: number | null; budgetError: string | null; searchUrl: string;
   preferencesEditor?: ReactNode; preferenceError?: string | null;
+  onSearch?: () => void;
   saving: boolean; saveError: string | null; saved: boolean; onSave: () => void;
 }) {
   const { mode, onModeChange } = props;
@@ -27,16 +28,16 @@ export function PropertySearchWorkspace(props: {
     </div>
     <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-${mode}`}>
       {mode === "client" ? <div className="pf-client-selector"><PropertyFinderClientBar contacts={props.contacts} loading={props.loading} value={props.selectedId} onChange={props.onSelectContact} /></div> : null}
-      <form className="pf-location-search" onSubmit={event => {event.preventDefault();if (!props.budgetError) window.open(props.searchUrl,"_blank","noopener,noreferrer");}}>
-        <label className="pf-location-field"><span aria-hidden="true"><Icon name="search" /></span><input id="property-location" type="search" aria-label="Location, address or ZIP" placeholder="Enter a city, neighborhood, address, or ZIP code…" value={props.area} onChange={event => props.onAreaChange(event.target.value)} /></label>
+      <form className="pf-location-search" onSubmit={event => {event.preventDefault();if (!props.budgetError) {window.open(props.searchUrl,"_blank","noopener,noreferrer");props.onSearch?.();}}}>
+        <label className="pf-location-field"><span aria-hidden="true"><Icon name="search" /></span><input id="property-location" type="search" maxLength={200} aria-label="Location, address or ZIP" placeholder="Enter a city, neighborhood, address, or ZIP code…" value={props.area} onChange={event => props.onAreaChange(event.target.value)} /></label>
         <button type="submit" className="pf-primary-button" disabled={Boolean(props.budgetError)}>Search Properties <span aria-hidden="true"><Icon name="arrow_forward" /></span></button>
       </form>
       <div className="pf-search-controls">
         <details className="pf-price-filter"><summary><span aria-hidden="true"><Icon name="payments" /></span>{props.budgetNumber ? `Up to ${formatUsd(props.budgetNumber)}` : "Price"}<span aria-hidden="true"><Icon name="expand_more" /></span></summary>
           <div><label htmlFor="property-max-price">Maximum price</label><input id="property-max-price" inputMode="decimal" placeholder="Any price" value={props.budget} aria-invalid={Boolean(props.budgetError)} aria-describedby={props.budgetError ? "property-budget-error" : undefined} onChange={event => props.onBudgetChange(event.target.value)} /><button type="button" className="pf-text-action" onClick={event => event.currentTarget.closest("details")?.removeAttribute("open")}>Done</button></div>
         </details>
-        <p className="pf-search-provider">Explore current listings on Zillow</p>
-        <button type="button" className="pf-save-button" disabled={!props.selectedId || props.loading || props.saving || Boolean(props.budgetError) || Boolean(props.preferenceError)} title={!props.selectedId ? "Select a client to save their search criteria" : "Save area and budget to the selected client"} onClick={props.onSave}><span aria-hidden="true"><Icon name="bookmark_border" /></span>{props.saving ? "Saving…" : "Save Search"}</button>
+        <p className="pf-search-provider">Zillow external search · location & maximum price</p>
+        <button type="button" className="pf-save-button" disabled={!props.selectedId || props.loading || props.saving || Boolean(props.budgetError) || Boolean(props.preferenceError)} title={!props.selectedId ? "Select a client to save their search criteria" : "Save preferences to the selected client"} onClick={props.onSave}><span aria-hidden="true"><Icon name="bookmark_border" /></span>{props.saving ? "Saving…" : "Save Search"}</button>
       </div>
       {props.preferencesEditor}
       {!props.selectedId ? <p className="pf-workspace-hint">Choose Search by Client to save criteria and share a tailored search.</p> : null}
