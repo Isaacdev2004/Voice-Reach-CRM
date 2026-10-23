@@ -1,3 +1,4 @@
+import { normalizedContactView, restoreContactView, saveContactView } from "../lib/contacts/view-memory";
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -107,4 +108,20 @@ test("bulk auth, validation and failures never write or expose internal database
 test("consent snapshots exclude historical foreign or mislinked child records",()=>{
   const records=[{owner_id:"a",contact_id:id(1),status:"Yes"},{owner_id:"b",contact_id:id(1),status:"No"},{owner_id:"a",contact_id:id(2),status:"Yes"}];
   assert.deepEqual(ownedConsentRecords(records,"a",id(1)),[records[0]]);
+});
+
+test("contact views survive tab return, honor explicit links and Clear all, and stay owner-scoped",()=>{
+  const values=new Map<string,string>();
+  const storage={getItem:(key:string)=>values.get(key)??null,setItem:(key:string,value:string)=>{values.set(key,value);}};
+  const view="segment=active-lead&category=Luxury&source=Referral&sort=name-desc&page=2&search=Jones";
+  restoreContactView(storage,"a",view);saveContactView(storage,"a",view);
+  assert.equal(restoreContactView(storage,"a",""),normalizedContactView(view));
+  assert.equal(restoreContactView(storage,"a","segment=past-client"),"segment=past-client");
+  assert.equal(restoreContactView(storage,"b",view,"a"),"", "a's URL must not become b's saved view");
+  saveContactView(storage,"b","segment=cold-lead");
+  assert.equal(restoreContactView(storage,"a","segment=cold-lead","b"),normalizedContactView(view));
+  assert.equal(restoreContactView(storage,"b","segment=active-lead"),"segment=active-lead", "an explicit link from a different tab wins over memory");
+  saveContactView(storage,"a","");assert.equal(restoreContactView(storage,"a",""),"");
+  assert.equal(restoreContactView(storage,"b",""),"segment=cold-lead");
+  assert.equal(normalizedContactView("segment=bad&sort=bad&page=-1&technical=secret"),"");
 });

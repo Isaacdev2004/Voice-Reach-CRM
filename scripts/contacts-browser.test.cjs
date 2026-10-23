@@ -108,6 +108,15 @@ const root=path.resolve(__dirname,'..');
  await profilePage.evaluate(()=>window.dispatchEvent(new Event('myari:contacts-changed')));await profilePage.getByRole('heading',{name:/Updated relationship Fixture/}).waitFor();
  await profilePage.evaluate(()=>window.__setOwner('owner_b'));await profilePage.getByRole('button',{name:'Retry contact',exact:true}).waitFor();assert.equal(await profilePage.getByRole('heading',{name:/Updated relationship/}).count(),0);
  results.push({actualProfileNavigation:true,profileEditPersistedAcrossRead:true,profileTenantSwitch:true});await profilePage.close();
+ const returnPage=await browser.newPage({viewport:{width:1440,height:1086}});returnPage.setDefaultTimeout(7000);
+ await returnPage.goto(base+'/dashboard/contacts');await returnPage.getByRole('button',{name:/Total Contacts: 32/}).waitFor();
+ await returnPage.getByRole('combobox',{name:'Stage',exact:true}).selectOption('active-lead');await returnPage.getByRole('combobox',{name:'Source',exact:true}).selectOption('Website');await returnPage.getByRole('combobox',{name:'Sort',exact:true}).selectOption('name-desc');
+ await returnPage.goto(base+'/dashboard/campaigns');await returnPage.locator('.dashboard-nav-item[href="/dashboard/contacts"]').click();
+ await returnPage.waitForURL(url=>url.searchParams.get('segment')==='active-lead');assert.equal(await returnPage.getByRole('combobox',{name:'Source',exact:true}).inputValue(),'Website');assert.equal(await returnPage.getByRole('combobox',{name:'Sort',exact:true}).inputValue(),'name-desc');
+ await returnPage.getByRole('button',{name:'Clear all',exact:true}).click();await returnPage.goto(base+'/dashboard/campaigns');await returnPage.locator('.dashboard-nav-item[href="/dashboard/contacts"]').click();await returnPage.getByRole('button',{name:/Total Contacts: 32/}).waitFor();assert.equal(await returnPage.getByRole('combobox',{name:'Stage',exact:true}).inputValue(),'all');
+ await returnPage.getByRole('combobox',{name:'Stage',exact:true}).selectOption('active-lead');await returnPage.evaluate(()=>window.__setOwner('owner_b'));await returnPage.getByRole('button',{name:/Total Contacts: 1/}).waitFor();assert.equal(await returnPage.getByRole('combobox',{name:'Stage',exact:true}).inputValue(),'all');
+ await returnPage.getByRole('combobox',{name:'Stage',exact:true}).selectOption('past-client');await returnPage.evaluate(()=>window.__setOwner('owner_a'));await returnPage.getByRole('button',{name:/Total Contacts: 32/}).waitFor();await returnPage.waitForURL(url=>url.searchParams.get('segment')==='active-lead');
+ results.push({returnFromOtherTabRestoresFilters:true,clearAllPersists:true,rememberedViewsIsolatedBySubscriber:true});await returnPage.close();
  fs.writeFileSync(path.join(tmp,'browser-results.json'),JSON.stringify(results,null,2));console.log(JSON.stringify({results,artifacts:tmp},null,2));
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1;});

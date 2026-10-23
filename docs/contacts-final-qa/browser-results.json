@@ -95,5 +95,10 @@
     "actualProfileNavigation": true,
     "profileEditPersistedAcrossRead": true,
     "profileTenantSwitch": true
+  },
+  {
+    "returnFromOtherTabRestoresFilters": true,
+    "clearAllPersists": true,
+    "rememberedViewsIsolatedBySubscriber": true
   }
 ]

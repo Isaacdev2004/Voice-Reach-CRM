@@ -48,7 +48,7 @@ Screenshots: [1440px desktop](contacts-1440.png), [1920px desktop](contacts-1920
 
 - `npm run lint`: passed, 0 errors and 8 pre-existing warnings (fonts, authentication images, campaign hook dependencies, settings hook dependency).
 - `npx tsc --noEmit --pretty false`: passed after the production build.
-- `npm run test:unit`: passed; includes the existing suite, 8 metric test groups and 11 new workspace/route test groups.
+- `npm run test:unit`: passed; includes the existing suite, 8 metric test groups and 12 new workspace/route test groups.
 - `npm run test:security` and `npm run test:regressions`: passed.
 - `npm run build`: passed.
 - `npm run test:contacts-browser`: passed; Chromium interactions at 1440, 1920, 768 and 390 pixels, including keyboard/native dropdown interactions, combined filters, empty results, back/forward, sorting with filtered pagination/reload, bulk stage/category/consent/delete, Add, CSV import, category add/rename/remove, notes failure/retry/read, AI context launcher, actual profile navigation/edit/re-read and account switching. No live AI generation or outbound sending is triggered.
@@ -67,3 +67,13 @@ Changes are local to the development branch and await approval to publish. No ex
 - Contact state and helpers: `lib/hooks/use-contacts.ts`, `lib/contacts/workspace.ts`, `lib/contacts/bulk-handler.ts`, `lib/contacts/owned-consent.ts`, `lib/contacts/read-snapshot.ts`, `lib/contacts/schemas.ts`, `lib/contacts/parse-csv.ts`, `types/api.ts`.
 - API boundaries: `app/api/contacts/[id]/route.ts`, `app/api/contacts/bulk/route.ts`, `app/api/contacts/categories/route.ts`, `app/api/contacts/import/route.ts`, `app/api/notes/route.ts`, `app/api/notes/[id]/route.ts`.
 - Tests: `scripts/contacts-workspace.test.ts`, `scripts/contacts-routes.test.cjs`, `scripts/contacts-browser.test.cjs`, adapters/fixtures in `scripts/contacts-browser/`, `package.json` test commands and this QA report/artifacts. No dependencies were added.
+
+## Follow-up: remember a subscriber's working view
+
+Contacts now remembers the current browser tab's view in owner-scoped `sessionStorage`: category, type, lifecycle stage, source, compliance, recorded activity range, both searches, sorting and page. Returning through the Contacts navigation tab restores that view for the same subscriber. Clear all saves the default view. Explicit filtered links take precedence on entry, so a dashboard link to Active Leads still opens its specified cohort. Switching accounts while Contacts is open restores only the new subscriber's remembered view.
+
+Only supported controls are stored; checked contacts, contact records, consent evidence, AI output and unrelated routing parameters are excluded. URL parameters needed by other features remain intact. If browser storage is unavailable, existing URL-backed filtering continues to work. Session memory ends with the browser-tab session; this is not a cross-device account preference.
+
+Additional regression coverage checks state normalization, explicit-link precedence, reset persistence, subscriber separation, and leaving for Campaigns then returning through the actual Contacts sidebar link. This follow-up is on `fix/remember-contact-view` and has not been pushed or deployed.
+
+Follow-up validation passed: existing unit/metrics tests, updated workspace/route tests, lint (8 existing warnings), standalone TypeScript, production build and the full four-width browser suite. Browser results include successful tab-return restoration, persisted Clear all and isolated subscriber memories. Live authenticated staging verification remains pending.
