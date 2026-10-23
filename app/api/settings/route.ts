@@ -215,6 +215,8 @@ export const GET = withApiHandler(async () => {
   settings.billing = {
     ...settings.billing,
     subscriptionStatus: billingVerification.status,
+    billingPeriod: billingVerification.billingPeriod,
+    billedAmount: billingVerification.billedAmount,
   };
   return apiOk({
     settings,

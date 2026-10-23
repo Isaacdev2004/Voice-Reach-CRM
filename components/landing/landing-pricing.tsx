@@ -1,289 +1,111 @@
 "use client";
-
-import Link from "next/link";
 import { useState } from "react";
-import { CheckCircleIcon } from "@/components/icons/landing-icons";
+import {
+  billingAmount,
+  type BillingPeriod,
+} from "@/lib/billing/billing-period";
+import Link from "next/link";
 import { PLAN_OPTIONS } from "@/lib/billing/plans";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
-import { PlaybookCtaLink } from "@/components/landing/playbook-cta-link";
 import { rememberPendingPlan } from "@/lib/billing/pending-plan";
 import { primaryTrialCta, SITE_OFFER } from "@/lib/marketing/site-offer";
-import { Reveal, RevealStagger } from "@/components/marketing/motion-reveal";
 import { trackMarketingEvent } from "@/lib/marketing/track";
+import { pricingHighlights } from "@/lib/marketing/pricing-guidance";
 
-const SALES_EMAIL = "hello@myari.io";
-
-/** Starter, Growth (featured), Pro - Team shown as contact row below */
-const DISPLAY_PLANS = PLAN_OPTIONS.filter((p) => p.id !== "team");
-
-function annualTotal(monthly: number) {
-  return monthly * 10;
-}
-
-function annualMonthlyEquivalent(monthly: number) {
-  return Math.round((annualTotal(monthly) / 12) * 100) / 100;
-}
-
-export function LandingPricing({
-  compact = false,
-}: { compact?: boolean } = {}) {
-  const [annual, setAnnual] = useState(false);
-
+export function LandingPricing() {
+  const [period, setPeriod] = useState<BillingPeriod>("monthly");
   return (
-    <section
-      id="pricing"
-      className="scroll-mt-[4.25rem] bg-cream py-12 md:py-20 lg:py-24"
-    >
-      <div className="landing-shell">
-        <Reveal className={compact ? "public-pricing-intro" : "text-center"}>
-          <div>
-            <h2 className="font-serif text-[28px] font-semibold text-ink md:text-[36px] lg:text-[40px]">
-              {compact
-                ? "Choose your plan."
-                : "Start free. Scale when you’re ready."}
-            </h2>
-            <p className="mx-auto mt-3 w-full max-w-[40rem] px-2 text-[16px] leading-relaxed text-slate-text lg:text-[17px]">
-              <strong className="font-semibold text-ink">Growth</strong> is our
-              recommended plan for active agents.{" "}
-              {!compact && (
-                <>
-                  {SITE_OFFER.trialDays}-day free trial on every plan.{" "}
-                  {SITE_OFFER.whiteGlove.shortLine}.{" "}
-                  {SITE_OFFER.founding.active
-                    ? ` ${SITE_OFFER.founding.memberBenefit}`
-                    : ""}
-                </>
-              )}
-            </p>
-          </div>
-          <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-outline-variant/20 bg-ivory p-1">
+    <section id="pricing" className="approved-pricing landing-shell">
+      <div className="approved-pricing-intro">
+        <div>
+          <h2>Choose your plan.</h2>
+          <p>
+            <strong>Growth</strong> is our recommended plan for active agents.
+          </p>
+        </div>
+        <div className="approved-billing">
+          <div role="group" aria-label="Billing period">
             <button
               type="button"
-              aria-pressed={!annual}
-              onClick={() => {
-                setAnnual(false);
-                trackMarketingEvent("pricing_billing_toggle", {
-                  mode: "monthly",
-                  location: "landing-pricing",
-                });
-              }}
-              className={`rounded-full px-5 py-2 text-[13px] font-semibold transition-colors ${
-                !annual
-                  ? "bg-rose-gold text-ivory"
-                  : "text-taupe hover:text-ink"
-              }`}
+              aria-pressed={period === "monthly"}
+              onClick={() => setPeriod("monthly")}
             >
               Monthly
             </button>
             <button
               type="button"
-              aria-pressed={annual}
-              onClick={() => {
-                setAnnual(true);
-                trackMarketingEvent("pricing_billing_toggle", {
-                  mode: "annual",
-                  location: "landing-pricing",
-                });
-              }}
-              className={`rounded-full px-5 py-2 text-[13px] font-semibold transition-colors ${
-                annual ? "bg-rose-gold text-ivory" : "text-taupe hover:text-ink"
-              }`}
+              aria-pressed={period === "yearly"}
+              onClick={() => setPeriod("yearly")}
             >
               Yearly
             </button>
           </div>
-        </Reveal>
-
-        <RevealStagger
-          className="mt-12 grid items-stretch gap-6 md:grid-cols-3"
-          stepMs={120}
-        >
-          {DISPLAY_PLANS.map((plan) => {
-            const featured = Boolean(plan.featured);
-            const monthly = plan.price;
-            const yearlyTotal = annualTotal(monthly);
-            const monthlyEquivalent = annualMonthlyEquivalent(monthly);
-
-            return (
-              <article
-                key={plan.id}
-                className={`relative flex flex-col rounded-[28px] p-7 md:p-8 ${
-                  featured
-                    ? "z-10 border-[3px] border-rose-gold bg-rose-gold-deep text-ivory shadow-card md:-mt-2 md:mb-2 md:scale-[1.03]"
-                    : "border border-outline-variant/20 bg-ivory"
-                }`}
-              >
-                {featured ? (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-rose-gold px-5 py-1 text-[10px] font-bold uppercase tracking-widest text-ivory">
-                    Most popular
-                  </span>
-                ) : null}
-
-                <header className="public-plan-heading">
-                  {!compact && plan.outcomeHeadline ? (
-                    <p
-                      className={`text-[15px] font-semibold leading-snug ${featured ? "text-ivory" : "text-ink"}`}
-                    >
-                      {plan.outcomeHeadline}
-                    </p>
-                  ) : null}
-                  <h3
-                    className={`mt-2 font-serif text-[20px] font-semibold ${featured ? "text-ivory/90" : "text-taupe"}`}
-                  >
-                    {plan.name}
-                  </h3>
-                  <p
-                    className={`mt-0.5 text-[13px] ${featured ? "text-ivory/75" : "text-taupe"}`}
-                  >
-                    {plan.description}
-                  </p>
-                  {!compact && plan.positioningLine ? (
-                    <p
-                      className={`mt-2 text-[13px] leading-snug ${featured ? "text-ivory/90" : "text-slate-text"}`}
-                    >
-                      {plan.positioningLine}
-                    </p>
-                  ) : null}
-                </header>
-                <div
-                  className={`mt-6 flex flex-wrap items-baseline gap-2 ${featured ? "text-ivory" : "text-ink"}`}
-                >
-                  {SITE_OFFER.founding.active &&
-                  FOUNDING_100.listPrices[
-                    plan.id as keyof typeof FOUNDING_100.listPrices
-                  ] ? (
-                    <span
-                      className={`font-serif text-[22px] line-through decoration-2 ${featured ? "text-ivory/55" : "text-taupe"}`}
-                    >
-                      $
-                      {
-                        FOUNDING_100.listPrices[
-                          plan.id as keyof typeof FOUNDING_100.listPrices
-                        ]
-                      }
-                    </span>
-                  ) : null}
-                  {annual ? (
-                    <>
-                      <span className="font-serif text-[40px] font-semibold leading-none">
-                        ${yearlyTotal}
-                      </span>
-                      <span
-                        className={featured ? "text-ivory/70" : "text-taupe"}
-                      >
-                        /yr
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="font-serif text-[40px] font-semibold leading-none">
-                        ${monthly}
-                      </span>
-                      <span
-                        className={featured ? "text-ivory/70" : "text-taupe"}
-                      >
-                        /mo
-                      </span>
-                    </>
-                  )}
-                </div>
-                {SITE_OFFER.founding.active ? (
-                  <p
-                    className={`mt-1 text-[12px] font-medium ${featured ? "text-sage-light" : "text-rose-gold-deep"}`}
-                  >
-                    Founding-member price
-                  </p>
-                ) : null}
-                {annual ? (
-                  <p
-                    className={`mt-1 text-[12px] ${featured ? "text-ivory/75" : "text-taupe"}`}
-                  >
-                    ${monthly}/mo billed monthly · ${monthlyEquivalent}/mo
-                    billed yearly
-                  </p>
-                ) : (
-                  <p
-                    className={`mt-1 text-[12px] ${featured ? "text-ivory/75" : "text-taupe"}`}
-                  >
-                    ${monthly}/mo billed monthly
-                  </p>
-                )}
-
-                {compact && (
-                  <div className="public-plan-value">
-                    <p>{plan.outcomeHeadline}</p>
-                    {plan.positioningLine && <p>{plan.positioningLine}</p>}
-                  </div>
-                )}
-
-                <Link
-                  href={`/sign-up?plan=${plan.id}`}
-                  onClick={() => {
-                    rememberPendingPlan(plan.id);
-                    trackMarketingEvent("pricing_plan_select", {
-                      location: "landing-pricing",
-                      plan: plan.id,
-                    });
-                    trackMarketingEvent("start_trial_click", {
-                      location: "pricing",
-                      plan: plan.id,
-                    });
-                  }}
-                  className={`mt-6 block rounded-full py-3.5 text-center text-[14px] font-bold transition-opacity hover:opacity-95 ${
-                    featured
-                      ? "bg-rose-gold text-ivory"
-                      : "border border-rose-gold text-rose-gold-deep hover:bg-rose-gold/5"
-                  }`}
-                >
-                  {primaryTrialCta()}
-                </Link>
-                <PlaybookCtaLink
-                  location={`pricing-${plan.id}`}
-                  label={SITE_OFFER.playbook.secondaryCta}
-                  className={`mt-3 w-full !border-transparent !bg-transparent !py-2 text-[13px] font-semibold underline-offset-2 hover:underline ${
-                    featured ? "!text-ivory/90" : "!text-rose-gold-deep"
-                  }`}
-                />
-
-                <ul
-                  className={`mt-6 flex-1 space-y-2.5 text-[13px] ${featured ? "text-ivory/90" : "text-slate-text"}`}
-                >
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2">
-                      <CheckCircleIcon
-                        className={`mt-0.5 shrink-0 ${featured ? "text-sage-light" : "text-rose-gold-deep"}`}
-                      />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            );
-          })}
-        </RevealStagger>
-
-        {/* Team tier - full width below */}
-        {PLAN_OPTIONS.filter((p) => p.id === "team").map((plan) => (
-          <Reveal
+          <small id="yearly-note">
+            {period === "yearly"
+              ? "Two months less than 12 monthly payments."
+              : "Choose monthly or annual billing."}
+          </small>
+        </div>
+      </div>
+      <div className="approved-plan-grid">
+        {PLAN_OPTIONS.filter((p) => !p.contactSales).map((plan) => (
+          <article
             key={plan.id}
-            className="mt-6 flex flex-col items-center justify-between gap-4 rounded-2xl border border-outline-variant/15 bg-ivory px-6 py-5 md:flex-row"
+            className={`approved-plan ${plan.featured ? "approved-plan-featured" : ""}`}
           >
-            <div>
-              <p className="font-serif text-[18px] font-semibold text-ink">
-                {plan.name} - from ${plan.price}/mo
-              </p>
-              <p className="text-[13px] text-slate-text">
-                Teams &amp; brokerages · 5 users included · pooled messaging ·
-                custom volume
-              </p>
+            {plan.featured && (
+              <span className="approved-popular">Most popular</span>
+            )}
+            <header>
+              <h3>{plan.name}</h3>
+              <p>{plan.description}</p>
+            </header>
+            <div className="approved-price">
+              {SITE_OFFER.founding.active && (
+                <del>
+                  $
+                  {FOUNDING_100.listPrices[
+                    plan.id as keyof typeof FOUNDING_100.listPrices
+                  ] * (period === "yearly" ? 10 : 1)}
+                </del>
+              )}
+              <strong>${billingAmount(plan.id, period)}</strong>
+              <span>/{period === "yearly" ? "yr" : "mo"}</span>
             </div>
-            <a
-              href={`mailto:${SALES_EMAIL}?subject=MyARI Team Plan`}
-              className="shrink-0 rounded-full border border-rose-gold px-6 py-2.5 text-[13px] font-semibold text-rose-gold-deep hover:bg-rose-gold/5"
+            {SITE_OFFER.founding.active && (
+              <p className="approved-founding">Founding-member price</p>
+            )}
+            <p className="approved-billing-note">
+              {period === "yearly"
+                ? `$${billingAmount(plan.id, period)}/year billed annually · $${(billingAmount(plan.id, period) / 12).toFixed(2)}/mo equivalent`
+                : `$${plan.price}/mo billed monthly`}
+            </p>
+            <ul>
+              {pricingHighlights(plan.id).map((feature) => (
+                <li key={feature}>
+                  <span aria-hidden="true">✓</span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={`/sign-up?plan=${plan.id}&billing=${period}`}
+              onClick={() => {
+                rememberPendingPlan(plan.id, period);
+                trackMarketingEvent("pricing_plan_select", {
+                  location: "landing-pricing",
+                  plan: plan.id,
+                });
+                trackMarketingEvent("start_trial_click", {
+                  location: "pricing",
+                  plan: plan.id,
+                });
+              }}
+              className="approved-plan-cta"
             >
-              Contact Sales
-            </a>
-          </Reveal>
+              {primaryTrialCta()} <span aria-hidden="true">→</span>
+            </Link>
+          </article>
         ))}
       </div>
     </section>

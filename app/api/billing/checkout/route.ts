@@ -6,12 +6,16 @@ import {
   saveStripeCustomerId,
 } from "@/lib/billing/settings-store";
 import { planById, type PlanId } from "@/lib/billing/plans";
-import { createSubscriptionSession, stripeMessage } from "@/lib/billing/stripe-checkout";
+import {
+  createSubscriptionSession,
+  stripeMessage,
+} from "@/lib/billing/stripe-checkout";
 import { appBaseUrl, getStripe, isStripeConfigured } from "@/lib/stripe/config";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 const BodySchema = z.object({
+  billingPeriod: z.enum(["monthly", "yearly"]).default("monthly"),
   planId: z.enum(["starter", "growth", "pro"]),
 });
 
@@ -25,7 +29,7 @@ export const POST = withApiHandler(async (request) => {
   }
 
   const ownerId = await requireUserId();
-  const { planId } = BodySchema.parse(await request.json());
+  const { planId, billingPeriod } = BodySchema.parse(await request.json());
   const plan = planById(planId);
   if (!plan) return apiError("Invalid plan", { status: 400 });
 
@@ -55,7 +59,10 @@ export const POST = withApiHandler(async (request) => {
       customerId = customer.id;
       await saveStripeCustomerId(ownerId, customerId);
     } catch (err) {
-      return apiError(stripeMessage(err), { status: 500, code: "stripe_customer_failed" });
+      return apiError(stripeMessage(err), {
+        status: 500,
+        code: "stripe_customer_failed",
+      });
     }
   }
 
@@ -69,6 +76,7 @@ export const POST = withApiHandler(async (request) => {
   async function run(customer: string) {
     return createSubscriptionSession({
       planId: planId as PlanId,
+      billingPeriod,
       customerId: customer,
       ownerId,
       chargeImmediately,
@@ -85,6 +93,7 @@ export const POST = withApiHandler(async (request) => {
     return apiOk({
       url: session.url,
       planId,
+      billingPeriod,
       planName: plan.name,
       currentPlanId: saved?.billing.planId ?? null,
     });
@@ -100,16 +109,22 @@ export const POST = withApiHandler(async (request) => {
         await saveStripeCustomerId(ownerId, customer.id);
         const session = await run(customer.id);
         if (!session.url) {
-          return apiError("Stripe did not return a checkout URL.", { status: 500 });
+          return apiError("Stripe did not return a checkout URL.", {
+            status: 500,
+          });
         }
         return apiOk({
           url: session.url,
           planId,
+          billingPeriod,
           planName: plan.name,
           currentPlanId: saved?.billing.planId ?? null,
         });
       } catch (retryErr) {
-        return apiError(stripeMessage(retryErr), { status: 500, code: "stripe_checkout_failed" });
+        return apiError(stripeMessage(retryErr), {
+          status: 500,
+          code: "stripe_checkout_failed",
+        });
       }
     }
     return apiError(msg, { status: 500, code: "stripe_checkout_failed" });

@@ -1,5 +1,11 @@
+import { billingAmount, type BillingPeriod } from "./billing-period";
 import { subscriptionStatus as normalizeSubscriptionStatus } from "@/lib/billing/verification";
-import { applyBillingPlan, loadStripeCustomerId, saveStripeCustomerId } from "@/lib/billing/settings-store";
+import {
+  applyBillingPlan,
+  loadStripeCustomerId,
+  saveStripeCustomerId,
+  stripePriceIdForPlan,
+} from "@/lib/billing/settings-store";
 import { planById, type PlanId } from "@/lib/billing/plans";
 import {
   isRecoverablePriceError,
@@ -11,7 +17,12 @@ import { getStripe } from "@/lib/stripe/config";
 import type Stripe from "stripe";
 
 export type StartTrialResult =
-  | { ok: true; planId: PlanId; subscriptionStatus: "trialing" | "active" | "canceled"; subscriptionId: string }
+  | {
+      ok: true;
+      planId: PlanId;
+      subscriptionStatus: "trialing" | "active" | "canceled";
+      subscriptionId: string;
+    }
   | { ok: false; message: string; code: string };
 
 async function ensureCustomer(params: {
@@ -51,6 +62,7 @@ function activeSubscription(
 export async function startTrialSubscriptionForOwner(params: {
   ownerId: string;
   planId: PlanId;
+  billingPeriod?: BillingPeriod;
   email?: string;
   name?: string;
 }): Promise<StartTrialResult> {
@@ -72,7 +84,9 @@ export async function startTrialSubscriptionForOwner(params: {
     const metaPlan = current.metadata?.planId as PlanId | undefined;
     const planId = metaPlan && planById(metaPlan) ? metaPlan : params.planId;
     const status = normalizeSubscriptionStatus(current.status);
-    await applyBillingPlan(params.ownerId, planId, { subscriptionStatus: status });
+    await applyBillingPlan(params.ownerId, planId, {
+      subscriptionStatus: status,
+    });
     return {
       ok: true,
       planId,
@@ -82,7 +96,11 @@ export async function startTrialSubscriptionForOwner(params: {
   }
 
   const trialDays = trialDaysFromEnv();
-  const metadata = { planId: params.planId, ownerId: params.ownerId };
+  const metadata = {
+    planId: params.planId,
+    ownerId: params.ownerId,
+    billingPeriod: params.billingPeriod ?? "monthly",
+  };
 
   const base: Stripe.SubscriptionCreateParams = {
     customer: customerId,
@@ -94,13 +112,44 @@ export async function startTrialSubscriptionForOwner(params: {
     },
   };
 
+  async function items() {
+    const period = params.billingPeriod ?? "monthly";
+    const priceId = stripePriceIdForPlan(params.planId, period);
+    if (priceId && period === "yearly") {
+      const price = await stripe.prices.retrieve(priceId);
+      if (
+        !price.active ||
+        price.currency !== "usd" ||
+        price.unit_amount !== billingAmount(params.planId, period) * 100 ||
+        price.recurring?.interval !== "year" ||
+        price.recurring.interval_count !== 1
+      )
+        throw new Error(
+          "Configured yearly Stripe price does not match the advertised annual plan",
+        );
+    }
+    if (priceId) return subscriptionItems(params.planId, period);
+    const product = await stripe.products.create(
+      {
+        name: `MyARI ${plan!.name}`,
+        tax_code: "txcd_10103001",
+      },
+      { idempotencyKey: `myari-plan-product-${params.planId}` },
+    );
+    return subscriptionItems(params.planId, period, product.id);
+  }
   try {
-    const sub = await stripe.subscriptions.create({
-      ...base,
-      items: subscriptionItems(params.planId),
-    });
+    const sub = await stripe.subscriptions.create(
+      {
+        ...base,
+        items: await items(),
+      },
+      { idempotencyKey: `myari-trial-${params.ownerId}` },
+    );
     const subscriptionStatus = normalizeSubscriptionStatus(sub.status);
-    await applyBillingPlan(params.ownerId, params.planId, { subscriptionStatus });
+    await applyBillingPlan(params.ownerId, params.planId, {
+      subscriptionStatus,
+    });
     return {
       ok: true,
       planId: params.planId,
@@ -111,12 +160,17 @@ export async function startTrialSubscriptionForOwner(params: {
     const msg = stripeMessage(err);
     if (isRecoverablePriceError(msg)) {
       try {
-        const sub = await stripe.subscriptions.create({
-          ...base,
-          items: subscriptionItems(params.planId),
-        });
+        const sub = await stripe.subscriptions.create(
+          {
+            ...base,
+            items: await items(),
+          },
+          { idempotencyKey: `myari-trial-${params.ownerId}` },
+        );
         const subscriptionStatus = normalizeSubscriptionStatus(sub.status);
-        await applyBillingPlan(params.ownerId, params.planId, { subscriptionStatus });
+        await applyBillingPlan(params.ownerId, params.planId, {
+          subscriptionStatus,
+        });
         return {
           ok: true,
           planId: params.planId,

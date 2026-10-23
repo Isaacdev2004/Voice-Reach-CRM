@@ -1,5 +1,10 @@
+import { stripePriceIdForPlan } from "./settings-store";
+import { billingAmount, type BillingPeriod } from "./billing-period";
 import { planById, type PlanId } from "@/lib/billing/plans";
-import { checkoutLineItems, isRecoverablePriceError } from "@/lib/billing/stripe-prices";
+import {
+  checkoutLineItems,
+  isRecoverablePriceError,
+} from "@/lib/billing/stripe-prices";
 import { trialDaysFromEnv } from "@/lib/marketing/founding";
 import { getStripe } from "@/lib/stripe/config";
 import type Stripe from "stripe";
@@ -13,6 +18,7 @@ export function stripeMessage(err: unknown): string {
 
 export async function createSubscriptionSession(params: {
   planId: PlanId;
+  billingPeriod?: BillingPeriod;
   customerId?: string;
   customerEmail?: string;
   ownerId?: string;
@@ -25,25 +31,45 @@ export async function createSubscriptionSession(params: {
   if (!plan) throw new Error("Invalid plan");
 
   const stripe = getStripe();
-  const lineItems = checkoutLineItems(params.planId);
+  if (params.billingPeriod === "yearly") {
+    const priceId = stripePriceIdForPlan(params.planId, "yearly");
+    if (priceId) {
+      const price = await stripe.prices.retrieve(priceId);
+      if (
+        !price.active ||
+        price.currency !== "usd" ||
+        price.unit_amount !== billingAmount(params.planId, "yearly") * 100 ||
+        price.recurring?.interval !== "year" ||
+        price.recurring.interval_count !== 1
+      )
+        throw new Error(
+          "Configured yearly Stripe price does not match the advertised annual plan",
+        );
+    }
+  }
+  const lineItems = checkoutLineItems(params.planId, params.billingPeriod);
 
-  const metadata: Record<string, string> = { planId: params.planId };
+  const metadata: Record<string, string> = {
+    planId: params.planId,
+    billingPeriod: params.billingPeriod ?? "monthly",
+  };
   if (params.ownerId) metadata.ownerId = params.ownerId;
 
   const trialDays = trialDaysFromEnv();
   const withTrial = !params.chargeImmediately;
 
-  const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
-    metadata,
-    ...(withTrial
-      ? {
-          trial_period_days: trialDays,
-          trial_settings: {
-            end_behavior: { missing_payment_method: "pause" },
-          },
-        }
-      : {}),
-  };
+  const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData =
+    {
+      metadata,
+      ...(withTrial
+        ? {
+            trial_period_days: trialDays,
+            trial_settings: {
+              end_behavior: { missing_payment_method: "pause" },
+            },
+          }
+        : {}),
+    };
 
   const baseSession: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
@@ -57,7 +83,9 @@ export async function createSubscriptionSession(params: {
     subscription_data: subscriptionData,
     metadata: {
       ...metadata,
-      ...(withTrial ? { trial_days: String(trialDays) } : { charge_immediately: "1" }),
+      ...(withTrial
+        ? { trial_days: String(trialDays) }
+        : { charge_immediately: "1" }),
     },
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
@@ -76,14 +104,14 @@ export async function createSubscriptionSession(params: {
     if (isRecoverablePriceError(msg)) {
       return await stripe.checkout.sessions.create({
         ...baseSession,
-        line_items: checkoutLineItems(params.planId),
+        line_items: checkoutLineItems(params.planId, params.billingPeriod),
       });
     }
     if (/managed_payments|unknown parameter/i.test(msg)) {
       const { managed_payments: _mp, ...withoutManaged } = baseSession;
       return await stripe.checkout.sessions.create({
         ...withoutManaged,
-        line_items: checkoutLineItems(params.planId),
+        line_items: checkoutLineItems(params.planId, params.billingPeriod),
       });
     }
     throw err;

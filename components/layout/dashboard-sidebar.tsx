@@ -14,7 +14,10 @@ type DashboardSidebarProps = {
   onMobileClose?: () => void;
 };
 
-export function DashboardSidebar({ mobileOpen = false, onMobileClose }: DashboardSidebarProps) {
+export function DashboardSidebar({
+  mobileOpen = false,
+  onMobileClose,
+}: DashboardSidebarProps) {
   const pathname = usePathname();
   const { openUpgrade, billing } = useUpgradePlan();
 
@@ -38,7 +41,11 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
         aria-hidden={!mobileOpen ? undefined : undefined}
       >
         <div className="mb-4 flex items-start justify-between px-5 lg:mb-5 lg:px-6">
-          <Link href="/dashboard" className="dashboard-sidebar-brand group" onClick={onMobileClose}>
+          <Link
+            href="/dashboard"
+            className="dashboard-sidebar-brand group"
+            onClick={onMobileClose}
+          >
             <AriLogo height={96} className="max-w-[128px]" />
             <p className="mt-1.5 text-[11px] italic leading-snug text-taupe transition-colors group-hover:text-rose-gold-deep">
               {BRAND_TAGLINE}
@@ -78,11 +85,13 @@ export function DashboardSidebar({ mobileOpen = false, onMobileClose }: Dashboar
         </nav>
 
         <div className="dashboard-upgrade mt-auto space-y-2.5 border-t border-outline-variant/10 px-4 pb-1 pt-4">
-          <div className="flex justify-center text-rose-gold-deep"><Icon name="diamond" className="text-[26px]" /></div>
+          <div className="flex justify-center text-rose-gold-deep">
+            <Icon name="diamond" className="text-[26px]" />
+          </div>
           <p className="dashboard-upgrade-heading">Your next chapter</p>
           <p className="text-center text-[11px] leading-snug text-taupe">
             {billing.subscriptionStatus === "active"
-              ? `${billing.planName} · $${billing.monthlyPrice}/mo`
+              ? `${billing.planName} · $${billing.billedAmount ?? billing.monthlyPrice}/${billing.billingPeriod === "yearly" ? "yr" : "mo"}`
               : billing.subscriptionStatus === "trialing"
                 ? `${billing.planName} · free trial`
                 : "No active plan"}

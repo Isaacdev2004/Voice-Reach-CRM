@@ -7,6 +7,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 const BodySchema = z.object({
+  billingPeriod: z.enum(["monthly", "yearly"]).default("monthly"),
   planId: z.enum(["starter", "growth", "pro"]),
 });
 
@@ -22,7 +23,7 @@ export const POST = withApiHandler(async (request) => {
   }
 
   const ownerId = await requireUserId();
-  const { planId } = BodySchema.parse(await request.json());
+  const { planId, billingPeriod } = BodySchema.parse(await request.json());
   if (!planById(planId)) return apiError("Invalid plan", { status: 400 });
 
   let email = "";
@@ -42,6 +43,7 @@ export const POST = withApiHandler(async (request) => {
   const result = await startTrialSubscriptionForOwner({
     ownerId,
     planId: planId as PlanId,
+    billingPeriod,
     email,
     name,
   });

@@ -1,6 +1,9 @@
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { planById, type PlanId } from "@/lib/billing/plans";
-import { createSubscriptionSession, stripeMessage } from "@/lib/billing/stripe-checkout";
+import {
+  createSubscriptionSession,
+  stripeMessage,
+} from "@/lib/billing/stripe-checkout";
 import { appBaseUrl, isStripeConfigured } from "@/lib/stripe/config";
 import { z } from "zod";
 
@@ -9,6 +12,7 @@ import { z } from "zod";
  * Primary funnel uses /sign-up + POST /api/billing/start-trial (no card until trial ends).
  */
 const BodySchema = z.object({
+  billingPeriod: z.enum(["monthly", "yearly"]).default("monthly"),
   planId: z.enum(["starter", "growth", "pro"]),
   email: z.string().email().optional(),
 });
@@ -30,9 +34,10 @@ export const POST = withApiHandler(async (request) => {
   try {
     const session = await createSubscriptionSession({
       planId: body.planId as PlanId,
+      billingPeriod: body.billingPeriod,
       customerEmail: body.email,
-      successUrl: `${base}/sign-up?session_id={CHECKOUT_SESSION_ID}&plan=${body.planId}&paid=1`,
-      cancelUrl: `${base}/checkout?plan=${body.planId}&canceled=1`,
+      successUrl: `${base}/sign-up?session_id={CHECKOUT_SESSION_ID}&plan=${body.planId}&billing=${body.billingPeriod}&paid=1`,
+      cancelUrl: `${base}/checkout?plan=${body.planId}&billing=${body.billingPeriod}&canceled=1`,
     });
 
     if (!session.url) {
@@ -46,6 +51,9 @@ export const POST = withApiHandler(async (request) => {
       price: plan.price,
     });
   } catch (err) {
-    return apiError(stripeMessage(err), { status: 500, code: "stripe_checkout_failed" });
+    return apiError(stripeMessage(err), {
+      status: 500,
+      code: "stripe_checkout_failed",
+    });
   }
 });

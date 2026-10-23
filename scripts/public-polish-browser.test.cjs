@@ -40,7 +40,10 @@ const { chromium } = require("playwright"),
                     return {
                       contents: cp.execFileSync(
                         "git",
-                        ["show", `45aca8f:${rel}`],
+                        [
+                          "show",
+                          `${process.env.PUBLIC_POLISH_BASELINE || "45aca8f"}:${rel}`,
+                        ],
                         {
                           cwd: root,
                           encoding: "utf8",
@@ -73,12 +76,17 @@ const { chromium } = require("playwright"),
         before
           ? cp.execFileSync(
               "git",
-              ["show", `45aca8f:components/marketing/${name}`],
+              [
+                "show",
+                `${process.env.PUBLIC_POLISH_BASELINE || "45aca8f"}:components/marketing/${name}`,
+              ],
               { encoding: "utf8" },
             )
           : fs.readFileSync("components/marketing/" + name, "utf8"),
       )
-      .join("\n");
+      .join("\n") +
+    fs.readFileSync("/tmp/myari-review-fonts/faces.css", "utf8") +
+    "@font-face{font-family:'Material Symbols Outlined';src:url(/review-icons.ttf)}";
   const fontClasses = [
     ...css.matchAll(/\.([\w-]+)\{--font-(?:serif|inter|hand):[^}]+\}/g),
   ]
@@ -107,6 +115,18 @@ const { chromium } = require("playwright"),
         `<html><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"><body class="${fontClasses}"><div id="root"></div><script src="/bundle.js"></script></body></html>`,
       );
     }
+    if (u.pathname === "/review-icons.ttf")
+      return res.end(
+        fs.readFileSync(
+          "/workspace/work/contacts-metrics/ui-review/material-icons.ttf",
+        ),
+      );
+    if (u.pathname.startsWith("/review-fonts/"))
+      return res.end(
+        fs.readFileSync(
+          path.join("/tmp/myari-review-fonts", path.basename(u.pathname)),
+        ),
+      );
     const file = u.pathname.startsWith("/review-fonts/")
       ? path.join(root, ".next/static/media", path.basename(u.pathname))
       : path.resolve(root, "public", "." + u.pathname);
@@ -136,10 +156,17 @@ const { chromium } = require("playwright"),
       if (before && u.pathname.startsWith("/brand/product-captures/")) {
         try {
           return res.end(
-            cp.execFileSync("git", ["show", `45aca8f:public${u.pathname}`], {
-              maxBuffer: 10 * 1024 * 1024,
-              stdio: ["ignore", "pipe", "ignore"],
-            }),
+            cp.execFileSync(
+              "git",
+              [
+                "show",
+                `${process.env.PUBLIC_POLISH_BASELINE || "45aca8f"}:public${u.pathname}`,
+              ],
+              {
+                maxBuffer: 10 * 1024 * 1024,
+                stdio: ["ignore", "pipe", "ignore"],
+              },
+            ),
           );
         } catch {}
       }
@@ -156,7 +183,7 @@ const { chromium } = require("playwright"),
       headless: true,
       args: ["--no-sandbox"],
     });
-  const out = "docs/public-polish";
+  const out = process.env.PUBLIC_POLISH_OUTPUT || "docs/public-polish";
   fs.mkdirSync(out, { recursive: true });
   const results = [];
   try {
@@ -168,7 +195,11 @@ const { chromium } = require("playwright"),
       "/features/campaign-builder",
       "/features/analytics",
       "/resources/ultimate-real-estate-lead-follow-up-guide",
-    ])
+    ].filter(
+      (route) =>
+        !process.env.PUBLIC_POLISH_ROUTES ||
+        process.env.PUBLIC_POLISH_ROUTES.split(",").includes(route),
+    ))
       for (const width of [1440, 1280, 768, 390]) {
         const page = await browser.newPage({
           viewport: { width, height: 1000 },
@@ -220,7 +251,7 @@ const { chromium } = require("playwright"),
             if (width >= 1280) {
               for (const card of await cards.all()) {
                 const price = await card
-                  .locator(".public-plan-heading + div")
+                  .locator(".approved-price")
                   .boundingBox();
                 assert.ok(
                   price && price.y + price.height < 800,
@@ -229,6 +260,7 @@ const { chromium } = require("playwright"),
               }
             }
 
+            await page.locator("#pricing").scrollIntoViewIfNeeded();
             const plans = require("./campaign-audit/harness.cjs")
               .fixture()
               .load("lib/billing/plans.ts")
@@ -239,6 +271,42 @@ const { chromium } = require("playwright"),
                   `$${plans[index].price}`,
                 ),
               );
+            if (width >= 1280) {
+              for (const button of await page
+                .locator(".approved-plan-cta")
+                .all()) {
+                const box = await button.boundingBox();
+                assert.ok(
+                  box && box.y + box.height < 900,
+                  "All trial CTAs must appear in the first 900px desktop viewport",
+                );
+              }
+            }
+            assert.equal(
+              await page.locator("#plan-comparison").getAttribute("open"),
+              null,
+            );
+            await page.locator(".approved-chooser > summary").click();
+            await page.getByLabel("Approximate contacts").fill("5000");
+            await page.getByLabel("People using MyARI").fill("1");
+            await page.getByLabel("Expected SMS per month").fill("700");
+            await page
+              .getByRole("button", { name: "Find my fit", exact: true })
+              .click();
+            await page
+              .getByRole("heading", {
+                name: "Growth may be your best fit",
+                exact: true,
+              })
+              .waitFor();
+            await page.locator(".approved-chooser > summary").click();
+            await page.locator("#plan-comparison > summary").click();
+            assert.ok(
+              (await page.locator("#plan-comparison").innerText()).includes(
+                "750 SMS",
+              ),
+            );
+            await page.locator("#plan-comparison > summary").click();
             const monthly = await cards.allTextContents();
             await page
               .getByRole("button", { name: "Yearly", exact: true })
@@ -257,6 +325,10 @@ const { chromium } = require("playwright"),
                 (await cards.nth(index).innerText()).includes(
                   `$${plans[index].price * 10}`,
                 ),
+              );
+            for (const cta of await page.locator(".approved-plan-cta").all())
+              assert.ok(
+                (await cta.getAttribute("href")).includes("billing=yearly"),
               );
             await page
               .getByRole("button", { name: "Monthly", exact: true })
