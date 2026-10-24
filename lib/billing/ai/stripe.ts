@@ -1,16 +1,12 @@
+import { choiceFromPrice } from "./choices";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getStripe } from "@/lib/stripe/config";
-import {
-  aiPriceId,
-  addonPriceId,
-  aiEntitlement,
-  mappedAiCustomer,
-} from "./entitlements";
-import { launchPlan, AI_PRO_ADDON_MONTHLY, AI_PLAN_VERSION } from "./catalog";
+import { aiPriceId, mappedAiCustomer } from "./entitlements";
+import { launchPlan, AI_PLAN_VERSION } from "./catalog";
 import { launchEligibility } from "./launch";
 import { saveStripeCustomerId } from "@/lib/billing/settings-store";
 import { trialDaysFromEnv } from "@/lib/marketing/founding";
-import { AssistantFailure, put, entries, digest } from "@/lib/assistant/store";
+import { AssistantFailure } from "@/lib/assistant/store";
 import { appBaseUrl } from "@/lib/stripe/config";
 export async function requireAiBilling() {
   if (
@@ -66,6 +62,11 @@ export async function verifyAiPrice(id: string, monthly: number) {
   )
     throw new AssistantFailure(
       "Stripe price does not match the approved monthly catalog",
+      409,
+    );
+  if (!choiceFromPrice(p))
+    throw new AssistantFailure(
+      "Monthly price mappings must be unique and match an approved CRM Only or CRM + AI choice",
       409,
     );
   return p;
@@ -151,7 +152,7 @@ export async function newAiCheckout(
       cancel_url: `${appBaseUrl()}/dashboard/settings?tab=billing&aiCheckout=cancel`,
     },
     {
-      idempotencyKey: `ai-checkout-${owner}-${AI_PLAN_VERSION}-${eligibility.config.start}`,
+      idempotencyKey: `myari-base-checkout-${customerId}`,
     },
   );
   if (!session.url)
@@ -166,139 +167,20 @@ export async function newAiCheckout(
     billingPeriod: "monthly",
   };
 }
-function proration() {
-  const value = process.env.MYARI_AI_ADDON_PRORATION;
-  if (!["none", "create_prorations", "always_invoice"].includes(value ?? ""))
-    throw new AssistantFailure(
-      "An approved add-on proration policy is required",
-      503,
-    );
-  return value as "none" | "create_prorations" | "always_invoice";
-}
-export async function previewAiPro(owner: string) {
-  await requireAiBilling();
-  if (process.env.MYARI_AI_ADDON_BILLING_ENABLED !== "true")
-    throw new AssistantFailure("AI Pro billing is staged and unavailable", 503);
-  const e = await aiEntitlement(owner);
-  if (!e.verified || !e.tier || !e.subscriptionId || !e.customerId)
-    throw new AssistantFailure(
-      "An active verified AI-inclusive subscription is required",
-      403,
-    );
-  if (e.tier === "pro") return { alreadyActive: true };
-  const stripe = getStripe(),
-    s = await stripe.subscriptions.retrieve(e.subscriptionId);
-  if (s.metadata.ownerId !== owner || s.cancel_at_period_end)
-    throw new AssistantFailure(
-      "Review subscription ownership or pending cancellation in Billing first",
-      409,
-    );
-  await verifyAiPrice(addonPriceId(), AI_PRO_ADDON_MONTHLY);
-  const policy = proration();
-  const invoice = await stripe.invoices.createPreview({
-    customer: e.customerId,
-    subscription: s.id,
-    subscription_details: {
-      items: [{ price: addonPriceId(), quantity: 1 }],
-      proration_behavior: policy,
-    },
-  });
-  const id = crypto.randomUUID(),
-    snapshot = {
-      subscriptionId: s.id,
-      customerId: e.customerId,
-      items: s.items.data.map((i) => ({
-        id: i.id,
-        price: i.price.id,
-        quantity: i.quantity,
-      })),
-      policy,
-      price: addonPriceId(),
-      monthly: AI_PRO_ADDON_MONTHLY,
-      currency: invoice.currency,
-      amountDue: invoice.amount_due,
-      effectiveAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 10 * 60000).toISOString(),
-    },
-    hash = digest(snapshot);
-  await put(owner, "billing_quote", id, "preview", {
-    ...snapshot,
-    digest: hash,
-  });
-  return {
-    quoteId: id,
-    digest: hash,
-    ...snapshot,
-    notice:
-      "Invoice preview is not a charge. Review current invoice/proration and the additional monthly amount before confirmation.",
-  };
+/** Retired endpoint functions deliberately ignore all flags and old saved quotes. */
+export async function previewAiPro(_owner: string): Promise<never> {
+  throw new AssistantFailure(
+    "The AI add-on is discontinued. AI Plus is included in the AI base plan; no additional charge is required.",
+    410,
+  );
 }
 export async function approveAiPro(
-  owner: string,
-  quoteId: string,
-  hash: string,
-) {
-  await requireAiBilling();
-  if (process.env.MYARI_AI_ADDON_BILLING_ENABLED !== "true")
-    throw new AssistantFailure("AI Pro billing is disabled", 503);
-  const quote = (await entries(owner, "billing_quote", quoteId, 1))[0]
-    ?.metadata;
-  if (
-    !quote ||
-    quote.digest !== hash ||
-    Date.parse(String(quote.expiresAt)) < Date.now()
-  )
-    throw new AssistantFailure(
-      "Billing quote expired or changed. Preview again.",
-      409,
-    );
-  const e = await aiEntitlement(owner);
-  if (e.tier === "pro") return { alreadyActive: true };
-  if (!e.verified || e.subscriptionId !== quote.subscriptionId)
-    throw new AssistantFailure("Subscription changed. Preview again.", 409);
-  const stripe = getStripe(),
-    s = await stripe.subscriptions.retrieve(String(quote.subscriptionId));
-  if (
-    s.metadata.ownerId !== owner ||
-    s.cancel_at_period_end ||
-    JSON.stringify(
-      s.items.data.map((i) => ({
-        id: i.id,
-        price: i.price.id,
-        quantity: i.quantity,
-      })),
-    ) !== JSON.stringify(quote.items)
-  )
-    throw new AssistantFailure("Subscription changed. Preview again.", 409);
-  await verifyAiPrice(String(quote.price), AI_PRO_ADDON_MONTHLY);
-  if (
-    !(await put(owner, "billing_claim", quoteId, "once", {
-      state: "requested",
-    }))
-  )
-    throw new AssistantFailure(
-      "This upgrade was already requested. Refresh billing before retrying.",
-      409,
-    );
-  const updated = await stripe.subscriptions.update(
-    s.id,
-    {
-      items: [{ price: String(quote.price), quantity: 1 }],
-      payment_behavior: "pending_if_incomplete",
-      proration_behavior: quote.policy as
-        "none" | "create_prorations" | "always_invoice",
-    },
-    { idempotencyKey: `ai-pro-${owner}-${quoteId}` },
+  _owner: string,
+  _quoteId: string,
+  _hash: string,
+): Promise<never> {
+  throw new AssistantFailure(
+    "The AI add-on is discontinued. Old quotes cannot be executed.",
+    410,
   );
-  await put(owner, "billing_outcome", quoteId, "result", {
-    subscriptionId: updated.id,
-    status: updated.status,
-    at: new Date().toISOString(),
-  });
-  return {
-    subscriptionId: updated.id,
-    status: updated.status,
-    notice:
-      "Stripe confirmed the subscription update. Entitlements are re-read from authoritative item records; payment-dependent activation is not assumed.",
-  };
 }

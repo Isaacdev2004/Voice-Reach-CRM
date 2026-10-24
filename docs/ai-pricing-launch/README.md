@@ -1,109 +1,89 @@
-# AI-inclusive pricing launch — staged implementation and billing audit
+# Corrected AI pricing architecture — review report
 
-**Not launched. Not deployed. No production Stripe products/prices, subscriptions, invoices, customers or subscriber records were changed.** Existing monthly/annual pricing remains active in the source until explicit launch gates are approved. Development branch: `feat/ai-operating-assistant`.
+**This report supersedes the earlier staged $20 AI Pro add-on design. Nothing was deployed. No live subscriptions, prices, products, invoices, credentials or subscriber records were changed.**
 
-## 1. Existing configuration and audit
+Branch: `fix/ai-pricing-exclusive-plans`. The existing rollout gates remain disabled. The $20 add-on is retired unconditionally, including old saved quotes and direct calls even when its old environment flag is enabled. No Stripe product/price was deleted; existing references require read-only inventory before any later cleanup.
 
-The existing authoritative CRM catalog is `lib/billing/plans.ts`: Starter $49/mo, Growth $99/mo, Pro $199/mo, Team from $299/mo. Starter has 1,000 contacts/1 user/1,000 emails and PAYG SMS/RVM; Growth has 5,000 contacts/1 user/750 SMS/250 RVM/1,000 emails; Pro has 15,000 contacts/3 users/2,000 SMS/1,000 RVM/5,000 emails. Existing annual configuration uses its separate billing-period/price-ID flow and is retained unchanged.
+## Monthly price mappings
 
-Founding 100 marketing has a 14-day trial, list-price strike-throughs and static offer wording. Actual production Founding eligibility/counts/Stripe product configuration cannot be verified here. No new offer is assumed to inherit Founding eligibility. Existing checkout, claim ownership checks, webhook signature verification, subscription synchronization, trial pause behavior and Billing portal remain in place.
+One base subscription item, quantity one. Prices are USD before applicable Stripe taxes/discounts/proration. AI Plus is included in the AI total, not a second charge.
 
-Confirmed legacy concerns: several CRM limits use saved server settings/engagement counts rather than a single atomic subscription/messaging ledger; generic campaign activation did not distinguish new AI Starter multi-step permissions; existing compound campaign persistence is not an atomic transaction; complete Founding enrollment/seat accounting and portal cancellation/proration policy are not proven by static marketing. These are not evidence that a particular customer's live bill is wrong. New AI entitlements therefore read actual Stripe customer ownership, subscription status/items, price identity, amount/currency/interval/quantity and period, rather than trusting browser/settings plan fields.
+| CRM tier | CRM Only | Stripe variable | CRM + AI Plus total | Stripe variable |
+|---|---:|---|---:|---|
+| Starter | $49 | `STRIPE_PRICE_STARTER` | $65 | `STRIPE_PRICE_STARTER_AI_MONTHLY` |
+| Growth | $99 | `STRIPE_PRICE_GROWTH` | $115 | `STRIPE_PRICE_GROWTH_AI_MONTHLY` |
+| Pro | $199 | `STRIPE_PRICE_PRO` | $215 | `STRIPE_PRICE_PRO_AI_MONTHLY` |
 
-The new code adds an activation guard for AI-inclusive Starter multi-step delivery while retaining drafting. AI Pro does not grant Growth/Pro CRM features, extra seats or administrative rights. Existing legacy records/plans are not migrated.
+The difference is $16/month for every corresponding tier. `lib/billing/plans.ts` retains the CRM catalog and capabilities; `lib/billing/ai/catalog.ts` defines the AI totals/caps; `lib/billing/ai/choices.ts` validates the relationship, exact distinct configured price IDs, amounts, currency and monthly intervals. Duplicate mapping across choices, retired add-on or annual IDs fails closed. No inline AI products/prices are created.
 
-## 2. New catalog and launch configuration
+Existing Founding 100 subscriptions, current discounts and legacy annual prices remain untouched. AI annual and post-launch regular prices remain unconfigured; the original CRM Monthly/Yearly flow remains available. Existing custom or differently priced subscriptions require individual migration review rather than an assumed $16 adjustment.
 
-Single source: `lib/billing/ai/catalog.ts`.
+## Authoritative AI Plus entitlement and caps
 
-| New monthly plan | Amount | CRM capabilities | Included AI |
-|---|---:|---|---|
-| Starter AI | $65 | Existing Starter | AI Plus |
-| Growth AI | $115 | Existing Growth | AI Plus |
-| Pro AI | $215 | Existing Pro | AI Plus |
-| Optional AI Pro | +$20 | No CRM/seat change | Higher AI allowances |
+`aiEntitlement` is the only AI tier authority. It retrieves the authenticated owner's mapped Stripe customer and unique nonterminal subscription, verifies ownership/status and exact base price mapping, quantity and actual period. Active/trialing AI base plans grant **Plus without any add-on**. CRM Only, failed/unpaid/paused/canceled or ambiguous subscriptions do not gain Plus. An actual price change, not metadata or the browser, controls access.
 
-No new AI yearly amount or post-launch regular price is invented. Existing yearly billing remains available on the legacy catalog. The new pricing path deliberately requires preconfigured exact Stripe prices and has **no inline-product/price fallback**.
+A historical $20 item never grants a higher tier; an AI base still supplies Plus while the historical reference is flagged for billing review. It is not removed/refunded automatically. Unknown extra items or mixed base prices fail closed. Previously configured Pro-cap constants remain dormant for historical code compatibility; no purchase or entitlement path grants them.
 
-`MYARI_AI_LAUNCH_CONFIG` is validated administrative configuration: approved flag, explicit ISO start/end exactly 90 days apart, eligible plans/cohort, all-new-subscriber option, approved continuous-subscription terms and nullable future prices. Implementation date is never used as launch start. [launch-config.example.json](launch-config.example.json) is deliberately disabled/incomplete until reviewed. Existing subscriptions do not qualify for automatic replacement; even canceled subscription history is not treated as a fresh customer. Current Stripe recurring prices remain unchanged after the window; no automatic future increase exists. Post-launch offer and interrupted-subscription grandfathering require business approval.
+| AI Plus allowance | Per subscriber/month |
+|---|---:|
+| AI interactions | 200 |
+| SMS/email drafts | 100 |
+| New campaign drafts | 5 |
+| Successfully created tasks/reminders | 75 |
+| Successfully created events | 25 |
+| Premium documents | 5 |
+| Transcription | 30 minutes |
+| Sapphire audio | 5 minutes, only where reliable generation metering is supported |
+| Validated multi-step workflows | 10 |
 
-## 3. Monthly entitlements
+Existing atomic usage ledger, idempotency, 80%/100% indications and actual subscription-period resets are unchanged. No per-team pooling or CRM-seat/permission expansion. $5 monitoring is separate from subscriber billing; no surprise overage/add-on charges. Paid Sapphire generation remains closed pending reliable duration acceptance, as documented in the prior assistant audit.
 
-| Capability | AI Plus | AI Pro |
-|---|---:|---:|
-| Accepted delivered AI interactions | 200 | 600 |
-| Successfully generated SMS/email drafts | 100 | 350 |
-| Newly generated campaign drafts | 5 | 15 |
-| Successfully created tasks/reminders | 75 | 250 |
-| Successfully created Calendar events | 25 | 100 |
-| Completed premium flyers/documents | 5 | 15 |
-| Transcription | 30 min | 90 min |
-| Sapphire generation allocation | 5 min | 20 min |
-| Initiated validated multi-action runs | 10 | 40 |
+## Checkout and mutually exclusive choices
 
-Limits are per entitled subscriber, never implicit pooled seats. Underlying CRM caps/permissions remain separate. Entitlements are based on one verified active/trialing AI base subscription item; one matching add-on permits AI Pro. Wrong amount/currency/interval, duplicate add-ons, quantity inflation, foreign customer metadata, ambiguous subscriptions, unverified status and payment-failed/paused/canceled states do not grant AI access. Legacy pricing is preserved and never silently reclassified as AI Plus. An explicit development-only beta override exists for synthetic/internal use; it cannot grant production access through browser input.
+New AI checkout requires explicit new-subscription confirmation, rollout/database/entitlement gates, exact test/live price validation, approved launch dates/cohort and no prior subscription/open checkout. It creates one line item only. CRM checkout now verifies configured monthly amounts, blocks nonterminal existing subscriptions (including AI), and blocks open checkout sessions. Both authenticated checkout variants use the same Stripe customer-scoped idempotency key so different choices cannot create competing checkout sessions during Stripe's idempotency retention window. Expired checkout recovery requires waiting for key expiry or reviewed support handling; no automatic key reset creates duplicate charges.
 
-## 4. Atomic backend accounting
+No public checkout can buy the retired $20 item. Old `/api/billing/ai/upgrade` returns a discontinued error; old approval quotes cannot execute. Stripe Billing Portal configuration is outside this repository: production acceptance must confirm its allowed products/prices exclude the retired add-on and do not introduce extra base items.
 
-Migration: `supabase/migrations/20261030000000_ai_usage_meter.sql`. Private owner/period/capability accounts and idempotent operation rows support reserved/committed/released units. A row lock serializes reservations; `used + reserved + requested <= server limit` is enforced transactionally. Client roles cannot read/write tables or invoke quota RPCs. Only service-side code passes catalog limits after verifying entitlement. A version-check RPC prevents staged checkout from proceeding before the usage schema is ready. Migration was applied **only to an isolated local PostgreSQL container**, not production.
+Anonymous legacy checkout cannot prove an existing person's account identity from an email alone. Existing authenticated subscriptions are protected; complete cross-funnel/customer-creation concurrency and anonymous reconciliation still require real Stripe staging acceptance before rollout. The existing cardless trial path returns an existing subscription rather than replacing it. No claim is made that these checks constitute a distributed transaction across every legacy initiation route.
 
-Reset keys use authoritative Stripe base-item periods. A new period starts with its own account rows; a tier change keeps the same period and existing usage. At 80% the usage UI signals near-limit; at 100% the operation blocks before its service call with reset/upgrade guidance. Pending uncertain operations remain visible as reserved rather than falsely charged/completed. Administrative extra allowance requires server-admin scope, explicit confirmation, idempotency key, reason and audit; it never rewrites billing, actual usage or CRM permissions.
+## Explicit corresponding-plan upgrade/downgrade
 
-Definitions implemented:
+Settings and Command Center offer **Review CRM + AI** or **Review CRM Only**. They use `/api/billing/ai/plan-change`, never new checkout for an existing subscriber.
 
-- One submitted assistant interaction is metered once around the bounded reasoning/tool loop; internal calls/retries are not separate subscriber requests. Provider failure without delivered result releases the allowance; partial delivered drafts count one interaction and remain recoverable.
-- Successful model-created SMS/email proposals count drafts. Manual edits do not trigger AI generation. Campaign revisions inherit a root ID and do not count as new campaign generation.
-- Task/event counters commit after backend confirmation. Checklist assignment reserves the actual number of tasks. Uncertain partial service outcomes hold a reservation for reconciliation rather than blindly retrying or fabricating success.
-- The first completed document export counts once per immutable draft root; subsequent downloads/formats preserve access to existing work.
-- Transcription uses server-validated PCM frames, rounded up to one second. Browser dictation converts audio to PCM WAV. Client duration headers are ignored. Invalid/unknown-duration input is rejected before a paid operation for entitled accounts.
-- A validated multi-action command reserves one workflow allowance when a second distinct prepare operation starts; internal loop iterations do not multiply this count. This is synchronous orchestration, not a claimed background worker.
-- Sapphire seconds are configured but **paid generation for new AI-inclusive accounts is held closed** until reliable generated-audio duration/provider metering is accepted. No fabricated duration or substitute voice is used.
+1. Authenticate owner and re-read the actual unique subscription/customer.
+2. Require one supported monthly base item; block annual/custom/extra-item/pending/scheduled/canceling/payment-problem states.
+3. Keep the same Starter/Growth/Pro tier; select its corresponding other choice.
+4. Require separately approved `MYARI_AI_PLAN_CHANGE_PRORATION` (no assumed policy) and `MYARI_AI_PLAN_CHANGES_ENABLED` (off by default).
+5. Generate an actual Stripe invoice preview, binding subscription/item/version, target price, proration timestamp, currency/amount due and ten-minute expiry.
+6. Display old/new recurring totals, ±$16 difference, requested effective time, renewal, invoice amount, consequences and founding eligibility warning. Explicit `CONFIRM_REPLACE_MONTHLY_PLAN` is required.
+7. Revalidate snapshot/configuration/eligibility and claim the subscription source version once. Replace `{id: existingItemId, price: targetPrice, quantity:1}` with Stripe idempotency and `pending_if_incomplete`.
+8. Preserve subscription identity, trial/billing anchor, discounts and other fields; do not append an item, create a subscription, grant new seats, restart a trial or assume payment success.
 
-Legacy generic AI, Notes/Tasks/Voice Studio writing/Brand Kit/activity endpoints receive an entitlement-aware request wrapper so entitled customers cannot bypass caps through the old UI. Existing verified legacy subscribers retain their existing basic AI path. Background daily briefings keep their existing cache/scheduler behavior rather than charging a subscriber interaction on every refresh. Full legacy provider cost/entry-point coverage still requires staging acceptance before paid launch.
+Success and pending outcomes are recorded. Concurrent quotes share a source-version claim. Unknown provider outcomes require reconciliation, not blind retry. Successful later round trips are possible without reusing an earlier source-version claim. AI access and billing display are refreshed from actual Stripe state. Switching back to a CRM catalog price does not promise restoration of a historical promotion. No existing subscriber is migrated automatically.
 
-## 5. Stripe checkout and AI Pro
+## Webhooks, invoices and billing display
 
-New checkout requires separate billing/entitlement/database approval gates, verified schema and exact configured monthly price. It uses existing Stripe customer mapping and validates ownership, rejects existing subscriptions/open checkout duplication, preserves the existing trial/pause behavior, sets base CRM metadata and uses stable idempotency. No production product is created. Existing live subscriptions are never replaced by this path.
+Signed subscription-created/updated/deleted events retrieve current Stripe subscription state instead of trusting an outdated event snapshot. Signed paid/failed invoice events retrieve their referenced subscription and refresh status. Exact base mapping supplies $65/$115/$215 names/totals to Settings; downgrade supplies the corresponding CRM amount. Checkout claim and existing-trial projections use the same monthly mapping. AI authorization never depends on that display projection or stale plan metadata. Unpaid/pending changes do not automatically gain Plus.
 
-AI Pro uses a real subscription item. The subscriber first requests an invoice/proration preview; a durable ten-minute quote binds subscription items, price, amount and approved proration policy. Only an explicit `CONFIRM_AI_PRO_UPGRADE` can request the update. Current ownership/items/cancellation state are rechecked; duplicate existing add-ons are refused and replaying a successful upgrade cannot add another. Stripe idempotency and `pending_if_incomplete` protect payment-dependent changes. No model tool can call billing.
+Existing webhook signatures and ownership metadata are preserved. Legacy annual/customer/checkout ownership infrastructure remains. Real signature delivery, invoice taxes, discounts, portal policies and event ordering must still pass Stripe account acceptance.
 
-`MYARI_AI_ADDON_PRORATION` has **no default**; business must approve `none`, `create_prorations` or `always_invoice` after actual Stripe test-mode verification. Downgrade/removal, annual/legacy migration, effective dates, grace/refund rules and portal configuration are not invented. Existing subscribers retain their bill; a fully verified self-service legacy-to-AI migration remains a release blocker. Existing Billing portal functionality is preserved.
+## Public Pricing and usage experience
 
-## 6. Public website and subscriber UX
+The approved architectural hero, three cards and Growth emphasis remain. A staged **CRM Only / CRM + AI** selector displays either the original CRM catalog (including its existing annual toggle/Founding terms) or the AI-inclusive monthly catalog. It explains $16 difference and that the displayed AI total includes AI Plus. Only Plus limits are offered; all public $20 add-on promotion and usage upgrade buttons are removed.
 
-The approved architectural hero and luxury Pricing layout remain. A staged server-rendered three-card AI view derives $65/$115/$215 and +$20 from the backend catalog, shows AI Assistant Included, and includes a compact expandable allowance comparison. Growth remains featured. No annual discount, unlimited AI claim, or unverified Founding eligibility is attached to this new view. New checkout explicitly reviews the selected plan and then hands off to verified Stripe; it cannot silently use the old price.
+The selector/new AI prices remain behind the existing approved public-launch gates. Production still displays the current CRM offer until approval; source changes do not activate new prices. AI Usage and Command Center use actual backend counters and show a base-plan replacement review instead of AI Pro checkout. Homepage AI messaging remains launch-gated.
 
-The public switch requires approved launch/cohort/time window, entitlement flag, meter-database acceptance and a separate public verification flag. It is **off**. The Homepage announcement is gated by the same approval checks and describes drafts/preparation rather than autonomous sending. Existing public prices/homepage remain unchanged while gates are off. Both routes are dynamic so an expired window is not frozen into a static marketing build.
+## Verification and remaining blockers
 
-Settings Billing/Brand Kit and AI Command Center include backend-sourced AI tier, used/pending/remaining allowances, actual reset date, near/at-limit states and the explicit add-on preview flow. Unknown billing or missing schema shows unavailable, never fabricated subscriber counters. Saved preferences remain in existing versioned Settings.
+[Current QA results](CORRECTION-QA.md) and [prior Assistant report](../ai-operating-assistant/README.md).
 
-## 7. Admin economics and cost safeguards
+All six monthly combinations are exercised using synthetic customers and mocked Stripe **test-mode objects**. No real Stripe test account or network access is available here; actual Stripe-hosted checkout/invoices were **not** exercised. No real charges, communications or production writes occurred.
 
-`/dashboard/admin/ai` and its API require server-configured administrative IDs and an explicit authorized reporting cohort. No frontend role can grant access. Each query is scoped to its authorized owner. Cohort subscriber counts become unavailable when verification is incomplete; they are not represented as global totals. Actual usage counters are shown; configured-rate token estimates are labeled with incomplete coverage.
+Required before rollout:
 
-AI Plus $5 / AI Pro $12 are **operational monitoring thresholds**, not customer billing caps. No automatic price increase, overage charge or entitlement cancellation follows from crossing them. Cost hard budgets require a separate approved policy flag. Token usage is recorded by provider/model; absent rates or invoice evidence remain unknown. Recognized AI revenue, provider-billed direct cost, contribution margin and conversion metrics remain unavailable until invoice allocation/reconciliation is connected. No profitability is fabricated. Automatic administrator alert delivery is not implemented; current monitoring is an authenticated reporting surface.
+- Read-only inventory of real test/live products, subscriptions and historical $20 references; verify all six distinct price IDs without deleting referenced prices.
+- Actual test-mode checkout for all six choices, confirmation/invoice/proration and upgrade/downgrade/renewal/trial/failure/cancellation webhooks, discounts/tax, pending payment and concurrent/cross-funnel duplicate prevention.
+- Approved plan-change proration/effective timing, grandfathering disclosures, launch start/end/cohort, portal product allowlist and annual AI policy (if introduced later).
+- Reviewed usage migration and all prior provider/media/metering acceptance gates; controlled beta, deployment approval and rollback verification.
 
-Per-subscriber rate/call/context/concurrency guards, unique operation keys, bounded media, no default expensive image generation, preserved drafts and fail-closed provider errors control abuse. These operational limits require acceptance/disclosure before paid launch and do not redefine the advertised monthly entitlement table.
-
-## 8. Tests and rollout gates
-
-New mocked Stripe tests verify catalog/CRM separation, explicit 90-day eligibility, public flags, subscription item identities/amounts/quantities/owners, trial/payment/cancellation states, billing-period reset keys, quota enforcement, missing schema, duplicate prevention, 80/100% display, checkout and AI Pro item updates/admin scope/audio duration. No actual Stripe test account was reachable under the environment policy, so these are mocked test-mode payload tests, **not live Stripe acceptance**.
-
-Isolated PostgreSQL test: 12 concurrent requests against cap 5 admitted exactly 5; subsequent cap excess blocked; duplicate keys did not double-consume; failed-result release, separate subscribers, variable audio units, expired periods, RLS and client RPC denial passed. No production migration was applied. Assistant security/UI tests and full lint/type/unit/build results are recorded in the companion report and final QA record.
-
-Staged rollout:
-
-1. Internal synthetic testing, all launch flags off (current state).
-2. Explicitly allowlisted beta, verified provider/model access, reviewed development/staging migration and recovery testing.
-3. New-subscriber offer only after real Stripe test-mode checkout/webhook/invoice/proration/cancellation, entitlement/media/cost/permission acceptance, approved date/cohort/terms and public launch review.
-4. Existing-subscriber optional upgrade only after a separate informed migration policy/current-bill comparison/effective-date workflow is verified.
-
-Required business approvals: launch start/end/cohort; continuity/grandfathering terms; post-launch regular pricing (currently **unset**); new AI yearly pricing (unset); add-on proration/payment/failure/downgrade policy; legacy upgrade terms; verified price IDs and product reuse; retention and cost-reporting policy; internal operational rate limits and any separately disclosed hard cost budget; production migration; beta/public rollout.
-
-**Not ready for production pricing activation.** Remaining blockers include actual Stripe/provider credentials/host access, reviewed production migration, Sapphire duration integration, property-photo/media workflows, complete provider-cost reconciliation/admin notifications, legacy migration/downgrade acceptance and signed-in staging/load/security QA. No deployment or production billing action was performed. Disabling the new pricing/entitlement/billing/public flags leaves the old CRM catalog and subscriptions intact; disable Assistant V2 to restore the existing Claude UI.
-
-## Final local QA
-
-See [complete test results and acceptance limits](../ai-operating-assistant/QA.md) and [files changed](FILES-CHANGED.txt). New launch pricing, V2 public access and approved-send flags remain disabled. Review readiness is established locally; production rollout remains blocked by the documented external acceptance and business approvals.
-
-Billing mode is explicit: `MYARI_AI_STRIPE_MODE=test` by default, with actual Stripe price `livemode` verification. Live/public launch additionally requires separate live billing approval. API credentials or proxy placeholders are never used to infer the Stripe mode.
+Rollback: keep public/billing/plan-change flags off; preserve CRM Only/annual and Claude. No live customer needs a rollback or price migration from this local change.

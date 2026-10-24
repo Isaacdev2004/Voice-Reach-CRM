@@ -135,6 +135,36 @@ const assert = require("node:assert/strict"),
           }),
         }),
       );
+      const billingActions = [];
+      await page.route("**/api/billing/ai/plan-change", async (route) => {
+        const b = route.request().postDataJSON();
+        billingActions.push(b);
+        const d =
+          b.operation === "preview"
+            ? {
+                quoteId: "00000000-0000-4000-8000-000000000099",
+                digest: "b".repeat(64),
+                from: { name: "Starter AI", monthly: 65 },
+                to: { name: "Starter", monthly: 49 },
+                monthlyDifference: -16,
+                amountDue: 0,
+                currency: "usd",
+                effectiveAt: "2026-10-24T12:00:00Z",
+                currentPeriodEnd: "2026-11-24T12:00:00Z",
+                policy: "create_prorations",
+                notice:
+                  "Synthetic replacement quote. No second subscription or add-on.",
+              }
+            : {
+                notice:
+                  "Synthetic Stripe replacement acknowledged. Refresh Billing to verify.",
+              };
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify(d),
+        });
+      });
       await page.route("**/api/assistant/**", async (route) => {
         const req = route.request(),
           url = new URL(req.url());
@@ -290,10 +320,51 @@ const assert = require("node:assert/strict"),
         path: `${out}/command-center-${width}.png`,
         fullPage: true,
       });
+      await page.getByText("AI allowance & billing", { exact: true }).click();
+      await page
+        .getByRole("button", { name: "Review CRM Only", exact: true })
+        .click();
+      const confirmChange = page.getByRole("button", {
+        name: "Confirm plan replacement",
+        exact: true,
+      });
+      await confirmChange.waitFor();
+      assert.equal(await confirmChange.isDisabled(), true);
+      assert.equal(
+        billingActions.filter((b) => b.operation === "confirm").length,
+        0,
+      );
+      await page.getByRole("checkbox", { name: /I approve replacing/ }).check();
+      await page.screenshot({
+        path: `docs/ai-pricing-launch/plan-change-${width}.png`,
+        fullPage: true,
+      });
+      await confirmChange.click();
+      await page
+        .getByText(
+          "Synthetic Stripe replacement acknowledged. Refresh Billing to verify.",
+          { exact: true },
+        )
+        .waitFor();
+      assert.equal(
+        billingActions.filter((b) => b.operation === "confirm").length,
+        1,
+      );
+      assert.equal(
+        billingActions.at(-1).confirmation,
+        "CONFIRM_REPLACE_MONTHLY_PLAN",
+      );
       await page.goto(
         `http://127.0.0.1:${server.address().port}/pricing-render`,
       );
       await page.getByRole("heading", { name: "Choose your plan." }).waitFor();
+      for (const amount of ["$49", "$99", "$199"])
+        await page.getByText(amount, { exact: true }).waitFor();
+      await page.screenshot({
+        path: `docs/ai-pricing-launch/crm-only-${width}.png`,
+        fullPage: true,
+      });
+      await page.getByRole("button", { name: "CRM + AI", exact: true }).click();
       assert.equal(await page.locator(".approved-plan").count(), 3);
       for (const amount of ["$65", "$115", "$215"])
         await page.getByText(amount, { exact: true }).waitFor();
@@ -311,6 +382,7 @@ const assert = require("node:assert/strict"),
         path: `docs/ai-pricing-launch/pricing-${width}.png`,
         fullPage: true,
       });
+      assert.deepEqual(errors, []);
       await page.close();
     }
     console.log(

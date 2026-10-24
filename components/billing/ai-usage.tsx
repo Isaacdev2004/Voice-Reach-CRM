@@ -1,4 +1,5 @@
 "use client";
+import { AiPlanChangeReview } from "./ai-plan-change";
 import { AiNewSubscriptionReview } from "./ai-new-subscription";
 import { useEffect, useState } from "react";
 type Usage = {
@@ -25,10 +26,7 @@ export function AiUsagePanel() {
       resetAt?: string;
       notice?: string;
     } | null>(null),
-    [error, setError] = useState(""),
-    [quote, setQuote] = useState<Record<string, unknown> | null>(null),
-    [busy, setBusy] = useState(false),
-    [confirmed, setConfirmed] = useState(false);
+    [error, setError] = useState("");
   useEffect(() => {
     let live = true;
     fetch("/api/billing/ai/usage", { cache: "no-store" })
@@ -47,46 +45,13 @@ export function AiUsagePanel() {
       live = false;
     };
   }, []);
-  async function upgrade() {
-    setBusy(true);
-    setError("");
-    try {
-      const r = await fetch(
-          "/api/billing/ai/upgrade",
-          quote
-            ? {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  quoteId: quote.quoteId,
-                  digest: quote.digest,
-                  confirmation: "CONFIRM_AI_PRO_UPGRADE",
-                }),
-              }
-            : {},
-        ),
-        d = await r.json();
-      if (!r.ok) throw Error(d.error);
-      if (quote) {
-        setQuote(null);
-        setConfirmed(false);
-        setError(
-          d.notice ?? "Billing updated; refresh to verify authoritative usage.",
-        );
-      } else setQuote(d);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Billing preview unavailable");
-    } finally {
-      setBusy(false);
-    }
-  }
   return (
     <section className="reviews-referrals ai-usage-panel">
       <h2 className="font-serif text-2xl">Your AI usage</h2>
       <AiNewSubscriptionReview />
       <p>
         {data?.entitlement?.tier
-          ? `AI ${data.entitlement.tier === "pro" ? "Pro" : "Plus"} · ${data.entitlement.crmPlan ?? "Verified CRM plan"}`
+          ? `AI Plus included · ${data.entitlement.crmPlan ?? "Verified CRM plan"}`
           : "AI entitlement not verified"}
       </p>
       {data?.resetAt && (
@@ -121,44 +86,10 @@ export function AiUsagePanel() {
         </article>
       ))}
       <p>{data?.notice ?? data?.entitlement?.reason}</p>
-      {data?.entitlement?.tier === "plus" && (
-        <button disabled={busy} onClick={() => void upgrade()}>
-          Preview AI Pro upgrade
-        </button>
-      )}
-      {quote && (
-        <div>
-          <h3 className="font-serif text-xl">Review AI Pro billing</h3>
-          <p>
-            Additional monthly amount: ${String(quote.monthly ?? "unavailable")}
-            . Invoice preview: {quote.currency === "usd" ? "$" : ""}
-            {typeof quote.amountDue === "number"
-              ? (quote.amountDue / 100).toFixed(2)
-              : "Unavailable"}
-            .
-          </p>
-          <p>
-            Policy: {String(quote.policy ?? "unavailable")}. Effective:{" "}
-            {String(quote.effectiveAt ?? "unavailable")}. This preview is not a
-            charge.
-          </p>
-          <label>
-            <input
-              type="checkbox"
-              checked={confirmed}
-              onChange={(e) => setConfirmed(e.target.checked)}
-            />
-            I approve the displayed billing change.
-          </label>
-          <button disabled={busy || !confirmed} onClick={() => void upgrade()}>
-            Confirm AI Pro upgrade
-          </button>
-        </div>
-      )}
+      <AiPlanChangeReview hasAi={!!data?.entitlement?.tier} />
       <p>
-        AI Pro never changes CRM feature permissions or team seats. Existing
-        subscription migration and downgrade timing require the verified Billing
-        portal configuration.
+        AI Plus is included in the AI base plan. There is no separate AI add-on
+        charge. Existing annual subscriptions are unchanged.
       </p>
     </section>
   );

@@ -71,7 +71,11 @@ export function billingFromPlan(
 export async function applyBillingPlan(
   ownerId: string,
   planId: PlanId,
-  options?: { subscriptionStatus?: BillingSettings["subscriptionStatus"] },
+  options?: {
+    subscriptionStatus?: BillingSettings["subscriptionStatus"];
+    monthlyPrice?: number;
+    planName?: string;
+  },
 ) {
   const saved = await loadSavedSettings(ownerId);
   const base = saved ?? DEFAULT_SETTINGS;
@@ -83,7 +87,13 @@ export async function applyBillingPlan(
 
   const settings: UserSettings = {
     ...base,
-    billing,
+    billing: {
+      ...billing,
+      ...(options?.monthlyPrice !== undefined
+        ? { monthlyPrice: options.monthlyPrice }
+        : {}),
+      ...(options?.planName ? { planName: options.planName } : {}),
+    },
     updatedAt: new Date().toISOString(),
   };
 

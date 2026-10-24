@@ -203,7 +203,7 @@ export const POST = withApiHandler(async (request: Request) => {
         ).length > 1
       )
         return apiError(
-          "Starter AI includes campaign drafting; multi-step CRM activation requires Growth or Pro. AI Pro does not change CRM permissions.",
+          "Starter AI includes campaign drafting; multi-step CRM activation requires Growth or Pro. AI Plus does not change CRM permissions.",
           { status: 403, code: "crm_plan_required" },
         );
     }

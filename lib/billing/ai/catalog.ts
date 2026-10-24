@@ -41,7 +41,8 @@ export const AI_LAUNCH_PLANS = [
   { id: "growth", name: "Growth AI", monthly: 115 },
   { id: "pro", name: "Pro AI", monthly: 215 },
 ] as const;
-export const AI_PRO_ADDON_MONTHLY = 20;
+/** AI Plus is included in a replacement base subscription, never an add-on. */
+export const AI_PLUS_MONTHLY_DIFFERENCE = 16;
 export const AI_MONITORING_THRESHOLDS = { plus: 5, pro: 12 } as const;
 export const AI_PLAN_VERSION = "ai-launch-v1";
 export const launchPlan = (id: string) =>

@@ -122,3 +122,7 @@ See [implementation, validation and release gates](campaign-premium/README.md). 
 Use only synthetic allowlisted owners; retain Claude rollback. Keep live outbound and AI production billing disabled. Demonstrate an authorized contact read, draft preview, explicit task save, reopen history, Command Center and mocked voice transcript. Opening/closing the compact drawer must preserve unsaved page work. Do not imply external Google availability, Sapphire generation or unrestricted messaging is operational when not verified.
 
 Show staged pricing only in the synthetic fixture. The production site retains existing prices until the launch gates pass. Demonstrate a quota reached state and duplicate prevention without charges. Screenshots: [assistant QA](ai-operating-assistant/README.md). No pushing this branch: repository pushes trigger deployment previews and this task explicitly prohibits deployment.
+
+## Pricing architecture correction (2026-10-24)
+
+CRM Only $49/$99/$199 and CRM + AI Plus $65/$115/$215 are mutually exclusive monthly base plans. The $16 difference includes AI Plus; there is no purchasable $20 AI add-on. Old add-on quotes and APIs are unconditionally retired, without deleting Stripe records. Corresponding monthly upgrades/downgrades require an owner-bound invoice preview and explicit base-item replacement confirmation. Existing subscriptions, Founding terms and CRM annual paths remain unchanged. New public prices/plan changes remain disabled; no deployment or production writes. See [corrected billing report](ai-pricing-launch/README.md).

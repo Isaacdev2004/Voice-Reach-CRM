@@ -1,5 +1,7 @@
 # MyARI Assistant 2.0 — implementation, audit and acceptance report
 
+> Pricing correction: the earlier $20 AI Pro add-on is retired. AI Plus is included in one $65/$115/$215 base subscription; CRM Only remains $49/$99/$199. [Current pricing report](../ai-pricing-launch/README.md) supersedes earlier billing/add-on references below. No production rollout was performed.
+
 Status: **isolated development branch; not deployed, not enabled for subscribers**. Branch `feat/ai-operating-assistant`. Includes the subsequent universal/contextual/voice requirements and the staged AI-inclusive pricing work. No production subscriber, campaign, appointment, recording, Stripe product, subscription or provider configuration was modified. No live communications, paid synthesis or production AI calls were made.
 
 ## 1. Existing Claude architecture and confirmed repairs

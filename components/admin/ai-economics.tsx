@@ -36,7 +36,7 @@ export function AiEconomics() {
           <div className="ai-comparison-grid">
             {[
               ["AI Plus subscribers", data.aiPlusSubscribers],
-              ["AI Pro subscribers", data.aiProSubscribers],
+
               ["Recognized AI revenue", data.recognizedAiRevenue],
               ["Provider-billed direct costs", data.directProviderBilledCosts],
               ["Contribution margin", data.contributionMargin],

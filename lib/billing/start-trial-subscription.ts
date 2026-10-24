@@ -1,3 +1,4 @@
+import { monthlySubscriptionDisplay } from "./ai/choices";
 import { billingAmount, type BillingPeriod } from "./billing-period";
 import { subscriptionStatus as normalizeSubscriptionStatus } from "@/lib/billing/verification";
 import {
@@ -86,6 +87,7 @@ export async function startTrialSubscriptionForOwner(params: {
     const status = normalizeSubscriptionStatus(current.status);
     await applyBillingPlan(params.ownerId, planId, {
       subscriptionStatus: status,
+      ...monthlySubscriptionDisplay(current),
     });
     return {
       ok: true,

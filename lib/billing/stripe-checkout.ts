@@ -31,6 +31,44 @@ export async function createSubscriptionSession(params: {
   if (!plan) throw new Error("Invalid plan");
 
   const stripe = getStripe();
+  if (params.customerId) {
+    const customer = await stripe.customers.retrieve(params.customerId);
+    if (
+      customer.deleted ||
+      (params.ownerId && customer.metadata.ownerId !== params.ownerId)
+    )
+      throw new Error("Billing customer ownership could not be verified");
+    const subscriptions = await stripe.subscriptions.list({
+      customer: params.customerId,
+      status: "all",
+      limit: 100,
+    });
+    if (
+      subscriptions.has_more ||
+      subscriptions.data.some(
+        (s) => !["canceled", "incomplete_expired"].includes(s.status),
+      )
+    )
+      throw new Error(
+        "An existing subscription must be changed in Billing, not purchased again. No duplicate subscription was created.",
+      );
+  }
+  if ((params.billingPeriod ?? "monthly") === "monthly") {
+    const priceId = stripePriceIdForPlan(params.planId, "monthly");
+    if (priceId) {
+      const price = await stripe.prices.retrieve(priceId);
+      if (
+        !price.active ||
+        price.currency !== "usd" ||
+        price.unit_amount !== plan.price * 100 ||
+        price.recurring?.interval !== "month" ||
+        price.recurring.interval_count !== 1
+      )
+        throw new Error(
+          "Configured CRM Only price does not match the advertised monthly plan",
+        );
+    }
+  }
   if (params.billingPeriod === "yearly") {
     const priceId = stripePriceIdForPlan(params.planId, "yearly");
     if (priceId) {
@@ -71,6 +109,20 @@ export async function createSubscriptionSession(params: {
         : {}),
     };
 
+  if (params.customerId) {
+    const pending = await stripe.checkout.sessions.list({
+      customer: params.customerId,
+      status: "open",
+      limit: 100,
+    });
+    if (pending.has_more || pending.data.length)
+      throw new Error(
+        "An open checkout already exists. Finish or expire it before choosing another subscription.",
+      );
+  }
+  const checkoutOptions = params.customerId
+    ? { idempotencyKey: `myari-base-checkout-${params.customerId}` }
+    : undefined;
   const baseSession: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
     payment_method_collection: withTrial ? "if_required" : "always",
@@ -95,24 +147,33 @@ export async function createSubscriptionSession(params: {
   };
 
   try {
-    return await stripe.checkout.sessions.create({
-      ...baseSession,
-      line_items: lineItems,
-    });
+    return await stripe.checkout.sessions.create(
+      {
+        ...baseSession,
+        line_items: lineItems,
+      },
+      checkoutOptions,
+    );
   } catch (err) {
     const msg = stripeMessage(err);
     if (isRecoverablePriceError(msg)) {
-      return await stripe.checkout.sessions.create({
-        ...baseSession,
-        line_items: checkoutLineItems(params.planId, params.billingPeriod),
-      });
+      return await stripe.checkout.sessions.create(
+        {
+          ...baseSession,
+          line_items: checkoutLineItems(params.planId, params.billingPeriod),
+        },
+        checkoutOptions,
+      );
     }
     if (/managed_payments|unknown parameter/i.test(msg)) {
       const { managed_payments: _mp, ...withoutManaged } = baseSession;
-      return await stripe.checkout.sessions.create({
-        ...withoutManaged,
-        line_items: checkoutLineItems(params.planId, params.billingPeriod),
-      });
+      return await stripe.checkout.sessions.create(
+        {
+          ...withoutManaged,
+          line_items: checkoutLineItems(params.planId, params.billingPeriod),
+        },
+        checkoutOptions,
+      );
     }
     throw err;
   }

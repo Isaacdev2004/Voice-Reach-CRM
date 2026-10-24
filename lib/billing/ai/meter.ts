@@ -52,7 +52,7 @@ export async function reserveAi(
   if (r.error) {
     if (String(r.error.message).includes("AI_LIMIT"))
       throw new AssistantFailure(
-        `${capability.replaceAll("_", " ")} allowance reached. Resets ${new Date(e.periodEnd).toLocaleDateString("en-US", { timeZone: "UTC" })}. Review AI Pro eligibility in AI Usage.`,
+        `${capability.replaceAll("_", " ")} allowance reached. Resets ${new Date(e.periodEnd).toLocaleDateString("en-US", { timeZone: "UTC" })}. Review your allowance in AI Usage. No automatic overage charges.`,
         429,
       );
     throw new AssistantFailure(

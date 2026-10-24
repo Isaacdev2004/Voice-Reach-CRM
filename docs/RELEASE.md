@@ -106,3 +106,7 @@ See [implementation, validation and release gates](campaign-premium/README.md). 
 Local review branch only: `feat/ai-operating-assistant`. Claude remains available; the OpenAI Responses assistant, monthly AI ledger and new $65/$115/$215 catalog with optional $20 AI Pro are disabled by default. No production data, credentials, Stripe products, subscriptions or deployment were changed. Legacy plans and annual prices remain intact.
 
 Implementation, feature limitations and approval gates: [Assistant report](ai-operating-assistant/README.md), [pricing report](ai-pricing-launch/README.md). Do not enable public pricing before actual Stripe test-mode acceptance, migration review, provider access and business terms approval. No new annual/post-launch prices have been invented.
+
+## Pricing architecture correction (2026-10-24)
+
+CRM Only $49/$99/$199 and CRM + AI Plus $65/$115/$215 are mutually exclusive monthly base plans. The $16 difference includes AI Plus; there is no purchasable $20 AI add-on. Old add-on quotes and APIs are unconditionally retired, without deleting Stripe records. Corresponding monthly upgrades/downgrades require an owner-bound invoice preview and explicit base-item replacement confirmation. Existing subscriptions, Founding terms and CRM annual paths remain unchanged. New public prices/plan changes remain disabled; no deployment or production writes. See [corrected billing report](ai-pricing-launch/README.md).

@@ -39,6 +39,9 @@ const prices = {
   STRIPE_PRICE_GROWTH_AI_MONTHLY: "price_growth_ai",
   STRIPE_PRICE_PRO_AI_MONTHLY: "price_pro_ai",
   STRIPE_PRICE_AI_PRO_MONTHLY: "price_ai_pro",
+  STRIPE_PRICE_STARTER: "price_starter_crm",
+  STRIPE_PRICE_GROWTH: "price_growth_crm",
+  STRIPE_PRICE_PRO: "price_pro_crm",
 };
 function subscription(plan = "starter", addon = false) {
   return {
@@ -152,7 +155,8 @@ test("new catalog preserves corresponding CRM tiers, old prices and exact Plus/P
     c.AI_LAUNCH_PLANS.map((p) => p.monthly),
     [65, 115, 215],
   );
-  assert.equal(c.AI_PRO_ADDON_MONTHLY, 20);
+  assert.equal(c.AI_PLUS_MONTHLY_DIFFERENCE, 16);
+  assert.equal(c.AI_PRO_ADDON_MONTHLY, undefined);
   assert.equal(c.underlyingCrm("starter").price, 49);
   assert.equal(c.underlyingCrm("starter").contactLimit, 1000);
   assert.equal(c.underlyingCrm("pro").usersIncluded, 3);
@@ -233,21 +237,24 @@ for (const plan of ["starter", "growth", "pro"])
       restore();
     }
   });
-test("one verified add-on grants AI Pro; duplicates, quantity changes and wrong price/owner do not", () => {
+test("AI base always includes Plus; retired add-on never grants a second AI tier", () => {
   const restore = env(prices);
   try {
     const fn = setup().load(
-        "lib/billing/ai/entitlements.ts",
-      ).entitlementFromSubscription,
-      s = subscription("starter", true);
-    assert.equal(fn(s, owner).tier, "pro");
+      "lib/billing/ai/entitlements.ts",
+    ).entitlementFromSubscription;
+    const s = subscription("starter", true);
+    assert.equal(fn(s, owner).tier, "plus");
+    assert.match(fn(s, owner).reason, /Historical/);
     assert.equal(fn(s, "foreign").tier, null);
-    s.items.data.push(s.items.data[1]);
-    assert.equal(fn(s, owner).tier, null);
+    const doubled = subscription();
+    doubled.items.data.push({
+      ...subscription().items.data[0],
+      id: "si_second",
+    });
+    assert.equal(fn(doubled, owner).tier, null);
     const wrong = subscription();
-    wrong.items.data[0].price.unit_amount = 49 * 100;
-    assert.equal(fn(wrong, owner).tier, null);
-    wrong.items.data[0].quantity = 5;
+    wrong.items.data[0].price.unit_amount = 4900;
     assert.equal(fn(wrong, owner).tier, null);
   } finally {
     restore();
@@ -437,7 +444,10 @@ test("test-mode checkout verifies the exact price and never uses inline products
         .missing_payment_method,
       "pause",
     );
-    assert.match(captured.options.idempotencyKey, /ai-launch-v1/);
+    assert.equal(
+      captured.options.idempotencyKey,
+      "myari-base-checkout-cus_synthetic",
+    );
     stripe.subscriptions.list = async () => ({
       data: [subscription()],
       has_more: false,
@@ -450,44 +460,22 @@ test("test-mode checkout verifies the exact price and never uses inline products
     restore();
   }
 });
-test("AI Pro quote requires policy; confirmation is idempotent and never duplicates an add-on", async () => {
-  const f = setup(),
-    restore = env({
-      ...prices,
-      MYARI_AI_BILLING_ENABLED: "true",
-      MYARI_AI_ENTITLEMENTS_ENABLED: "true",
-      MYARI_AI_METER_DATABASE_VERIFIED: "true",
-      MYARI_AI_ADDON_BILLING_ENABLED: "true",
-      STRIPE_SECRET_KEY: "sk_test_synthetic",
-      MYARI_AI_ADDON_PRORATION: "create_prorations",
-    }),
-    stripe = stripeMock(f);
-  let updates = 0,
-    current = subscription();
-  stripe.subscriptions.retrieve = async () => current;
-  stripe.subscriptions.list = async () => ({
-    data: [current],
-    has_more: false,
-  });
-  stripe.subscriptions.update = async (_id, p, options) => {
-    updates++;
-    assert.equal(p.items.length, 1);
-    assert.equal(p.items[0].quantity, 1);
-    assert.ok(options.idempotencyKey);
-    current = subscription("starter", true);
-    return current;
-  };
+test("retired add-on preview, saved quote and direct approval are blocked even with old flags enabled", async () => {
+  const restore = env({ ...prices, MYARI_AI_ADDON_BILLING_ENABLED: "true" });
   try {
-    const api = f.load("lib/billing/ai/stripe.ts"),
-      q = await api.previewAiPro(owner);
-    assert.equal(updates, 0);
-    await api.approveAiPro(owner, q.quoteId, q.digest);
-    assert.equal(updates, 1);
-    assert.equal(
-      (await api.approveAiPro(owner, q.quoteId, q.digest)).alreadyActive,
-      true,
+    const f = setup();
+    let writes = 0;
+    const stripe = stripeMock(f);
+    stripe.subscriptions.update = async () => {
+      writes++;
+    };
+    const api = f.load("lib/billing/ai/stripe.ts");
+    await assert.rejects(api.previewAiPro(owner), /discontinued/);
+    await assert.rejects(
+      api.approveAiPro(owner, id(30), "a".repeat(64)),
+      /discontinued/,
     );
-    assert.equal(updates, 1);
+    assert.equal(writes, 0);
   } finally {
     restore();
   }
@@ -545,6 +533,427 @@ test("Stripe mode is checked against the authoritative price before billing writ
       () =>
         f.load("lib/billing/ai/stripe.ts").verifyAiPrice("price_synthetic", 65),
       /mode does not match/,
+    );
+  } finally {
+    restore();
+  }
+});
+
+function crmSubscription(plan = "starter") {
+  const s = subscription(plan);
+  s.items.data[0].price = {
+    ...s.items.data[0].price,
+    id: prices[`STRIPE_PRICE_${plan.toUpperCase()}`],
+    unit_amount: { starter: 49, growth: 99, pro: 199 }[plan] * 100,
+  };
+  return s;
+}
+function testBillingEnv() {
+  return {
+    ...prices,
+    MYARI_AI_STRIPE_MODE: "test",
+    MYARI_AI_BILLING_ENABLED: "true",
+    MYARI_AI_ENTITLEMENTS_ENABLED: "true",
+    MYARI_AI_METER_DATABASE_VERIFIED: "true",
+    MYARI_AI_PLAN_CHANGES_ENABLED: "true",
+    MYARI_AI_PLAN_CHANGE_PRORATION: "create_prorations",
+    MYARI_AI_PRICING_ENABLED: "true",
+    MYARI_AI_LAUNCH_CONFIG: JSON.stringify(launch()),
+  };
+}
+function allPrices(stripe) {
+  stripe.prices.retrieve = async (priceId) => {
+    for (const plan of ["starter", "growth", "pro"])
+      for (const s of [subscription(plan), crmSubscription(plan)])
+        if (s.items.data[0].price.id === priceId) return s.items.data[0].price;
+    throw Error("Unmapped synthetic price");
+  };
+}
+for (const plan of ["starter", "growth", "pro"])
+  for (const choice of ["crm", "ai"])
+    test(`${plan} ${choice}: test-mode checkout has one exact base item and correct total, never an add-on`, async () => {
+      const restore = env(testBillingEnv());
+      try {
+        const f = setup(),
+          stripe = stripeMock(f);
+        allPrices(stripe);
+        stripe.subscriptions.list = async () => ({ data: [], has_more: false });
+        let payload;
+        stripe.checkout.sessions.create = async (p) => {
+          payload = p;
+          return { url: "https://checkout.stripe.com/c/test" };
+        };
+        if (choice === "ai")
+          await f
+            .load("lib/billing/ai/stripe.ts")
+            .newAiCheckout(owner, plan, id(60));
+        else
+          await f
+            .load("lib/billing/stripe-checkout.ts")
+            .createSubscriptionSession({
+              planId: plan,
+              billingPeriod: "monthly",
+              customerId: "cus_synthetic",
+              ownerId: owner,
+              successUrl: "https://example.test/ok",
+              cancelUrl: "https://example.test/cancel",
+            });
+        const mapping = f
+          .load("lib/billing/ai/choices.ts")
+          .monthlyChoice(plan, choice);
+        assert.equal(payload.line_items.length, 1);
+        assert.equal(payload.line_items[0].price, mapping.priceId);
+        assert.equal(payload.line_items[0].quantity, 1);
+        const price = await stripe.prices.retrieve(payload.line_items[0].price);
+        assert.equal(price.unit_amount, mapping.monthly * 100);
+        assert.equal(price.livemode, false);
+        assert.equal(
+          f
+            .load("lib/billing/ai/entitlements.ts")
+            .entitlementFromSubscription(
+              choice === "ai" ? subscription(plan) : crmSubscription(plan),
+              owner,
+            ).tier,
+          choice === "ai" ? "plus" : null,
+        );
+      } finally {
+        restore();
+      }
+    });
+for (const plan of ["starter", "growth", "pro"])
+  test(`${plan}: confirmed monthly upgrade and downgrade replace the same item with exactly $16 difference`, async () => {
+    const restore = env(testBillingEnv());
+    try {
+      const f = setup();
+      let current = crmSubscription(plan),
+        updates = 0,
+        invoicePayload;
+      const stripe = stripeMock(f, current);
+      allPrices(stripe);
+      stripe.subscriptions.list = async () => ({
+        data: [current],
+        has_more: false,
+      });
+      stripe.invoices.createPreview = async (p) => {
+        invoicePayload = p;
+        return { currency: "usd", amount_due: 800 };
+      };
+      stripe.subscriptions.update = async (subId, p, o) => {
+        updates++;
+        assert.equal(subId, current.id);
+        assert.equal(p.items.length, 1);
+        assert.equal(p.items[0].id, current.items.data[0].id);
+        assert.equal(p.payment_behavior, "pending_if_incomplete");
+        assert.ok(o.idempotencyKey);
+        assert.equal(
+          p.proration_date,
+          invoicePayload.subscription_details.proration_date,
+        );
+        current =
+          p.items[0].price ===
+          prices[`STRIPE_PRICE_${plan.toUpperCase()}_AI_MONTHLY`]
+            ? subscription(plan)
+            : crmSubscription(plan);
+        return current;
+      };
+      const api = f.load("lib/billing/ai/plan-change.ts"),
+        quote = await api.previewPlanChange(owner, "ai");
+      assert.equal(quote.monthlyDifference, 16);
+      assert.equal(updates, 0);
+      assert.equal(
+        invoicePayload.subscription_details.items[0].id,
+        current.items.data[0].id,
+      );
+      await assert.rejects(
+        api.approvePlanChange(owner, quote.quoteId, "b".repeat(64)),
+        /expired or changed/,
+      );
+      assert.equal(updates, 0);
+      await api.approvePlanChange(owner, quote.quoteId, quote.digest);
+      assert.equal(updates, 1);
+      assert.equal(
+        f
+          .load("lib/billing/ai/entitlements.ts")
+          .entitlementFromSubscription(current, owner).tier,
+        "plus",
+      );
+      await assert.rejects(
+        api.approvePlanChange(owner, quote.quoteId, quote.digest),
+        /changed/,
+      );
+      const back = await api.previewPlanChange(owner, "crm");
+      assert.equal(back.monthlyDifference, -16);
+      await api.approvePlanChange(owner, back.quoteId, back.digest);
+      assert.equal(updates, 2);
+      assert.equal(
+        f
+          .load("lib/billing/ai/entitlements.ts")
+          .entitlementFromSubscription(current, owner).tier,
+        null,
+      );
+      const again = await api.previewPlanChange(owner, "ai");
+      await api.approvePlanChange(owner, again.quoteId, again.digest);
+      assert.equal(updates, 3);
+    } finally {
+      restore();
+    }
+  });
+test("annual, custom, duplicate items, pending payments/cancellation and foreign subscriptions cannot use monthly plan replacement", async () => {
+  const restore = env(testBillingEnv());
+  try {
+    for (const edit of [
+      (s) => (s.items.data[0].price.recurring.interval = "year"),
+      (s) => (s.items.data[0].price.unit_amount = 3900),
+      (s) => s.items.data.push(s.items.data[0]),
+      (s) => (s.cancel_at_period_end = true),
+      (s) => (s.pending_update = {}),
+      (s) => (s.metadata.ownerId = "foreign"),
+      (s) => (s.status = "past_due"),
+    ]) {
+      const f = setup(),
+        s = crmSubscription();
+      edit(s);
+      const stripe = stripeMock(f, s);
+      allPrices(stripe);
+      await assert.rejects(
+        f.load("lib/billing/ai/plan-change.ts").previewPlanChange(owner, "ai"),
+      );
+    }
+  } finally {
+    restore();
+  }
+});
+test("duplicate CRM/AI price mappings fail closed and retired add-on cannot be mapped as AI Plus", () => {
+  const restore = env({
+    ...prices,
+    STRIPE_PRICE_STARTER: prices.STRIPE_PRICE_STARTER_AI_MONTHLY,
+  });
+  try {
+    const f = setup();
+    assert.equal(
+      f
+        .load("lib/billing/ai/choices.ts")
+        .choiceFromPrice(subscription().items.data[0].price),
+      null,
+    );
+    assert.equal(
+      f
+        .load("lib/billing/ai/entitlements.ts")
+        .entitlementFromSubscription(subscription(), owner).tier,
+      null,
+    );
+  } finally {
+    restore();
+  }
+});
+test("plan-change endpoint requires an explicit confirmation and tenant-owned quote", async () => {
+  const restore = env(testBillingEnv());
+  try {
+    const f = setup();
+    stripeMock(f, crmSubscription());
+    const route = f.load("app/api/billing/ai/plan-change/route.ts");
+    const response = await route.POST(
+      new Request("https://example.test/api/billing/ai/plan-change", {
+        method: "POST",
+        body: JSON.stringify({
+          operation: "confirm",
+          quoteId: id(100),
+          digest: "a".repeat(64),
+        }),
+      }),
+    );
+    assert.equal(response.status, 400);
+    const foreign = await route.POST(
+      new Request("https://example.test/api/billing/ai/plan-change", {
+        method: "POST",
+        headers: { "X-MyARI-Owner": "foreign" },
+        body: JSON.stringify({ operation: "preview", choice: "ai" }),
+      }),
+    );
+    assert.equal(foreign.status, 409);
+  } finally {
+    restore();
+  }
+});
+
+test("webhooks and invoices project exact base choice; stale events refresh the current Stripe subscription", async () => {
+  const restore = env({
+    ...testBillingEnv(),
+    STRIPE_WEBHOOK_SECRET: "whsec_synthetic",
+  });
+  try {
+    const f = setup();
+    let current = subscription("growth"),
+      event,
+      projection;
+    const stripe = stripeMock(f, current);
+    stripe.subscriptions.retrieve = async () => current;
+    stripe.webhooks = {
+      constructEvent: (_body, sig, secret) => {
+        assert.equal(sig, "synthetic-signature");
+        assert.equal(secret, "whsec_synthetic");
+        return event;
+      },
+    };
+    f.stubs["@/lib/billing/settings-store"] = {
+      applyBillingPlan: async (o, p, options) => {
+        projection = { owner: o, plan: p, ...options };
+      },
+    };
+    const route = f.load("app/api/webhooks/stripe/route.ts");
+    const call = () =>
+      route.POST(
+        new Request("https://example.test/api/webhooks/stripe", {
+          method: "POST",
+          headers: { "stripe-signature": "synthetic-signature" },
+          body: "synthetic",
+        }),
+      );
+    event = {
+      type: "customer.subscription.updated",
+      data: { object: crmSubscription("growth") },
+    };
+    assert.equal((await call()).status, 200);
+    assert.equal(projection.monthlyPrice, 115);
+    assert.equal(projection.planName, "Growth AI");
+    current = crmSubscription("growth");
+    event = {
+      type: "invoice.payment_failed",
+      data: {
+        object: {
+          parent: { subscription_details: { subscription: current.id } },
+        },
+      },
+    };
+    current.status = "past_due";
+    assert.equal((await call()).status, 200);
+    assert.equal(projection.monthlyPrice, 99);
+    assert.equal(projection.subscriptionStatus, "canceled");
+    current = subscription("growth");
+    event = {
+      type: "invoice.paid",
+      data: {
+        object: {
+          parent: { subscription_details: { subscription: current.id } },
+        },
+      },
+    };
+    assert.equal((await call()).status, 200);
+    assert.equal(projection.monthlyPrice, 115);
+    current.status = "canceled";
+    event = {
+      type: "customer.subscription.deleted",
+      data: { object: current },
+    };
+    assert.equal((await call()).status, 200);
+    assert.equal(projection.subscriptionStatus, "canceled");
+    assert.equal(
+      f
+        .load("lib/billing/ai/entitlements.ts")
+        .entitlementFromSubscription(current, owner).tier,
+      null,
+    );
+  } finally {
+    restore();
+  }
+});
+test("CRM checkout cannot create another subscription for an AI customer or bypass an open checkout", async () => {
+  const restore = env(testBillingEnv());
+  try {
+    const f = setup(),
+      stripe = stripeMock(f);
+    allPrices(stripe);
+    let writes = 0;
+    stripe.checkout.sessions.create = async () => {
+      writes++;
+    };
+    const checkout = f.load("lib/billing/stripe-checkout.ts");
+    const input = {
+      ownerId: owner,
+      customerId: "cus_synthetic",
+      planId: "starter",
+      billingPeriod: "monthly",
+      successUrl: "https://example.test/ok",
+      cancelUrl: "https://example.test/cancel",
+    };
+    await assert.rejects(
+      checkout.createSubscriptionSession(input),
+      /existing subscription/,
+    );
+    assert.equal(writes, 0);
+    stripe.subscriptions.list = async () => ({ data: [], has_more: false });
+    stripe.checkout.sessions.list = async () => ({
+      data: [{ id: "cs_open" }],
+      has_more: false,
+    });
+    await assert.rejects(
+      checkout.createSubscriptionSession(input),
+      /open checkout/,
+    );
+    assert.equal(writes, 0);
+  } finally {
+    restore();
+  }
+});
+test("concurrent quotes share a source-state claim; provider failure cannot trigger a blind second update", async () => {
+  const restore = env(testBillingEnv());
+  try {
+    const f = setup(),
+      stripe = stripeMock(f, crmSubscription());
+    allPrices(stripe);
+    let attempts = 0;
+    stripe.subscriptions.update = async () => {
+      attempts++;
+      throw Error("provider outcome unknown");
+    };
+    const api = f.load("lib/billing/ai/plan-change.ts");
+    const a = await api.previewPlanChange(owner, "ai"),
+      b = await api.previewPlanChange(owner, "ai");
+    await assert.rejects(
+      api.approvePlanChange(owner, a.quoteId, a.digest),
+      /unknown/,
+    );
+    await assert.rejects(
+      api.approvePlanChange(owner, b.quoteId, b.digest),
+      /already requested/,
+    );
+    assert.equal(attempts, 1);
+  } finally {
+    restore();
+  }
+});
+
+test("retired public add-on route returns 410 for preview and a formerly valid approval", async () => {
+  const restore = env({
+    ...testBillingEnv(),
+    MYARI_AI_ADDON_BILLING_ENABLED: "true",
+  });
+  try {
+    const f = setup();
+    stripeMock(f);
+    const route = f.load("app/api/billing/ai/upgrade/route.ts");
+    assert.equal(
+      (
+        await route.GET(
+          new Request("https://example.test/api/billing/ai/upgrade"),
+        )
+      ).status,
+      410,
+    );
+    assert.equal(
+      (
+        await route.POST(
+          new Request("https://example.test/api/billing/ai/upgrade", {
+            method: "POST",
+            body: JSON.stringify({
+              quoteId: id(999),
+              digest: "a".repeat(64),
+              confirmation: "CONFIRM_AI_PRO_UPGRADE",
+            }),
+          }),
+        )
+      ).status,
+      410,
     );
   } finally {
     restore();

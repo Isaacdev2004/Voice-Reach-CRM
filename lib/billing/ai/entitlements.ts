@@ -1,14 +1,9 @@
 import type Stripe from "stripe";
+import { choiceFromPrice } from "./choices";
 import { getStripe, isStripeConfigured } from "@/lib/stripe/config";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { AssistantFailure } from "@/lib/assistant/store";
-import {
-  AI_LIMITS,
-  AI_PRO_ADDON_MONTHLY,
-  AI_LAUNCH_PLANS,
-  AI_PLAN_VERSION,
-  type AiTier,
-} from "./catalog";
+import { AI_LIMITS, AI_PLAN_VERSION, type AiTier } from "./catalog";
 export type AiEntitlement = {
   verified: boolean;
   tier: AiTier | null;
@@ -47,59 +42,49 @@ export function entitlementFromSubscription(
     !["active", "trialing"].includes(s.status)
   )
     return { ...none, reason: "No active authorized AI subscription." };
-  const base = s.items.data.filter((i) =>
-    AI_LAUNCH_PLANS.some(
-      (p) => !!aiPriceId(p.id) && aiPriceId(p.id) === i.price.id,
-    ),
+  const base = s.items.data.filter(
+    (i) => choiceFromPrice(i.price)?.choice === "ai",
   );
   if (base.length !== 1)
     return {
       ...none,
       reason:
-        "Legacy or unrecognized pricing is preserved; no AI-inclusive entitlement is inferred.",
+        "CRM Only or unrecognized pricing is preserved; AI Plus requires an exact AI-inclusive base price.",
     };
   const item = base[0],
-    plan = AI_LAUNCH_PLANS.find((p) => aiPriceId(p.id) === item.price.id)!,
-    price = item.price;
-  if (
-    item.quantity !== 1 ||
-    price.currency !== "usd" ||
-    price.unit_amount !== plan.monthly * 100 ||
-    price.recurring?.interval !== "month" ||
-    price.recurring.interval_count !== 1
-  )
+    plan = choiceFromPrice(item.price)!;
+  if (item.quantity !== 1)
     return {
       ...none,
-      reason: "AI price does not match approved monthly configuration.",
+      reason: "AI subscription quantity requires billing review.",
     };
-  const addon = s.items.data.filter(
-    (i) => !!addonPriceId() && i.price.id === addonPriceId(),
-  );
-  if (
-    addon.length > 1 ||
-    addon.some(
-      (i) =>
-        i.quantity !== 1 ||
-        i.price.unit_amount !== AI_PRO_ADDON_MONTHLY * 100 ||
-        i.price.currency !== "usd" ||
-        i.price.recurring?.interval !== "month" ||
-        i.price.recurring.interval_count !== 1,
-    )
-  )
-    return { ...none, reason: "AI Pro add-on configuration is inconsistent." };
+  // Historical add-on references are retained for reconciliation, never sold or
+  // interpreted as a second AI purchase. Included AI Plus comes from the base item.
+  const extra = s.items.data.filter((i) => i.id !== item.id);
+  if (extra.some((i) => !addonPriceId() || i.price.id !== addonPriceId()))
+    return {
+      ...none,
+      reason: "Multiple or unknown subscription items require billing review.",
+    };
   const start = item.current_period_start,
     end = item.current_period_end;
   if (!start || !end || end <= start)
     return { ...none, reason: "Stripe billing period could not be verified." };
   return {
     verified: true,
-    tier: addon.length ? "pro" : "plus",
-    crmPlan: plan.id,
+    tier: "plus",
+    crmPlan: plan.planId,
     status: s.status,
     periodStart: new Date(start * 1000).toISOString(),
     periodEnd: new Date(end * 1000).toISOString(),
     subscriptionId: s.id,
-    addonItemId: addon[0]?.id,
+    addonItemId: extra[0]?.id,
+    ...(extra.length
+      ? {
+          reason:
+            "Historical AI add-on detected; billing review required. No add-on is required for AI Plus.",
+        }
+      : {}),
   };
 }
 export async function aiEntitlement(owner: string): Promise<AiEntitlement> {
@@ -164,7 +149,7 @@ export async function aiEntitlement(owner: string): Promise<AiEntitlement> {
     const candidates = subscriptions.data.filter(
       (s) =>
         s.metadata.ownerId === owner &&
-        ["active", "trialing"].includes(s.status),
+        !["canceled", "incomplete_expired"].includes(s.status),
     );
     if (candidates.length !== 1)
       return {
