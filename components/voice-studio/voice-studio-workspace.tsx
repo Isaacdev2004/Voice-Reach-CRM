@@ -1,4 +1,5 @@
 "use client";
+import { useAssistantRecord } from "@/components/assistant/use-record-context";
 import { RecordingTranscript } from "./recording-transcript";
 import { useVoiceDrafts } from "@/lib/voice-studio/use-voice-drafts";
 import { AudioWaveform } from "@/components/voice-studio/audio-waveform";

@@ -1,0 +1,11 @@
+{
+  "approved": false,
+  "start": "REQUIRES_BUSINESS_APPROVED_ISO_START",
+  "end": "REQUIRES_ISO_END_EXACTLY_90_DAYS_LATER",
+  "eligiblePlans": ["starter", "growth", "pro"],
+  "eligibleOwnerIds": [],
+  "allNewSubscribers": false,
+  "grandfatheringTerms": "REQUIRES_APPROVED_CONTINUOUS_SUBSCRIPTION_TERMS",
+  "postLaunchPrices": null,
+  "regularPricesApproved": false
+}

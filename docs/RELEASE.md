@@ -100,3 +100,9 @@ See [implementation and QA report](APPROVED-PRICING-PHASE16.md). Approved archit
 ## Premium campaigns and Reviews & Referrals
 
 See [implementation, validation and release gates](campaign-premium/README.md). Adds separate review-only campaign drafts, private planning PDFs, owner-scoped review/referral history, manual relationship management and additional review-reminder restrictions. No production records, credentials, enrollments or approved audio were changed during testing; no migration was applied. Use synthetic contacts and keep live outbound disabled for demos. User authorized deployment after critical checks; provider verification, subscriber Brand Kit setup, approved recordings and live campaign inventory remain separate gates.
+
+## Staged AI Assistant 2.0 and AI-inclusive pricing (2026-10-24)
+
+Local review branch only: `feat/ai-operating-assistant`. Claude remains available; the OpenAI Responses assistant, monthly AI ledger and new $65/$115/$215 catalog with optional $20 AI Pro are disabled by default. No production data, credentials, Stripe products, subscriptions or deployment were changed. Legacy plans and annual prices remain intact.
+
+Implementation, feature limitations and approval gates: [Assistant report](ai-operating-assistant/README.md), [pricing report](ai-pricing-launch/README.md). Do not enable public pricing before actual Stripe test-mode acceptance, migration review, provider access and business terms approval. No new annual/post-launch prices have been invented.

@@ -1,4 +1,5 @@
 "use client";
+import { AssistantPreferencesFields } from "./assistant-preferences";
 import { AuthorizedVoicePreference } from "./authorized-voice-preference";
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -151,9 +152,37 @@ export function BrandKitPanel({
             </label>
           ))}
         </div>
-        <label><input type="checkbox" checked={kit.reviewRequestsEnabled ?? true} onChange={e=>edit({reviewRequestsEnabled:e.target.checked})}/> Enable review invitations (independent of referral nurturing)</label>
-        {kit.zillowReviewUrl && /^https:\/\/(www\.)?zillow\.com\/reviews\/write\//.test(kit.zillowReviewUrl) && <a href={kit.zillowReviewUrl} target="_blank" rel="noopener noreferrer">Preview your Zillow review destination ↗</a>}
-        <AuthorizedVoicePreference value={kit.preferredAiVoiceProfileId ?? null} onChange={id=>edit({preferredAiVoiceProfileId:id})}/>
+        <label>
+          <input
+            type="checkbox"
+            checked={kit.reviewRequestsEnabled ?? true}
+            onChange={(e) => edit({ reviewRequestsEnabled: e.target.checked })}
+          />{" "}
+          Enable review invitations (independent of referral nurturing)
+        </label>
+        {kit.zillowReviewUrl &&
+          /^https:\/\/(www\.)?zillow\.com\/reviews\/write\//.test(
+            kit.zillowReviewUrl,
+          ) && (
+            <a
+              href={kit.zillowReviewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Preview your Zillow review destination ↗
+            </a>
+          )}
+        <AuthorizedVoicePreference
+          value={kit.preferredAiVoiceProfileId ?? null}
+          onChange={(id) => edit({ preferredAiVoiceProfileId: id })}
+        />
+        <AssistantPreferencesFields
+          value={kit.assistantPreferences}
+          partners={partners}
+          onChange={(value) =>
+            onChange({ ...kit, assistantPreferences: value })
+          }
+        />
         <div className="brand-images">
           {(["headshot", "logo"] as const).map((kind) => (
             <div key={kind}>

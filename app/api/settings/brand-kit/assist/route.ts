@@ -1,3 +1,4 @@
+import { meterExisting } from "@/lib/billing/ai/endpoint";
 import { z } from "zod";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
@@ -13,7 +14,7 @@ const body = z.object({
   ]),
   kit: BrandKitSchema,
 });
-export const POST = withApiHandler(async (request) => {
+const originalPOST = withApiHandler(async (request) => {
   await requireUserId();
   const input = body.parse(await request.json());
   const key = process.env.ANTHROPIC_API_KEY?.trim();
@@ -73,3 +74,5 @@ export const POST = withApiHandler(async (request) => {
     );
   }
 });
+
+export const POST = meterExisting(originalPOST);

@@ -1,4 +1,5 @@
 "use client";
+import { useAssistantRecord } from "@/components/assistant/use-record-context";
 import { ContactReviewsPanel } from "@/components/reviews/contact-reviews-panel";
 
 import { useId, useState, useRef } from "react";
@@ -18,6 +19,7 @@ export function ContactPreviewPanel({ contact, consent }: {
   contact: ApiContact;
   consent: "valid" | "pending" | "blocked" | "review";
 }) {
+  useAssistantRecord({ contactId: contact.id });
   const [tab, setTab] = useState<(typeof TABS)[number]>("Details");
   const tabId = useId();
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);

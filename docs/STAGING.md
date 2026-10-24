@@ -117,3 +117,9 @@ See [implementation and QA report](APPROVED-PRICING-PHASE16.md). Approved archit
 ## Premium campaigns and Reviews & Referrals
 
 See [implementation, validation and release gates](campaign-premium/README.md). Adds separate review-only campaign drafts, private planning PDFs, owner-scoped review/referral history, manual relationship management and additional review-reminder restrictions. No production records, credentials, enrollments or approved audio were changed during testing; no migration was applied. Use synthetic contacts and keep live outbound disabled for demos. User authorized deployment after critical checks; provider verification, subscriber Brand Kit setup, approved recordings and live campaign inventory remain separate gates.
+
+## AI pricing / Assistant 2.0 acceptance gates
+
+Use synthetic owners and mocked messaging. Apply `20261030000000_ai_usage_meter.sql` only to an isolated development database first; verify service-role RPC access, RLS, schema version and concurrent usage reservations. Keep production flags off. Configure only explicitly authorized test Stripe prices and `MYARI_AI_STRIPE_MODE=test`; actual Stripe price `livemode` must match before writes. Launch start/end/cohort/terms and proration require business approval. Never copy live customers into fixtures.
+
+Run unit/security/type/lint/build, synthetic assistant browser tests, isolated usage DB tests and the local public build crawl. Then separately verify real test-mode checkout, signed webhooks, invoices/payment failure/renewal/add-on removal, connected-calendar behavior, provider usage and existing customer upgrade disclosure. No live outbound or campaign activation. See [rollout report](ai-pricing-launch/README.md).

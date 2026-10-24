@@ -1,3 +1,4 @@
+import { meterExisting } from "@/lib/billing/ai/endpoint";
 import { z } from "zod";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
@@ -7,7 +8,7 @@ const input = z.object({
   instruction: z.string().trim().min(1).max(2000),
 });
 const output = z.object({ script: z.string().trim().min(1).max(5000) });
-export const POST = withApiHandler(async (request) => {
+const originalPOST = withApiHandler(async (request) => {
   await requireUserId();
   const body = input.parse(await request.json());
   const key = process.env.ANTHROPIC_API_KEY?.trim();
@@ -48,3 +49,5 @@ export const POST = withApiHandler(async (request) => {
     );
   }
 });
+
+export const POST = meterExisting(originalPOST);

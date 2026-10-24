@@ -1,3 +1,4 @@
+import { meterExisting } from "@/lib/billing/ai/endpoint";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { ownedRows } from "@/lib/delivery/owned-rows";
@@ -14,7 +15,7 @@ const result = z.object({
     )
     .max(8),
 });
-export const POST = withApiHandler(async () => {
+const originalPOST = withApiHandler(async () => {
   const owner = await requireUserId(),
     key = process.env.ANTHROPIC_API_KEY?.trim();
   if (!key)
@@ -97,3 +98,5 @@ export const POST = withApiHandler(async () => {
     );
   }
 });
+
+export const POST = meterExisting(originalPOST);

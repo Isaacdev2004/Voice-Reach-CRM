@@ -1,3 +1,7 @@
+import {
+  aiEntitlement,
+  aiMeteringEnabled,
+} from "@/lib/billing/ai/entitlements";
 import { previewSequence } from "@/lib/campaigns/sequence-preview";
 import { loadWorkspaceSettings } from "@/lib/settings/load-workspace";
 import { assertAttachmentOwnership } from "@/lib/campaigns/attachment-ownership";
@@ -33,7 +37,7 @@ const StepSchema = z.object({
   timeLabel: z.string().optional(),
   status: z.enum(["sent", "active", "pending", "draft"]).optional(),
   voiceAssetId: z.string().uuid().nullable().optional(),
-  reviewRequest: z.enum(["request","reminder"]).optional(),
+  reviewRequest: z.enum(["request", "reminder"]).optional(),
   resourceKey: z.string().max(80).optional(),
   attachments: z
     .array(
@@ -125,8 +129,8 @@ function mapStepsToBlueprint(
 ): CampaignBlueprintStep[] {
   return steps.map((step) => {
     const conditions: Record<string, unknown> = {};
-    if (step.reviewRequest) conditions.reviewRequest=step.reviewRequest;
-    if (step.resourceKey) conditions.resourceKey=step.resourceKey;
+    if (step.reviewRequest) conditions.reviewRequest = step.reviewRequest;
+    if (step.resourceKey) conditions.resourceKey = step.resourceKey;
     if (step.voiceAssetId) conditions.voiceAssetId = step.voiceAssetId;
     if (step.attachments?.length) conditions.attachments = step.attachments;
     return {
@@ -188,6 +192,21 @@ export const POST = withApiHandler(async (request: Request) => {
       status: 400,
     });
   if (body.action === "activate") {
+    if (aiMeteringEnabled()) {
+      const entitlement = await aiEntitlement(ownerId);
+      if (
+        entitlement.verified &&
+        entitlement.tier &&
+        entitlement.crmPlan === "starter" &&
+        body.campaign.steps.filter((s) =>
+          ["sms", "email", "voicemail"].includes(s.type),
+        ).length > 1
+      )
+        return apiError(
+          "Starter AI includes campaign drafting; multi-step CRM activation requires Growth or Pro. AI Pro does not change CRM permissions.",
+          { status: 403, code: "crm_plan_required" },
+        );
+    }
     const { workspace, profile } = await loadWorkspaceSettings(ownerId, {
       outbound: true,
     });

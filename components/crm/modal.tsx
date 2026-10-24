@@ -18,6 +18,7 @@ type ModalProps = {
   icon?: string;
   size?: ModalSize;
   className?: string;
+  nonModal?: boolean;
 };
 
 /** Explicit pixel max-widths - avoids flex min-content collapse with w-full + max-w-* */
@@ -38,6 +39,7 @@ export function Modal({
   icon,
   size = "md",
   className,
+  nonModal = false,
 }: ModalProps) {
   const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -68,7 +70,7 @@ export function Modal({
         closeRef.current();
         return;
       }
-      if (e.key !== "Tab" || !panel) return;
+      if (nonModal || e.key !== "Tab" || !panel) return;
       const nodes = Array.from(
         panel.querySelectorAll<HTMLElement>(
           'button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href],[tabindex="0"]',
@@ -98,30 +100,35 @@ export function Modal({
       }
     };
     const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    if (!nonModal) document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
     return () => {
       cancelAnimationFrame(timer);
       previousFocus?.focus();
-      document.body.style.overflow = prev;
+      if (!nonModal) document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
-  }, [open, mounted]);
+  }, [open, mounted, nonModal]);
 
   if (!open || !mounted) return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 overflow-y-auto"
+      className={cn(
+        "fixed inset-0 overflow-y-auto",
+        nonModal && "pointer-events-none",
+      )}
       style={{ zIndex: 10020 }}
       role="presentation"
     >
-      <button
-        type="button"
-        className="modal-overlay fixed inset-0 bg-ink/55 backdrop-blur-[6px]"
-        onClick={onClose}
-        aria-label="Close dialog"
-      />
+      {!nonModal && (
+        <button
+          type="button"
+          className="modal-overlay fixed inset-0 bg-ink/55 backdrop-blur-[6px]"
+          onClick={onClose}
+          aria-label="Close dialog"
+        />
+      )}
 
       {/* min-h-full + grid centers dialog without flex width collapse */}
       <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
@@ -129,10 +136,10 @@ export function Modal({
           ref={panelRef}
           tabIndex={-1}
           role="dialog"
-          aria-modal
+          aria-modal={nonModal ? undefined : true}
           aria-labelledby={titleId}
           className={cn(
-            "modal-panel relative z-10 flex w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[28px] border border-outline-variant/20 bg-ivory shadow-[0_24px_80px_-12px_rgba(26,22,18,0.35)] sm:w-[calc(100vw-3rem)]",
+            "modal-panel pointer-events-auto relative z-10 flex w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[28px] border border-outline-variant/20 bg-ivory shadow-[0_24px_80px_-12px_rgba(26,22,18,0.35)] sm:w-[calc(100vw-3rem)]",
             sizeWidth[size],
             className,
           )}
@@ -199,6 +206,7 @@ export function ModalField({
   required?: boolean;
   children: ReactNode;
   className?: string;
+  nonModal?: boolean;
 }) {
   return (
     <div className={cn("block min-w-0", className)}>

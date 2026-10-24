@@ -230,6 +230,27 @@ export const GET = withApiHandler(async () => {
 export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
   const { settings: body } = PostSchema.parse(await request.json());
+  if (body.brandKit?.assistantPreferences) {
+    for (const [id, kind] of [
+      [body.brandKit.assistantPreferences.defaultLenderId, "lender"],
+      [body.brandKit.assistantPreferences.defaultTitleId, "title"],
+    ] as const) {
+      if (id) {
+        const partner = await supabaseAdmin
+          .from("financing_partners")
+          .select("id")
+          .eq("owner_id", ownerId)
+          .eq("id", id)
+          .eq("kind", kind)
+          .maybeSingle();
+        if (partner.error || !partner.data)
+          return apiError("Choose an authorized partner from your workspace.", {
+            status: 400,
+          });
+      }
+    }
+  }
+
   if (
     body.brandKit &&
     (!ownedBrandPath(ownerId, body.brandKit.headshotPath) ||

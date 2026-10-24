@@ -116,3 +116,9 @@ See [implementation and QA report](APPROVED-PRICING-PHASE16.md). Approved archit
 ## Premium campaigns and Reviews & Referrals
 
 See [implementation, validation and release gates](campaign-premium/README.md). Adds separate review-only campaign drafts, private planning PDFs, owner-scoped review/referral history, manual relationship management and additional review-reminder restrictions. No production records, credentials, enrollments or approved audio were changed during testing; no migration was applied. Use synthetic contacts and keep live outbound disabled for demos. User authorized deployment after critical checks; provider verification, subscriber Brand Kit setup, approved recordings and live campaign inventory remain separate gates.
+
+## Optional internal AI Assistant 2.0 demo
+
+Use only synthetic allowlisted owners; retain Claude rollback. Keep live outbound and AI production billing disabled. Demonstrate an authorized contact read, draft preview, explicit task save, reopen history, Command Center and mocked voice transcript. Opening/closing the compact drawer must preserve unsaved page work. Do not imply external Google availability, Sapphire generation or unrestricted messaging is operational when not verified.
+
+Show staged pricing only in the synthetic fixture. The production site retains existing prices until the launch gates pass. Demonstrate a quota reached state and duplicate prevention without charges. Screenshots: [assistant QA](ai-operating-assistant/README.md). No pushing this branch: repository pushes trigger deployment previews and this task explicitly prohibits deployment.

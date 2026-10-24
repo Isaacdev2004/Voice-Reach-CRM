@@ -82,3 +82,9 @@ See [implementation and QA report](APPROVED-PRICING-PHASE16.md). Approved archit
 ## Premium campaigns and Reviews & Referrals
 
 See [implementation, validation and release gates](campaign-premium/README.md). Adds separate review-only campaign drafts, private planning PDFs, owner-scoped review/referral history, manual relationship management and additional review-reminder restrictions. No production records, credentials, enrollments or approved audio were changed during testing; no migration was applied. Use synthetic contacts and keep live outbound disabled for demos. User authorized deployment after critical checks; provider verification, subscriber Brand Kit setup, approved recordings and live campaign inventory remain separate gates.
+
+## AI tool and usage boundaries
+
+Assistant browser context contains stable record IDs only; server tools reauthorize with authenticated owner_id. Retrieved messages/notes/documents are untrusted data. Models can read or prepare proposals; separate subscriber confirmation revalidates digest, expiry, ownership, permissions, consent and sender configuration. Native tool call claims and execution claims prevent replay. Unknown partial writes require reconciliation rather than blind retry. Approved single campaign messages remain behind a separate disabled send gate; bulk/activation/admin/billing are not model execution tools.
+
+Usage accounts, operations and audited adjustments are RLS-protected; reserve/settle/schema RPCs are service-role only. PostgreSQL owner-period-capability row locks enforce atomic caps. Browser counters never authorize usage. Existing subscribers are not migrated. Billing uses strict Stripe item identity and explicit test/live approval. Dollar estimates are not provider invoices; $5/$12 monitoring thresholds do not terminate paid usage. No production migration was applied. Full retention purge and real provider acceptance remain release gates.

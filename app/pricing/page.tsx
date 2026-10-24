@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+import { publicAiLaunch } from "@/lib/billing/ai/launch";
+import { AiLaunchPricing } from "@/components/pricing/ai-launch-pricing";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,6 +20,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default function PricingPage() {
+  const aiLaunch = publicAiLaunch();
   return (
     <MarketingShell contentClassName="public-prose">
       <section className="approved-pricing-hero">
@@ -38,7 +42,7 @@ export default function PricingPage() {
           </div>
         </div>
       </section>
-      <LandingPricing />
+      {aiLaunch ? <AiLaunchPricing launch={aiLaunch} /> : <LandingPricing />}
       <section
         className="approved-benefits landing-shell"
         aria-label="Shared plan benefits"
@@ -50,7 +54,7 @@ export default function PricingPage() {
             "No credit card required",
           ],
           ["settings", "White-glove setup", "Included on every plan"],
-          ...(SITE_OFFER.founding.active
+          ...(!aiLaunch && SITE_OFFER.founding.active
             ? [
                 [
                   "groups",
@@ -89,7 +93,7 @@ export default function PricingPage() {
           className="approved-playbook-cta"
         />
       </section>
-      <PricingDetails />
+      {!aiLaunch && <PricingDetails />}
       <section className="approved-team landing-shell">
         <p>
           <strong>Need more room to grow?</strong> Team starts at $
