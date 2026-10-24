@@ -20,6 +20,7 @@ function OwnedCommandCenter({ owner }: { owner: string }) {
         at: string;
         outcome?: {
           state: string;
+          delivery?: { state: string; message: string; href: string };
           result?: { href?: string; message?: string };
           message?: string;
         };
@@ -43,6 +44,15 @@ function OwnedCommandCenter({ owner }: { owner: string }) {
   }, [owner]);
   useEffect(() => {
     void load();
+    let remaining = 12;
+    const timer = setInterval(() => {
+      if (--remaining < 0) {
+        clearInterval(timer);
+        return;
+      }
+      if (document.visibilityState !== "hidden") void load();
+    }, 10000);
+    return () => clearInterval(timer);
   }, [load]);
   return (
     <section className="assistant-command-center">
@@ -83,6 +93,7 @@ function OwnedCommandCenter({ owner }: { owner: string }) {
               "Completed",
               "Needs Attention",
               "Cancelled",
+              "Superseded",
             ].map((s) => (
               <option key={s}>{s}</option>
             ))}
@@ -105,7 +116,9 @@ function OwnedCommandCenter({ owner }: { owner: string }) {
             </h2>
             {w.outcome ? (
               <p>
-                {w.outcome.result?.message ?? w.outcome.message}
+                {w.outcome.delivery?.message ??
+                  w.outcome.result?.message ??
+                  w.outcome.message}
                 {w.outcome.result?.href && (
                   <>
                     {" "}

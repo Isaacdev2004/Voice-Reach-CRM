@@ -1,12 +1,17 @@
 import { z } from "zod";
 import { AssistantFailure } from "./store";
-export type ProviderMessage = { role: "user" | "assistant"; content: unknown };
+export type ProviderMessage = {
+  role: "user" | "assistant";
+  content: unknown;
+  providerItems?: Record<string, unknown>[];
+};
 export type ProviderTool = {
   name: string;
   description: string;
   input_schema: Record<string, unknown>;
 };
 export type ProviderReply = {
+  continuation?: Record<string, unknown>[];
   content: (
     | { type: "text"; text: string }
     | { type: "tool_use"; id: string; name: string; input: unknown }
@@ -103,6 +108,8 @@ export const claudeProvider: ReasoningProvider = {
 /** Responses API adapter; canonical messages/tool contracts stay independent of provider wire formats. */
 export function responsesInput(messages: ProviderMessage[]) {
   return messages.flatMap<Record<string, unknown>>((message) => {
+    if (message.role === "assistant" && message.providerItems)
+      return message.providerItems;
     if (typeof message.content === "string")
       return [{ role: message.role, content: message.content }];
     if (!Array.isArray(message.content))
@@ -165,6 +172,7 @@ export const openaiProvider: ReasoningProvider = {
             })),
             max_output_tokens: 2400,
             store: false,
+            include: ["reasoning.encrypted_content"],
             ...(model.startsWith("gpt-5")
               ? { reasoning: { effort: "low" } }
               : {}),
@@ -231,6 +239,9 @@ export const openaiProvider: ReasoningProvider = {
       throw new AssistantFailure("OpenAI output exceeded the safe limit", 502);
     return {
       content,
+      continuation: r.output.filter((p: Record<string, unknown>) =>
+        ["message", "function_call", "reasoning"].includes(String(p.type)),
+      ),
       model: r.model ?? model,
       usage: {
         inputTokens: r.usage.input_tokens,

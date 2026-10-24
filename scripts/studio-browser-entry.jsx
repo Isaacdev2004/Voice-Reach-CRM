@@ -4,5 +4,7 @@ import {DashboardShell} from '../components/layout/dashboard-shell';
 import {VoiceScriptsStudioPage} from '../components/pages/stitch/VoiceScriptsStudioPage';
 import {SettingsWorkspacePage} from '../components/pages/stitch/SettingsWorkspacePage';
 import {ActivityLogsPage} from '../components/pages/stitch/ActivityLogsPage';
+import {selectedPageRecord} from '../lib/assistant/page-record';
 window.__owner='owner_a';
+window.__readAssistantRecord=()=>selectedPageRecord(window.__owner,location.pathname);
 createRoot(document.getElementById('root')).render(<DashboardShell>{location.pathname.endsWith('/settings')?<SettingsWorkspacePage/>:location.pathname.endsWith('/activity')?<ActivityLogsPage/>:<VoiceScriptsStudioPage/>}</DashboardShell>);

@@ -3,6 +3,7 @@ import { PreviewDetails } from "./preview-details";
 import { useEffect, useState } from "react";
 import type { Proposal } from "@/lib/assistant/schema";
 type Outcome = {
+  delivery?: { state: string; message: string; href: string };
   state: string;
   message?: string;
   result?: { href?: string; message?: string };
@@ -48,6 +49,42 @@ export function ActionPreview({
       live = false;
     };
   }, [p.id, owner]);
+  const outcomeState = outcome?.state,
+    deliveryState = outcome?.delivery?.state;
+  useEffect(() => {
+    if (
+      !["completed", "needs_review", "in_progress"].includes(
+        outcomeState ?? "",
+      ) ||
+      !["sms", "email"].includes(p.action.kind) ||
+      ["delivered", "failed"].includes(deliveryState ?? "")
+    )
+      return;
+    let live = true;
+    const refresh = () => {
+      void fetch(`/api/assistant/proposals?id=${p.id}`, {
+        headers: { "X-MyARI-Owner": owner },
+      })
+        .then(async (r) => {
+          const d = await r.json();
+          if (live && r.ok && d.outcome) setOutcome(d.outcome);
+        })
+        .catch(() => undefined);
+    };
+    refresh();
+    let remaining = 24;
+    const timer = setInterval(() => {
+      if (--remaining < 0) {
+        clearInterval(timer);
+        return;
+      }
+      if (document.visibilityState !== "hidden") refresh();
+    }, 5000);
+    return () => {
+      live = false;
+      clearInterval(timer);
+    };
+  }, [p.id, p.action.kind, owner, outcomeState, deliveryState]);
   async function mutate(mode: "save" | "cancel" | "edit" | "check") {
     setBusy(true);
     setError("");
@@ -109,7 +146,10 @@ export function ActionPreview({
     <article className="assistant-preview">
       <header>
         <strong>
-          {p.action.kind.replaceAll("_", " ")} · {outcome?.state ?? "Proposed"}
+          {p.action.kind.replaceAll("_", " ")} ·{" "}
+          {(outcome?.state === "completed"
+            ? (outcome.delivery?.state ?? outcome.state)
+            : outcome?.state) ?? "Proposed"}
         </strong>
         <span>Expires {new Date(p.expiresAt).toLocaleTimeString()}</span>
       </header>
@@ -260,7 +300,15 @@ export function ActionPreview({
       {error && <p role="alert">{error}</p>}
       {outcome && (
         <p role="status">
-          {outcome.result?.message ?? outcome.message ?? outcome.state}
+          {outcome.delivery && (
+            <span>
+              {outcome.delivery.message}{" "}
+              <a href={outcome.delivery.href}>View delivery evidence</a>
+              <br />
+            </span>
+          )}
+          {!outcome.delivery &&
+            (outcome.result?.message ?? outcome.message ?? outcome.state)}
           {outcome.result?.href && (
             <>
               {" "}
@@ -269,6 +317,14 @@ export function ActionPreview({
           )}
         </p>
       )}
+      {outcome &&
+        ["sms", "email"].includes(p.action.kind) &&
+        ["completed", "needs_review", "in_progress"].includes(outcome.state) &&
+        !["delivered", "failed"].includes(outcome.delivery?.state ?? "") && (
+          <button disabled={busy} onClick={() => void mutate("check")}>
+            Refresh message status
+          </button>
+        )}
       {!outcome && (
         <>
           <div className="assistant-actions">

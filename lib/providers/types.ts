@@ -1,3 +1,4 @@
+import type { ApprovedMessage } from "./assistant-message";
 export type ProviderChannel = "voicemail" | "sms" | "email" | "video";
 
 export type EmailAttachmentPayload = {
@@ -6,6 +7,7 @@ export type EmailAttachmentPayload = {
 };
 
 export type SendRequest = {
+  approvedMessage?: ApprovedMessage;
   ownerId?: string;
   contactId?: string;
   idempotencyKey?: string;
@@ -25,6 +27,7 @@ export type SendRequest = {
 };
 
 export type SendResult = {
+  uncertain?: boolean;
   ok: boolean;
   providerMessageId?: string;
   status: "sent" | "queued" | "mock_sent" | "failed" | "blocked";

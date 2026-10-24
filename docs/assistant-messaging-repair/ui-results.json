@@ -1,0 +1,130 @@
+[
+  {
+    "width": 1440,
+    "channel": "sms",
+    "commandToProvider": "passed",
+    "separateConfirmation": true,
+    "providerSubmissions": 1,
+    "confirmedDeliveryClaimed": false,
+    "providerFailureInEvidence": true,
+    "assistantShowsFailure": true,
+    "actualSenderShown": true,
+    "trace": [
+      "reasoning",
+      "reasoning",
+      "provider_submission"
+    ]
+  },
+  {
+    "width": 1440,
+    "channel": "email",
+    "commandToProvider": "passed",
+    "separateConfirmation": true,
+    "providerSubmissions": 1,
+    "confirmedDeliveryClaimed": false,
+    "providerFailureInEvidence": true,
+    "assistantShowsFailure": true,
+    "actualSenderShown": true,
+    "trace": [
+      "reasoning",
+      "reasoning",
+      "provider_submission"
+    ]
+  },
+  {
+    "width": 1280,
+    "channel": "sms",
+    "commandToProvider": "passed",
+    "separateConfirmation": true,
+    "providerSubmissions": 1,
+    "confirmedDeliveryClaimed": false,
+    "providerFailureInEvidence": true,
+    "assistantShowsFailure": true,
+    "actualSenderShown": true,
+    "trace": [
+      "reasoning",
+      "reasoning",
+      "provider_submission"
+    ]
+  },
+  {
+    "width": 1280,
+    "channel": "email",
+    "commandToProvider": "passed",
+    "separateConfirmation": true,
+    "providerSubmissions": 1,
+    "confirmedDeliveryClaimed": false,
+    "providerFailureInEvidence": true,
+    "assistantShowsFailure": true,
+    "actualSenderShown": true,
+    "trace": [
+      "reasoning",
+      "reasoning",
+      "provider_submission"
+    ]
+  },
+  {
+    "width": 768,
+    "channel": "sms",
+    "commandToProvider": "passed",
+    "separateConfirmation": true,
+    "providerSubmissions": 1,
+    "confirmedDeliveryClaimed": false,
+    "providerFailureInEvidence": true,
+    "assistantShowsFailure": true,
+    "actualSenderShown": true,
+    "trace": [
+      "reasoning",
+      "reasoning",
+      "provider_submission"
+    ]
+  },
+  {
+    "width": 768,
+    "channel": "email",
+    "commandToProvider": "passed",
+    "separateConfirmation": true,
+    "providerSubmissions": 1,
+    "confirmedDeliveryClaimed": false,
+    "providerFailureInEvidence": true,
+    "assistantShowsFailure": true,
+    "actualSenderShown": true,
+    "trace": [
+      "reasoning",
+      "reasoning",
+      "provider_submission"
+    ]
+  },
+  {
+    "width": 390,
+    "channel": "sms",
+    "commandToProvider": "passed",
+    "separateConfirmation": true,
+    "providerSubmissions": 1,
+    "confirmedDeliveryClaimed": false,
+    "providerFailureInEvidence": true,
+    "assistantShowsFailure": true,
+    "actualSenderShown": true,
+    "trace": [
+      "reasoning",
+      "reasoning",
+      "provider_submission"
+    ]
+  },
+  {
+    "width": 390,
+    "channel": "email",
+    "commandToProvider": "passed",
+    "separateConfirmation": true,
+    "providerSubmissions": 1,
+    "confirmedDeliveryClaimed": false,
+    "providerFailureInEvidence": true,
+    "assistantShowsFailure": true,
+    "actualSenderShown": true,
+    "trace": [
+      "reasoning",
+      "reasoning",
+      "provider_submission"
+    ]
+  }
+]

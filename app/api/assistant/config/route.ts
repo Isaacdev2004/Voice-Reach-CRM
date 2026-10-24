@@ -1,3 +1,4 @@
+import { assistantSendAllowedOwner } from "@/lib/providers/assistant-message";
 import { requireUserId } from "@/lib/auth";
 import { apiOk, withApiHandler } from "@/lib/api-response";
 import { assistantAccess, configuredProvider } from "@/lib/assistant/config";
@@ -15,8 +16,7 @@ export const GET = withApiHandler(async () => {
       provider === "claude"
         ? process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5"
         : process.env.OPENAI_ASSISTANT_MODEL || "gpt-5-mini",
-    externalActionsEnabled:
-      process.env.ASSISTANT_APPROVED_SENDS_ENABLED === "true",
+    externalActionsEnabled: assistantSendAllowedOwner(owner),
     safetyLimits: {
       requestsPerMinute: 5,
       dailyInteractions: Math.min(

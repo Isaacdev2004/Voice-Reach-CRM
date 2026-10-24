@@ -23,8 +23,20 @@ export const GET = assistantHandler(async (request, owner) => {
     .string()
     .uuid()
     .parse(new URL(request.url).searchParams.get("id"));
+  const proposal = await getProposal(owner, id),
+    outcome = await proposalOutcome(owner, id);
+  const { messageStatuses } = await import("@/lib/assistant/message-status");
   return apiOk({
-    proposal: await getProposal(owner, id),
-    outcome: await proposalOutcome(owner, id),
+    proposal,
+    outcome: outcome
+      ? {
+          ...outcome,
+          delivery: ["completed", "needs_review", "in_progress"].includes(
+            String(outcome.state),
+          )
+            ? (await messageStatuses(owner, [proposal])).get(id)
+            : undefined,
+        }
+      : null,
   });
 });

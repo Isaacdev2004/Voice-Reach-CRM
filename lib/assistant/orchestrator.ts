@@ -212,7 +212,11 @@ async function runAssistantCore(
           "Tool limit reached. Narrow this request.",
           429,
         );
-      messages.push({ role: "assistant", content: reply.content });
+      messages.push({
+        role: "assistant",
+        content: reply.content,
+        ...(reply.continuation ? { providerItems: reply.continuation } : {}),
+      });
       const responses = [];
       for (const call of calls) {
         let data: unknown;

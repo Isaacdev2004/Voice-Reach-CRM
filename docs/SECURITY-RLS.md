@@ -92,3 +92,7 @@ Usage accounts, operations and audited adjustments are RLS-protected; reserve/se
 ## Pricing architecture correction (2026-10-24)
 
 CRM Only $49/$99/$199 and CRM + AI Plus $65/$115/$215 are mutually exclusive monthly base plans. The $16 difference includes AI Plus; there is no purchasable $20 AI add-on. Old add-on quotes and APIs are unconditionally retired, without deleting Stripe records. Corresponding monthly upgrades/downgrades require an owner-bound invoice preview and explicit base-item replacement confirmation. Existing subscriptions, Founding terms and CRM annual paths remain unchanged. New public prices/plan changes remain disabled; no deployment or production writes. See [corrected billing report](ai-pricing-launch/README.md).
+
+## Assistant remaining-gap repair (2026-10-24)
+
+Preserved Assistant 2.0 and the approved mutually exclusive pricing correction. Added atomic proposal-root approval/supersession, canonical sender/content-bound messaging, blocked/removed enrollment and simulation guards, mandatory evidence/unknown-outcome holds, provider timeouts and owner-scoped delivery status. Internal messaging now also requires explicit account/recipient allowlists; flags and lists remain off/empty. Voice saved-record context and OpenAI reasoning continuation are repaired. [Repair report](assistant-messaging-repair/README.md) includes the reviewed migration and release limitations. No production writes or deployment.

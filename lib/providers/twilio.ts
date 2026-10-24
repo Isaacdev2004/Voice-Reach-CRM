@@ -1,3 +1,4 @@
+import { approvedTransportIssues } from "./assistant-message";
 import type {
   ProviderAdapter,
   SendRequest,
@@ -15,6 +16,9 @@ export const twilioProvider: ProviderAdapter = {
   channels: ["sms", "voicemail"],
 
   async send(request: SendRequest): Promise<SendResult> {
+    const approvalIssues = approvedTransportIssues(request, "twilio");
+    if (approvalIssues.length)
+      return { ok: false, status: "blocked", error: approvalIssues.join(" ") };
     const sid = process.env.TWILIO_ACCOUNT_SID;
     const token = process.env.TWILIO_AUTH_TOKEN;
     const from = request.from || process.env.TWILIO_FROM_NUMBER;
@@ -53,6 +57,7 @@ export const twilioProvider: ProviderAdapter = {
           `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`,
           {
             method: "POST",
+            signal: AbortSignal.timeout(15000),
             headers: {
               Authorization: `Basic ${auth}`,
               "Content-Type": "application/x-www-form-urlencoded",
@@ -69,8 +74,11 @@ export const twilioProvider: ProviderAdapter = {
               : raw.message
             : undefined;
         return {
-          ok: res.ok,
-          providerMessageId: raw?.sid,
+          ok: res.ok && typeof raw?.sid === "string" && !!raw.sid.trim(),
+          uncertain:
+            res.ok && !(typeof raw?.sid === "string" && !!raw.sid.trim()),
+          providerMessageId:
+            typeof raw?.sid === "string" ? raw.sid.trim() : undefined,
           status: res.ok ? "sent" : "failed",
           rawResponse: raw,
           error: res.ok ? undefined : twilioError,

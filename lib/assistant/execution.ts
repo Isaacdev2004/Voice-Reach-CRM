@@ -1,3 +1,4 @@
+import { advanceProposal } from "./roots";
 import { reserveAi, settleAi } from "@/lib/billing/ai/meter";
 import { assertApproval, proposalOutcome } from "./proposals";
 import { put, AssistantFailure, getProposal } from "./store";
@@ -56,6 +57,12 @@ export async function executeApproved(
   const reservation = capability
     ? await reserveAi(owner, capability, `record:${id}`, units)
     : null;
+  try {
+    await advanceProposal(owner, proposal, "claim");
+  } catch (e) {
+    await settleAi(reservation, false);
+    throw e;
+  }
   if (
     !(await put(owner, "claim", id, "once", {
       state: "executing",
@@ -87,11 +94,35 @@ export async function executeApproved(
           typeof proposal.preview.subject === "string"
             ? proposal.preview.subject
             : undefined,
-        idempotencyKey: `assistant-${id}`,
+        approvedMessage: {
+          ownerId: owner,
+          contactId: a.contactId,
+          campaignId: a.campaignId!,
+          recipientId: a.recipientId!,
+          to: String(proposal.preview.recipient),
+          from: String((proposal.preview.sender as { from: string }).from),
+          senderIdentity: String(
+            (proposal.preview.sender as { identity: string }).identity,
+          ),
+          provider: String(proposal.preview.provider),
+          body: String(proposal.preview.body),
+          subject:
+            typeof proposal.preview.subject === "string"
+              ? proposal.preview.subject
+              : null,
+        },
+        idempotencyKey: `assistant-${proposal.rootId ?? id}`,
         providerId: a.kind === "sms" ? "twilio" : "resend",
         recordEngagement: true,
       });
-      if (!r.ok || r.status === "mock_sent") throw Error();
+      if (
+        !r.ok ||
+        r.uncertain ||
+        r.error ||
+        !r.providerMessageId?.trim() ||
+        r.status === "mock_sent"
+      )
+        throw Error();
       result = {
         providerMessageId: r.providerMessageId,
         status: r.status,
@@ -280,7 +311,8 @@ export async function executeApproved(
   }
 }
 export async function cancelProposal(owner: string, id: string) {
-  await getProposal(owner, id);
+  const proposal = await getProposal(owner, id);
+  await advanceProposal(owner, proposal, "cancel");
   if (!(await put(owner, "claim", id, "once", { state: "cancelled" })))
     throw new AssistantFailure(
       "This proposal was already claimed or cancelled",

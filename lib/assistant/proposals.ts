@@ -1,3 +1,9 @@
+import { resolveRecipientAddress } from "@/lib/providers/dispatch-message";
+import {
+  senderSnapshot,
+  assistantSendIssues,
+} from "@/lib/providers/assistant-message";
+import { advanceProposal, proposalRoot } from "./roots";
 import { meteredAi } from "@/lib/billing/ai/meter";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { ActionSchema, type AssistantAction, type Proposal } from "./schema";
@@ -46,8 +52,9 @@ export async function actionPreview(
           render.issues.join(" "),
         400,
       );
-    const recipient = action.kind === "sms" ? contact?.phone : contact?.email,
+    const recipient = resolveRecipientAddress(action.kind, contact!).address,
       provider = pickAdapterForChannel(action.kind).id;
+    const sender = senderSnapshot(action.kind);
     let issues: string[] = [
       "Direct sending requires an existing launched campaign and exact recipient enrollment.",
     ];
@@ -61,17 +68,31 @@ export async function actionPreview(
         recipientId: action.recipientId,
         body: render.body,
         subject: render.subject ?? undefined,
+        approvedMessage: {
+          ownerId: owner,
+          contactId: contact!.id,
+          campaignId: action.campaignId,
+          recipientId: action.recipientId,
+          to: recipient ?? "",
+          from: sender.from ?? "",
+          senderIdentity: sender.identity ?? "",
+          provider,
+          body: render.body,
+          subject: render.subject,
+        },
       });
     const quota = await assertCanSendChannel(owner, action.kind);
     if (!quota.ok) issues.push(quota.error);
     if (provider === "mock")
       issues.push("No authorized live provider is configured.");
-    if (process.env.ASSISTANT_APPROVED_SENDS_ENABLED !== "true")
+    issues.push(...assistantSendIssues(owner, action.kind, recipient ?? ""));
+    if (!sender.from || !sender.identity)
       issues.push(
-        "Assistant external delivery is disabled by the release flag.",
+        "Configure an authorized platform sender before preparing a Send preview.",
       );
     return {
       contact: identity,
+      sender,
       recipient,
       subject: render.subject,
       body: render.body,
@@ -308,6 +329,12 @@ export async function prepareAction(
       "created",
       proposal as unknown as Record<string, unknown>,
     );
+    await advanceProposal(
+      owner,
+      proposal,
+      parent ? "revise" : "create",
+      parent?.id,
+    );
     return proposal;
   };
   if (options.meterDraft && ["sms", "email"].includes(action.kind))
@@ -322,6 +349,12 @@ export async function assertApproval(
   expectedDigest: string,
 ) {
   const p = await getProposal(owner, id);
+  const root = await proposalRoot(owner, p);
+  if (!root || root.current_proposal_id !== p.id || root.state !== "draft")
+    throw new AssistantFailure(
+      "Proposal is superseded, claimed, cancelled or requires a fresh preview.",
+      409,
+    );
   if (p.digest !== expectedDigest)
     throw new AssistantFailure(
       "Proposal changed. Review the exact current preview.",
@@ -347,7 +380,37 @@ export async function assertApproval(
 }
 export async function proposalOutcome(owner: string, id: string) {
   const outcomes = await entries(owner, "outcome", id, 1);
-  return outcomes[0]?.metadata ?? null;
+  if (outcomes[0]) return outcomes[0].metadata;
+  const p = await getProposal(owner, id),
+    root = await proposalRoot(owner, p);
+  if (!root)
+    return {
+      state: "needs_review",
+      message:
+        "This preview needs current safety controls. Prepare a fresh proposal.",
+    };
+  if (root.current_proposal_id !== p.id)
+    return {
+      state: "superseded",
+      message:
+        "A revised preview replaced this version. No action is available here.",
+    };
+  if (root.state === "cancelled")
+    return { state: "cancelled", message: "Proposal cancelled." };
+  if (root.state === "claimed") {
+    if (!root.updated_at || Date.now() - Date.parse(root.updated_at) > 120000)
+      return {
+        state: "needs_review",
+        message:
+          "Execution has not been confirmed. Reconcile the stored result before any new send.",
+      };
+    return {
+      state: "in_progress",
+      message:
+        "Execution was claimed. Check the stored result; do not submit another send.",
+    };
+  }
+  return null;
 }
 // Referenced here to keep all record lookup surfaces owner scoped; business services own execution.
 export const readProposalContact = ownedContact;

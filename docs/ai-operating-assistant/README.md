@@ -101,3 +101,5 @@ Browser captures at 1440, 1280, 768 and 390 pixels are in this directory: `assis
 ## Final local QA
 
 See [complete test results and acceptance limits](QA.md) and [files changed](FILES-CHANGED.txt). New launch pricing, V2 public access and approved-send flags remain disabled. Review readiness is established locally; production rollout remains blocked by the documented external acceptance and business approvals.
+
+Remaining messaging/context/Responses gaps are addressed by the [subsequent repair](../assistant-messaging-repair/README.md); original launch flags remain disabled.

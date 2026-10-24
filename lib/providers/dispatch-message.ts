@@ -1,3 +1,4 @@
+import type { ApprovedMessage } from "./assistant-message";
 import {
   isLiveOutboundAllowed,
   liveOutboundBlockedMessage,
@@ -41,6 +42,7 @@ export function resolveRecipientAddress(
 
 export async function sendToContact(params: {
   ownerId: string;
+  approvedMessage?: ApprovedMessage;
   contact: ContactForSend;
   channel: ProviderChannel;
   campaignId: string;
@@ -77,6 +79,8 @@ export async function sendToContact(params: {
         : "sms",
     params.body ?? "",
     params.subject ?? "",
+    undefined,
+    { literal: !!params.approvedMessage },
   );
   const audioOnly =
     params.channel === "voicemail" && !!params.audioUrl && !params.body;
@@ -92,6 +96,7 @@ export async function sendToContact(params: {
   const outboundSubject = rendered.subject ?? undefined;
 
   const request: SendRequest = {
+    approvedMessage: params.approvedMessage,
     ownerId: params.ownerId,
     contactId: params.contact.id,
     idempotencyKey: params.idempotencyKey,

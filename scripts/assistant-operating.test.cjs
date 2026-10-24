@@ -630,6 +630,19 @@ test("bounded body parser rejects oversized requests without trusting content-le
 });
 test("approved campaign message requires SEND confirmation, all authorization gates and one durable claim", async () => {
   const f = setup();
+  const betaEnv = {
+    ASSISTANT_SEND_OWNER_IDS: owner,
+    ASSISTANT_SEND_RECIPIENTS: "+15555550123",
+    TWILIO_FROM_NUMBER: "+15555550001",
+    TWILIO_ACCOUNT_SID: "AC_synthetic",
+    DELIVERY_EVIDENCE_ENABLED: "true",
+  };
+  const previousBeta = {};
+  for (const [k, v] of Object.entries(betaEnv)) {
+    previousBeta[k] = process.env[k];
+    process.env[k] = v;
+  }
+
   f.stubs["@/lib/providers/send-authorization"] = {
     authorizeLiveOutbound: async () => [],
   };
@@ -678,6 +691,10 @@ test("approved campaign message requires SEND confirmation, all authorization ga
     await e.executeApproved(owner, p.id, p.digest, "CONFIRM_SEND");
     assert.equal(f.payloads.length, 1);
   } finally {
+    for (const [k, v] of Object.entries(previousBeta)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
     if (old === undefined) delete process.env.ASSISTANT_APPROVED_SENDS_ENABLED;
     else process.env.ASSISTANT_APPROVED_SENDS_ENABLED = old;
   }

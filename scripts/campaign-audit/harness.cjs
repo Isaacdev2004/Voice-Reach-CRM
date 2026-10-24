@@ -47,7 +47,17 @@ function fixture() {
       timezone: "America/New_York",
     },
   };
+  tables.assistant_proposal_roots=[];
   const db = {
+    async rpc(name,p){
+      if(name!=="advance_assistant_proposal")return {data:null,error:{message:"Unsupported fixture RPC"}};
+      const table=tables.assistant_proposal_roots;let row=table.find(r=>r.owner_id===p.p_owner&&r.root_id===p.p_root);
+      if(p.p_operation==='create'){if(row||p.p_root!==p.p_proposal)return {error:{message:'conflict'}};row={owner_id:p.p_owner,root_id:p.p_root,current_proposal_id:p.p_proposal,state:'draft',updated_at:new Date().toISOString()};table.push(row);}
+      else {if(!row||row.state!=='draft')return {error:{message:'claimed'}};
+      if(p.p_operation==='revise'){if(row.current_proposal_id!==p.p_expected)return {error:{message:'superseded'}};row.current_proposal_id=p.p_proposal;}
+      else {if(row.current_proposal_id!==p.p_proposal)return {error:{message:'superseded'}};row.state=p.p_operation==='claim'?'claimed':'cancelled';}}
+      row.updated_at=new Date().toISOString();return {data:{...row},error:null};
+    },
     from(table) {
       let mode = "select",
         value,
@@ -138,9 +148,11 @@ function fixture() {
               const count = rows.length;
               if (mode === "insert" && ["audit_logs","voice_script_drafts"].includes(table) && value.id && all.some(r => r.id === value.id)) return {data:null,error:{code:"23505"},count};
               if (mode === "insert" && table === "outbound_delivery_events" && all.some(r=>r.provider===value.provider&&r.event_key===value.event_key)) return {data:null,error:{code:"23505"},count};
+              if(mode==="insert" && table==="outbound_messages" && value.logical_key?.startsWith("assistant-") && all.some(r=>r.owner_id===value.owner_id&&r.logical_key===value.logical_key)) return {data:null,error:{code:"23505"},count};
               if(mode==="upsert"){const existing=all.find(r=>r.owner_id===value.owner_id&&r.provider===value.provider&&r.external_event_id===value.external_event_id);if(existing){Object.assign(existing,value);rows=[existing];}else{mode="insert";}}
               if (mode === "insert") {
                 rows = (Array.isArray(value) ? value : [value]).map((r) => ({
+                  ...(table==="outbound_delivery_events"?{received_at:new Date().toISOString()}:{}),
                   id: id(seq++),
                   created_at: "2026-10-22T12:00:00Z",
                   ...(table === "outbound_delivery_events" ? {received_at:"2026-10-23T12:00:00Z"}:{}),

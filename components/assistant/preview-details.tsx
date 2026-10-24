@@ -16,6 +16,12 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
       {["sms", "email"].includes(a.kind) && (
         <>
           <p>
+            <strong>From:</strong>{" "}
+            {value((p.preview.sender as { from?: string } | undefined)?.from) ||
+              "Sender unavailable"}{" "}
+            <span>(platform sender)</span>
+          </p>
+          <p>
             <strong>Recipient:</strong>{" "}
             {value(p.preview.recipient) || "Missing contact destination"}
           </p>

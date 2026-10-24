@@ -47,6 +47,7 @@ export function VoiceStudioWorkspace({
 
   const draftController = useVoiceDrafts(user?.id,initialAsset?{title:initialAsset.title,script:initialAsset.studio_metadata?.script,scriptId:isUuid(initialAsset.script_id)?initialAsset.script_id:undefined}:undefined);
   const {draft,drafts,phase,cloudError,localError}=draftController;
+  useAssistantRecord({ voiceAssetId:initialAsset?.id,voiceDraftId:phase==="saved"?draft.id:undefined });
   const scriptText=draft.script,title=draft.title,draftId=draft.id;
   const setScriptText=(script:string)=>draftController.edit({script});
   const setTitle=(title:string)=>draftController.edit({title});

@@ -155,7 +155,7 @@ const { chromium } = require("playwright"),
     await page.goto(origin+'/dashboard/voice-scripts');await page.getByRole('heading',{name:'Voice Scripts Library'}).waitFor();
     await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`voice-library-${width}.png`),fullPage:true});
     await page.getByRole('button',{name:/Create script$/}).first().click();await page.getByRole('heading',{name:'Create voice script',exact:true}).waitFor();
-    await page.getByLabel('Script title',{exact:true}).fill('Synthetic reviewed draft');await page.getByLabel('Script text',{exact:true}).fill('Hello, this is my synthetic real estate script.');await page.getByRole('button',{name:'Save draft',exact:true}).click();await page.getByRole('status').filter({hasText:'Script draft saved'}).waitFor();assert.equal(drafts.at(-1).title,'Synthetic reviewed draft');
+    await page.getByLabel('Script title',{exact:true}).fill('Synthetic reviewed draft');await page.getByLabel('Script text',{exact:true}).fill('Hello, this is my synthetic real estate script.');await page.getByRole('button',{name:'Save draft',exact:true}).click();await page.getByRole('status').filter({hasText:'Script draft saved'}).waitFor();assert.equal(drafts.at(-1).title,'Synthetic reviewed draft');await page.waitForFunction(id=>window.__readAssistantRecord().voiceDraftId===id,drafts.at(-1).id);
     if(width===1440){
       await page.getByRole('checkbox',{name:/I have permission to record/}).check();
       await page.evaluate(()=>{Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>{throw new DOMException('denied','NotAllowedError')}}})});
