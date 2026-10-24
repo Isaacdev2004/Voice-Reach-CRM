@@ -1,6 +1,7 @@
 "use client";
 
 import { AiLauncherButton } from "@/components/ai/ai-launcher-button";
+import { AiUsagePanel } from "@/components/billing/ai-usage";
 import { BrandKitPanel } from "@/components/settings/brand-kit-panel";
 import { EditorialWorkspaceHero } from "@/components/layout/editorial-workspace-hero";
 import "@/components/settings/settings-premium.css";
@@ -1326,6 +1327,7 @@ function SettingsSession() {
               <h2 className="mb-6 font-serif text-[22px] font-semibold text-ink">
                 Billing & usage
               </h2>
+              <AiUsagePanel />
               <div className="mb-6 rounded-2xl border border-outline-variant/15 bg-champagne/40 p-6">
                 <p className="font-serif text-[24px] font-semibold text-ink">
                   {settings.billing.subscriptionStatus === "active"

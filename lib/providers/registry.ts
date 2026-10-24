@@ -1,3 +1,4 @@
+import { approvedTransportIssues } from "./assistant-message";
 import { renderMessage } from "@/lib/campaigns/render-message";
 import {
   evidenceEnabled,
@@ -127,6 +128,9 @@ export async function dispatch(
       status: "blocked",
       error: "A live delivery provider is not configured for this channel.",
     };
+  const approvalIssues = approvedTransportIssues(request, adapter.id);
+  if (approvalIssues.length)
+    return { ok: false, status: "blocked", error: approvalIssues.join(" ") };
   if (!adapter.channels.includes(request.channel))
     return {
       ok: false,
@@ -141,6 +145,8 @@ export async function dispatch(
       request.channel,
       request.body,
       request.subject,
+      undefined,
+      { literal: !!request.approvedMessage },
     );
     if (!rendered.ok)
       return {
@@ -172,6 +178,19 @@ export async function dispatch(
     }
   }
   try {
+    if (request.approvedMessage) {
+      const finalIssues = await authorizeLiveOutbound(request);
+      if (finalIssues.length) {
+        const blocked: SendResult = {
+          ok: false,
+          status: "blocked",
+          error: finalIssues.join(" "),
+        };
+        if (evidenceId)
+          await finishMessage(evidenceId, request, adapter.id, blocked);
+        return blocked;
+      }
+    }
     const result = await adapter.send(request);
     if (evidenceId) {
       try {
@@ -179,6 +198,7 @@ export async function dispatch(
       } catch {
         return {
           ...result,
+          uncertain: true,
           rawResponse: undefined,
           error:
             "Submission may have occurred. Reconcile provider records before any retry.",

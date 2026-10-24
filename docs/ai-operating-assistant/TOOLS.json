@@ -1,0 +1,1766 @@
+[
+  {
+    "name": "search_contacts",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "maxLength": 80,
+          "pattern": "^[\\p{L}\\p{N}\\s@.'+_-]*$"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_contact",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "contactId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_contact_history",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "contactId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_proposal",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "proposalId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "proposalId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_assistant_work",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_setup_status",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_voice_scripts",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_voice_asset",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "voiceAssetId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "voiceAssetId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_event",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "eventId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_note",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "noteId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "noteId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_buyer_preferences",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "contactId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_transaction_milestones",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_preferred_partners",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_daily_briefing",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "find_opportunities",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_campaign_enrollments",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "campaignId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "campaignId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_campaigns",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "campaignId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_tasks",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_calendar",
+    "description": "Read internal and connected Google calendar coverage for a range up to 31 days. Disconnected external availability is unknown.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+        },
+        "to": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "search_notes",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "maxLength": 80,
+          "pattern": "^[\\p{L}\\p{N}\\s@.'+_-]*$"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_analytics",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "range": {
+          "default": "30d",
+          "type": "string",
+          "enum": [
+            "7d",
+            "30d",
+            "90d"
+          ]
+        }
+      },
+      "required": [
+        "range"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_saved_properties",
+    "description": "Saved subscriber property addresses/preferences only. No live MLS/IDX listings or asking prices.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_brand_kit",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_unanswered_replies",
+    "description": "Verified owner-attributed inbound SMS and outbound evidence; unknown/ambiguous provider attribution is never assigned.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_checklist_templates",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_planning_resources",
+    "description": "Read authenticated subscriber records, with source IDs and bounded results.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "prepare_checklist",
+    "description": "Prepare a reviewable proposal only; no CRM mutation or external action.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "checklist"
+        },
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "propertyContactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "templateId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "baseDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "closingDate": {
+          "default": null,
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "timeZone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "revisionOf": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "kind",
+        "contactId",
+        "templateId",
+        "baseDate",
+        "closingDate",
+        "timeZone"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "prepare_property_preferences",
+    "description": "Prepare a reviewable proposal only; no CRM mutation or external action.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "property_preferences"
+        },
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "preferredArea": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "budget": {
+          "type": "number",
+          "minimum": 0
+        },
+        "propertyPreferences": {
+          "type": "object",
+          "properties": {
+            "propertyType": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "squareFeet": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 1000000000
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "beds": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "baths": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "garageSpaces": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "lotSquareFeet": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 1000000000000
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "revisionOf": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "kind",
+        "contactId",
+        "propertyPreferences"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "prepare_task",
+    "description": "Prepare a reviewable proposal only; no CRM mutation or external action.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "task"
+        },
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "dueAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+        },
+        "notes": {
+          "default": "",
+          "type": "string",
+          "maxLength": 2000
+        },
+        "revisionOf": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "kind",
+        "contactId",
+        "title",
+        "dueAt",
+        "notes"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "prepare_note",
+    "description": "Prepare a reviewable proposal only; no CRM mutation or external action.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "note"
+        },
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "revisionOf": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "kind",
+        "contactId",
+        "title",
+        "body"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "prepare_message",
+    "description": "Prepare exact recipient and content preview only; never sends from a tool. A separate SEND confirmation may submit only with an existing authorized launched campaign and recipient enrollment; outside-campaign sending is unavailable.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "sms",
+            "email"
+          ]
+        },
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000
+        },
+        "subject": {
+          "default": "",
+          "type": "string",
+          "maxLength": 200
+        },
+        "campaignId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "recipientId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "revisionOf": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "kind",
+        "contactId",
+        "body",
+        "subject"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "prepare_calendar",
+    "description": "Propose an internal appointment with explicit ISO offsets and timezone. Ask for missing timezone, date or time; never guess availability.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "calendar"
+        },
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "startsAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+        },
+        "endsAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+        },
+        "timeZone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "description": {
+          "default": "",
+          "type": "string",
+          "maxLength": 2000
+        },
+        "revisionOf": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "kind",
+        "contactId",
+        "title",
+        "startsAt",
+        "endsAt",
+        "timeZone",
+        "description"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "prepare_campaign",
+    "description": "Prepare a reviewable proposal only; no CRM mutation or external action.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "campaign"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 150
+        },
+        "audience": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "durationDays": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        },
+        "steps": {
+          "minItems": 1,
+          "maxItems": 20,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "sms",
+                  "email",
+                  "voicemail",
+                  "task"
+                ]
+              },
+              "day": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 365
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 150
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 8000
+              }
+            },
+            "required": [
+              "type",
+              "day",
+              "title",
+              "description"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "revisionOf": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "kind",
+        "name",
+        "audience",
+        "description",
+        "durationDays",
+        "steps"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "prepare_voice_script",
+    "description": "Prepare a reviewable proposal only; no CRM mutation or external action.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "voice_script"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "script": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5000
+        },
+        "revisionOf": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "kind",
+        "title",
+        "script"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "prepare_financing",
+    "description": "Prepare a reviewable proposal only; no CRM mutation or external action.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "financing"
+        },
+        "calculation": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "mortgage"
+                },
+                "homePrice": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 1000000000000
+                },
+                "downPayment": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "interestRate": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "termYears": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 50
+                },
+                "annualTax": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "annualInsurance": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "monthlyHoa": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "includePmi": {
+                  "type": "boolean"
+                },
+                "comparisons": {
+                  "default": [],
+                  "maxItems": 5,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      "rate": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "termYears": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "rate",
+                      "termYears"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "fees": {
+                  "maxItems": 40,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "amount": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "subscriber",
+                          "estimate",
+                          "government",
+                          "provider"
+                        ]
+                      },
+                      "reference": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "effectiveDate": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 30
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "amount",
+                      "source",
+                      "reference",
+                      "effectiveDate"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "homePrice",
+                "downPayment",
+                "interestRate",
+                "termYears",
+                "annualTax",
+                "annualInsurance",
+                "monthlyHoa",
+                "includePmi",
+                "comparisons",
+                "fees"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "price": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 1000000000000
+                },
+                "payoff": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "commissionPercent": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "commissionFlat": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "credits": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "adjustments": {
+                  "type": "number",
+                  "minimum": -1000000000000,
+                  "maximum": 1000000000000
+                },
+                "fees": {
+                  "maxItems": 40,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "amount": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "subscriber",
+                          "estimate",
+                          "government",
+                          "provider"
+                        ]
+                      },
+                      "reference": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "effectiveDate": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 30
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "amount",
+                      "source",
+                      "reference",
+                      "effectiveDate"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "kind": {
+                  "type": "string",
+                  "const": "seller"
+                }
+              },
+              "required": [
+                "price",
+                "payoff",
+                "commissionPercent",
+                "commissionFlat",
+                "credits",
+                "adjustments",
+                "fees",
+                "kind"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "payoff": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "commissionPercent": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "commissionFlat": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "credits": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "adjustments": {
+                  "type": "number",
+                  "minimum": -1000000000000,
+                  "maximum": 1000000000000
+                },
+                "fees": {
+                  "maxItems": 40,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "amount": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "subscriber",
+                          "estimate",
+                          "government",
+                          "provider"
+                        ]
+                      },
+                      "reference": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "effectiveDate": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 30
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "amount",
+                      "source",
+                      "reference",
+                      "effectiveDate"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "kind": {
+                  "type": "string",
+                  "const": "seller-to-net"
+                },
+                "targetNet": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              },
+              "required": [
+                "payoff",
+                "commissionPercent",
+                "commissionFlat",
+                "credits",
+                "adjustments",
+                "fees",
+                "kind",
+                "targetNet"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "buyer"
+                },
+                "price": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 1000000000000
+                },
+                "downPayment": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "deposit": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "credits": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "fees": {
+                  "maxItems": 40,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "amount": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "subscriber",
+                          "estimate",
+                          "government",
+                          "provider"
+                        ]
+                      },
+                      "reference": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "effectiveDate": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 30
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "amount",
+                      "source",
+                      "reference",
+                      "effectiveDate"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "price",
+                "downPayment",
+                "deposit",
+                "credits",
+                "fees"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "offers"
+                },
+                "offers": {
+                  "minItems": 1,
+                  "maxItems": 5,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "price": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "payoff": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "commissionPercent": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                      },
+                      "commissionFlat": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "credits": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "adjustments": {
+                        "type": "number",
+                        "minimum": -1000000000000,
+                        "maximum": 1000000000000
+                      },
+                      "fees": {
+                        "maxItems": 40,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 120
+                            },
+                            "amount": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1000000000000
+                            },
+                            "source": {
+                              "type": "string",
+                              "enum": [
+                                "subscriber",
+                                "estimate",
+                                "government",
+                                "provider"
+                              ]
+                            },
+                            "reference": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 500
+                            },
+                            "effectiveDate": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 30
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "amount",
+                            "source",
+                            "reference",
+                            "effectiveDate"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "financing": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "closingDate": {
+                        "type": "string",
+                        "maxLength": 30
+                      },
+                      "contingencies": {
+                        "type": "string",
+                        "maxLength": 1000
+                      }
+                    },
+                    "required": [
+                      "price",
+                      "payoff",
+                      "commissionPercent",
+                      "commissionFlat",
+                      "credits",
+                      "adjustments",
+                      "fees",
+                      "label",
+                      "financing",
+                      "closingDate",
+                      "contingencies"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "offers"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "refinance"
+                },
+                "balance": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currentRate": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "proposedRate": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "remainingMonths": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 600
+                },
+                "newMonths": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 600
+                },
+                "cashOut": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "financeCosts": {
+                  "type": "boolean"
+                },
+                "fees": {
+                  "maxItems": 40,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "amount": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "subscriber",
+                          "estimate",
+                          "government",
+                          "provider"
+                        ]
+                      },
+                      "reference": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "effectiveDate": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 30
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "amount",
+                      "source",
+                      "reference",
+                      "effectiveDate"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "balance",
+                "currentRate",
+                "proposedRate",
+                "remainingMonths",
+                "newMonths",
+                "cashOut",
+                "financeCosts",
+                "fees"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "fees"
+                },
+                "fees": {
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "amount": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "subscriber",
+                          "estimate",
+                          "government",
+                          "provider"
+                        ]
+                      },
+                      "reference": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      "effectiveDate": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 30
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "amount",
+                      "source",
+                      "reference",
+                      "effectiveDate"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "fees"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "revisionOf": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "kind",
+        "calculation"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "prepare_flyer",
+    "description": "Draft flyer using an actual saved property address and approved Brand Kit. No listing facts or prices may be invented.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "flyer"
+        },
+        "propertyContactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "layout": {
+          "default": "editorial",
+          "type": "string",
+          "enum": [
+            "editorial",
+            "minimal"
+          ]
+        },
+        "accentColor": {
+          "type": "string",
+          "pattern": "^#[a-fA-F0-9]{6}$"
+        },
+        "includeHeadshot": {
+          "default": true,
+          "type": "boolean"
+        },
+        "headline": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "price": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 10000000000
+        },
+        "priceSource": {
+          "type": "string",
+          "const": "subscriber-entered"
+        },
+        "partnerIds": {
+          "default": [],
+          "maxItems": 2,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "revisionOf": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "kind",
+        "propertyContactId",
+        "layout",
+        "includeHeadshot",
+        "headline",
+        "description",
+        "partnerIds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "prepare_follow_up",
+    "description": "Prepare a reviewable proposal only; no CRM mutation or external action.",
+    "input_schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "follow_up"
+        },
+        "contactId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "recommendation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1200
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1200
+        },
+        "revisionOf": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "kind",
+        "contactId",
+        "recommendation",
+        "reason"
+      ],
+      "additionalProperties": false
+    }
+  }
+]

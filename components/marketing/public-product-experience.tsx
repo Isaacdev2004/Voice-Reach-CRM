@@ -1,3 +1,4 @@
+import { publicAiLaunch } from "@/lib/billing/ai/launch";
 import Image from "next/image";
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
@@ -130,6 +131,19 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
               </ul>
             </div>
           </section>
+          {home && publicAiLaunch() && (
+            <section className="landing-shell reviews-referrals">
+              <h2 className="font-serif text-2xl">
+                MyARI now includes your AI real estate assistant.
+              </h2>
+              <p>
+                Create campaign drafts, prepare messages, organize tasks,
+                propose appointments and produce private branded document
+                drafts—with your approval before consequential actions.
+              </p>
+              <Link href="/pricing">Explore AI-inclusive plans →</Link>
+            </section>
+          )}
           <section
             id="capabilities"
             className="features-core landing-shell"

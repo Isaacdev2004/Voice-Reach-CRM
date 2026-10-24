@@ -1,3 +1,14 @@
+import {
+  aiEntitlement,
+  aiMeteringEnabled,
+} from "@/lib/billing/ai/entitlements";
+import {
+  reserveAi,
+  settleAi,
+  type AiReservation,
+} from "@/lib/billing/ai/meter";
+import { AssistantFailure } from "@/lib/assistant/store";
+import { wavSeconds } from "@/lib/assistant/audio";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 const MAX = 20 * 1024 * 1024;
@@ -13,7 +24,8 @@ const TYPES = new Set([
   "audio/ogg",
 ]);
 export const POST = withApiHandler(async (r) => {
-  await requireUserId();
+  const owner = await requireUserId();
+  let reservation: AiReservation = null;
   // The proxy/platform must also enforce a request-body cap; do not buffer unbounded uploads.
   if (Number(r.headers.get("content-length")) > MAX + 65536)
     return apiError("Choose an audio file under 20 MB.", { status: 413 });
@@ -59,6 +71,33 @@ export const POST = withApiHandler(async (r) => {
       return apiError("Choose a supported audio file under 20 MB.", {
         status: 400,
       });
+    let measuredSeconds: number | null = null;
+    if (aiMeteringEnabled()) {
+      const e = await aiEntitlement(owner);
+      if (e.tier) {
+        try {
+          measuredSeconds = wavSeconds(
+            new Uint8Array(await file.arrayBuffer()),
+          );
+        } catch (error) {
+          return apiError(
+            error instanceof Error
+              ? error.message
+              : "Audio duration could not be verified",
+            { status: 400 },
+          );
+        }
+        reservation = await reserveAi(
+          owner,
+          "transcription_seconds",
+          `transcribe:${crypto.randomUUID()}`,
+          measuredSeconds,
+        );
+      } else if (!e.verified || !["active", "trialing"].includes(e.status))
+        return apiError("AI subscription could not be verified", {
+          status: 403,
+        });
+    }
     const data = new FormData();
     data.set(
       "file",
@@ -94,7 +133,13 @@ export const POST = withApiHandler(async (r) => {
       result.text.length > 30000
     )
       throw Error();
+    await settleAi(reservation, true);
     return apiOk({
+      processedSeconds:
+        measuredSeconds ??
+        (typeof result.duration === "number"
+          ? Math.ceil(result.duration)
+          : null),
       transcript: result.text,
       segments: Array.isArray(result.segments)
         ? result.segments
@@ -117,7 +162,10 @@ export const POST = withApiHandler(async (r) => {
       warning:
         "Machine transcription can contain errors. Review names, addresses, dates, and financial figures before saving. Audio is processed transiently and is not stored by MyARI; provider retention policy applies.",
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof AssistantFailure)
+      return apiError(error.message, { status: error.status });
+    if (reservation) await settleAi(reservation, false).catch(() => undefined);
     return apiError(
       "The recording could not be transcribed. Check the audio and try again, or type a recap. Your notes are unchanged.",
       { status: 503 },

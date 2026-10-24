@@ -1,3 +1,4 @@
+import { meterExisting } from "@/lib/billing/ai/endpoint";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import {
   tasksHandler,
@@ -24,7 +25,7 @@ const Body = z.object({
   noteId: z.string().uuid().optional(),
   contactId: z.string().uuid().optional(),
 });
-export const POST = tasksHandler(async (req, owner) => {
+const originalPOST = tasksHandler(async (req, owner) => {
   const b = Body.parse(await req.json()),
     c = await taskContext(owner);
   if (b.contactId && !c.contacts.some((c) => c.id === b.contactId))
@@ -75,3 +76,5 @@ export const POST = tasksHandler(async (req, owner) => {
     );
   }
 });
+
+export const POST = meterExisting(originalPOST);

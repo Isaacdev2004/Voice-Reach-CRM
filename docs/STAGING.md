@@ -117,3 +117,17 @@ See [implementation and QA report](APPROVED-PRICING-PHASE16.md). Approved archit
 ## Premium campaigns and Reviews & Referrals
 
 See [implementation, validation and release gates](campaign-premium/README.md). Adds separate review-only campaign drafts, private planning PDFs, owner-scoped review/referral history, manual relationship management and additional review-reminder restrictions. No production records, credentials, enrollments or approved audio were changed during testing; no migration was applied. Use synthetic contacts and keep live outbound disabled for demos. User authorized deployment after critical checks; provider verification, subscriber Brand Kit setup, approved recordings and live campaign inventory remain separate gates.
+
+## AI pricing / Assistant 2.0 acceptance gates
+
+Use synthetic owners and mocked messaging. Apply `20261030000000_ai_usage_meter.sql` only to an isolated development database first; verify service-role RPC access, RLS, schema version and concurrent usage reservations. Keep production flags off. Configure only explicitly authorized test Stripe prices and `MYARI_AI_STRIPE_MODE=test`; actual Stripe price `livemode` must match before writes. Launch start/end/cohort/terms and proration require business approval. Never copy live customers into fixtures.
+
+Run unit/security/type/lint/build, synthetic assistant browser tests, isolated usage DB tests and the local public build crawl. Then separately verify real test-mode checkout, signed webhooks, invoices/payment failure/renewal/add-on removal, connected-calendar behavior, provider usage and existing customer upgrade disclosure. No live outbound or campaign activation. See [rollout report](ai-pricing-launch/README.md).
+
+## Pricing architecture correction (2026-10-24)
+
+CRM Only $49/$99/$199 and CRM + AI Plus $65/$115/$215 are mutually exclusive monthly base plans. The $16 difference includes AI Plus; there is no purchasable $20 AI add-on. Old add-on quotes and APIs are unconditionally retired, without deleting Stripe records. Corresponding monthly upgrades/downgrades require an owner-bound invoice preview and explicit base-item replacement confirmation. Existing subscriptions, Founding terms and CRM annual paths remain unchanged. New public prices/plan changes remain disabled; no deployment or production writes. See [corrected billing report](ai-pricing-launch/README.md).
+
+## Assistant remaining-gap repair (2026-10-24)
+
+Preserved Assistant 2.0 and the approved mutually exclusive pricing correction. Added atomic proposal-root approval/supersession, canonical sender/content-bound messaging, blocked/removed enrollment and simulation guards, mandatory evidence/unknown-outcome holds, provider timeouts and owner-scoped delivery status. Internal messaging now also requires explicit account/recipient allowlists; flags and lists remain off/empty. Voice saved-record context and OpenAI reasoning continuation are repaired. [Repair report](assistant-messaging-repair/README.md) includes the reviewed migration and release limitations. No production writes or deployment.

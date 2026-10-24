@@ -1,3 +1,4 @@
+import { monthlySubscriptionDisplay } from "./ai/choices";
 import { checkoutIsEligible } from "@/lib/billing/verification";
 import { writeAuditLog } from "@/lib/audit";
 import { evaluateCheckoutClaim } from "@/lib/billing/evaluate-checkout-claim";
@@ -11,7 +12,9 @@ import type Stripe from "stripe";
 const CLAIM_ACTION = "CHECKOUT_CLAIMED";
 const CLAIM_ENTITY = "checkout_session";
 
-export async function findCheckoutSessionClaimOwner(sessionId: string): Promise<string | null> {
+export async function findCheckoutSessionClaimOwner(
+  sessionId: string,
+): Promise<string | null> {
   const { data } = await supabaseAdmin
     .from("audit_logs")
     .select("owner_id")
@@ -44,14 +47,21 @@ export async function claimCheckoutSessionForOwner(
   });
 
   if (!checkoutIsEligible(session)) {
-    return { ok: false, status: 400, code: "inactive_subscription", message: "Checkout requires a paid or trialing subscription." };
+    return {
+      ok: false,
+      status: 400,
+      code: "inactive_subscription",
+      message: "Checkout requires a paid or trialing subscription.",
+    };
   }
 
   const metadataClaimed = session.metadata?.claimedOwnerId?.trim();
   const auditClaimed = await findCheckoutSessionClaimOwner(sessionId);
   const priorOwner = metadataClaimed || auditClaimed;
   const boundOwner =
-    session.client_reference_id?.trim() || session.metadata?.ownerId?.trim() || null;
+    session.client_reference_id?.trim() ||
+    session.metadata?.ownerId?.trim() ||
+    null;
   const checkoutEmail =
     session.customer_details?.email?.trim().toLowerCase() ||
     session.customer_email?.trim().toLowerCase() ||
@@ -109,12 +119,23 @@ export async function claimCheckoutSessionForOwner(
   });
 
   let subscriptionStatus: "trialing" | "active" = "active";
-  const subscription = session.subscription as Stripe.Subscription | string | null;
-  if (subscription && typeof subscription === "object" && "status" in subscription) {
-    subscriptionStatus = subscription.status === "trialing" ? "trialing" : "active";
+  const subscription = session.subscription as
+    Stripe.Subscription | string | null;
+  if (
+    subscription &&
+    typeof subscription === "object" &&
+    "status" in subscription
+  ) {
+    subscriptionStatus =
+      subscription.status === "trialing" ? "trialing" : "active";
   }
 
-  await applyBillingPlan(ownerId, planId, { subscriptionStatus });
+  await applyBillingPlan(ownerId, planId, {
+    subscriptionStatus,
+    ...(subscription && typeof subscription === "object"
+      ? monthlySubscriptionDisplay(subscription)
+      : {}),
+  });
 
   if (!priorOwner) {
     await writeAuditLog({

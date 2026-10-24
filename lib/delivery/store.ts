@@ -58,6 +58,29 @@ export async function beginMessage(
     throw new Error(
       "Delivery evidence is unavailable. No message was submitted.",
     );
+  if (request.approvedMessage) {
+    try {
+      await insertDeliveryEvent({
+        owner_id: request.ownerId!,
+        message_id: data.id,
+        provider,
+        event_key: `attempt:${data.id}`,
+        event_type: "submitted",
+        occurred_at: null,
+        source: "submission",
+        error_code: null,
+      });
+    } catch {
+      await supabaseAdmin
+        .from("outbound_messages")
+        .update({ submission_status: "failed", error_code: "preflight" })
+        .eq("id", data.id)
+        .eq("owner_id", request.ownerId!);
+      throw new Error(
+        "Delivery audit is unavailable. No provider request was made.",
+      );
+    }
+  }
   return data.id;
 }
 export async function insertDeliveryEvent(
@@ -91,13 +114,18 @@ export async function finishMessage(
     result.providerMessageId.trim()
       ? result.providerMessageId.trim()
       : null;
-  const status = !result.ok
-    ? Object.keys(raw).length
+  const status =
+    result.status === "blocked" && !result.uncertain
       ? "failed"
-      : "unknown"
-    : !reference
-      ? "unknown"
-      : "accepted";
+      : result.uncertain
+        ? "unknown"
+        : !result.ok
+          ? Object.keys(raw).length
+            ? "failed"
+            : "unknown"
+          : !reference
+            ? "unknown"
+            : "accepted";
   const errorCode =
     safeErrorCode(raw.code) ??
     (!result.ok && status === "unknown"

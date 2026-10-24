@@ -1,5 +1,6 @@
 "use client";
 
+import { OperatingAssistant } from "@/components/assistant/operating-assistant";
 import { Modal, ModalFooterActions } from "@/components/crm/modal";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
@@ -58,7 +59,7 @@ const TONES: {
   { id: "concise", label: "Concise" },
 ];
 
-export function AiAssistantSidebar() {
+function LegacyAiAssistantSidebar() {
   const { state, closeAssistant, setBrief, setTask } = useAiAssistant();
   const { user } = useUser();
   const ownerRef = useRef(user?.id);
@@ -106,7 +107,10 @@ export function AiAssistantSidebar() {
       {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-MyARI-Owner": owner },
-        signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]),
+        signal: AbortSignal.any([
+          controller.signal,
+          AbortSignal.timeout(30000),
+        ]),
         body: JSON.stringify(
           state.task === "daily_briefing"
             ? { action: "generate" }
@@ -121,11 +125,22 @@ export function AiAssistantSidebar() {
     if (controller.signal.aborted || ownerRef.current !== owner) return;
     setLoading(false);
     if (!envelope.success) {
-      setError(state.task === "daily_briefing" ? "Your verified briefing could not be prepared. Please try again." : envelope.error);
+      setError(
+        state.task === "daily_briefing"
+          ? "Your verified briefing could not be prepared. Please try again."
+          : envelope.error,
+      );
       return;
     }
     const out = envelope.data?.output;
-    if (!out || typeof out !== "object" || (state.task === "daily_briefing" && (!Array.isArray(out.bullets) || !out.bullets.length || out.bullets.some(b => typeof b !== "string")))) {
+    if (
+      !out ||
+      typeof out !== "object" ||
+      (state.task === "daily_briefing" &&
+        (!Array.isArray(out.bullets) ||
+          !out.bullets.length ||
+          out.bullets.some((b) => typeof b !== "string")))
+    ) {
       setError("We couldn't generate a suggestion. Please try again.");
       return;
     }
@@ -267,5 +282,46 @@ export function AiAssistantSidebar() {
         ) : null}
       </div>
     </Modal>
+  );
+}
+
+export function AiAssistantSidebar() {
+  const { user } = useUser();
+  return <AssistantVersion key={user?.id ?? "signed-out"} owner={user?.id} />;
+}
+function AssistantVersion({ owner }: { owner?: string }) {
+  const { state, openAssistant } = useAiAssistant(),
+    [enabled, setEnabled] = useState(false),
+    [legacy, setLegacy] = useState(false);
+  useEffect(() => {
+    let live = true;
+    if (owner)
+      fetch("/api/assistant/config")
+        .then(async (r) => {
+          const d = await r.json();
+          if (live && r.ok) setEnabled(d.enabled === true);
+        })
+        .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [owner]);
+  useEffect(() => {
+    const open = () =>
+      openAssistant({ open: true, context: { tone: "luxury" } });
+    window.addEventListener("myari-assistant-open", open);
+    return () => window.removeEventListener("myari-assistant-open", open);
+  }, [openAssistant]);
+  return enabled && owner && !legacy ? (
+    <OperatingAssistant owner={owner} onLegacy={() => setLegacy(true)} />
+  ) : (
+    <>
+      <LegacyAiAssistantSidebar />
+      {enabled && legacy && state.open && (
+        <button className="assistant-return" onClick={() => setLegacy(false)}>
+          Return to Assistant 2.0
+        </button>
+      )}
+    </>
   );
 }

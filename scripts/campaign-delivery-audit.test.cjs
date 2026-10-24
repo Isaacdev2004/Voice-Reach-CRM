@@ -266,7 +266,7 @@ test("wall clock and immediate delays honor IANA zones and DST quiet-hour bounda
 test("last live boundary blocks missing consent, DNC, foreign destinations, invalid identity and quiet hours", async () => {
   const f = fixture();
   f.tables.campaigns.push({id:id(1),owner_id:owner,status:'sending',provider:'live',live_launched:true});
-  f.tables.campaign_recipients.push({id:id(4),owner_id:owner,campaign_id:id(1),contact_id:id(2),created_at:"2026-01-01T00:00:00Z"});
+  f.tables.campaign_recipients.push({id:id(4),owner_id:owner,campaign_id:id(1),contact_id:id(2),eligibility_status:"eligible",delivery_status:"not_sent",created_at:"2026-01-01T00:00:00Z"});
   f.tables.contacts.push(structuredClone(f.contact));
   f.tables.consent_records.push(...structuredClone(f.contact.consent_records));
   const auth = f.load(

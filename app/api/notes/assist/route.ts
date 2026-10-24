@@ -1,3 +1,4 @@
+import { meterExisting } from "@/lib/billing/ai/endpoint";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { AI_ACTIONS, assistNote } from "@/lib/notes/ai";
@@ -9,7 +10,7 @@ const Schema = z.object({
   action: z.enum(AI_ACTIONS),
   approved: z.literal(true),
 });
-export const POST = withApiHandler(async (r) => {
+const originalPOST = withApiHandler(async (r) => {
   const owner = await requireUserId(),
     b = Schema.safeParse(await r.json().catch(() => null));
   if (!b.success)
@@ -34,3 +35,5 @@ export const POST = withApiHandler(async (r) => {
     );
   }
 });
+
+export const POST = meterExisting(originalPOST);

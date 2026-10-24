@@ -1,0 +1,24 @@
+# Feature defaults remain off. Values below are documentation, not active configuration.
+ASSISTANT_V2_ENABLED=false
+ASSISTANT_V2_OWNER_IDS=
+ASSISTANT_REASONING_PROVIDER=openai
+OPENAI_API_KEY=
+OPENAI_ASSISTANT_MODEL=gpt-5-mini
+# Existing Claude retained, explicit selection only; no silent provider fallback.
+ANTHROPIC_API_KEY=
+ANTHROPIC_MODEL=claude-sonnet-4-5
+ASSISTANT_APPROVED_SENDS_ENABLED=false
+# Mandatory internal messaging cohort; blank lists fail closed.
+ASSISTANT_SEND_OWNER_IDS=
+ASSISTANT_SEND_RECIPIENTS=
+ASSISTANT_DAILY_REQUEST_LIMIT=30
+ASSISTANT_DAILY_CALL_LIMIT=40
+ASSISTANT_DAILY_TOKEN_THRESHOLD=100000
+# Configure verified rates for the selected model; unset means cost unavailable.
+ASSISTANT_INPUT_USD_PER_MILLION=
+ASSISTANT_OUTPUT_USD_PER_MILLION=
+# No cost hard stop solely from operational $5/$12 monitoring thresholds.
+ASSISTANT_HARD_COST_POLICY_APPROVED=false
+ASSISTANT_DAILY_USD_THRESHOLD=
+# Internal development only; never granted via browser or production auto-enrollment.
+AI_BETA_PLUS_OWNER_IDS=

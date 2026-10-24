@@ -116,3 +116,17 @@ See [implementation and QA report](APPROVED-PRICING-PHASE16.md). Approved archit
 ## Premium campaigns and Reviews & Referrals
 
 See [implementation, validation and release gates](campaign-premium/README.md). Adds separate review-only campaign drafts, private planning PDFs, owner-scoped review/referral history, manual relationship management and additional review-reminder restrictions. No production records, credentials, enrollments or approved audio were changed during testing; no migration was applied. Use synthetic contacts and keep live outbound disabled for demos. User authorized deployment after critical checks; provider verification, subscriber Brand Kit setup, approved recordings and live campaign inventory remain separate gates.
+
+## Optional internal AI Assistant 2.0 demo
+
+Use only synthetic allowlisted owners; retain Claude rollback. Keep live outbound and AI production billing disabled. Demonstrate an authorized contact read, draft preview, explicit task save, reopen history, Command Center and mocked voice transcript. Opening/closing the compact drawer must preserve unsaved page work. Do not imply external Google availability, Sapphire generation or unrestricted messaging is operational when not verified.
+
+Show staged pricing only in the synthetic fixture. The production site retains existing prices until the launch gates pass. Demonstrate a quota reached state and duplicate prevention without charges. Screenshots: [assistant QA](ai-operating-assistant/README.md). No pushing this branch: repository pushes trigger deployment previews and this task explicitly prohibits deployment.
+
+## Pricing architecture correction (2026-10-24)
+
+CRM Only $49/$99/$199 and CRM + AI Plus $65/$115/$215 are mutually exclusive monthly base plans. The $16 difference includes AI Plus; there is no purchasable $20 AI add-on. Old add-on quotes and APIs are unconditionally retired, without deleting Stripe records. Corresponding monthly upgrades/downgrades require an owner-bound invoice preview and explicit base-item replacement confirmation. Existing subscriptions, Founding terms and CRM annual paths remain unchanged. New public prices/plan changes remain disabled; no deployment or production writes. See [corrected billing report](ai-pricing-launch/README.md).
+
+## Assistant remaining-gap repair (2026-10-24)
+
+Preserved Assistant 2.0 and the approved mutually exclusive pricing correction. Added atomic proposal-root approval/supersession, canonical sender/content-bound messaging, blocked/removed enrollment and simulation guards, mandatory evidence/unknown-outcome holds, provider timeouts and owner-scoped delivery status. Internal messaging now also requires explicit account/recipient allowlists; flags and lists remain off/empty. Voice saved-record context and OpenAI reasoning continuation are repaired. [Repair report](assistant-messaging-repair/README.md) includes the reviewed migration and release limitations. No production writes or deployment.

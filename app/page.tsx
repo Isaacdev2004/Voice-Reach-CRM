@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { LandingPage } from "@/components/pages/stitch/LandingPage";

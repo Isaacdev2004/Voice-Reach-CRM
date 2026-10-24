@@ -1,3 +1,7 @@
+import {
+  aiEntitlement,
+  aiMeteringEnabled,
+} from "@/lib/billing/ai/entitlements";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
@@ -22,6 +26,14 @@ const BodySchema = z.object({
 
 export const POST = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
+  if (aiMeteringEnabled()) {
+    const e = await aiEntitlement(ownerId);
+    if (e.tier)
+      return apiError(
+        "AI-inclusive Sapphire audio generation is withheld until provider-confirmed duration metering passes acceptance. Existing recordings are unchanged.",
+        { status: 503 },
+      );
+  }
   if (!isElevenLabsConfigured()) {
     return apiError(
       "AI audio generation is currently unavailable. You can record or upload audio instead.",
@@ -40,8 +52,27 @@ export const POST = withApiHandler(async (request) => {
       "Replace missing or unsupported variables with the exact words to record before generating prerecorded audio.",
       { status: 400 },
     );
-  let voiceId:string,audioBuffer:ArrayBuffer;
-  try{voiceId=await resolveOwnerVoiceId(ownerId,{voiceId:body.voiceId,voiceProfileId:body.voiceProfileId});if(body.requiredVoiceName && !await verifyProviderVoiceName(voiceId,body.requiredVoiceName))return apiError("Sapphire is not available or could not be verified for the selected authorized voice. No substitute was generated.",{status:503,code:"preferred_voice_unavailable"});audioBuffer=await synthesizeSpeech({text:body.script,voiceId});}catch{return apiError("Audio could not be generated with the selected voice. Check the voice selection or try again later.",{status:503});}
+  let voiceId: string, audioBuffer: ArrayBuffer;
+  try {
+    voiceId = await resolveOwnerVoiceId(ownerId, {
+      voiceId: body.voiceId,
+      voiceProfileId: body.voiceProfileId,
+    });
+    if (
+      body.requiredVoiceName &&
+      !(await verifyProviderVoiceName(voiceId, body.requiredVoiceName))
+    )
+      return apiError(
+        "Sapphire is not available or could not be verified for the selected authorized voice. No substitute was generated.",
+        { status: 503, code: "preferred_voice_unavailable" },
+      );
+    audioBuffer = await synthesizeSpeech({ text: body.script, voiceId });
+  } catch {
+    return apiError(
+      "Audio could not be generated with the selected voice. Check the voice selection or try again later.",
+      { status: 503 },
+    );
+  }
   const bucket = process.env.SUPABASE_STORAGE_BUCKET || "voice-assets";
   const storagePath = `${ownerId}/ai-${crypto.randomUUID()}.mp3`;
 
@@ -52,7 +83,8 @@ export const POST = withApiHandler(async (request) => {
       upsert: false,
     });
 
-  if (uploadError) return apiError("Generated audio could not be stored.", { status: 500 });
+  if (uploadError)
+    return apiError("Generated audio could not be stored.", { status: 500 });
 
   const { data: voiceAsset, error: insertError } = await supabaseAdmin
     .from("voice_assets")
@@ -62,12 +94,19 @@ export const POST = withApiHandler(async (request) => {
       title: body.title,
       storage_path: storagePath,
       approved: false,
-      studio_metadata: { source: "ai", script: body.script, provider: "elevenlabs", providerVoiceId: voiceId, createdAsDraft: true },
+      studio_metadata: {
+        source: "ai",
+        script: body.script,
+        provider: "elevenlabs",
+        providerVoiceId: voiceId,
+        createdAsDraft: true,
+      },
     })
     .select("*")
     .single();
 
-  if (insertError) return apiError("Generated recording could not be saved.", { status: 500 });
+  if (insertError)
+    return apiError("Generated recording could not be saved.", { status: 500 });
 
   await writeAuditLog({
     ownerId,

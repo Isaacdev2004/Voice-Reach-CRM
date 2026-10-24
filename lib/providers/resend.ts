@@ -1,17 +1,11 @@
+import { approvedTransportIssues } from "./assistant-message";
+import { configuredEmailFrom } from "./assistant-message";
 import type {
   ProviderAdapter,
   SendRequest,
   SendResult,
   WebhookEvent,
 } from "./types";
-
-function getFromAddress(): string | null {
-  const from = process.env.RESEND_FROM_EMAIL?.trim();
-  if (!from) return null;
-  if (from.includes("<") && from.includes(">")) return from;
-  if (from.includes("@")) return `ARI <${from}>`;
-  return null;
-}
 
 /**
  * Resend email adapter.
@@ -23,6 +17,9 @@ export const resendProvider: ProviderAdapter = {
   channels: ["email"],
 
   async send(request: SendRequest): Promise<SendResult> {
+    const approvalIssues = approvedTransportIssues(request, "resend");
+    if (approvalIssues.length)
+      return { ok: false, status: "blocked", error: approvalIssues.join(" ") };
     if (request.channel !== "email") {
       return {
         ok: false,
@@ -32,7 +29,7 @@ export const resendProvider: ProviderAdapter = {
     }
 
     const apiKey = process.env.RESEND_API_KEY?.trim();
-    const from = getFromAddress();
+    const from = configuredEmailFrom();
 
     if (!apiKey) {
       return {
@@ -73,6 +70,7 @@ export const resendProvider: ProviderAdapter = {
     try {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
+        signal: AbortSignal.timeout(15000),
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
@@ -103,8 +101,10 @@ export const resendProvider: ProviderAdapter = {
       };
 
       return {
-        ok: res.ok,
-        providerMessageId: raw.id,
+        ok: res.ok && typeof raw.id === "string" && !!raw.id.trim(),
+        uncertain: res.ok && !(typeof raw.id === "string" && !!raw.id.trim()),
+        providerMessageId:
+          typeof raw.id === "string" ? raw.id.trim() : undefined,
         status: res.ok ? "sent" : "failed",
         rawResponse: raw,
         error: res.ok

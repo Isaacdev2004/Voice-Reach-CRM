@@ -1,3 +1,4 @@
+import { approvedTransportIssues } from "./assistant-message";
 import { sharedReplyHeld } from "@/lib/communications/safety";
 import { normalizeE164 } from "@/lib/communications/inbound";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
@@ -14,6 +15,13 @@ export async function authorizeLiveOutbound(
   if (!request.ownerId || !request.contactId)
     return ["An authorized subscriber and contact are required."];
   try {
+    if (request.approvedMessage) {
+      const issues = approvedTransportIssues(
+        request,
+        request.approvedMessage.provider,
+      );
+      if (issues.length) return issues;
+    }
     if (request.channel === "sms") {
       const phone = normalizeE164(request.to);
       if (!phone) return ["The SMS destination could not be verified."];
@@ -52,6 +60,8 @@ export async function authorizeLiveOutbound(
         campaignError ||
         !campaign ||
         !campaign.live_launched ||
+        !campaign.provider ||
+        campaign.provider === "mock" ||
         !["sending", "queued"].includes(campaign.status)
       )
         return ["This campaign is not authorized for live delivery."];
@@ -59,13 +69,18 @@ export async function authorizeLiveOutbound(
     if (!request.campaignId.startsWith("automation-")) {
       const recipient = await supabaseAdmin
         .from("campaign_recipients")
-        .select("created_at")
+        .select("created_at,eligibility_status,delivery_status")
         .eq("owner_id", request.ownerId)
         .eq("id", request.recipientId)
         .eq("campaign_id", request.campaignId)
         .eq("contact_id", request.contactId)
         .maybeSingle();
-      if (recipient.error || !recipient.data?.created_at)
+      if (
+        recipient.error ||
+        !recipient.data?.created_at ||
+        recipient.data.eligibility_status !== "eligible" ||
+        recipient.data.delivery_status === "removed"
+      )
         return ["Recipient enrollment could not be verified."];
       const replies = await supabaseAdmin
         .from("engagement_events")
@@ -79,6 +94,28 @@ export async function authorizeLiveOutbound(
       if (replies.data?.length)
         return [
           "Contact responded or opted out after enrollment. Review before further outreach.",
+        ];
+    }
+    if (request.approvedMessage) {
+      const pending = await supabaseAdmin
+        .from("outbound_messages")
+        .select("id,logical_key")
+        .eq("owner_id", request.ownerId)
+        .eq("contact_id", request.contactId)
+        .eq("channel", request.channel)
+        .in("submission_status", ["pending", "unknown"])
+        .limit(51);
+      if (pending.error)
+        return ["Prior submission safety could not be verified."];
+      if (
+        (pending.data ?? []).some(
+          (m) =>
+            m.logical_key?.startsWith("assistant-") &&
+            m.logical_key !== request.idempotencyKey,
+        )
+      )
+        return [
+          "A previous message outcome is unresolved. Reconcile provider evidence before another send.",
         ];
     }
     const { workspace, profile } = await loadWorkspaceSettings(

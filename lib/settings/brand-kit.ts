@@ -1,4 +1,5 @@
 import { ZillowReviewUrlSchema } from "@/lib/reviews/model";
+import { AssistantPreferencesSchema } from "@/lib/assistant/preferences";
 import { z } from "zod";
 const text = z.string().trim().max(300).default("");
 const https = z
@@ -11,6 +12,7 @@ const https = z
   ])
   .default("");
 export const BrandKitSchema = z.object({
+  assistantPreferences: AssistantPreferencesSchema.optional(),
   agentName: text,
   jobTitle: text,
   businessName: text,
@@ -49,10 +51,15 @@ export const BrandKitSchema = z.object({
 });
 export type BrandKit = z.infer<typeof BrandKitSchema>;
 export const emptyBrandKit = () => BrandKitSchema.parse({});
-export function ownedBrandPath(owner:string,path:string){
-  if(!path)return true;
-  const prefix=`${owner}/branding/`;
-  return path.startsWith(prefix)&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpg|webp)$/i.test(path.slice(prefix.length));
+export function ownedBrandPath(owner: string, path: string) {
+  if (!path) return true;
+  const prefix = `${owner}/branding/`;
+  return (
+    path.startsWith(prefix) &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpg|webp)$/i.test(
+      path.slice(prefix.length),
+    )
+  );
 }
 export function imageFileValid(type: string, bytes: Uint8Array) {
   if (!bytes.length || bytes.length > 4 * 1024 * 1024) return false;
