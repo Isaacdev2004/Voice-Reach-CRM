@@ -1,1 +1,4 @@
 docs/financing-studio/*.pdf binary
+
+# Private printable planning resources are binary assets.
+private/campaign-materials/*.pdf binary

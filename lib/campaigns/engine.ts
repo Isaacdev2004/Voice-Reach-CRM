@@ -1,3 +1,4 @@
+import { reviewCampaignGate } from "@/lib/reviews/campaign-gate";
 import { writeAuditLog } from "@/lib/audit";
 import {
   isLiveCampaignProvider,
@@ -17,6 +18,9 @@ import { loadWorkspaceSettings } from "@/lib/settings/load-workspace";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import {
   attachmentsFromConditions,
+  validateAttachmentUpload,
+  SMS_MAX_ATTACHMENTS,
+  EMAIL_MAX_ATTACHMENTS,
   emailAttachmentsForSend,
   signAttachmentsForSend,
 } from "@/lib/campaigns/attachments";
@@ -74,7 +78,7 @@ export async function persistSteps(
       row as { conditions?: Record<string, unknown> }
     ).conditions ?? {}) as Record<string, unknown>;
     const attachments = attachmentsFromConditions(existingConditions);
-    if (!voiceAssetId && !attachments.length) continue;
+    if (!voiceAssetId && !attachments.length && !Object.keys(existingConditions).length) continue;
     const key = `${row.type}:${row.step_order}`;
     metaBySlot.set(key, {
       voiceAssetId,
@@ -426,7 +430,7 @@ export async function runDueStepRuns(
       }
     }
 
-    const { workspace, profile } = await workspaceFor(run.owner_id);
+    const { workspace, profile, brandKit } = await workspaceFor(run.owner_id);
 
     if (
       isInQuietHours({
@@ -651,6 +655,20 @@ export async function runDueStepRuns(
       }
     }
 
+    // A review status can only add a restriction after the normal compliance gates above.
+    const reviewKind=(step.conditions as Record<string,unknown>|null)?.reviewRequest;
+    if (reviewKind) {
+      try {
+        const freshCampaign=await resolveCampaign(run);
+        const decision=await reviewCampaignGate(run.owner_id,contact.id,run.id,reviewKind,{
+          enabled:brandKit?.reviewRequestsEnabled ?? true,
+          consented:issues.length === 0,
+          optedOut:Boolean(contact.dnc || contact.opt_out_requested),
+          campaignRunning:Boolean(freshCampaign && ["queued","sending"].includes(freshCampaign.status ?? "")),
+        });
+        if(!decision.send){await markOwnedRun(run.id,"skipped",{reason:decision.reason});executed.push({runId:run.id,status:"skipped"});summary.skipped++;continue;}
+      } catch {await releaseStepRunToScheduled(run.id,run.owner_id);executed.push({runId:run.id,status:"deferred_review_check"});continue;}
+    }
     const mergeCtx = {
       contact: {
         first_name: contact.first_name,
@@ -666,6 +684,9 @@ export async function runDueStepRuns(
       },
       agentName: workspace.defaultSenderName || profile.fullName,
       agentPhone: profile.phone,
+      agentEmail: brandKit?.email,
+      zillowReviewUrl: brandKit?.zillowReviewUrl,
+      businessAddress: brandKit?.address,
       brokerage: workspace.name,
       // Prefer contact area - never use industry label ("Real Estate") as a place name
       marketArea: contact.preferred_area || undefined,
@@ -699,6 +720,11 @@ export async function runDueStepRuns(
       | Array<{ filename: string; content: string }>
       | undefined;
 
+    const attachmentIssues=stepAttachments.map(file=>validateAttachmentUpload({mimeType:file.mimeType,sizeBytes:file.sizeBytes??0,channel:channel === "sms"?"sms":"email"})).filter(Boolean);
+    if (stepAttachments.length > (channel === "sms" ? SMS_MAX_ATTACHMENTS : EMAIL_MAX_ATTACHMENTS)) attachmentIssues.push("Too many attachments for the selected channel.");
+    if(attachmentIssues.length){await markOwnedRun(run.id,"blocked",{issues:attachmentIssues});executed.push({runId:run.id,status:"blocked"});summary.blocked++;continue;}
+    if((step.conditions as Record<string,unknown>|null)?.resourceKey && (!stepAttachments.length || channel !== "email")) {await markOwnedRun(run.id,"blocked",{reason:"Review, brand and attach the required planning PDF before using this resource step."});executed.push({runId:run.id,status:"blocked"});summary.blocked++;continue;}
+    try {
     if (channel === "sms" && stepAttachments.length) {
       mediaUrls = await signAttachmentsForSend(run.owner_id, stepAttachments);
       if (!mediaUrls.length) {
@@ -726,6 +752,7 @@ export async function runDueStepRuns(
       }
     }
 
+    } catch {await markOwnedRun(run.id,"failed",{reason:"A selected attachment could not be verified or loaded. Nothing was sent."});executed.push({runId:run.id,status:"failed"});summary.failed++;continue;}
     const sendResult = await sendToContact({
       ownerId: run.owner_id,
       contact: {

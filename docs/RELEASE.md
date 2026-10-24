@@ -95,3 +95,8 @@ Walkthrough placement follow-up: removed the standalone phone-thumbnail strip an
 
 ## Approved Pricing + Phase 16 (October 23, 2026)
 See [implementation and QA report](APPROVED-PRICING-PHASE16.md). Approved architectural hero, aligned cards, shared benefits, single gated playbook CTA, comparison and plan chooser. Annual billing now carries the selected period to Stripe using the existing advertised ten-month-price annual offer. Existing monthly mappings and subscriptions are preserved; annual IDs are validated, fallback price data uses a yearly interval, and tests mock all external providers. Account billing periods/amounts are read from verified owner-scoped Stripe records. No production records or credentials changed during testing.
+
+
+## Premium campaigns and Reviews & Referrals
+
+See [implementation, validation and release gates](campaign-premium/README.md). Adds separate review-only campaign drafts, private planning PDFs, owner-scoped review/referral history, manual relationship management and additional review-reminder restrictions. No production records, credentials, enrollments or approved audio were changed during testing; no migration was applied. Use synthetic contacts and keep live outbound disabled for demos. User authorized deployment after critical checks; provider verification, subscriber Brand Kit setup, approved recordings and live campaign inventory remain separate gates.

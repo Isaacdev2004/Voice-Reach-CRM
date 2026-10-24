@@ -50,6 +50,10 @@ export async function resolveOwnerVoiceId(
   }
 
   const { supabaseAdmin } = await import("@/lib/supabaseAdmin");
+  const saved=await supabaseAdmin.from("audit_logs").select("metadata").eq("owner_id",ownerId).eq("entity_type","user_settings").eq("action","SETTINGS_SAVED").order("created_at",{ascending:false}).limit(1).maybeSingle();
+  if(saved.error)throw new Error("Your voice preference could not be verified. Retry before generating audio.");
+  const preferred=saved.data?.metadata?.settings?.brandKit?.preferredAiVoiceProfileId;
+  if(preferred){const {data,error}=await supabaseAdmin.from("voice_profiles").select("provider_voice_id").eq("owner_id",ownerId).eq("id",preferred).maybeSingle();if(error||!data?.provider_voice_id)throw new Error("Your preferred voice is unavailable. Choose another authorized voice explicitly.");return data.provider_voice_id;}
   const { data: latestProfile } = await supabaseAdmin
     .from("voice_profiles")
     .select("provider_voice_id")
@@ -161,4 +165,10 @@ export async function verifyElevenLabsVoice(voiceId: string): Promise<boolean> {
     headers: { "xi-api-key": apiKey },
   });
   return response.ok;
+}
+
+/** Verify the selected authorized voice's provider name; never select or substitute another voice. */
+export async function verifyProviderVoiceName(voiceId:string,expected:"Sapphire"):Promise<boolean> {
+ const key=elevenLabsApiKey();if(!key)return false;
+ try {const response=await fetch(`${ELEVENLABS_BASE}/voices/${encodeURIComponent(voiceId)}`,{headers:{"xi-api-key":key},signal:AbortSignal.timeout(15000)});if(!response.ok)return false;const data=await response.json() as {name?:string};return data.name?.trim().toLowerCase()===expected.toLowerCase();}catch{return false;}
 }

@@ -33,6 +33,8 @@ const StepSchema = z.object({
   timeLabel: z.string().optional(),
   status: z.enum(["sent", "active", "pending", "draft"]).optional(),
   voiceAssetId: z.string().uuid().nullable().optional(),
+  reviewRequest: z.enum(["request","reminder"]).optional(),
+  resourceKey: z.string().max(80).optional(),
   attachments: z
     .array(
       z.object({
@@ -123,6 +125,8 @@ function mapStepsToBlueprint(
 ): CampaignBlueprintStep[] {
   return steps.map((step) => {
     const conditions: Record<string, unknown> = {};
+    if (step.reviewRequest) conditions.reviewRequest=step.reviewRequest;
+    if (step.resourceKey) conditions.resourceKey=step.resourceKey;
     if (step.voiceAssetId) conditions.voiceAssetId = step.voiceAssetId;
     if (step.attachments?.length) conditions.attachments = step.attachments;
     return {

@@ -8,7 +8,7 @@ export function normalizeE164(raw: string): string | null {
 }
 export function classifyReply(body: string): string {
   const text = body.trim();
-  if (/^(STOP|STOPALL|UNSUBSCRIBE|CANCEL|END|QUIT)\b/i.test(text))
+  if (/^(STOP|STOPALL|UNSUBSCRIBE|CANCEL|END|QUIT)\b/i.test(text) || /\b(?:please\s+)?(?:do not|don[’\x27]t)\s+contact\s+me(?:\s+again)?\b/i.test(text))
     return "Opt-out";
   if (/\b(not interested|no thanks|do not contact)\b/i.test(text))
     return "Not interested";

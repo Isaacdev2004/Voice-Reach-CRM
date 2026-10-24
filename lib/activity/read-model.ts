@@ -1,3 +1,5 @@
+import { readStream } from "@/lib/reviews/store";
+import type { ReviewState,ReferralState } from "@/lib/reviews/model";
 import { sharedReceiver } from "@/lib/communications/safety";
 import { loadCalendarPreferences } from "@/lib/calendar/load-preferences";
 import { getGoogleConnection, getGoogleEvent } from "@/lib/calendar/google";
@@ -388,6 +390,11 @@ export async function readContactActivity(
       });
     }
   }
+  try {
+    const [reviews,referrals]=await Promise.all([readStream<ReviewState>(owner,"contact_review",contact),readStream<ReferralState>(owner,"contact_referral")]);
+    for(const event of reviews)items.push({id:`review:${event.id}`,type:"review",title:"Review status updated",at:event.created_at,status:event.metadata.state.status,detail:event.metadata.source === "agent" ? "Agent recorded this status; independent verification is not inferred." : event.metadata.kind,href:`/dashboard/contacts/${contact}#reviews-referrals`});
+    for(const event of referrals.filter(e=>e.metadata.state.referrerId===contact||e.metadata.state.referredId===contact))items.push({id:`referral:${event.id}`,type:"referral",title:event.metadata.kind === "referral_received"?"Referral received":"Referral stage updated",at:event.created_at,status:event.metadata.state.status,detail:"Manually recorded referral information; no introduction was sent.",href:`/dashboard/contacts/${contact}#reviews-referrals`});
+  } catch { limitations.push("Review and referral history could not be verified."); }
   return {
     ...timelinePage(items, cursor),
     limitations,

@@ -567,3 +567,22 @@ html {
 .mortgage-section-highlight .luxury-card {
   animation: mortgage-section-pulse 2.2s ease-out;
 }
+/* Compact relationship workspace; no delivery controls or automatic actions. */
+.reviews-referrals { background:#fffdf8; border:1px solid #e8dfd2; border-radius:18px; padding:20px; margin-block:16px; color:#3c3934; overflow-wrap:anywhere; }
+.reviews-referrals header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.reviews-referrals p { font-size:13px; line-height:1.6; margin:8px 0; }
+.reviews-referrals label,.reviews-workspace>label { display:grid; gap:6px; font-size:13px; margin:12px 0; }
+.reviews-referrals input,.reviews-referrals select,.reviews-referrals textarea,.reviews-workspace>label input,.reviews-workspace>label select { border:1px solid #d9cbb9; border-radius:10px; padding:9px 12px; background:#fffefa; width:100%; min-width:0; }
+.reviews-referrals button,.reviews-workspace button { border:1px solid #c4a484; border-radius:18px; padding:7px 13px; color:#895b38; font-size:13px; }
+.reviews-referrals button:disabled { opacity:.5; cursor:not-allowed; }
+.reviews-referrals summary { cursor:pointer; font-size:15px; padding:12px 0; }
+.reviews-referrals a { color:#94623f; text-decoration:underline; text-underline-offset:3px; font-size:13px; }
+.review-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding-block:12px; }
+.reviews-referrals article { border-top:1px solid #e8dfd2; padding-block:14px; }
+.reviews-referrals ol { display:grid; gap:12px; }
+.reviews-workspace { max-width:1200px; margin:auto; padding:24px 18px; }
+.review-metrics,.premium-draft-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-block:20px; }
+.review-metrics article { background:#fffdf8; border:1px solid #e8dfd2; border-radius:14px; padding:16px; }
+.review-metrics strong { font-family:var(--font-serif); font-size:28px; }
+@media(max-width:900px){.review-metrics,.premium-draft-grid {grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:600px){.review-metrics,.premium-draft-grid {grid-template-columns:1fr;} .reviews-referrals {padding:16px;}}

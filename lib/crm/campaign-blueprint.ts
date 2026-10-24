@@ -56,6 +56,8 @@ export function dbStepsToCampaignSteps(
       voiceAssetId,
       voiceAssetTitle: voiceMeta?.title ?? null,
       voicePlaybackUrl: voiceMeta?.playbackUrl ?? null,
+      reviewRequest: (row.conditions as Record<string, unknown>|null)?.reviewRequest as "request"|"reminder"|undefined,
+      resourceKey: (row.conditions as Record<string, unknown>|null)?.resourceKey as string|undefined,
       attachments: attachmentsFromConditions(row.conditions ?? undefined),
     };
   });

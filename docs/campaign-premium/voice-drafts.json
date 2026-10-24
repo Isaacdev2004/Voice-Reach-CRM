@@ -1,0 +1,46 @@
+[
+  {
+    "campaignId": "premium-tpl-cold-lead-reengage",
+    "campaignName": "Cold Lead Re-engagement — Premium Draft",
+    "step": 3,
+    "day": "Day 11",
+    "script": "Hi, this is [Agent] with [Brokerage]. I’m available if you would like to revisit your real estate plans or talk through the market in [City]. No pressure—please reach out whenever the timing suits you.",
+    "preferredVoice": "Sapphire only if provider-supported and subscriber-authorized",
+    "state": "Awaiting authorized voice, exact fixed script, audio generation and agent approval",
+    "audioGenerated": false,
+    "notes": "Prerecorded audio cannot automatically speak each recipient's name. No existing approved recording was changed."
+  },
+  {
+    "campaignId": "premium-tpl-luxury-seller-follow-up",
+    "campaignName": "Luxury Seller – Automated Follow Up — Premium Draft",
+    "step": 1,
+    "day": "Day 1",
+    "script": "Hi, this is [Agent] with [Brokerage]. I’m available if you would like to discuss your selling plans, questions about the process, or what a thoughtful next step might look like. Please reach out whenever it suits you.",
+    "preferredVoice": "Sapphire only if provider-supported and subscriber-authorized",
+    "state": "Awaiting authorized voice, exact fixed script, audio generation and agent approval",
+    "audioGenerated": false,
+    "notes": "Prerecorded audio cannot automatically speak each recipient's name. No existing approved recording was changed."
+  },
+  {
+    "campaignId": "premium-commercial-28",
+    "campaignName": "Commercial Property Planning — Premium Draft",
+    "step": 3,
+    "day": "Day 14",
+    "script": "Hi, this is [Agent] with [Brokerage]. If it would be useful to talk through your commercial property requirements, please call me at [AgentPhone]. I would be glad to start with your priorities. Thank you.",
+    "preferredVoice": "Sapphire only if provider-supported and subscriber-authorized",
+    "state": "Awaiting authorized voice, exact fixed script, audio generation and agent approval",
+    "audioGenerated": false,
+    "notes": "Prerecorded audio cannot automatically speak each recipient's name. No existing approved recording was changed."
+  },
+  {
+    "campaignId": "premium-relationships-worth-sharing",
+    "campaignName": "Relationships Worth Sharing",
+    "step": 3,
+    "day": "Day 30",
+    "script": "Hi, this is [AgentName]. I wanted to say hello and thank you again for trusting me with your real estate journey. If you or someone you know could use real estate guidance, I'm happy to help. Please call me at [AgentPhone] whenever it is useful. Take care.",
+    "preferredVoice": "Sapphire only if provider-supported and subscriber-authorized",
+    "state": "Awaiting authorized voice, exact fixed script, audio generation and agent approval",
+    "audioGenerated": false,
+    "notes": "Prerecorded audio cannot automatically speak each recipient's name. No existing approved recording was changed."
+  }
+]

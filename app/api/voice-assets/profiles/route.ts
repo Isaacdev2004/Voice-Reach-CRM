@@ -1,3 +1,4 @@
+import { loadSavedSettings } from "@/lib/billing/settings-store";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
@@ -11,6 +12,7 @@ import { z } from "zod";
 
 export const GET = withApiHandler(async () => {
   const ownerId = await requireUserId();
+  const preferred=(await loadSavedSettings(ownerId))?.brandKit?.preferredAiVoiceProfileId;
   const { data, error } = await supabaseAdmin
     .from("voice_profiles")
     .select("id, label, provider_voice_id, sample_asset_id, created_at")
@@ -22,10 +24,11 @@ export const GET = withApiHandler(async () => {
       const envVoice = configuredEnvVoice();
       return apiOk({
         profiles: [],
-        envVoice,
+        envVoice: preferred ? null : envVoice,
         configured: isElevenLabsConfigured(),
         defaultProfileId: null,
-        defaultVoiceId: envVoice?.voiceId ?? null,
+        defaultVoiceId: preferred ? null : envVoice?.voiceId ?? null,
+        preferredUnavailable: Boolean(preferred),
         warning: "Run supabase/schema-calendar.sql to enable saved voice profiles.",
       });
     }
@@ -34,14 +37,15 @@ export const GET = withApiHandler(async () => {
 
   const profiles = data ?? [];
   const envVoice = configuredEnvVoice();
-  const defaultProfileId = profiles[0]?.id ?? null;
+  const defaultProfileId = preferred ? profiles.find(p=>p.id===preferred)?.id ?? null : profiles[0]?.id ?? null;
 
   return apiOk({
     profiles,
     envVoice,
     configured: isElevenLabsConfigured(),
     defaultProfileId,
-    defaultVoiceId: profiles[0]?.provider_voice_id ?? envVoice?.voiceId ?? null,
+    defaultVoiceId: preferred ? profiles.find(p=>p.id===preferred)?.provider_voice_id ?? null : profiles[0]?.provider_voice_id ?? envVoice?.voiceId ?? null,
+    preferredUnavailable: Boolean(preferred&&!defaultProfileId),
   });
 });
 

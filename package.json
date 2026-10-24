@@ -11,7 +11,7 @@
     "smoke": "node scripts/smoke-test.mjs",
     "test:contacts-metrics": "node --import tsx scripts/contacts-metrics.test.ts",
     "test:security": "node scripts/verify-audit-fixes.mjs",
-    "test:unit": "node --import tsx scripts/verify-unit.ts && npm run test:contacts-metrics && npm run test:contacts-workspace && npm run test:property-finder && npm run test:campaign-library && npm run test:campaign-audit && npm run test:delivery && npm run test:calendar && npm run test:notes && npm run test:financing && npm run test:tasks && npm run test:studio-audit && npm run test:settings-audit && npm run test:dashboard && npm run test:communications && npm run test:public-marketing && node scripts/pricing-billing.test.cjs",
+    "test:unit": "node --import tsx scripts/verify-unit.ts && npm run test:contacts-metrics && npm run test:contacts-workspace && npm run test:property-finder && npm run test:campaign-library && npm run test:campaign-audit && npm run test:delivery && npm run test:calendar && npm run test:notes && npm run test:financing && npm run test:tasks && npm run test:studio-audit && npm run test:settings-audit && npm run test:dashboard && npm run test:communications && npm run test:public-marketing && node scripts/pricing-billing.test.cjs && npm run test:campaign-premium",
     "test:regressions": "node --import tsx scripts/verify-regressions.ts",
     "test:contacts-workspace": "node --import tsx scripts/contacts-workspace.test.ts && node scripts/contacts-routes.test.cjs",
     "test:contacts-browser": "node scripts/contacts-browser.test.cjs",
@@ -48,7 +48,8 @@
     "test:public-production": "node scripts/public-production-smoke.cjs",
     "test:public-refinement": "node scripts/public-home-correction.test.cjs",
     "test:public-polish": "node scripts/public-polish-browser.test.cjs",
-    "test:pricing-billing": "node scripts/pricing-billing.test.cjs"
+    "test:pricing-billing": "node scripts/pricing-billing.test.cjs",
+    "test:campaign-premium": "node scripts/campaign-premium.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",

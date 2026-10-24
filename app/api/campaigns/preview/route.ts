@@ -44,7 +44,7 @@ export const POST = withApiHandler(async (request) => {
   if (error)
     return apiError("Preview is temporarily unavailable.", { status: 503 });
   if (!contact) return apiError("Contact not found.", { status: 404 });
-  const { workspace, profile } = await loadWorkspaceSettings(owner, {
+  const { workspace, profile, brandKit } = await loadWorkspaceSettings(owner, {
     outbound: true,
   });
   return apiOk({
@@ -62,6 +62,9 @@ export const POST = withApiHandler(async (request) => {
         contact,
         agentName: workspace.defaultSenderName || profile.fullName,
         agentPhone: profile.phone,
+        agentEmail: brandKit?.email,
+        zillowReviewUrl: brandKit?.zillowReviewUrl,
+        businessAddress: brandKit?.address,
         brokerage: workspace.name,
         timezone: profile.timezone,
       },

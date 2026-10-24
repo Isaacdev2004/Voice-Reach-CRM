@@ -1,0 +1,3667 @@
+{
+  "scope": "Repository templates and default fixture only; live database inventory unknown, not zero",
+  "liveAuditComplete": false,
+  "templates": 11,
+  "drafts": 13,
+  "steps": 67,
+  "campaigns": [
+    {
+      "source": "lib/crm/campaign-templates.ts",
+      "id": "tpl-cold-lead-reengage",
+      "name": "Cold Lead Re-engagement",
+      "audience": "Cold / inactive buyers (14+ days quiet)",
+      "objective": [
+        "Re-engage leads with no recent activity",
+        "Get a reply without sounding spammy",
+        "Hand warm responses back to the agent"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 21,
+      "duration": 21,
+      "originalSteps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "Market update / saved-search digest",
+          "description": "Subject: {{area}} market update for you, {{first_name}}\n\nHi {{first_name}},\n\nI've been watching the {{area}} market and wanted to share a quick snapshot - no check-in ask, just useful info.\n\nIf you're still keeping an eye on homes in {{area}}, reply UPDATE and I'll send this week's pricing pulse plus 2–3 standout listings.\n\nHappy to adjust what I'm watching for you anytime.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "dayLabel": "Day 1",
+          "timeLabel": "9:00 AM",
+          "id": "step-1",
+          "status": "draft"
+        },
+        {
+          "order": 2,
+          "type": "sms",
+          "title": "Casual search-status SMS",
+          "description": "Hey [FirstName], [Agent] here - still looking in [City], or has your timeline shifted? Either answer is fine. Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "11:00 AM",
+          "id": "step-2",
+          "status": "draft"
+        },
+        {
+          "order": 3,
+          "type": "voicemail",
+          "title": "Low-pressure availability VM",
+          "description": "Hi [FirstName], this is [Agent] with [Brokerage]. Just leaving a quick note - I'm around if you want to talk through the [City] market or tweak your search. No pressure at all. You have my number whenever timing feels right. Take care.",
+          "dayLabel": "Day 7",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft"
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Opt-down / should I stop?",
+          "description": "Subject: Should I keep sending these, [FirstName]?\n\nHi [FirstName],\n\nI've reached out a few times and don't want to fill your inbox if the timing isn't right.\n\nShould I keep sending market updates and listing ideas for [City], or would you rather I stop for now?\n\nJust reply:\n· YES - keep me on the list\n· PAUSE - hold off for a bit\n· STOP - remove me\n\nEither way is completely fine - I only want to be useful.\n\n[Agent]\n[AgentPhone] | [Brokerage]",
+          "dayLabel": "Day 14",
+          "timeLabel": "9:00 AM",
+          "id": "step-4",
+          "status": "draft"
+        },
+        {
+          "order": 5,
+          "type": "callback",
+          "title": "Move to nurture cadence",
+          "description": "Set lead_status = nurture. Enroll in Long-term Buyer Nurture if still silent. If they replied or listened, call personally within 24 hours.",
+          "dayLabel": "Day 21",
+          "timeLabel": "9:00 AM",
+          "id": "step-5",
+          "status": "draft"
+        }
+      ],
+      "revised": {
+        "templateKey": "cold-lead-reengage",
+        "featured": true,
+        "category": "buyer",
+        "id": "premium-tpl-cold-lead-reengage",
+        "name": "Cold Lead Re-engagement — Premium Draft",
+        "description": "21-day multi-channel re-open for quiet leads: value email → SMS → ringless voicemail → opt-down → monthly nurture.",
+        "audience": "Cold / inactive buyers (14+ days quiet)",
+        "durationDays": 21,
+        "goals": [
+          "Re-engage leads with no recent activity",
+          "Get a reply without sounding spammy",
+          "Hand warm responses back to the agent"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "automation": {
+          "name": "Start cold lead re-engagement",
+          "description": "When a lead is inactive 14+ days, enroll in Cold Lead Re-engagement.",
+          "triggerType": "lead_inactive",
+          "triggerConfig": {
+            "daysInactive": 14
+          }
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "email",
+            "title": "A fresh look at your home search",
+            "description": "Subject: A fresh look at your home search\n\nHi [FirstName],\n\nWould an updated look at homes in {{area}} be useful? Tell me what has changed in your timing or priorities, and I can help you decide on a practical next step.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft",
+            "resourceKey": "readiness-checklist"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "sms",
+            "title": "Your priorities",
+            "description": "Hi [FirstName], [Agent] here. Are you still considering a move in [City], or has your timing changed? Either answer helps me tailor the follow-up. Reply STOP to opt out.",
+            "dayLabel": "Day 6",
+            "delayMinutes": 7200,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "voicemail",
+            "title": "An invitation to connect",
+            "description": "Hi, this is [Agent] with [Brokerage]. I’m available if you would like to revisit your real estate plans or talk through the market in [City]. No pressure—please reach out whenever the timing suits you.",
+            "dayLabel": "Day 11",
+            "delayMinutes": 14400,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "email",
+            "title": "Would you like me to keep in touch?",
+            "description": "Subject: Would you like me to keep in touch?\n\nHi [FirstName],\n\nI want these updates to be useful. Would you prefer an occasional market note, a pause, or a different kind of help? You can contact me directly with your preference.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 16",
+            "delayMinutes": 21600,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-5",
+            "order": 5,
+            "type": "task",
+            "title": "Agent review — no message sent",
+            "description": "Review this contact’s response and preferences. If appropriate and authorized, propose a nurture plan for agent approval; do not change lifecycle stages or enroll another sequence automatically.",
+            "dayLabel": "Day 21",
+            "delayMinutes": 28800,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-cold-lead-reengage",
+        "revisionKey": "premium-v1-cold-lead-reengage",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Blocked",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 1: attachment",
+            "status": "Blocked",
+            "action": "Review the PDF, replace blank branding/disclosures and upload it to this email step. Confirm ownership, file size and readability."
+          },
+          {
+            "label": "Day 6: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 11: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 11: recording",
+            "status": "Blocked",
+            "action": "Choose the exact approved version and listen to verify it matches this script. Prerecorded audio does not dynamically speak merge fields."
+          },
+          {
+            "label": "Day 16: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 21: internal follow-up",
+            "status": "Unable to Verify",
+            "action": "The existing callback/task worker depends on Calendar sync. Confirm that integration or create the task manually; no automatic CRM task is promised."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [
+        {
+          "step": 1,
+          "key": "readiness-checklist",
+          "title": "Homebuying Readiness Checklist",
+          "file": "private/campaign-materials/readiness-checklist.pdf",
+          "state": "Local shared PDF draft. Review branding/disclosures and upload before email use."
+        }
+      ],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nWould an updated look at homes in Winter Park be useful? Tell me what has changed in your timing or priorities, and I can help you decide on a practical next step.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "A fresh look at your home search",
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 6",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, Avery Agent here. Are you still considering a move in Winter Park, or has your timing changed? Either answer helps me tailor the follow-up. Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 11",
+          "type": "voicemail",
+          "preview": {
+            "ok": true,
+            "body": "Hi, this is Avery Agent with Example Realty. I’m available if you would like to revisit your real estate plans or talk through the market in Winter Park. No pressure—please reach out whenever the timing suits you.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 16",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nI want these updates to be useful. Would you prefer an occasional market note, a pause, or a different kind of help? You can contact me directly with your preference.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Would you like me to keep in touch?",
+            "issues": []
+          }
+        },
+        {
+          "step": 5,
+          "day": "Day 21",
+          "type": "task",
+          "preview": null
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "lib/crm/campaign-templates.ts",
+      "id": "tpl-speed-to-lead",
+      "name": "Speed-to-Lead Quick Response",
+      "audience": "Brand-new buyer leads (form, IDX, portal, lead ads)",
+      "objective": [
+        "Respond in under 60 seconds before competitors call",
+        "Qualify interest and book a short call or showing",
+        "Exit to nurture if silent after Day 5 breakup"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 5,
+      "duration": 5,
+      "originalSteps": [
+        {
+          "order": 1,
+          "type": "sms",
+          "title": "First SMS (<60s)",
+          "description": "Hi [FirstName]! This is [Agent] from [Brokerage] - I just saw your inquiry about [PropertyAddress]. Great choice! I have a few similar listings to share right now. Can I send them over, or is there a better time to connect? Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate",
+          "id": "step-1",
+          "status": "draft"
+        },
+        {
+          "order": 2,
+          "type": "email",
+          "title": "First email (<2 min)",
+          "description": "Subject: I found homes matching your search - {{first_name}}\n\nHi {{first_name}},\n\nThanks for reaching out! I'm {{agent_name}}, your local real estate specialist covering {{area}}.\n\nI pulled up the listing you were looking at - {{property_address}} - and I want to make sure you don't miss out.\n\nHere's what I'd love to do for you in the next 15 minutes:\n→ Send you a shortlist of 3–5 similar homes\n→ Answer any questions about the neighborhood, schools, or pricing\n→ Get you set up with instant alerts so you see new listings the moment they hit\n\nIs now a good time to chat? Even a quick 10-minute call can save you weeks of searching.\n\nTalk soon,\n\n{{agent_name}}\n[Brokerage] · [AgentPhone]",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate +2m",
+          "id": "step-2",
+          "status": "draft"
+        },
+        {
+          "order": 3,
+          "type": "callback",
+          "title": "Agent call task",
+          "description": "Call [FirstName] - new lead from [LeadSource] interested in [PropertyAddress]. Confirm timeline, budget, and whether they want a shortlist or showing. Due within 4 hours.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate +5m",
+          "id": "step-3",
+          "status": "draft"
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Day 1 comps follow-up (no reply)",
+          "description": "Subject: Still searching? A few homes near {{property_address}} worth seeing\n\nHi {{first_name}},\n\nI wanted to follow up in case my first message got buried.\n\nI pulled a short list of homes near {{property_address}} that match what you're looking for in {{area}} and wanted to share them before they're gone.\n\nReply LIST and I'll send the 3 strongest options with beds, baths, and price - no pressure at all.\n\nIf any catch your eye, I can get you in for a showing as early as tomorrow.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "dayLabel": "Day 2",
+          "timeLabel": "10:00 AM",
+          "id": "step-4",
+          "status": "draft"
+        },
+        {
+          "order": 5,
+          "type": "sms",
+          "title": "Day 3 new-listing nudge",
+          "description": "Hey {{first_name}}, {{agent_name}} again. Still looking in {{area}}? A strong match just hit - want details or a showing this week? - {{agent_name}} Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "11:00 AM",
+          "id": "step-5",
+          "status": "draft"
+        },
+        {
+          "order": 6,
+          "type": "sms",
+          "title": "Day 5 breakup text",
+          "description": "Hi [FirstName], I don't want to keep bugging you - just wanted to make sure you have my number if you ever need a local expert in [MarketArea]. No pressure at all. Wishing you the best! - [Agent] [AgentPhone] Reply STOP to opt out.",
+          "dayLabel": "Day 5",
+          "timeLabel": "10:00 AM",
+          "id": "step-6",
+          "status": "draft"
+        }
+      ],
+      "revised": {
+        "templateKey": "speed-to-lead",
+        "featured": true,
+        "category": "buyer",
+        "id": "premium-tpl-speed-to-lead",
+        "name": "Speed-to-Lead Quick Response — Premium Draft",
+        "description": "Fires within 60 seconds of any form fill, Zillow/Realtor.com inquiry, or Facebook lead ad - SMS, email, CRM task, then Day 1/3/5 follow-ups if no reply.",
+        "audience": "Brand-new buyer leads (form, IDX, portal, lead ads)",
+        "durationDays": 5,
+        "goals": [
+          "Respond in under 60 seconds before competitors call",
+          "Qualify interest and book a short call or showing",
+          "Exit to nurture if silent after Day 5 breakup"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "automation": {
+          "name": "Speed-to-lead on new contact",
+          "description": "When a new contact is added, enroll in Speed-to-Lead.",
+          "triggerType": "contact_added",
+          "triggerConfig": {}
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "sms",
+            "title": "A thoughtful introduction",
+            "description": "Hi [FirstName], this is [Agent] with [Brokerage]. Thanks for getting in touch. What would be most helpful right now—property details, search guidance, or a quick conversation? Reply STOP to opt out.",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "email",
+            "title": "How can I help with your search?",
+            "description": "Subject: How can I help with your search?\n\nHi [FirstName],\n\nThank you for reaching out. What are your priorities for {{area}}? Share your preferred timing and must-haves, and I can help you identify a useful next step.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 2",
+            "delayMinutes": 1440,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "task",
+            "title": "Agent review — no message sent",
+            "description": "Review the inquiry, confirm the actual property and source, and arrange a personal follow-up. Do not claim a call or listing review has already happened.",
+            "dayLabel": "Day 3",
+            "delayMinutes": 2880,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "email",
+            "title": "A quick follow-up on your search",
+            "description": "Subject: A quick follow-up on your search\n\nHi [FirstName],\n\nI wanted to make sure you have a way to reach me. Would you like help comparing properties, refining your criteria, or planning a tour? I’m happy to work at your pace.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 3",
+            "delayMinutes": 2880,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-5",
+            "order": 5,
+            "type": "sms",
+            "title": "Your preferred timing",
+            "description": "Hi {{first_name}}, {{agent_name}} here. Has anything changed in your search priorities for {{area}}? I’m available if you would like help with the next step. Reply STOP to opt out.",
+            "dayLabel": "Day 4",
+            "delayMinutes": 4320,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-6",
+            "order": 6,
+            "type": "sms",
+            "title": "Staying connected",
+            "description": "Hi [FirstName], I’ll give you some space for now. If you would like help with your real estate plans later, you’re welcome to reach out. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 5",
+            "delayMinutes": 5760,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-speed-to-lead",
+        "revisionKey": "premium-v1-speed-to-lead",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Unable to Verify",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 2: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 3: internal follow-up",
+            "status": "Unable to Verify",
+            "action": "The existing callback/task worker depends on Calendar sync. Confirm that integration or create the task manually; no automatic CRM task is promised."
+          },
+          {
+            "label": "Day 3: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 4: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 5: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, this is Avery Agent with Example Realty. Thanks for getting in touch. What would be most helpful right now—property details, search guidance, or a quick conversation? Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 2",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nThank you for reaching out. What are your priorities for Winter Park? Share your preferred timing and must-haves, and I can help you identify a useful next step.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "How can I help with your search?",
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 3",
+          "type": "task",
+          "preview": null
+        },
+        {
+          "step": 4,
+          "day": "Day 3",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nI wanted to make sure you have a way to reach me. Would you like help comparing properties, refining your criteria, or planning a tour? I’m happy to work at your pace.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "A quick follow-up on your search",
+            "issues": []
+          }
+        },
+        {
+          "step": 5,
+          "day": "Day 4",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, Avery Agent here. Has anything changed in your search priorities for Winter Park? I’m available if you would like help with the next step. Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 6,
+          "day": "Day 5",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, I’ll give you some space for now. If you would like help with your real estate plans later, you’re welcome to reach out. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "lib/crm/campaign-templates.ts",
+      "id": "tpl-listing-alert-drip",
+      "name": "Listing Alert Drip",
+      "audience": "Active buyers with a search criteria / saved search",
+      "objective": [
+        "Stay top of mind during a long search",
+        "Drive showings from new matches",
+        "Avoid spammy check-ins"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 60,
+      "duration": 60,
+      "originalSteps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "Weekly matching homes digest",
+          "description": "Subject: New matches for your search this week\n\nHi [FirstName],\n\nHere are the strongest new listings that fit what we've been watching together. I've highlighted what stands out on each.\n\nReply with any address you want a deeper look at - or \"tour\" and I'll set times.\n\n[Agent]",
+          "dayLabel": "Day 1",
+          "timeLabel": "9:00 AM",
+          "id": "step-1",
+          "status": "draft"
+        },
+        {
+          "order": 2,
+          "type": "sms",
+          "title": "High-match alert SMS",
+          "description": "Hi [FirstName] - strong match just hit your criteria. Want details or a showing this week? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM",
+          "id": "step-2",
+          "status": "draft"
+        },
+        {
+          "order": 3,
+          "type": "sms",
+          "title": "Price-drop style nudge",
+          "description": "[FirstName], a home on your watchlist had a meaningful update. Want me to send the new numbers? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 14",
+          "timeLabel": "11:00 AM",
+          "id": "step-3",
+          "status": "draft"
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Monthly check-in",
+          "description": "Subject: Quick pulse on your home search\n\nHi [FirstName],\n\nIt's been about a month - has anything shifted on budget, neighborhood, or timing? I can tighten alerts so you only see what still fits.\n\nOne reply is enough.\n\n[Agent]",
+          "dayLabel": "Day 30",
+          "timeLabel": "10:00 AM",
+          "id": "step-4",
+          "status": "draft"
+        },
+        {
+          "order": 5,
+          "type": "sms",
+          "title": "60-day re-engage",
+          "description": "Hi [FirstName] - still want listing alerts, or should I pause for now? Reply YES to keep them or PAUSE to stop. - [Agent]",
+          "dayLabel": "Day 60",
+          "timeLabel": "10:00 AM",
+          "id": "step-5",
+          "status": "draft"
+        }
+      ],
+      "revised": {
+        "templateKey": "listing-alert-drip",
+        "featured": true,
+        "category": "buyer",
+        "id": "premium-tpl-listing-alert-drip",
+        "name": "Listing Alert Drip — Premium Draft",
+        "description": "Ongoing buyer nurture with weekly value, high-match SMS style alerts, monthly check-in, and a 60-day re-engage nudge. Works with or without live IDX.",
+        "audience": "Active buyers with a search criteria / saved search",
+        "durationDays": 60,
+        "goals": [
+          "Stay top of mind during a long search",
+          "Drive showings from new matches",
+          "Avoid spammy check-ins"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "email",
+            "title": "Keeping your property search focused",
+            "description": "Subject: Keeping your property search focused\n\nHi [FirstName],\n\nAre your location, budget, and must-haves still the same? Let me know what matters most, and I can help you review suitable properties without filling your inbox with irrelevant options.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "sms",
+            "title": "Your priorities",
+            "description": "Hi [FirstName], would a fresh look at properties that fit your priorities be useful? Let me know whether you prefer details by message or a quick conversation. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 16",
+            "delayMinutes": 21600,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "sms",
+            "title": "Planning at your pace",
+            "description": "Hi [FirstName], are there any homes you would like me to check on? Send an address or tell me what has changed in your search. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 31",
+            "delayMinutes": 43200,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "email",
+            "title": "Has your home search changed?",
+            "description": "Subject: Has your home search changed?\n\nHi [FirstName],\n\nWould you like to adjust your preferred neighborhoods, budget, or timing? A brief reply will help me keep future recommendations relevant.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 45",
+            "delayMinutes": 63360,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-5",
+            "order": 5,
+            "type": "sms",
+            "title": "Your preferred timing",
+            "description": "Hi [FirstName], would you like occasional search updates, or would you prefer a pause? You can let me know what works best. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 60",
+            "delayMinutes": 84960,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-listing-alert-drip",
+        "revisionKey": "premium-v1-listing-alert-drip",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Unable to Verify",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 16: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 31: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 45: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 60: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nAre your location, budget, and must-haves still the same? Let me know what matters most, and I can help you review suitable properties without filling your inbox with irrelevant options.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Keeping your property search focused",
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 16",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, would a fresh look at properties that fit your priorities be useful? Let me know whether you prefer details by message or a quick conversation. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 31",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, are there any homes you would like me to check on? Send an address or tell me what has changed in your search. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 45",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nWould you like to adjust your preferred neighborhoods, budget, or timing? A brief reply will help me keep future recommendations relevant.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Has your home search changed?",
+            "issues": []
+          }
+        },
+        {
+          "step": 5,
+          "day": "Day 60",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, would you like occasional search updates, or would you prefer a pause? You can let me know what works best. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "lib/crm/campaign-templates.ts",
+      "id": "tpl-long-term-buyer-nurture",
+      "name": "Long-term Buyer Nurture",
+      "audience": "Cold / long-term buyers (6+ month timeline)",
+      "objective": [
+        "Stay useful for months without pressure",
+        "Build trust before they're ready",
+        "Catch them when timing flips"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 180,
+      "duration": 180,
+      "originalSteps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "Market education",
+          "description": "Subject: What buyers should watch this month\n\nHi [FirstName],\n\nA quick, no-pressure briefing on inventory, pricing, and what smart buyers are doing right now in our market.\n\nIf you want this tailored to a specific neighborhood, reply with the area.\n\n[Agent]",
+          "dayLabel": "Day 1",
+          "timeLabel": "10:00 AM",
+          "id": "step-1",
+          "status": "draft"
+        },
+        {
+          "order": 2,
+          "type": "email",
+          "title": "Neighborhood spotlight",
+          "description": "Subject: Neighborhood spotlight worth knowing\n\nHi [FirstName],\n\nHere's a short look at a neighborhood clients often ask about - lifestyle, schools, and what recent sales suggest.\n\nHappy to compare it to anywhere else on your list.\n\n[Agent]",
+          "dayLabel": "Day 14",
+          "timeLabel": "10:00 AM",
+          "id": "step-2",
+          "status": "draft"
+        },
+        {
+          "order": 3,
+          "type": "sms",
+          "title": "Quarterly soft SMS",
+          "description": "Hi [FirstName] - still planning a move in the next year? I can keep quiet updates coming, or pause anytime. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 30",
+          "timeLabel": "11:00 AM",
+          "id": "step-3",
+          "status": "draft"
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Financing / timing tip",
+          "description": "Subject: One timing tip most buyers miss\n\nHi [FirstName],\n\nWhether you're 3 months or 18 months out, a little prep now (pre-approval, must-haves vs nice-to-haves) makes the search much calmer later.\n\nWant a simple checklist?\n\n[Agent]",
+          "dayLabel": "Day 45",
+          "timeLabel": "10:00 AM",
+          "id": "step-4",
+          "status": "draft"
+        },
+        {
+          "order": 5,
+          "type": "email",
+          "title": "Inventory / opportunity note",
+          "description": "Subject: A quiet opportunity in the market\n\nHi [FirstName],\n\nOccasionally a listing fits long-term buyers even if they're not \"actively touring\" yet. Here's what I'm seeing and why it might matter later.\n\nNo rush - just keeping you informed.\n\n[Agent]",
+          "dayLabel": "Day 90",
+          "timeLabel": "10:00 AM",
+          "id": "step-5",
+          "status": "draft"
+        },
+        {
+          "order": 6,
+          "type": "sms",
+          "title": "90-day re-engage gate",
+          "description": "Hi [FirstName], checking if home-search timing has changed. Reply READY, LATER, or PAUSE. - [Agent]",
+          "dayLabel": "Day 90",
+          "timeLabel": "2:00 PM",
+          "id": "step-6",
+          "status": "draft"
+        },
+        {
+          "order": 7,
+          "type": "email",
+          "title": "6-month relationship note",
+          "description": "Subject: Still here when you're ready\n\nHi [FirstName],\n\nJust a note that I'm still happy to be your local resource - market questions, neighborhood intel, or a quiet first tour when timing is right.\n\nWhenever you're ready,\n[Agent]",
+          "dayLabel": "Day 180",
+          "timeLabel": "10:00 AM",
+          "id": "step-7",
+          "status": "draft"
+        }
+      ],
+      "revised": {
+        "templateKey": "long-term-buyer-nurture",
+        "featured": true,
+        "category": "buyer",
+        "id": "premium-tpl-long-term-buyer-nurture",
+        "name": "Long-term Buyer Nurture — Premium Draft",
+        "description": "6–18 month value cadence for cold/long-timeline buyers: market education, neighborhood stories, financing tips, and soft re-engage gates.",
+        "audience": "Cold / long-term buyers (6+ month timeline)",
+        "durationDays": 180,
+        "goals": [
+          "Stay useful for months without pressure",
+          "Build trust before they're ready",
+          "Catch them when timing flips"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "email",
+            "title": "Planning a move at your pace",
+            "description": "Subject: Planning a move at your pace\n\nHi [FirstName],\n\nA little preparation can make a future move easier. What would be useful to explore first: neighborhoods, a realistic timeline, or the steps involved in buying?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft",
+            "resourceKey": "buyer-preparation"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "email",
+            "title": "Which neighborhoods are on your list?",
+            "description": "Subject: Which neighborhoods are on your list?\n\nHi [FirstName],\n\nIf you are comparing areas, tell me what matters most in your day-to-day life. I can help you find reliable information and questions to consider without assuming one neighborhood is right for you.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 31",
+            "delayMinutes": 43200,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "sms",
+            "title": "Planning at your pace",
+            "description": "Hi [FirstName], is a move still part of your longer-term plans? I can keep in touch occasionally or give you space—whichever is more useful. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 61",
+            "delayMinutes": 86400,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "email",
+            "title": "A simple way to prepare for a future move",
+            "description": "Subject: A simple way to prepare for a future move\n\nHi [FirstName],\n\nEven with a longer timeline, listing your must-haves and understanding financing options can bring clarity. Would a short preparation checklist help?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 91",
+            "delayMinutes": 129600,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-5",
+            "order": 5,
+            "type": "email",
+            "title": "Keeping your options in view",
+            "description": "Subject: Keeping your options in view\n\nHi [FirstName],\n\nHave your priorities or timing changed? I can help you review options when you are ready, without rushing a decision.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 120",
+            "delayMinutes": 171360,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-6",
+            "order": 6,
+            "type": "sms",
+            "title": "Staying connected",
+            "description": "Hi [FirstName], how is your planning going? Let me know if you would like help, a later follow-up, or a pause. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 150",
+            "delayMinutes": 214560,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-7",
+            "order": 7,
+            "type": "email",
+            "title": "Here when you are ready",
+            "description": "Subject: Here when you are ready\n\nHi [FirstName],\n\nI’m happy to be a resource whenever your next move comes into focus. You can reach out with a market question, a property you are considering, or a change in plans.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 180",
+            "delayMinutes": 257760,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-long-term-buyer-nurture",
+        "revisionKey": "premium-v1-long-term-buyer-nurture",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Blocked",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 1: attachment",
+            "status": "Blocked",
+            "action": "Review the PDF, replace blank branding/disclosures and upload it to this email step. Confirm ownership, file size and readability."
+          },
+          {
+            "label": "Day 31: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 61: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 91: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 120: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 150: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 180: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [
+        {
+          "step": 1,
+          "key": "buyer-preparation",
+          "title": "Buyer Preparation Guide",
+          "file": "private/campaign-materials/buyer-preparation.pdf",
+          "state": "Local shared PDF draft. Review branding/disclosures and upload before email use."
+        }
+      ],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nA little preparation can make a future move easier. What would be useful to explore first: neighborhoods, a realistic timeline, or the steps involved in buying?\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Planning a move at your pace",
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 31",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nIf you are comparing areas, tell me what matters most in your day-to-day life. I can help you find reliable information and questions to consider without assuming one neighborhood is right for you.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Which neighborhoods are on your list?",
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 61",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, is a move still part of your longer-term plans? I can keep in touch occasionally or give you space—whichever is more useful. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 91",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nEven with a longer timeline, listing your must-haves and understanding financing options can bring clarity. Would a short preparation checklist help?\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "A simple way to prepare for a future move",
+            "issues": []
+          }
+        },
+        {
+          "step": 5,
+          "day": "Day 120",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nHave your priorities or timing changed? I can help you review options when you are ready, without rushing a decision.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Keeping your options in view",
+            "issues": []
+          }
+        },
+        {
+          "step": 6,
+          "day": "Day 150",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, how is your planning going? Let me know if you would like help, a later follow-up, or a pause. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 7,
+          "day": "Day 180",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nI’m happy to be a resource whenever your next move comes into focus. You can reach out with a market question, a property you are considering, or a change in plans.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Here when you are ready",
+            "issues": []
+          }
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "lib/crm/campaign-templates.ts",
+      "id": "tpl-engaged-no-tour",
+      "name": "Engaged - No Tour Yet",
+      "audience": "Engaged buyers (score ≥5) with zero tours",
+      "objective": [
+        "Convert soft engagement into a tour or call",
+        "Address objections without pressure",
+        "Fall back to cold nurture if silent"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 14,
+      "duration": 14,
+      "originalSteps": [
+        {
+          "order": 1,
+          "type": "sms",
+          "title": "Personal listing reference",
+          "description": "Hi [FirstName] - saw you were looking at a listing that fits. Want details or a short showing window this week? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Immediate",
+          "id": "step-1",
+          "status": "draft"
+        },
+        {
+          "order": 2,
+          "type": "email",
+          "title": "Video / virtual tour offer",
+          "description": "Subject: Prefer a FaceTime walkthrough first?\n\nHi [FirstName],\n\nIf an in-person tour feels like a big step, I can do a quick video walkthrough so you only visit the homes that truly fit.\n\nWant me to set one up?\n\n[Agent]",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM",
+          "id": "step-2",
+          "status": "draft"
+        },
+        {
+          "order": 3,
+          "type": "email",
+          "title": "What to know before touring",
+          "description": "Subject: What to know before you tour\n\nHi [FirstName],\n\nA short guide covering timing, financing questions buyers often wait too long to ask, and how to walk a home with clarity.\n\nWhen you're ready, I'll only show you the right ones.\n\n[Agent]",
+          "dayLabel": "Day 6",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft"
+        },
+        {
+          "order": 4,
+          "type": "callback",
+          "title": "10-min call ask",
+          "description": "Soft ask: 10-minute call so you only show the right homes. Create task if no reply after this step.",
+          "dayLabel": "Day 8",
+          "timeLabel": "9:00 AM",
+          "id": "step-4",
+          "status": "draft"
+        },
+        {
+          "order": 5,
+          "type": "sms",
+          "title": "Route back to cold if silent",
+          "description": "Hi [FirstName] - I'll ease up for now and keep you on quiet market updates. Ping me anytime. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 14",
+          "timeLabel": "10:00 AM",
+          "id": "step-5",
+          "status": "draft"
+        }
+      ],
+      "revised": {
+        "templateKey": "engaged-no-tour",
+        "featured": true,
+        "category": "buyer",
+        "id": "premium-tpl-engaged-no-tour",
+        "name": "Engaged - No Tour Yet — Premium Draft",
+        "description": "For buyers who open/click but haven't toured: reference what they engaged with, offer a low-friction next step, then a soft call ask.",
+        "audience": "Engaged buyers (score ≥5) with zero tours",
+        "durationDays": 14,
+        "goals": [
+          "Convert soft engagement into a tour or call",
+          "Address objections without pressure",
+          "Fall back to cold nurture if silent"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "automation": {
+          "name": "Engaged buyer - no tour",
+          "description": "When engagement score is high and no tour yet, start Engaged - No Tour Yet.",
+          "triggerType": "engagement_score",
+          "triggerConfig": {
+            "minScore": 5,
+            "requireNoTours": true
+          }
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "sms",
+            "title": "A thoughtful introduction",
+            "description": "Hi [FirstName], would a brief conversation or a tour help you narrow your search? Let me know what would feel useful at this stage. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "email",
+            "title": "Would a walkthrough help?",
+            "description": "Subject: Would a walkthrough help?\n\nHi [FirstName],\n\nIf you would rather explore a home remotely before arranging an in-person visit, I can help check what walkthrough options are available for a property you choose.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 4",
+            "delayMinutes": 4320,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "email",
+            "title": "A few questions before your next tour",
+            "description": "Subject: A few questions before your next tour\n\nHi [FirstName],\n\nBefore touring, it helps to be clear about your must-haves, financing questions, and what you want to learn from the visit. Is there anything you would like to talk through first?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 8",
+            "delayMinutes": 10080,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "task",
+            "title": "Agent review — no message sent",
+            "description": "Review the contact’s actual engagement and reply history. Offer a short conversation if appropriate; do not infer that a specific listing was viewed.",
+            "dayLabel": "Day 11",
+            "delayMinutes": 14400,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-5",
+            "order": 5,
+            "type": "sms",
+            "title": "Your preferred timing",
+            "description": "Hi [FirstName], I’ll ease up on follow-ups for now. If you would like to revisit your search, you are welcome to reach out anytime. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 14",
+            "delayMinutes": 18720,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-engaged-no-tour",
+        "revisionKey": "premium-v1-engaged-no-tour",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Unable to Verify",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 4: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 8: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 11: internal follow-up",
+            "status": "Unable to Verify",
+            "action": "The existing callback/task worker depends on Calendar sync. Confirm that integration or create the task manually; no automatic CRM task is promised."
+          },
+          {
+            "label": "Day 14: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, would a brief conversation or a tour help you narrow your search? Let me know what would feel useful at this stage. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 4",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nIf you would rather explore a home remotely before arranging an in-person visit, I can help check what walkthrough options are available for a property you choose.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Would a walkthrough help?",
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 8",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nBefore touring, it helps to be clear about your must-haves, financing questions, and what you want to learn from the visit. Is there anything you would like to talk through first?\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "A few questions before your next tour",
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 11",
+          "type": "task",
+          "preview": null
+        },
+        {
+          "step": 5,
+          "day": "Day 14",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, I’ll ease up on follow-ups for now. If you would like to revisit your search, you are welcome to reach out anytime. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "lib/crm/campaign-templates.ts",
+      "id": "tpl-post-tour-follow-up",
+      "name": "Post-Tour Follow-up & Offer Push",
+      "audience": "Buyers who completed at least one tour",
+      "objective": [
+        "Capture feedback while memory is fresh",
+        "Move toward offer or next tour",
+        "Surface objections fast"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 7,
+      "duration": 7,
+      "originalSteps": [
+        {
+          "order": 1,
+          "type": "sms",
+          "title": "Same-day thank-you + reaction",
+          "description": "Hey [FirstName]! Hope the showing at [PropertyAddress] was helpful. Quick question - overall impression: loved it, liked it, or not the one? Your gut reaction helps me zero in on exactly what you're looking for. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Same day",
+          "id": "step-1",
+          "status": "draft"
+        },
+        {
+          "order": 2,
+          "type": "email",
+          "title": "Comp analysis - priced right?",
+          "description": "Subject: Quick thoughts after your tour of {{property_address}}\n\nHi {{first_name}},\n\nHope you enjoyed the tour yesterday at {{property_address}}! I pulled recent nearby sales so you can see how it stacks up in {{area}}.\n\nI'll text you the shortlist of comps next - or reply COMPS and I'll send them right away.\n\nThinking about an offer? I can have a draft ready in about an hour.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "dayLabel": "Day 2",
+          "timeLabel": "10:00 AM",
+          "id": "step-2",
+          "status": "draft"
+        },
+        {
+          "order": 3,
+          "type": "sms",
+          "title": "Offer strategy nudge",
+          "description": "[FirstName], I ran the comps on [PropertyAddress] and sent you an analysis - did you get a chance to look? If you're thinking about it, I can have a draft offer ready in about an hour. Just say the word. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "2:00 PM",
+          "id": "step-3",
+          "status": "draft"
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Activity / competing-offer alert",
+          "description": "Subject: Update on {{property_address}} - wanted you to know\n\nHi {{first_name}},\n\nI wanted to give you a heads up - {{property_address}} has been getting activity since we toured.\n\nI don't say this to pressure you - only you know if this is the right home. But I want to make sure you have the full picture before the window closes.\n\nIf you want to move forward or just talk through whether it makes sense, I'm available.\n\n{{agent_name}}\n[AgentPhone] | [Brokerage]",
+          "dayLabel": "Day 4",
+          "timeLabel": "4:00 PM",
+          "id": "step-4",
+          "status": "draft"
+        },
+        {
+          "order": 5,
+          "type": "sms",
+          "title": "Objection isolator",
+          "description": "Hi [FirstName], checking in on [PropertyAddress] - was it mainly price, location, or the house itself that didn't click? Knowing that helps me find a better match fast. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 5",
+          "timeLabel": "11:00 AM",
+          "id": "step-5",
+          "status": "draft"
+        },
+        {
+          "order": 6,
+          "type": "callback",
+          "title": "Agent personal follow-up",
+          "description": "If no reply: call personally. If silent after this, route to Cold Lead / Long-term Nurture. If they said 'not the one', add to Listing Alert Drip.",
+          "dayLabel": "Day 7",
+          "timeLabel": "9:00 AM",
+          "id": "step-6",
+          "status": "draft"
+        }
+      ],
+      "revised": {
+        "templateKey": "post-tour-follow-up",
+        "featured": true,
+        "category": "buyer",
+        "id": "premium-tpl-post-tour-follow-up",
+        "name": "Post-Tour Follow-up & Offer Push — Premium Draft",
+        "description": "72-hour high-intent sequence after a showing: thank-you, comps, offer strategy, urgency - then agent task.",
+        "audience": "Buyers who completed at least one tour",
+        "durationDays": 7,
+        "goals": [
+          "Capture feedback while memory is fresh",
+          "Move toward offer or next tour",
+          "Surface objections fast"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "sms",
+            "title": "A thoughtful introduction",
+            "description": "Hi [FirstName], what stood out to you about [PropertyAddress]? Your thoughts on what worked—and what didn’t—will help me plan the next step with you. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "email",
+            "title": "Your thoughts after the tour",
+            "description": "Subject: Your thoughts after the tour\n\nHi [FirstName],\n\nWhat questions would you like to explore about {{property_address}}? We can review available information together before you decide whether it is worth pursuing.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 2",
+            "delayMinutes": 1440,
+            "timeLabel": "10:00 AM",
+            "status": "draft",
+            "resourceKey": "property-comparison"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "sms",
+            "title": "Planning at your pace",
+            "description": "Hi [FirstName], would it help to talk through [PropertyAddress] or compare it with other options? There is no need to rush a decision. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 3",
+            "delayMinutes": 2880,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "email",
+            "title": "Considering your next step",
+            "description": "Subject: Considering your next step\n\nHi [FirstName],\n\nIf you are still thinking about {{property_address}}, I can help you check current information and discuss your options. Any availability or offer activity should be verified before you act.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 5",
+            "delayMinutes": 5760,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-5",
+            "order": 5,
+            "type": "sms",
+            "title": "Your preferred timing",
+            "description": "Hi [FirstName], was there anything about [PropertyAddress] that didn’t fit your priorities? Your feedback will help me refine the next search. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 6",
+            "delayMinutes": 7200,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-6",
+            "order": 6,
+            "type": "task",
+            "title": "Agent review — no message sent",
+            "description": "Review tour feedback and current listing information. Agree on the next step personally; do not move the contact to another campaign without authorization.",
+            "dayLabel": "Day 7",
+            "delayMinutes": 8640,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-post-tour-follow-up",
+        "revisionKey": "premium-v1-post-tour-follow-up",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Blocked",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 2: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 2: attachment",
+            "status": "Blocked",
+            "action": "Review the PDF, replace blank branding/disclosures and upload it to this email step. Confirm ownership, file size and readability."
+          },
+          {
+            "label": "Day 3: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 5: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 6: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 7: internal follow-up",
+            "status": "Unable to Verify",
+            "action": "The existing callback/task worker depends on Calendar sync. Confirm that integration or create the task manually; no automatic CRM task is promised."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [
+        {
+          "step": 2,
+          "key": "property-comparison",
+          "title": "Property Comparison Worksheet",
+          "file": "private/campaign-materials/property-comparison.pdf",
+          "state": "Local shared PDF draft. Review branding/disclosures and upload before email use."
+        }
+      ],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, what stood out to you about 123 Example Lane? Your thoughts on what worked—and what didn’t—will help me plan the next step with you. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 2",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nWhat questions would you like to explore about 123 Example Lane? We can review available information together before you decide whether it is worth pursuing.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Your thoughts after the tour",
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 3",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, would it help to talk through 123 Example Lane or compare it with other options? There is no need to rush a decision. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 5",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nIf you are still thinking about 123 Example Lane, I can help you check current information and discuss your options. Any availability or offer activity should be verified before you act.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Considering your next step",
+            "issues": []
+          }
+        },
+        {
+          "step": 5,
+          "day": "Day 6",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, was there anything about 123 Example Lane that didn’t fit your priorities? Your feedback will help me refine the next search. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 6,
+          "day": "Day 7",
+          "type": "task",
+          "preview": null
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "lib/crm/campaign-templates.ts",
+      "id": "tpl-luxury-seller-follow-up",
+      "name": "Luxury Seller – Automated Follow Up",
+      "audience": "Luxury Home Sellers",
+      "objective": [
+        "Increase response rate",
+        "Convert leads into luxury listings",
+        "Maintain warm, personalized touchpoints"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 10,
+      "duration": 30,
+      "originalSteps": [
+        {
+          "id": "ls-1",
+          "order": 1,
+          "type": "voicemail",
+          "title": "Ringless Voicemail",
+          "description": "Warm introduction with your recorded voice message.",
+          "dayLabel": "Day 1",
+          "timeLabel": "9:00 AM",
+          "status": "draft"
+        },
+        {
+          "id": "ls-2",
+          "order": 2,
+          "type": "avatar_video",
+          "title": "Personalized Video Message",
+          "description": "AI avatar delivers a tailored message on your behalf.",
+          "dayLabel": "Day 2",
+          "timeLabel": "11:00 AM",
+          "status": "draft"
+        },
+        {
+          "id": "ls-3",
+          "order": 3,
+          "type": "email",
+          "title": "Email",
+          "description": "Beautifully designed, personalized email follow-up.",
+          "dayLabel": "Day 3",
+          "timeLabel": "1:00 PM",
+          "status": "draft"
+        },
+        {
+          "id": "ls-4",
+          "order": 4,
+          "type": "sms",
+          "title": "Text Message",
+          "description": "Concise, high-touch SMS check-in.",
+          "dayLabel": "Day 5",
+          "timeLabel": "10:00 AM",
+          "status": "draft"
+        },
+        {
+          "id": "ls-5",
+          "order": 5,
+          "type": "retargeting",
+          "title": "Social Media Retargeting",
+          "description": "Stay visible with co-branded social touchpoints.",
+          "dayLabel": "Day 7",
+          "timeLabel": "All Day",
+          "status": "draft"
+        },
+        {
+          "id": "ls-6",
+          "order": 6,
+          "type": "callback",
+          "title": "Callback Alert",
+          "description": "Reminder to personally follow up when engagement peaks.",
+          "dayLabel": "Day 10",
+          "timeLabel": "9:00 AM",
+          "status": "draft"
+        }
+      ],
+      "revised": {
+        "templateKey": "luxury-seller-follow-up",
+        "category": "seller",
+        "id": "premium-tpl-luxury-seller-follow-up",
+        "name": "Luxury Seller – Automated Follow Up — Premium Draft",
+        "description": "A multi-touch automated sequence that nurtures leads and keeps you top of mind.",
+        "audience": "Luxury Home Sellers",
+        "durationDays": 30,
+        "goals": [
+          "Increase response rate",
+          "Convert leads into luxury listings",
+          "Maintain warm, personalized touchpoints"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "voicemail",
+            "title": "An invitation to connect",
+            "description": "Hi, this is [Agent] with [Brokerage]. I’m available if you would like to discuss your selling plans, questions about the process, or what a thoughtful next step might look like. Please reach out whenever it suits you.",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "task",
+            "title": "Agent review — no message sent",
+            "description": "Prepare a personal video invitation only if an approved video workflow exists. Otherwise create an internal follow-up task; do not mark a video as delivered.",
+            "dayLabel": "Day 7",
+            "delayMinutes": 8640,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "email",
+            "title": "A thoughtful next step for your selling plans",
+            "description": "Subject: A thoughtful next step for your selling plans\n\nHi [FirstName],\n\nWhat would help you feel clearer about a possible sale: understanding the process, discussing timing, or arranging a property review? I’m happy to start with your questions.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 13",
+            "delayMinutes": 17280,
+            "timeLabel": "10:00 AM",
+            "status": "draft",
+            "resourceKey": "seller-preparation"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "sms",
+            "title": "A useful next step",
+            "description": "Hi [FirstName], would a short conversation about your selling plans be useful? I’m happy to work around your priorities and timing. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 18",
+            "delayMinutes": 24480,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-5",
+            "order": 5,
+            "type": "task",
+            "title": "Agent review — no message sent",
+            "description": "Review authorized marketing options with the agent. No social retargeting integration is configured; do not send this instruction to a contact.",
+            "dayLabel": "Day 24",
+            "delayMinutes": 33120,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-6",
+            "order": 6,
+            "type": "task",
+            "title": "Agent review — no message sent",
+            "description": "Arrange a personal follow-up if the contact wants to discuss selling. Check current consent, reply history, and preferences first.",
+            "dayLabel": "Day 30",
+            "delayMinutes": 41760,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-luxury-seller-follow-up",
+        "revisionKey": "premium-v1-luxury-seller-follow-up",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Blocked",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 1: recording",
+            "status": "Blocked",
+            "action": "Choose the exact approved version and listen to verify it matches this script. Prerecorded audio does not dynamically speak merge fields."
+          },
+          {
+            "label": "Day 7: internal follow-up",
+            "status": "Unable to Verify",
+            "action": "The existing callback/task worker depends on Calendar sync. Confirm that integration or create the task manually; no automatic CRM task is promised."
+          },
+          {
+            "label": "Day 13: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 13: attachment",
+            "status": "Blocked",
+            "action": "Review the PDF, replace blank branding/disclosures and upload it to this email step. Confirm ownership, file size and readability."
+          },
+          {
+            "label": "Day 18: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 24: internal follow-up",
+            "status": "Unable to Verify",
+            "action": "The existing callback/task worker depends on Calendar sync. Confirm that integration or create the task manually; no automatic CRM task is promised."
+          },
+          {
+            "label": "Day 30: internal follow-up",
+            "status": "Unable to Verify",
+            "action": "The existing callback/task worker depends on Calendar sync. Confirm that integration or create the task manually; no automatic CRM task is promised."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [
+        {
+          "step": 3,
+          "key": "seller-preparation",
+          "title": "Home Selling Preparation Checklist",
+          "file": "private/campaign-materials/seller-preparation.pdf",
+          "state": "Local shared PDF draft. Review branding/disclosures and upload before email use."
+        }
+      ],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "voicemail",
+          "preview": {
+            "ok": true,
+            "body": "Hi, this is Avery Agent with Example Realty. I’m available if you would like to discuss your selling plans, questions about the process, or what a thoughtful next step might look like. Please reach out whenever it suits you.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 7",
+          "type": "task",
+          "preview": null
+        },
+        {
+          "step": 3,
+          "day": "Day 13",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nWhat would help you feel clearer about a possible sale: understanding the process, discussing timing, or arranging a property review? I’m happy to start with your questions.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "A thoughtful next step for your selling plans",
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 18",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, would a short conversation about your selling plans be useful? I’m happy to work around your priorities and timing. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 5,
+          "day": "Day 24",
+          "type": "task",
+          "preview": null
+        },
+        {
+          "step": 6,
+          "day": "Day 30",
+          "type": "task",
+          "preview": null
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "lib/crm/campaign-templates.ts",
+      "id": "tpl-seller-valuation",
+      "name": "Seller Home Valuation Follow-up",
+      "audience": "Sellers who requested a CMA / AVM / valuation",
+      "objective": [
+        "Convert valuation requests into listing appointments",
+        "Stay consultative"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 14,
+      "duration": 30,
+      "originalSteps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "CMA delivery",
+          "description": "Subject: Your home value snapshot\n\nHi [FirstName],\n\nAttached/linked is a clear look at where your home sits in today's market - comps, timing, and what buyers are responding to.\n\nHappy to walk through it on a short call.\n\n[Agent]",
+          "dayLabel": "Day 1",
+          "timeLabel": "10:00 AM",
+          "id": "step-1",
+          "status": "draft"
+        },
+        {
+          "order": 2,
+          "type": "sms",
+          "title": "Day 1 SMS",
+          "description": "Hi [FirstName] - sent your home value snapshot. Want a 10-min walkthrough this week? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "2:00 PM",
+          "id": "step-2",
+          "status": "draft"
+        },
+        {
+          "order": 3,
+          "type": "email",
+          "title": "Market stats",
+          "description": "Subject: What sellers in your area are seeing\n\nHi [FirstName],\n\nA few local stats that matter if you're weighing timing - days on market, list-to-sale ratio, and buyer demand.\n\n[Agent]",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft"
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Video / personal note",
+          "description": "Subject: A quick personal note on your home\n\nHi [FirstName],\n\nI recorded a short note on positioning and next steps if you decide to list. No pressure - just clarity.\n\n[Agent]",
+          "dayLabel": "Day 7",
+          "timeLabel": "10:00 AM",
+          "id": "step-4",
+          "status": "draft"
+        },
+        {
+          "order": 5,
+          "type": "sms",
+          "title": "Breakup",
+          "description": "Hi [FirstName] - I'll pause follow-ups for now. If listing timing opens up later, I'm here. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 14",
+          "timeLabel": "10:00 AM",
+          "id": "step-5",
+          "status": "draft"
+        }
+      ],
+      "revised": {
+        "templateKey": "seller-valuation-follow-up",
+        "category": "seller",
+        "id": "premium-tpl-seller-valuation",
+        "name": "Seller Home Valuation Follow-up — Premium Draft",
+        "description": "14-day CMA / valuation follow-up: email + SMS + video + breakup for sellers who requested a home value.",
+        "audience": "Sellers who requested a CMA / AVM / valuation",
+        "durationDays": 30,
+        "goals": [
+          "Convert valuation requests into listing appointments",
+          "Stay consultative"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "email",
+            "title": "Would a home-value review be useful?",
+            "description": "Subject: Would a home-value review be useful?\n\nHi [FirstName],\n\nIf you are weighing a sale, I can help arrange a review of your property and relevant local information. Would you prefer to start with a short conversation about your goals?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft",
+            "resourceKey": "seller-preparation"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "sms",
+            "title": "Your priorities",
+            "description": "Hi [FirstName], would you like to discuss a home-value review or ask a question about selling? Let me know what would be helpful. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 8",
+            "delayMinutes": 10080,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "email",
+            "title": "Questions about the local selling market?",
+            "description": "Subject: Questions about the local selling market?\n\nHi [FirstName],\n\nWhich questions are most important to you—pricing, preparation, or timing? I can help gather relevant, current information rather than make assumptions about your property.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 16",
+            "delayMinutes": 21600,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "email",
+            "title": "Your plans come first",
+            "description": "Subject: Your plans come first\n\nHi [FirstName],\n\nThere is no need to decide on a sale before you have the information you need. I’m available to discuss your options or explain the next steps whenever you are ready.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 23",
+            "delayMinutes": 31680,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-5",
+            "order": 5,
+            "type": "sms",
+            "title": "Your preferred timing",
+            "description": "Hi [FirstName], I’ll pause these follow-ups for now. If you want to revisit your selling plans later, you’re welcome to reach out. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 30",
+            "delayMinutes": 41760,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-seller-valuation",
+        "revisionKey": "premium-v1-seller-valuation-follow-up",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Blocked",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 1: attachment",
+            "status": "Blocked",
+            "action": "Review the PDF, replace blank branding/disclosures and upload it to this email step. Confirm ownership, file size and readability."
+          },
+          {
+            "label": "Day 8: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 16: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 23: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 30: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [
+        {
+          "step": 1,
+          "key": "seller-preparation",
+          "title": "Home Selling Preparation Checklist",
+          "file": "private/campaign-materials/seller-preparation.pdf",
+          "state": "Local shared PDF draft. Review branding/disclosures and upload before email use."
+        }
+      ],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nIf you are weighing a sale, I can help arrange a review of your property and relevant local information. Would you prefer to start with a short conversation about your goals?\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Would a home-value review be useful?",
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 8",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, would you like to discuss a home-value review or ask a question about selling? Let me know what would be helpful. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 16",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nWhich questions are most important to you—pricing, preparation, or timing? I can help gather relevant, current information rather than make assumptions about your property.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Questions about the local selling market?",
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 23",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nThere is no need to decide on a sale before you have the information you need. I’m available to discuss your options or explain the next steps whenever you are ready.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Your plans come first",
+            "issues": []
+          }
+        },
+        {
+          "step": 5,
+          "day": "Day 30",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, I’ll pause these follow-ups for now. If you want to revisit your selling plans later, you’re welcome to reach out. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "lib/crm/campaign-templates.ts",
+      "id": "tpl-open-house",
+      "name": "Open House Follow-up",
+      "audience": "Open house sign-ins",
+      "objective": [
+        "Convert visitors while memory is fresh",
+        "Offer similar homes"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 7,
+      "duration": 7,
+      "originalSteps": [
+        {
+          "order": 1,
+          "type": "sms",
+          "title": "Same-day SMS",
+          "description": "Hi [FirstName] - thanks for coming by the open house today. What did you think? I can send details or similar options. - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 1",
+          "timeLabel": "Same day",
+          "id": "step-1",
+          "status": "draft"
+        },
+        {
+          "order": 2,
+          "type": "email",
+          "title": "Photo / details email",
+          "description": "Subject: Details from today's open house\n\nHi [FirstName],\n\nGlad you stopped by. Here's a recap of the home plus answers to questions visitors usually ask.\n\nWant a private second look?\n\n[Agent]",
+          "dayLabel": "Day 2",
+          "timeLabel": "10:00 AM",
+          "id": "step-2",
+          "status": "draft"
+        },
+        {
+          "order": 3,
+          "type": "email",
+          "title": "Similar homes",
+          "description": "Subject: Similar homes you may like\n\nHi [FirstName],\n\nIf that open house wasn't quite right, here are 2–3 similar options worth a look.\n\n[Agent]",
+          "dayLabel": "Day 3",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft"
+        },
+        {
+          "order": 4,
+          "type": "callback",
+          "title": "Call task",
+          "description": "Personal follow-up call. Ask feedback and next-tour interest.",
+          "dayLabel": "Day 7",
+          "timeLabel": "9:00 AM",
+          "id": "step-4",
+          "status": "draft"
+        }
+      ],
+      "revised": {
+        "templateKey": "open-house-follow-up",
+        "category": "buyer",
+        "id": "premium-tpl-open-house",
+        "name": "Open House Follow-up — Premium Draft",
+        "description": "7-day sequence after open-house sign-in: same-day SMS, photo email, similar homes, market note, call task.",
+        "audience": "Open house sign-ins",
+        "durationDays": 7,
+        "goals": [
+          "Convert visitors while memory is fresh",
+          "Offer similar homes"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "sms",
+            "title": "A thoughtful introduction",
+            "description": "Hi [FirstName], thank you for visiting. What did you think of the home? I’m happy to help with a question or discuss a possible next step. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "email",
+            "title": "Following up after your visit",
+            "description": "Subject: Following up after your visit\n\nHi [FirstName],\n\nWas there anything you wanted to revisit or ask about the home? I can help check the details that matter most to you.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 3",
+            "delayMinutes": 2880,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "email",
+            "title": "Refining your next property search",
+            "description": "Subject: Refining your next property search\n\nHi [FirstName],\n\nIf the home wasn’t quite right, what would you like to change in the next search? Share a few priorities, and I can help you consider suitable options.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 5",
+            "delayMinutes": 5760,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "task",
+            "title": "Agent review — no message sent",
+            "description": "Review verified visit feedback and ask whether a personal follow-up would be useful. Confirm the correct property and event date before referring to them.",
+            "dayLabel": "Day 7",
+            "delayMinutes": 8640,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-open-house",
+        "revisionKey": "premium-v1-open-house-follow-up",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Unable to Verify",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 3: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 5: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 7: internal follow-up",
+            "status": "Unable to Verify",
+            "action": "The existing callback/task worker depends on Calendar sync. Confirm that integration or create the task manually; no automatic CRM task is promised."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, thank you for visiting. What did you think of the home? I’m happy to help with a question or discuss a possible next step. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 3",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nWas there anything you wanted to revisit or ask about the home? I can help check the details that matter most to you.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Following up after your visit",
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 5",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nIf the home wasn’t quite right, what would you like to change in the next search? Share a few priorities, and I can help you consider suitable options.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Refining your next property search",
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 7",
+          "type": "task",
+          "preview": null
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "lib/crm/campaign-templates.ts",
+      "id": "tpl-past-client",
+      "name": "Past Client Anniversary & Referral",
+      "audience": "Past clients (closed transactions)",
+      "objective": [
+        "Stay top of mind",
+        "Earn referrals",
+        "Catch refinance / move-up moments"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 365,
+      "duration": 365,
+      "originalSteps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "7-day thank you",
+          "description": "Subject: Still cheering for your new chapter\n\nHi [FirstName],\n\nJust a note to say congratulations again - and I'm here if anything comes up as you settle in.\n\n[Agent]",
+          "dayLabel": "Day 7",
+          "timeLabel": "10:00 AM",
+          "id": "step-1",
+          "status": "draft"
+        },
+        {
+          "order": 2,
+          "type": "sms",
+          "title": "90-day check-in",
+          "description": "Hi [FirstName] - how is the new place treating you? Anything I can help with? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 90",
+          "timeLabel": "11:00 AM",
+          "id": "step-2",
+          "status": "draft"
+        },
+        {
+          "order": 3,
+          "type": "email",
+          "title": "Equity / market update",
+          "description": "Subject: A quick look at your home's market\n\nHi [FirstName],\n\nThought you'd appreciate a simple update on how homes like yours are performing nearby.\n\n[Agent]",
+          "dayLabel": "Day 180",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft"
+        },
+        {
+          "order": 4,
+          "type": "email",
+          "title": "Anniversary + soft referral",
+          "description": "Subject: Happy home-iversary\n\nHi [FirstName],\n\nOne year in - congratulations. If a friend or family member ever needs a trusted local agent, I'm honored to help.\n\n[Agent]",
+          "dayLabel": "Day 365",
+          "timeLabel": "10:00 AM",
+          "id": "step-4",
+          "status": "draft"
+        }
+      ],
+      "revised": {
+        "templateKey": "past-client-anniversary",
+        "category": "sphere",
+        "id": "premium-tpl-past-client",
+        "name": "Past Client Anniversary & Referral — Premium Draft",
+        "description": "Relationship cadence after closing: thank-you, 90-day check-in, equity note, anniversary, soft referral ask.",
+        "audience": "Past clients (closed transactions)",
+        "durationDays": 365,
+        "goals": [
+          "Stay top of mind",
+          "Earn referrals",
+          "Catch refinance / move-up moments"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "email",
+            "title": "Here for your next chapter",
+            "description": "Subject: Here for your next chapter\n\nHi [FirstName],\n\nIt was a pleasure working with you. If a homeownership question comes up, I’m happy to point you toward useful information or discuss a future real estate need.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft",
+            "resourceKey": "homeowner-care"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "sms",
+            "title": "Your priorities",
+            "description": "Hi [FirstName], how are things going with your home? If a real estate question comes up, I’m happy to help. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 122",
+            "delayMinutes": 174240,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "email",
+            "title": "A resource for your homeownership questions",
+            "description": "Subject: A resource for your homeownership questions\n\nHi [FirstName],\n\nWould an updated look at local real estate information be useful? Let me know what you would like to understand, and I can help you find relevant, current details.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 244",
+            "delayMinutes": 349920,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "email",
+            "title": "Keeping in touch",
+            "description": "Subject: Keeping in touch\n\nHi [FirstName],\n\nI hope homeownership is treating you well. I’m here if you have a real estate question, and I would be happy to help someone you choose to introduce. Thank you for staying in touch.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 365",
+            "delayMinutes": 524160,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-past-client",
+        "revisionKey": "premium-v1-past-client-anniversary",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Blocked",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 1: attachment",
+            "status": "Blocked",
+            "action": "Review the PDF, replace blank branding/disclosures and upload it to this email step. Confirm ownership, file size and readability."
+          },
+          {
+            "label": "Day 122: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 244: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 365: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [
+        {
+          "step": 1,
+          "key": "homeowner-care",
+          "title": "Seasonal Homeowner Care Guide",
+          "file": "private/campaign-materials/homeowner-care.pdf",
+          "state": "Local shared PDF draft. Review branding/disclosures and upload before email use."
+        }
+      ],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nIt was a pleasure working with you. If a homeownership question comes up, I’m happy to point you toward useful information or discuss a future real estate need.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Here for your next chapter",
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 122",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, how are things going with your home? If a real estate question comes up, I’m happy to help. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 244",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nWould an updated look at local real estate information be useful? Let me know what you would like to understand, and I can help you find relevant, current details.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "A resource for your homeownership questions",
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 365",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nI hope homeownership is treating you well. I’m here if you have a real estate question, and I would be happy to help someone you choose to introduce. Thank you for staying in touch.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Keeping in touch",
+            "issues": []
+          }
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "lib/crm/campaign-templates.ts",
+      "id": "tpl-pre-approval",
+      "name": "Pre-approval Push",
+      "audience": "Buyers with intent, not yet pre-approved",
+      "objective": [
+        "Remove financing friction",
+        "Introduce trusted lender",
+        "Prepare for showings"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 7,
+      "duration": 7,
+      "originalSteps": [
+        {
+          "order": 1,
+          "type": "email",
+          "title": "Lender intro",
+          "description": "Subject: A simple next step before touring\n\nHi [FirstName],\n\nWhen you're ready to tour seriously, a pre-approval makes everything smoother. I can intro a trusted local lender who treats clients well - no pressure.\n\nWant the intro?\n\n[Agent]",
+          "dayLabel": "Day 1",
+          "timeLabel": "10:00 AM",
+          "id": "step-1",
+          "status": "draft"
+        },
+        {
+          "order": 2,
+          "type": "sms",
+          "title": "Why it matters",
+          "description": "Hi [FirstName] - pre-approval often means stronger offers and clearer budgets. Want me to connect you? - [Agent] Reply STOP to opt out.",
+          "dayLabel": "Day 3",
+          "timeLabel": "11:00 AM",
+          "id": "step-2",
+          "status": "draft"
+        },
+        {
+          "order": 3,
+          "type": "email",
+          "title": "Lost-offer story",
+          "description": "Subject: Why strong buyers still lose homes\n\nHi [FirstName],\n\nSometimes the difference isn't the offer price - it's how ready the buyer looks on paper. Happy to help you get that piece in place before the right home shows up.\n\n[Agent]",
+          "dayLabel": "Day 5",
+          "timeLabel": "10:00 AM",
+          "id": "step-3",
+          "status": "draft"
+        }
+      ],
+      "revised": {
+        "templateKey": "pre-approval-push",
+        "category": "buyer",
+        "id": "premium-tpl-pre-approval",
+        "name": "Pre-approval Push — Premium Draft",
+        "description": "Short sequence for interested buyers who aren't pre-approved yet - lender intro, why it matters, lost-offer story.",
+        "audience": "Buyers with intent, not yet pre-approved",
+        "durationDays": 7,
+        "goals": [
+          "Remove financing friction",
+          "Introduce trusted lender",
+          "Prepare for showings"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "email",
+            "title": "A useful step before a serious home search",
+            "description": "Subject: A useful step before a serious home search\n\nHi [FirstName],\n\nUnderstanding financing options can help you plan a comfortable budget. If you would like, I can help you identify questions to discuss with a licensed lender. Would that be useful?\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "sms",
+            "title": "Your priorities",
+            "description": "Hi [FirstName], would a conversation with a licensed lender help clarify your budget and financing options? I can help with an introduction if you would like one. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 4",
+            "delayMinutes": 4320,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "email",
+            "title": "Feeling prepared for the next step",
+            "description": "Subject: Feeling prepared for the next step\n\nHi [FirstName],\n\nWhen you are ready, having financing questions answered can make evaluating homes less stressful. There is no obligation to move forward before you feel informed.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 7",
+            "delayMinutes": 8640,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-pre-approval",
+        "revisionKey": "premium-v1-pre-approval-push",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Unable to Verify",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 4: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 7: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nUnderstanding financing options can help you plan a comfortable budget. If you would like, I can help you identify questions to discuss with a licensed lender. Would that be useful?\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "A useful step before a serious home search",
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 4",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, would a conversation with a licensed lender help clarify your budget and financing options? I can help with an introduction if you would like one. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 7",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nWhen you are ready, having financing questions answered can make evaluating homes less stressful. There is no obligation to move forward before you feel informed.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "Feeling prepared for the next step",
+            "issues": []
+          }
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "lib/crm/mock-data.ts (shared default view fixture; not a subscriber campaign)",
+      "id": "luxury-seller-follow-up",
+      "name": "Luxury Seller – Automated Follow Up",
+      "audience": "Luxury Home Sellers",
+      "objective": [
+        "Increase response rate",
+        "Convert leads into luxury listings",
+        "Maintain warm, personalized touchpoints"
+      ],
+      "status": "Repository template/fixture — not live subscriber status",
+      "originalDuration": 10,
+      "duration": 30,
+      "originalSteps": [
+        {
+          "id": "s1",
+          "order": 1,
+          "type": "voicemail",
+          "title": "Ringless Voicemail",
+          "description": "Warm introduction with your recorded voice message.",
+          "dayLabel": "Day 1",
+          "timeLabel": "9:00 AM",
+          "status": "sent"
+        },
+        {
+          "id": "s2",
+          "order": 2,
+          "type": "avatar_video",
+          "title": "Personalized Video Message",
+          "description": "AI avatar delivers a tailored message on your behalf.",
+          "dayLabel": "Day 2",
+          "timeLabel": "11:00 AM",
+          "status": "sent"
+        },
+        {
+          "id": "s3",
+          "order": 3,
+          "type": "email",
+          "title": "Email",
+          "description": "Beautifully designed, personalized email follow-up.",
+          "dayLabel": "Day 3",
+          "timeLabel": "1:00 PM",
+          "status": "sent"
+        },
+        {
+          "id": "s4",
+          "order": 4,
+          "type": "sms",
+          "title": "Text Message",
+          "description": "Concise, high-touch SMS check-in.",
+          "dayLabel": "Day 5",
+          "timeLabel": "10:00 AM",
+          "status": "sent"
+        },
+        {
+          "id": "s5",
+          "order": 5,
+          "type": "retargeting",
+          "title": "Social Media Retargeting",
+          "description": "Stay visible with co-branded social touchpoints.",
+          "dayLabel": "Day 7",
+          "timeLabel": "All Day",
+          "status": "active"
+        },
+        {
+          "id": "s6",
+          "order": 6,
+          "type": "callback",
+          "title": "Callback Alert",
+          "description": "Reminder to personally follow up when engagement peaks.",
+          "dayLabel": "Day 10",
+          "timeLabel": "9:00 AM",
+          "status": "pending"
+        }
+      ],
+      "revised": {
+        "templateKey": "luxury-seller-follow-up",
+        "category": "seller",
+        "id": "premium-tpl-luxury-seller-follow-up",
+        "name": "Luxury Seller – Automated Follow Up — Premium Draft",
+        "description": "A multi-touch automated sequence that nurtures leads and keeps you top of mind.",
+        "audience": "Luxury Home Sellers",
+        "durationDays": 30,
+        "goals": [
+          "Increase response rate",
+          "Convert leads into luxury listings",
+          "Maintain warm, personalized touchpoints"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "voicemail",
+            "title": "An invitation to connect",
+            "description": "Hi, this is [Agent] with [Brokerage]. I’m available if you would like to discuss your selling plans, questions about the process, or what a thoughtful next step might look like. Please reach out whenever it suits you.",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "task",
+            "title": "Agent review — no message sent",
+            "description": "Prepare a personal video invitation only if an approved video workflow exists. Otherwise create an internal follow-up task; do not mark a video as delivered.",
+            "dayLabel": "Day 7",
+            "delayMinutes": 8640,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "email",
+            "title": "A thoughtful next step for your selling plans",
+            "description": "Subject: A thoughtful next step for your selling plans\n\nHi [FirstName],\n\nWhat would help you feel clearer about a possible sale: understanding the process, discussing timing, or arranging a property review? I’m happy to start with your questions.\n\n[Agent]\n[AgentPhone] | [Brokerage]\n\nIf you prefer not to receive updates, please contact me directly.\n[BusinessAddress]",
+            "dayLabel": "Day 13",
+            "delayMinutes": 17280,
+            "timeLabel": "10:00 AM",
+            "status": "draft",
+            "resourceKey": "seller-preparation"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "sms",
+            "title": "A useful next step",
+            "description": "Hi [FirstName], would a short conversation about your selling plans be useful? I’m happy to work around your priorities and timing. —[Agent] Reply STOP to opt out.",
+            "dayLabel": "Day 18",
+            "delayMinutes": 24480,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-5",
+            "order": 5,
+            "type": "task",
+            "title": "Agent review — no message sent",
+            "description": "Review authorized marketing options with the agent. No social retargeting integration is configured; do not send this instruction to a contact.",
+            "dayLabel": "Day 24",
+            "delayMinutes": 33120,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-6",
+            "order": 6,
+            "type": "task",
+            "title": "Agent review — no message sent",
+            "description": "Arrange a personal follow-up if the contact wants to discuss selling. Check current consent, reply history, and preferences first.",
+            "dayLabel": "Day 30",
+            "delayMinutes": 41760,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ],
+        "sourceId": "tpl-luxury-seller-follow-up",
+        "revisionKey": "premium-v1-luxury-seller-follow-up",
+        "reviewOnly": true
+      },
+      "readiness": {
+        "status": "Blocked",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 1: recording",
+            "status": "Blocked",
+            "action": "Choose the exact approved version and listen to verify it matches this script. Prerecorded audio does not dynamically speak merge fields."
+          },
+          {
+            "label": "Day 7: internal follow-up",
+            "status": "Unable to Verify",
+            "action": "The existing callback/task worker depends on Calendar sync. Confirm that integration or create the task manually; no automatic CRM task is promised."
+          },
+          {
+            "label": "Day 13: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 13: attachment",
+            "status": "Blocked",
+            "action": "Review the PDF, replace blank branding/disclosures and upload it to this email step. Confirm ownership, file size and readability."
+          },
+          {
+            "label": "Day 18: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 24: internal follow-up",
+            "status": "Unable to Verify",
+            "action": "The existing callback/task worker depends on Calendar sync. Confirm that integration or create the task manually; no automatic CRM task is promised."
+          },
+          {
+            "label": "Day 30: internal follow-up",
+            "status": "Unable to Verify",
+            "action": "The existing callback/task worker depends on Calendar sync. Confirm that integration or create the task manually; no automatic CRM task is promised."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [
+        {
+          "step": 3,
+          "key": "seller-preparation",
+          "title": "Home Selling Preparation Checklist",
+          "file": "private/campaign-materials/seller-preparation.pdf",
+          "state": "Local shared PDF draft. Review branding/disclosures and upload before email use."
+        }
+      ],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "voicemail",
+          "preview": {
+            "ok": true,
+            "body": "Hi, this is Avery Agent with Example Realty. I’m available if you would like to discuss your selling plans, questions about the process, or what a thoughtful next step might look like. Please reach out whenever it suits you.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 7",
+          "type": "task",
+          "preview": null
+        },
+        {
+          "step": 3,
+          "day": "Day 13",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nWhat would help you feel clearer about a possible sale: understanding the process, discussing timing, or arranging a property review? I’m happy to start with your questions.\n\nAvery Agent\n+15555550199 | Example Realty\n\nIf you prefer not to receive updates, please contact me directly.\n100 Example Way, Example City",
+            "subject": "A thoughtful next step for your selling plans",
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 18",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, would a short conversation about your selling plans be useful? I’m happy to work around your priorities and timing. —Avery Agent Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 5,
+          "day": "Day 24",
+          "type": "task",
+          "preview": null
+        },
+        {
+          "step": 6,
+          "day": "Day 30",
+          "type": "task",
+          "preview": null
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "New review-only draft",
+      "id": "premium-commercial-28",
+      "name": "Commercial Property Planning — Premium Draft",
+      "audience": "Commercial property decision-makers with documented consent",
+      "objective": [
+        "Clarify property requirements",
+        "Arrange an optional consultation"
+      ],
+      "status": "Review-only new draft",
+      "originalDuration": null,
+      "duration": 28,
+      "originalSteps": [],
+      "revised": {
+        "id": "premium-commercial-28",
+        "sourceId": "new-commercial-draft",
+        "revisionKey": "premium-v1-commercial-28",
+        "reviewOnly": true,
+        "name": "Commercial Property Planning — Premium Draft",
+        "description": "A professional 28-day draft for acquisition, leasing and business-space requirements. No market or return claims.",
+        "audience": "Commercial property decision-makers with documented consent",
+        "durationDays": 28,
+        "goals": [
+          "Clarify property requirements",
+          "Arrange an optional consultation"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "email",
+            "title": "An introduction on your terms",
+            "description": "Subject: A thoughtful starting point for your property plans\n\nHi [FirstName],\n\nI'm [Agent] with [Brokerage]. If you are considering an acquisition, lease or change in business space, I can help you organize the questions that matter. Which property objective is most important to you?\n\n[Agent]\n[AgentPhone]\nReply if you prefer no further updates.\n[BusinessAddress]",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft",
+            "resourceKey": "commercial-planning"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "sms",
+            "title": "Understanding your requirements",
+            "description": "Hi [FirstName], this is [Agent]. Are your commercial property plans centered on acquiring, leasing or changing business space? Reply STOP to opt out.",
+            "dayLabel": "Day 7",
+            "delayMinutes": 8640,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "voicemail",
+            "title": "A professional introduction",
+            "description": "Hi, this is [Agent] with [Brokerage]. If it would be useful to talk through your commercial property requirements, please call me at [AgentPhone]. I would be glad to start with your priorities. Thank you.",
+            "dayLabel": "Day 14",
+            "delayMinutes": 18720,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "email",
+            "title": "Space for a useful conversation",
+            "description": "Subject: A clear brief for your next property decision\n\nHi [FirstName],\n\nA useful property brief can bring location, intended use, timing and space requirements into focus. Would a short conversation help you organize those priorities?\n\n[Agent]\nReply if you prefer no further updates.\n[BusinessAddress]",
+            "dayLabel": "Day 21",
+            "delayMinutes": 28800,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-5",
+            "order": 5,
+            "type": "sms",
+            "title": "Your timing comes first",
+            "description": "Hi [FirstName], this is [Agent]. Would you prefer a later follow-up about your commercial plans, or should I pause for now? Reply STOP to opt out.",
+            "dayLabel": "Day 28",
+            "delayMinutes": 38880,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ]
+      },
+      "readiness": {
+        "status": "Blocked",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 1: attachment",
+            "status": "Blocked",
+            "action": "Review the PDF, replace blank branding/disclosures and upload it to this email step. Confirm ownership, file size and readability."
+          },
+          {
+            "label": "Day 7: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 14: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 14: recording",
+            "status": "Blocked",
+            "action": "Choose the exact approved version and listen to verify it matches this script. Prerecorded audio does not dynamically speak merge fields."
+          },
+          {
+            "label": "Day 21: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 28: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [
+        {
+          "step": 1,
+          "key": "commercial-planning",
+          "title": "Commercial Property Planning Guide",
+          "file": "private/campaign-materials/commercial-planning.pdf",
+          "state": "Local shared PDF draft. Review branding/disclosures and upload before email use."
+        }
+      ],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nI'm Avery Agent with Example Realty. If you are considering an acquisition, lease or change in business space, I can help you organize the questions that matter. Which property objective is most important to you?\n\nAvery Agent\n+15555550199\nReply if you prefer no further updates.\n100 Example Way, Example City",
+            "subject": "A thoughtful starting point for your property plans",
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 7",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, this is Avery Agent. Are your commercial property plans centered on acquiring, leasing or changing business space? Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 14",
+          "type": "voicemail",
+          "preview": {
+            "ok": true,
+            "body": "Hi, this is Avery Agent with Example Realty. If it would be useful to talk through your commercial property requirements, please call me at +15555550199. I would be glad to start with your priorities. Thank you.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 21",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nA useful property brief can bring location, intended use, timing and space requirements into focus. Would a short conversation help you organize those priorities?\n\nAvery Agent\nReply if you prefer no further updates.\n100 Example Way, Example City",
+            "subject": "A clear brief for your next property decision",
+            "issues": []
+          }
+        },
+        {
+          "step": 5,
+          "day": "Day 28",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, this is Avery Agent. Would you prefer a later follow-up about your commercial plans, or should I pause for now? Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    },
+    {
+      "source": "New review-only draft",
+      "id": "premium-relationships-worth-sharing",
+      "name": "Relationships Worth Sharing",
+      "audience": "Past clients who have authorized the relevant communication channel",
+      "objective": [
+        "Maintain genuine relationships",
+        "Invite voluntary honest feedback",
+        "Offer thoughtful guidance to referrals"
+      ],
+      "status": "Review-only new draft",
+      "originalDuration": null,
+      "duration": 90,
+      "originalSteps": [],
+      "revised": {
+        "id": "premium-relationships-worth-sharing",
+        "sourceId": "new-referral-review-draft",
+        "revisionKey": "premium-v1-relationships-worth-sharing",
+        "reviewOnly": true,
+        "name": "Relationships Worth Sharing",
+        "description": "A 90-day relationship, voluntary honest review and referral draft. Review reminders are conditional; no automatic enrollment or activation.",
+        "audience": "Past clients who have authorized the relevant communication channel",
+        "durationDays": 90,
+        "goals": [
+          "Maintain genuine relationships",
+          "Invite voluntary honest feedback",
+          "Offer thoughtful guidance to referrals"
+        ],
+        "stats": {
+          "reach": 0,
+          "replies": 0,
+          "responseRate": 0
+        },
+        "steps": [
+          {
+            "id": "premium-step-1",
+            "order": 1,
+            "type": "sms",
+            "title": "A personal thank you",
+            "description": "Hi [FirstName], it's [AgentName]. Thank you again for trusting me with your real estate journey. I hope everything is going wonderfully! Reply STOP to opt out.",
+            "dayLabel": "Day 1",
+            "delayMinutes": 0,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-2",
+            "order": 2,
+            "type": "email",
+            "title": "Your experience means so much",
+            "description": "Subject: A small favor, if you have a moment\n\nHi [FirstName],\n\nIt was a pleasure helping you with your real estate journey. If you feel comfortable sharing your honest experience in a Zillow review, I would be grateful for your feedback.\n\nYou can leave a review here:\n[ZillowReviewLink]\n\nThank you again for your trust.\n\n[AgentName]\n[AgentPhone]\nReply if you prefer no further updates.\n[BusinessAddress]",
+            "dayLabel": "Day 14",
+            "delayMinutes": 18720,
+            "timeLabel": "10:00 AM",
+            "status": "draft",
+            "reviewRequest": "request"
+          },
+          {
+            "id": "premium-step-3",
+            "order": 3,
+            "type": "voicemail",
+            "title": "Staying connected",
+            "description": "Hi, this is [AgentName]. I wanted to say hello and thank you again for trusting me with your real estate journey. If you or someone you know could use real estate guidance, I'm happy to help. Please call me at [AgentPhone] whenever it is useful. Take care.",
+            "dayLabel": "Day 30",
+            "delayMinutes": 41760,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          },
+          {
+            "id": "premium-step-4",
+            "order": 4,
+            "type": "sms",
+            "title": "A gentle review invitation",
+            "description": "Hi [FirstName], if you feel comfortable sharing your experience, I would appreciate an honest Zillow review: [ZillowReviewLink] Thank you again. [AgentName]. Reply STOP to opt out.",
+            "dayLabel": "Day 45",
+            "delayMinutes": 63360,
+            "timeLabel": "10:00 AM",
+            "status": "draft",
+            "reviewRequest": "reminder"
+          },
+          {
+            "id": "premium-step-5",
+            "order": 5,
+            "type": "email",
+            "title": "A resource worth sharing",
+            "description": "Subject: A helpful guide for your next chapter\n\nHi [FirstName],\n\nThe Buyer & Seller Planning Guide is attached for anyone considering a next move. If someone in your circle would like thoughtful real estate guidance, I would be grateful for an introduction.\n\nAnd of course, I'm here for your questions too.\n\n[AgentName]\n[AgentPhone]\nReply if you prefer no further updates.\n[BusinessAddress]",
+            "dayLabel": "Day 60",
+            "delayMinutes": 84960,
+            "timeLabel": "10:00 AM",
+            "status": "draft",
+            "resourceKey": "buyer-seller-planning"
+          },
+          {
+            "id": "premium-step-6",
+            "order": 6,
+            "type": "sms",
+            "title": "Relationships worth sharing",
+            "description": "Hi [FirstName], it's [AgentName]. If someone you know is considering buying or selling, I'd be happy to be a resource. I'm a call or text away whenever it is helpful. Reply STOP to opt out.",
+            "dayLabel": "Day 90",
+            "delayMinutes": 128160,
+            "timeLabel": "10:00 AM",
+            "status": "draft"
+          }
+        ]
+      },
+      "readiness": {
+        "status": "Blocked",
+        "checks": [
+          {
+            "label": "Day 1: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 14: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 30: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 30: recording",
+            "status": "Blocked",
+            "action": "Choose the exact approved version and listen to verify it matches this script. Prerecorded audio does not dynamically speak merge fields."
+          },
+          {
+            "label": "Day 45: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 60: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Day 60: attachment",
+            "status": "Blocked",
+            "action": "Review the PDF, replace blank branding/disclosures and upload it to this email step. Confirm ownership, file size and readability."
+          },
+          {
+            "label": "Day 90: personalization",
+            "status": "Ready",
+            "action": "Review the exact personalized message before approving."
+          },
+          {
+            "label": "Consent, suppression and audience relevance",
+            "status": "Unable to Verify",
+            "action": "Verify channel-specific consent, quiet hours, DNC/suppression, frequency and intended audience. Readiness is not legal certification."
+          },
+          {
+            "label": "Provider and compliance verification",
+            "status": "Unable to Verify",
+            "action": "Verify Twilio sender registration, email authentication, monitored opt-out handling, required disclosures and voicemail consent before activation."
+          }
+        ]
+      },
+      "recordings": "Live recordings unavailable; Sapphire availability unverified. No audio generated, replaced or approved.",
+      "attachments": [
+        {
+          "step": 5,
+          "key": "buyer-seller-planning",
+          "title": "Buyer & Seller Planning Guide",
+          "file": "private/campaign-materials/buyer-seller-planning.pdf",
+          "state": "Local shared PDF draft. Review branding/disclosures and upload before email use."
+        }
+      ],
+      "enrollments": "Unknown; production subscriber data was not accessed",
+      "performance": "Unavailable; template/sample statistics are not provider-backed results",
+      "functionality": [
+        {
+          "step": 1,
+          "day": "Day 1",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, it's Avery Agent. Thank you again for trusting me with your real estate journey. I hope everything is going wonderfully! Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 2,
+          "day": "Day 14",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nIt was a pleasure helping you with your real estate journey. If you feel comfortable sharing your honest experience in a Zillow review, I would be grateful for your feedback.\n\nYou can leave a review here:\nhttps://www.zillow.com/reviews/write/?s=synthetic-demo\n\nThank you again for your trust.\n\nAvery Agent\n+15555550199\nReply if you prefer no further updates.\n100 Example Way, Example City",
+            "subject": "A small favor, if you have a moment",
+            "issues": []
+          }
+        },
+        {
+          "step": 3,
+          "day": "Day 30",
+          "type": "voicemail",
+          "preview": {
+            "ok": true,
+            "body": "Hi, this is Avery Agent. I wanted to say hello and thank you again for trusting me with your real estate journey. If you or someone you know could use real estate guidance, I'm happy to help. Please call me at +15555550199 whenever it is useful. Take care.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 4,
+          "day": "Day 45",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, if you feel comfortable sharing your experience, I would appreciate an honest Zillow review: https://www.zillow.com/reviews/write/?s=synthetic-demo Thank you again. Avery Agent. Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        },
+        {
+          "step": 5,
+          "day": "Day 60",
+          "type": "email",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan,\n\nThe Buyer & Seller Planning Guide is attached for anyone considering a next move. If someone in your circle would like thoughtful real estate guidance, I would be grateful for an introduction.\n\nAnd of course, I'm here for your questions too.\n\nAvery Agent\n+15555550199\nReply if you prefer no further updates.\n100 Example Way, Example City",
+            "subject": "A helpful guide for your next chapter",
+            "issues": []
+          }
+        },
+        {
+          "step": 6,
+          "day": "Day 90",
+          "type": "sms",
+          "preview": {
+            "ok": true,
+            "body": "Hi Jordan, it's Avery Agent. If someone you know is considering buying or selling, I'd be happy to be a resource. I'm a call or text away whenever it is helpful. Reply STOP to opt out.",
+            "subject": null,
+            "issues": []
+          }
+        }
+      ],
+      "approvalRequired": [
+        "Agent review of every message and audience",
+        "Channel consent and deliverability verification",
+        "Matching approved voice recording",
+        "Approved branded attachment where expected",
+        "Explicit activation/enrollment approval; no live revisions applied"
+      ]
+    }
+  ]
+}

@@ -51,6 +51,7 @@ export function VoiceCloningStrip({
   const [selectedVoiceKey, setSelectedVoiceKey] = useState("");
   const [title, setTitle] = useState("AI generated voicemail");
   const [generating, setGenerating] = useState(false);
+  const [requireSapphire,setRequireSapphire]=useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
   const [cloneOpen, setCloneOpen] = useState(false);
   const [linkLabel, setLinkLabel] = useState("My voice");
@@ -69,6 +70,7 @@ export function VoiceCloningStrip({
       envVoice: EnvVoice | null;
       configured?: boolean;
       defaultProfileId: string | null;
+      preferredUnavailable?: boolean;
     }>("/api/voice-assets/profiles");
     if (!envelope.success) return;
 
@@ -82,6 +84,7 @@ export function VoiceCloningStrip({
     setEnvVoice(env);
     setApiConfigured(Boolean(configured));
 
+    if(envelope.data.preferredUnavailable){setSelectedVoiceKey("");setError("Your saved preferred voice is unavailable. Choose an authorized alternative explicitly or update Settings → Brand Kit.");return;}
     if (defaultProfileId) {
       setSelectedVoiceKey(defaultProfileId);
     } else if (env?.voiceId) {
@@ -120,6 +123,7 @@ export function VoiceCloningStrip({
       ...(scriptId ? {scriptId} : {}),
     };
 
+    if(requireSapphire)payload.requiredVoiceName="Sapphire";
     if (selectedVoiceKey.startsWith(ENV_VOICE_PREFIX)) {
       payload.voiceId = selectedVoiceKey.slice(ENV_VOICE_PREFIX.length);
     } else if (selectedVoiceKey && selectedVoiceKey !== "default") {
@@ -271,6 +275,7 @@ export function VoiceCloningStrip({
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <label className="text-[12px] text-taupe">
+          <label className="mb-2 flex gap-2"><input type="checkbox" checked={requireSapphire} onChange={e=>setRequireSapphire(e.target.checked)}/> Require Sapphire for this draft (no substitute)</label>
           <span className="mb-1 block font-medium text-ink">Speak as</span>
           <select
             className="w-full rounded-xl border border-outline-variant/25 bg-cream px-3 py-2 text-[13px]"

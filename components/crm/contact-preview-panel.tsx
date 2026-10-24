@@ -1,4 +1,5 @@
 "use client";
+import { ContactReviewsPanel } from "@/components/reviews/contact-reviews-panel";
 
 import { useId, useState, useRef } from "react";
 import Link from "next/link";
@@ -11,7 +12,7 @@ import { ContactNotesPanel } from "./contact-notes-panel";
 import { ContactAvatar } from "./contact-avatar";
 import { ComplianceBadge } from "./compliance-badge";
 
-const TABS = ["Details", "Activity", "Notes", "AI Insights"] as const;
+const TABS = ["Details", "Activity", "Notes", "AI Insights", "Reviews & Referrals"] as const;
 
 export function ContactPreviewPanel({ contact, consent }: {
   contact: ApiContact;
@@ -75,6 +76,8 @@ export function ContactPreviewPanel({ contact, consent }: {
           </>
         ) : tab === "Activity" ? (
           <ContactActivityTimeline contactId={contact.id} contactName={name} />
+        ) : tab === "Reviews & Referrals" ? (
+          <ContactReviewsPanel key={contact.id} contactId={contact.id}/>
         ) : tab === "Notes" ? (
           <ContactNotesPanel contactId={contact.id} fallback={contact.notes ?? undefined} />
         ) : (

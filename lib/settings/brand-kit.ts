@@ -1,3 +1,4 @@
+import { ZillowReviewUrlSchema } from "@/lib/reviews/model";
 import { z } from "zod";
 const text = z.string().trim().max(300).default("");
 const https = z
@@ -16,6 +17,9 @@ export const BrandKitSchema = z.object({
   phone: text,
   email: z.union([z.literal(""), z.string().email()]).default(""),
   website: https,
+  zillowReviewUrl: ZillowReviewUrlSchema.default(""),
+  reviewRequestsEnabled: z.boolean().default(true),
+  preferredAiVoiceProfileId: z.string().uuid().nullable().default(null),
   address: text,
   bio: z.string().max(3000).default(""),
   licenseNumber: text,
