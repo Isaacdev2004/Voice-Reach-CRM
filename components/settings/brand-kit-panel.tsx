@@ -1,4 +1,5 @@
 "use client";
+import { AuthorizedVoicePreference } from "./authorized-voice-preference";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -126,6 +127,7 @@ export function BrandKitPanel({
     ["phone", "Business phone"],
     ["email", "Business email"],
     ["website", "Website (https)"],
+    ["zillowReviewUrl", "Zillow Review Link"],
     ["address", "Business address"],
     ["licenseNumber", "Real estate license number"],
   ];
@@ -149,6 +151,9 @@ export function BrandKitPanel({
             </label>
           ))}
         </div>
+        <label><input type="checkbox" checked={kit.reviewRequestsEnabled ?? true} onChange={e=>edit({reviewRequestsEnabled:e.target.checked})}/> Enable review invitations (independent of referral nurturing)</label>
+        {kit.zillowReviewUrl && /^https:\/\/(www\.)?zillow\.com\/reviews\/write\//.test(kit.zillowReviewUrl) && <a href={kit.zillowReviewUrl} target="_blank" rel="noopener noreferrer">Preview your Zillow review destination ↗</a>}
+        <AuthorizedVoicePreference value={kit.preferredAiVoiceProfileId ?? null} onChange={id=>edit({preferredAiVoiceProfileId:id})}/>
         <div className="brand-images">
           {(["headshot", "logo"] as const).map((kind) => (
             <div key={kind}>

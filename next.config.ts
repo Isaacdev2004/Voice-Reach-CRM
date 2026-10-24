@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
+    "/api/campaign-materials/*": ["./private/campaign-materials/*.pdf"],
     "/api/marketing/playbook": [
       "./resources/myari-agent-follow-up-playbook.pdf",
     ],

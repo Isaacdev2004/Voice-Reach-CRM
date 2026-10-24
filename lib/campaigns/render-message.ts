@@ -61,6 +61,8 @@ export function renderMessage(
     )
   )
     issues.push("Remove internal system information from message content.");
+  if (context && /\[Agent(?:Name)?\]|\{\{\s*agent_name\s*\}\}/i.test(raw) && !context.agentName?.trim()) issues.push("Add your authorized sender name in Settings.");
+  if (context && /\[Brokerage\]/i.test(raw) && !context.brokerage?.trim()) issues.push("Add your brokerage in Settings.");
   for (const link of `${body}\n${subject ?? ""}`.match(
     /https?:\/\/[^\s<>]*/gi,
   ) ?? []) {

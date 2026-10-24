@@ -1,4 +1,5 @@
 "use client";
+import { PREMIUM_CAMPAIGN_DRAFTS } from "@/lib/campaigns/premium-drafts";
 
 import { PersonalizedPreviewModal } from "@/components/campaigns/personalized-preview-modal";
 import { AddCampaignStepModal } from "@/components/crm/add-campaign-step-modal";
@@ -110,6 +111,9 @@ export function CampaignBuilderPage() {
   );
 
   useEffect(() => {
+    const premium=searchParams.get("premium");
+    const draft=premium?PREMIUM_CAMPAIGN_DRAFTS.find(d=>d.revisionKey===premium):null;
+    if(draft && !editId){setCampaign({...structuredClone(draft),id:`review-${crypto.randomUUID()}`,steps:draft.steps.map(s=>({...s,id:crypto.randomUUID()}))});setDbCampaignId(null);setCampaignStatus("editing");router.replace("/dashboard/campaigns#campaign-builder",{scroll:false});return;}
     if (searchParams.get("new") === "1") {
       resetToNewCampaign();
       router.replace("/dashboard/campaigns#campaign-builder", {

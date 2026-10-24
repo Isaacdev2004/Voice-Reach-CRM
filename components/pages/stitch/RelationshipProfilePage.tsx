@@ -1,4 +1,5 @@
 "use client";
+import { ContactReviewsPanel } from "@/components/reviews/contact-reviews-panel";
 
 import { AiLauncherButton } from "@/components/ai/ai-launcher-button";
 import Link from "next/link";
@@ -218,6 +219,7 @@ function OwnedRelationshipProfile({ contactId }: RelationshipProfilePageProps) {
         </div>
       </LuxuryCard>
 
+      {apiContact && !isDemo && <ContactReviewsPanel key={apiContact.id} contactId={apiContact.id}/>}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <LuxuryCard padding="lg" className="lg:col-span-5">
           <div id="activity" className="mb-6 flex scroll-mt-24 items-center justify-between">

@@ -1,4 +1,5 @@
 "use client";
+import { PremiumDraftLibrary } from "./premium-draft-library";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
@@ -37,6 +38,7 @@ function CampaignsOwnerWorkspace() {
         </Link>
       </div>
       <CampaignListPanel />
+      <PremiumDraftLibrary />
       <details
         id="campaign-builder"
         open={open}

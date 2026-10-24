@@ -20,6 +20,8 @@ const Step = z
     dayLabel: z.string().max(100).optional(),
     timeLabel: z.string().max(100).optional(),
     voiceAssetId: z.string().uuid().nullable().optional(),
+    reviewRequest: z.enum(["request","reminder"]).optional(),
+    resourceKey: z.string().max(80).optional(),
     attachments: z
       .array(
         z.object({
@@ -66,6 +68,8 @@ export function duplicateBlueprint(data: LibraryPreview) {
       timeLabel: s.time_label ?? undefined,
       voiceAssetId:
         s.voice_asset_id ?? (s.conditions?.voiceAssetId as string | undefined),
+      reviewRequest: s.conditions?.reviewRequest as "request"|"reminder"|undefined,
+      resourceKey: s.conditions?.resourceKey as string|undefined,
       attachments: Array.isArray(s.conditions?.attachments)
         ? s.conditions.attachments
         : undefined,

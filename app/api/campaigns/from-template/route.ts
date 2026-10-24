@@ -40,14 +40,6 @@ export const POST = withApiHandler(async (request) => {
 
   // Always start in Simulation so template campaigns never auto-fire live RVM.
   const provider = "mock";
-  const { data: latestVoice } = await supabaseAdmin
-    .from("voice_assets")
-    .select("id")
-    .eq("owner_id", ownerId)
-    .eq("approved", true)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
 
   const { data: record, error } = await supabaseAdmin
     .from("campaigns")
@@ -57,7 +49,7 @@ export const POST = withApiHandler(async (request) => {
       script_id: `template-${body.templateKey}`,
       provider,
       status: "draft",
-      voice_asset_id: latestVoice?.id ?? null,
+      voice_asset_id: null,
     })
     .select("*")
     .single();
@@ -73,6 +65,7 @@ export const POST = withApiHandler(async (request) => {
     delayMinutes: delayFromDayLabel(step.dayLabel),
     dayLabel: step.dayLabel,
     timeLabel: step.timeLabel,
+    conditions: { ...(step.reviewRequest ? {reviewRequest:step.reviewRequest}:{}), ...(step.resourceKey ? {resourceKey:step.resourceKey}:{}), },
   }));
 
   await persistSteps(ownerId, record.id, steps);
@@ -111,10 +104,8 @@ export const POST = withApiHandler(async (request) => {
       campaignId: record.id,
       automationRuleId,
       alreadyExisted: false,
-      voiceAttached: Boolean(latestVoice?.id),
-      message: latestVoice?.id
-        ? `"${campaign.name}" is ready with your latest approved voice. Add consented contacts, then Run sequence → Live send.`
-        : `"${campaign.name}" is ready. Add consented contacts, approve a voice if needed, then Run sequence → Live send.`,
+      voiceAttached: false,
+      message: `"${campaign.name}" was created as a draft. Review every message, recording, attachment and consent before activation.`,
     },
     { status: 201 },
   );

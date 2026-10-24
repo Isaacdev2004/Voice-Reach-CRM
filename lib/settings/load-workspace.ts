@@ -8,6 +8,7 @@ export async function loadWorkspaceSettings(
 ): Promise<{
   workspace: WorkspaceSettings;
   profile: UserSettings["profile"];
+  brandKit?: UserSettings["brandKit"];
 }> {
   const { data } = await supabaseAdmin
     .from("audit_logs")
@@ -23,6 +24,7 @@ export async function loadWorkspaceSettings(
     ?.settings;
   if (options?.outbound)
     return {
+      brandKit: saved?.brandKit,
       workspace: {
         ...DEFAULT_SETTINGS.workspace,
         ...saved?.workspace,
@@ -37,6 +39,7 @@ export async function loadWorkspaceSettings(
       },
     };
   return {
+    brandKit: saved?.brandKit,
     workspace: { ...DEFAULT_SETTINGS.workspace, ...(saved?.workspace ?? {}) },
     profile: { ...DEFAULT_SETTINGS.profile, ...(saved?.profile ?? {}) },
   };

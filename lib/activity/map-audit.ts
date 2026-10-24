@@ -35,6 +35,13 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
   const meta = row.metadata ?? {};
 
   switch (row.action) {
+    case "CONTACT_REVIEW_EVENT":
+    case "CONTACT_REFERRAL_EVENT": {
+      const state=meta.state as Record<string,unknown>|undefined;
+      const contact=row.action === "CONTACT_REVIEW_EVENT" ? row.entity_id : typeof state?.referrerId === "string" ? state.referrerId : null;
+      return entry(row,{category:"contacts",icon:"handshake",tone:"default",title:row.action === "CONTACT_REVIEW_EVENT" ? "Review status recorded" : "Referral update recorded",body:typeof state?.status === "string" ? state.status.replaceAll("_"," ")+" · agent-recorded; independent review verification is not inferred." : "Recorded relationship event",href:contact?`/dashboard/contacts/${contact}`:"/dashboard/reviews",entityId:contact,metadata:meta});
+    }
+
     case "TWILIO_UNATTRIBUTED":
     case "TWILIO_SHARED_REPLY_HOLD": return null;
     case "TWILIO_CALL_EVENT":

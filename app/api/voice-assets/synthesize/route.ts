@@ -5,6 +5,7 @@ import {
   isElevenLabsConfigured,
   resolveOwnerVoiceId,
   synthesizeSpeech,
+  verifyProviderVoiceName,
 } from "@/lib/providers/elevenlabs";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { previewPersonalization } from "@/lib/voice-studio/verification";
@@ -15,6 +16,7 @@ const BodySchema = z.object({
   title: z.string().min(1).max(120),
   scriptId: z.string().min(1).optional(),
   voiceId: z.string().optional(),
+  requiredVoiceName: z.literal("Sapphire").optional(),
   voiceProfileId: z.string().uuid().optional(),
 });
 
@@ -39,7 +41,7 @@ export const POST = withApiHandler(async (request) => {
       { status: 400 },
     );
   let voiceId:string,audioBuffer:ArrayBuffer;
-  try{voiceId=await resolveOwnerVoiceId(ownerId,{voiceId:body.voiceId,voiceProfileId:body.voiceProfileId});audioBuffer=await synthesizeSpeech({text:body.script,voiceId});}catch{return apiError("Audio could not be generated with the selected voice. Check the voice selection or try again later.",{status:503});}
+  try{voiceId=await resolveOwnerVoiceId(ownerId,{voiceId:body.voiceId,voiceProfileId:body.voiceProfileId});if(body.requiredVoiceName && !await verifyProviderVoiceName(voiceId,body.requiredVoiceName))return apiError("Sapphire is not available or could not be verified for the selected authorized voice. No substitute was generated.",{status:503,code:"preferred_voice_unavailable"});audioBuffer=await synthesizeSpeech({text:body.script,voiceId});}catch{return apiError("Audio could not be generated with the selected voice. Check the voice selection or try again later.",{status:503});}
   const bucket = process.env.SUPABASE_STORAGE_BUCKET || "voice-assets";
   const storagePath = `${ownerId}/ai-${crypto.randomUUID()}.mp3`;
 
@@ -60,7 +62,7 @@ export const POST = withApiHandler(async (request) => {
       title: body.title,
       storage_path: storagePath,
       approved: false,
-      studio_metadata: { source: "ai", script: body.script },
+      studio_metadata: { source: "ai", script: body.script, provider: "elevenlabs", providerVoiceId: voiceId, createdAsDraft: true },
     })
     .select("*")
     .single();

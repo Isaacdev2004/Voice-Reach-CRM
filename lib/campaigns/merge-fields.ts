@@ -1,3 +1,4 @@
+import { validZillowReviewUrl } from "@/lib/reviews/model";
 export type MergeFieldContact = {
   first_name?: string | null;
   last_name?: string | null;
@@ -16,6 +17,9 @@ export type MergeFieldContext = {
   contact: MergeFieldContact;
   agentName?: string | null;
   agentPhone?: string | null;
+  agentEmail?: string | null;
+  zillowReviewUrl?: string | null;
+  businessAddress?: string | null;
   brokerage?: string | null;
   marketArea?: string | null;
   city?: string | null;
@@ -47,6 +51,7 @@ export const MERGE_FIELD_GUIDE: {
     meaning: "Your phone (Settings → Profile)",
     auto: true,
   },
+  { token: "[ZillowReviewLink]", meaning: "Your saved Zillow review link (Brand Kit)", auto: true },
   { token: "[Brokerage]", meaning: "Workspace name", auto: true },
   {
     token: "[Comp1Address]",
@@ -116,6 +121,9 @@ export function applyMergeFields(
     FullName: fullName,
     Name: fullName,
     Agent: agent,
+    AgentName: agent,
+    AgentEmail: clean(ctx.agentEmail),
+    agent_email: clean(ctx.agentEmail),
     agent_name: agent,
     "Your name": agent,
     AgentPhone: agentPhone,
@@ -141,7 +149,11 @@ export function applyMergeFields(
     budget: budget,
   };
 
+  if (clean(ctx.businessAddress)) {map.BusinessAddress=clean(ctx.businessAddress);map.business_address=clean(ctx.businessAddress);}
+  if (ctx.zillowReviewUrl && validZillowReviewUrl(ctx.zillowReviewUrl)) { map.ZillowReviewLink=ctx.zillowReviewUrl; map.zillow_review_link=ctx.zillowReviewUrl; }
+
   for (const [key, value] of Object.entries(ctx.extras ?? {})) {
+    if (["zillowreviewlink","zillow_review_link"].includes(key.toLowerCase())) continue;
     if (!key) continue;
     const v = clean(value);
     if (!v) continue;

@@ -86,7 +86,8 @@ export async function signAttachmentsForSend(
   const urls: string[] = [];
   for (const file of attachments) {
     const signed = await signStoragePath(ownerId, file.storagePath);
-    if (signed) urls.push(signed);
+    if (!signed) throw new Error("An attachment is unavailable. No message should be sent without every selected attachment.");
+    urls.push(signed);
   }
   return urls;
 }
@@ -99,8 +100,9 @@ export async function downloadAttachmentBase64(
   const { data, error } = await supabaseAdmin.storage
     .from(storageBucket())
     .download(attachment.storagePath);
-  if (error || !data) return null;
+  if (error || !data) throw new Error("A selected attachment could not be loaded.");
   const buffer = Buffer.from(await data.arrayBuffer());
+  if (!buffer.length || buffer.length > EMAIL_ATTACHMENT_MAX_BYTES) throw new Error("Attachment exceeds the verified email file limit.");
   return {
     filename: attachment.fileName,
     content: buffer.toString("base64"),
@@ -116,5 +118,7 @@ export async function emailAttachmentsForSend(
     const downloaded = await downloadAttachmentBase64(ownerId, file);
     if (downloaded) out.push(downloaded);
   }
+  const total=out.reduce((sum,file)=>sum+Buffer.from(file.content,"base64").length,0);
+  if(total>EMAIL_ATTACHMENT_MAX_BYTES)throw new Error("Combined email attachments exceed 10 MB.");
   return out;
 }

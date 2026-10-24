@@ -74,6 +74,8 @@ export type CampaignStep = {
   voiceAssetId?: string | null;
   voiceAssetTitle?: string | null;
   voicePlaybackUrl?: string | null;
+  reviewRequest?: "request" | "reminder";
+  resourceKey?: string;
   /** SMS MMS image or email file attachments */
   attachments?: CampaignStepAttachment[];
 };
