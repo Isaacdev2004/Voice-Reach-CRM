@@ -343,23 +343,29 @@ export async function runTool(
       },
     );
   } else if (key === "read_campaigns") {
+    const campaigns = await rows(
+      owner,
+      "campaigns",
+      "id,name,status,updated_at",
+      data.campaignId ? { id: String(data.campaignId) } : {},
+    );
+    if (data.campaignId && !campaigns.records.length)
+      throw new AssistantFailure("Campaign not found", 404);
+    const steps = data.campaignId
+      ? await rows(
+          owner,
+          "campaign_steps",
+          "id,step_order,type,title,description,delay_minutes",
+          { campaign_id: String(data.campaignId) },
+          "step_order",
+        )
+      : undefined;
     result = {
-      ...(await rows(
-        owner,
-        "campaigns",
-        "id,name,status,updated_at",
-        data.campaignId ? { id: String(data.campaignId) } : {},
-      )),
-      steps: data.campaignId
-        ? (
-            await rows(
-              owner,
-              "campaign_steps",
-              "id,step_order,type,title,description,delay_minutes",
-              { campaign_id: String(data.campaignId) },
-            )
-          ).records
-        : undefined,
+      ...campaigns,
+      steps: steps?.records,
+      stepsLimited: steps?.limited ?? false,
+      editingScope:
+        "Revise unsaved assistant proposals using revisionOf. Saved campaigns require the campaign editor; no in-place changes or activation are supported by this tool.",
     };
   } else if (key === "read_tasks") {
     if (data.contactId) await ownedContact(owner, String(data.contactId));

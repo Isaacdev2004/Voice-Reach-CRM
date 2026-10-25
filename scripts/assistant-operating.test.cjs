@@ -67,6 +67,41 @@ const note = {
   title: "Consultation recap",
   body: "Synthetic meeting summary; verify details.",
 };
+test("campaign context checks parent ownership and discloses truncated sequence context", async () => {
+  const f = setup();
+  const tools = f.load("lib/assistant/tools.ts");
+  const calls = [];
+  const reads = f.load("lib/assistant/reads.ts");
+  reads.rows = async (...args) => {
+    calls.push(args);
+    return args[1] === "campaigns"
+      ? { records: [{ id: id(1), name: "Synthetic draft" }], limited: false }
+      : { records: [{ id: id(20), step_order: 1 }], limited: true };
+  };
+  const result = await tools.runTool(owner, "read_campaigns", { campaignId: id(1) }, id(90));
+  assert.equal(result.stepsLimited, true);
+  assert.equal(calls[1][4], "step_order");
+  assert.match(result.editingScope, /campaign editor/);
+  calls.length = 0;
+  reads.rows = async (...args) => {
+    calls.push(args);
+    return { records: [], limited: false };
+  };
+  await assert.rejects(tools.runTool(owner, "read_campaigns", { campaignId: id(9) }, id(91)), /Campaign not found/);
+  assert.equal(calls.length, 1);
+});
+test("campaign sequence retrieval follows step order instead of UUID order", async () => {
+  const f = setup();
+  f.tables.campaigns = [{ id: id(1), owner_id: owner, name: "Synthetic campaign", status: "draft" }];
+  f.tables.campaign_steps = [
+    { id: id(10), owner_id: owner, campaign_id: id(1), step_order: 2, title: "Second email" },
+    { id: id(20), owner_id: owner, campaign_id: id(1), step_order: 1, title: "First email" },
+    { id: id(30), owner_id: "foreign", campaign_id: id(1), step_order: 0, title: "Private" },
+  ];
+  const result = await f.load("lib/assistant/tools.ts").runTool(owner, "read_campaigns", { campaignId: id(1) }, id(92));
+  assert.deepEqual(result.steps.map(s => s.title), ["First email", "Second email"]);
+  assert.equal(result.stepsLimited, false);
+});
 test("tool registry has bounded read/prepare tools and no SQL, billing, deletion or activation capability", () => {
   const t = setup().load("lib/assistant/tools.ts").toolDefinitions;
   assert.ok(t.length >= 25);

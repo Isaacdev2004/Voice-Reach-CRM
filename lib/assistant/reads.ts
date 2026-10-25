@@ -33,11 +33,13 @@ export async function rows(
   table: string,
   columns: string,
   filters: Record<string, string> = {},
+  orderBy = "id",
 ) {
   let q = supabaseAdmin
     .from(table)
     .select(columns)
     .eq("owner_id", owner)
+    .order(orderBy, { ascending: true })
     .order("id", { ascending: true })
     .limit(51);
   for (const [k, v] of Object.entries(filters)) q = q.eq(k, v);
