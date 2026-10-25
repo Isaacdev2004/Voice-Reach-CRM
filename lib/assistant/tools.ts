@@ -1,4 +1,5 @@
 import { contactSegment } from "@/lib/contacts/lifecycle";
+import { optionalToolAvailable, requireOptionalTool } from "./optional-capabilities";
 import { z } from "zod";
 import {
   ChecklistAction,
@@ -113,6 +114,7 @@ export const toolDefinitions: ProviderTool[] = Object.entries(schemas).map(
     ) as Record<string, unknown>,
   }),
 );
+export const enabledToolDefinitions = () => toolDefinitions.filter(t => optionalToolAvailable(t.name));
 export async function runTool(
   owner: string,
   name: string,
@@ -123,6 +125,7 @@ export async function runTool(
   if (!owner) throw new AssistantFailure("Unauthorized", 401);
   if (!Object.hasOwn(schemas, name))
     throw new AssistantFailure("Unknown or prohibited tool", 400);
+  requireOptionalTool(name);
   const key = name as ToolName;
   const schema = key.startsWith("prepare_")
     ? schemas[key].safeExtend({ revisionOf: z.string().uuid().optional() })

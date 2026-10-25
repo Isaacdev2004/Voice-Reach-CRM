@@ -37,6 +37,10 @@ create function public.save_financing_report(p_owner text,p_id uuid,p_contact uu
 language plpgsql security invoker set search_path=public as $$
 declare r public.financing_reports; link text; partner text;
 begin
+ if p_contact is not null then
+  perform 1 from public.contacts where owner_id=p_owner and id=p_contact for key share;
+  if not found then raise exception 'CONTACT_NOT_FOUND'; end if;
+ end if;
  for link in select distinct value from jsonb_array_elements_text(jsonb_build_array(p_payload->'context'->>'contactId',p_payload->'context'->>'propertyContactId')) where value is not null loop
   perform 1 from public.contacts where owner_id=p_owner and id=link::uuid for key share;
   if not found then raise exception 'CONTACT_NOT_FOUND'; end if;

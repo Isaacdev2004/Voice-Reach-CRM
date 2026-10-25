@@ -13,13 +13,13 @@ create table if not exists public.inbound_communications(
 );
 alter table public.subscriber_phone_numbers enable row level security;
 alter table public.inbound_communications enable row level security;
-revoke all on public.subscriber_phone_numbers,public.inbound_communications from anon,authenticated;
+revoke all on public.subscriber_phone_numbers,public.inbound_communications from public,anon,authenticated;
 grant all on public.subscriber_phone_numbers,public.inbound_communications to service_role;
 create table if not exists public.communication_suppressions(
  owner_id text not null,phone text not null,channel text not null default 'sms' check(channel='sms'),reason text not null,created_at timestamptz not null default now(),primary key(owner_id,phone,channel)
 );
 alter table public.communication_suppressions enable row level security;
-revoke all on public.communication_suppressions from anon,authenticated;
+revoke all on public.communication_suppressions from public,anon,authenticated;
 grant all on public.communication_suppressions to service_role;
 create or replace function public.ingest_inbound_communication(p_owner text,p_sid text,p_kind text,p_contact uuid,p_from text,p_to text,p_body text,p_status text,p_classification text,p_duration integer default null)
 returns jsonb language plpgsql security definer set search_path=public as $$

@@ -102,6 +102,44 @@ test("campaign sequence retrieval follows step order instead of UUID order", asy
   assert.deepEqual(result.steps.map(s => s.title), ["First email", "Second email"]);
   assert.equal(result.stepsLimited, false);
 });
+test("optional beta tools fail closed before any CRM read and cannot be smuggled into proposals", async () => {
+  const f = setup(), t = f.load("lib/assistant/tools.ts"), p = f.load("lib/assistant/proposals.ts");
+  for (const name of ["read_preferred_partners", "read_transaction_milestones", "prepare_checklist", "read_unanswered_replies"]) {
+    assert.equal(t.enabledToolDefinitions().some(x => x.name === name), false);
+    await assert.rejects(t.runTool(owner, name, {}, id(93)), /unavailable in this beta/);
+  }
+  const before = f.tables.audit_logs.length;
+  await assert.rejects(p.prepareAction(owner, { kind: "flyer", propertyContactId: id(2), headline: "Synthetic", description: "Draft", partnerIds: [id(9)] }), /unavailable in this beta/);
+  assert.equal(f.tables.audit_logs.length, before);
+  const flags = f.load("lib/assistant/optional-capabilities.ts");
+  assert.throws(() => flags.requireOptionalAction({ kind: "checklist" }), /unavailable in this beta/);
+  process.env.ASSISTANT_INBOUND_VERIFIED = "true";
+  try {
+    assert.equal(t.enabledToolDefinitions().some(x => x.name === "read_unanswered_replies"), true);
+    assert.equal(t.enabledToolDefinitions().some(x => x.name === "read_preferred_partners"), false);
+  } finally { delete process.env.ASSISTANT_INBOUND_VERIFIED; }
+});
+test("owner beta daily policy enforces five interactions, ten provider calls and observed 20000 tokens", async () => {
+  const f = setup(), s = f.load("lib/assistant/store.ts");
+  const values = { ASSISTANT_DAILY_REQUEST_LIMIT: "5", ASSISTANT_DAILY_CALL_LIMIT: "10", ASSISTANT_DAILY_TOKEN_THRESHOLD: "20000" };
+  const prior = Object.fromEntries(Object.keys(values).map(k => [k, process.env[k]]));
+  Object.assign(process.env, values);
+  try {
+    const attempts = await Promise.allSettled(Array.from({ length: 8 }, (_, i) => s.reserveUsage(owner, id(700 + i))));
+    assert.equal(attempts.filter(x => x.status === "fulfilled").length, 5);
+    const calls = await Promise.allSettled(Array.from({ length: 13 }, (_, i) => s.reserveProviderCall(owner, id(720 + i))));
+    assert.equal(calls.filter(x => x.status === "fulfilled").length, 10);
+    await s.checkObservedBudget(owner);
+    await s.put(owner, "tokens", id(750), "one", { inputTokens: 19000, outputTokens: 1000 });
+    // The shared fixture defaults inserted timestamps to a fixed historical date.
+    f.tables.audit_logs.find(r => r.entity_type === "assistant_tokens").created_at = new Date().toISOString();
+    await assert.rejects(s.checkObservedBudget(owner), /observed token threshold/);
+    await s.checkObservedBudget("foreign");
+    await s.reserveUsage("foreign", id(751));
+  } finally {
+    for (const [key, value] of Object.entries(prior)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
+  }
+});
 test("tool registry has bounded read/prepare tools and no SQL, billing, deletion or activation capability", () => {
   const t = setup().load("lib/assistant/tools.ts").toolDefinitions;
   assert.ok(t.length >= 25);

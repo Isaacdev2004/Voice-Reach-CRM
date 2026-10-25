@@ -1,4 +1,5 @@
 import { resolveRecipientAddress } from "@/lib/providers/dispatch-message";
+import { requireOptionalAction } from "./optional-capabilities";
 import {
   senderSnapshot,
   assistantSendIssues,
@@ -20,6 +21,7 @@ export async function actionPreview(
   owner: string,
   action: AssistantAction,
 ): Promise<Record<string, unknown>> {
+  requireOptionalAction(action);
   const contact =
     "contactId" in action && action.contactId
       ? await ownedContact(owner, action.contactId)
