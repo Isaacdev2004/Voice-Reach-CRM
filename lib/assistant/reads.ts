@@ -54,6 +54,24 @@ export async function rows(
     limited: (r.data ?? []).length > 50,
   };
 }
+/** Base CRM preferences remain readable before optional Property Finder columns. */
+export async function buyerPreferences(owner: string, id: string) {
+  const contact = await ownedContact(owner, id);
+  const extra = await supabaseAdmin.from("contacts")
+    .select("preferred_property_type,preferred_sqft,preferred_beds,preferred_baths,preferred_garage_spaces,preferred_lot_sqft")
+    .eq("owner_id", owner).eq("id", id).maybeSingle();
+  const missing = extra.error && ["42703", "PGRST204"].includes(extra.error.code);
+  if (extra.error && !missing)
+    throw new AssistantFailure("Buyer preferences could not be verified", 503);
+  return {
+    records: [{ id: contact.id, budget: contact.budget, preferred_area: contact.preferred_area,
+      notes: contact.notes, ...(!extra.error ? extra.data : {}) }],
+    limited: false,
+    source: `/dashboard/contacts/${id}`,
+    expandedPreferencesAvailable: !extra.error,
+    ...(missing ? { limitation: "Expanded Property Finder fields are not installed. Base budget, area and contact notes are authoritative; unavailable fields are unknown." } : {}),
+  };
+}
 export async function brandKit(owner: string) {
   const s = await savedSettings(owner),
     kit = BrandKitSchema.parse(s?.brandKit ?? {});

@@ -938,3 +938,17 @@ test("OpenAI schema conversion omits unsupported Unicode regex hints without cha
   const tools=f.load("lib/assistant/tools.ts");
   await assert.rejects(tools.runTool(owner,"search_contacts",{query:"; DROP TABLE contacts;"},id(750)));
 });
+
+test("buyer preference reads retain authorized base notes when optional columns are absent", async () => {
+  const f=setup(), db=f.stubs["@/lib/supabaseAdmin"].supabaseAdmin, original=db.from.bind(db);
+  let errorCode="42703";
+  const row=f.tables.contacts.find(r=>r.id===id(2));row.notes="Synthetic courtyard preference";
+  db.from=table=>{const q=original(table),select=q.select.bind(q),single=q.maybeSingle.bind(q);let optional=false;
+    q.select=columns=>{optional=String(columns).startsWith("preferred_property_type");return select(columns);};
+    q.maybeSingle=()=>optional?Promise.resolve({data:null,error:{code:errorCode}}):single();return q;};
+  const {buyerPreferences}=f.load("lib/assistant/reads.ts");
+  const result=await buyerPreferences(owner,id(2));
+  assert.equal(result.records[0].notes,"Synthetic courtyard preference");assert.equal(result.expandedPreferencesAvailable,false);assert.match(result.limitation,/unknown/);
+  await assert.rejects(buyerPreferences(owner,id(9)),/Contact not found/);
+  errorCode="42501";await assert.rejects(buyerPreferences(owner,id(2)),/could not be verified/);
+});
