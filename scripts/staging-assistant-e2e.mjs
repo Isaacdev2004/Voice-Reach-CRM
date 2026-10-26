@@ -11,7 +11,7 @@ const e = process.env, nonce = randomUUID();
 async function check(name, fn) {
   phase = name;
   try { await fn(); out.tests[name] = "PASS"; }
-  catch (error) { out.tests[name] = "FAIL"; if (error?.code === "ERR_ASSERTION") out.statuses[name] = "assertion_failed"; }
+  catch (error) { out.tests[name] = "FAIL"; if (error?.code === "ERR_ASSERTION") out.statuses[name] ??= "assertion_failed"; }
 }
 try {
   assert.equal(e.VERCEL_ENV,"preview"); assert.equal(e.VERCEL_GIT_COMMIT_REF,"feat/ai-operating-assistant");
@@ -29,6 +29,7 @@ try {
     const r = await clerk.users.getUserList({ externalId:[`myari-isolated-acceptance-${label}`],limit:2 });
     assert.equal(r.data.length,1); assert.equal(r.data[0].privateMetadata?.myariStagingAcceptance,true);
     owners.push(r.data[0].id);
+    await clerk.users.unlockUser(r.data[0].id);
   }
   assert.deepEqual((e.ASSISTANT_V2_OWNER_IDS??"").split(",").map(x=>x.trim()).sort(),[...owners].sort());
   for (const owner of owners) for (const table of cleanupTables) {
@@ -167,6 +168,8 @@ finally {
   if(allowedCleanup)for(const owner of owners)for(const table of cleanupTables){try{const r=await db.from(table).delete().eq("owner_id",owner);if(r.error)cleaned=false;}catch{cleaned=false;}}
   for(const id of sessions){try{await clerk.sessions.revokeSession(id);}catch{cleaned=false;}}
   if(allowedCleanup)for(const owner of owners)for(const table of cleanupTables){try{const r=await db.from(table).select("*",{count:"exact",head:true}).eq("owner_id",owner);if(r.error||r.count!==0)cleaned=false;}catch{cleaned=false;}}
+  for(const owner of owners){try{await clerk.users.lockUser(owner);}catch{cleaned=false;}}
+  out.syntheticAccountsLocked=cleaned;
   out.cleanup=cleaned;if(!cleaned)out.success=false;
   console.log("MYARI_ASSISTANT_E2E",JSON.stringify(out));if(!out.success)process.exitCode=1;
 }
