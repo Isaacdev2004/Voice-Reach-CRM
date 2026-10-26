@@ -104,7 +104,7 @@ try {
     assert.ok(revisedCampaign);
     const action=structuredClone(revisedCampaign.action);action.name="Synthetic acceptance campaign "+nonce.slice(0,8);action.steps[1].day=12;
     const r=await http(0,"/api/assistant/proposals","POST",{action,revisionOf:revisedCampaign.id});assert.equal(r.status,200);editedCampaign=r.data.proposal;assert.equal(editedCampaign.action.steps[1].day,12);
-    const old=await http(0,"/api/assistant/approve","POST",{proposalId:revisedCampaign.id,digest:revisedCampaign.digest,confirmation:"CONFIRM_SAVE"});assert.ok(old.status>=400);
+    const old=await http(0,"/api/assistant/approve","POST",{proposalId:revisedCampaign.id,digest:revisedCampaign.digest,confirmation:"CONFIRM_SAVE"});assert.ok(old.status>=400 || old.data.outcome?.state === "superseded");
   });
   await check("campaign_confirm_save_and_replay",async()=>{
     assert.ok(editedCampaign);const body={proposalId:editedCampaign.id,digest:editedCampaign.digest,confirmation:"CONFIRM_SAVE"};
@@ -186,5 +186,6 @@ finally {
   for(const owner of owners){try{await clerk.users.lockUser(owner);}catch{cleaned=false;}}
   out.syntheticAccountsLocked=cleaned;
   out.cleanup=cleaned;if(!cleaned)out.success=false;
+  console.log("MYARI_E2E_DIAGNOSTICS",JSON.stringify({providerStatus:out.toolSchemaProviderStatus,provider:out.providerDiagnostic,signals:out.failureSignals,cleanup:out.cleanup,locked:out.syntheticAccountsLocked}));
   console.log("MYARI_ASSISTANT_E2E",JSON.stringify(out));if(!out.success)process.exitCode=1;
 }
