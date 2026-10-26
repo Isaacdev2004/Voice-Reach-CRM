@@ -20,8 +20,11 @@ try {
   if (!/^[a-z0-9-]+\.clerk\.accounts\.dev$/.test(frontend)) throw Error("development_frontend");
   // Pair the keys cryptographically; do not require optional instance-admin APIs.
   phase = "clerk_backend_jwks";
+  const clerkSecret = e.CLERK_SECRET_KEY.trim();
+  results.clerkKeyHeaderSafe = /^[\x21-\x7e]+$/.test(clerkSecret);
+  if (!results.clerkKeyHeaderSafe) throw Error("unsafe_header_characters");
   const backendResponse = await fetch("https://api.clerk.com/v1/jwks", {
-    headers: { Authorization: `Bearer ${e.CLERK_SECRET_KEY}` },
+    headers: { Authorization: `Bearer ${clerkSecret}` },
     signal: AbortSignal.timeout(15000),
   });
   results.clerkBackendStatus = backendResponse.status;
@@ -38,6 +41,8 @@ try {
   results.clerk = true;
   } catch (error) {
     results.clerkFailurePhase = phase;
+    if (["TypeError", "AbortError", "TimeoutError"].includes(error?.name)) results.clerkFailureKind = error.name;
+    if (["ENOTFOUND", "ECONNRESET", "ECONNREFUSED", "UND_ERR_CONNECT_TIMEOUT", "ERR_INVALID_CHAR"].includes(error?.cause?.code)) results.clerkNetworkCode = error.cause.code;
     const status = error?.status ?? error?.statusCode;
     if (Number.isInteger(status)) results.clerkStatus = status;
     const allowedCodes = new Set(["clerk_key_invalid", "invalid_api_key", "authentication_invalid", "api_key_invalid", "resource_not_found", "authorization_invalid", "form_param_format_invalid"]);
