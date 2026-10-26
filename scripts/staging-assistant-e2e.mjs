@@ -49,6 +49,7 @@ try {
     if (e.VERCEL_OIDC_TOKEN) headers["x-vercel-trusted-oidc-idp-token"]=e.VERCEL_OIDC_TOKEN;
     if (body!==undefined) headers["content-type"]="application/json";
     const r=await fetch(new URL(path,target),{method,headers,body:body===undefined?undefined:JSON.stringify(body),redirect:"manual",signal:AbortSignal.timeout(115000)});
+    out.statuses[phase]=r.status;
     assert.ok(r.headers.get("content-type")?.includes("application/json"));
     const data=await r.json(); out.statuses[phase]=r.status;
     return {status:r.status,data:data?.data??data};
