@@ -15,6 +15,7 @@ try {
   if (!e.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith("pk_test_") || !e.CLERK_SECRET_KEY?.startsWith("sk_test_")) throw Error("development_auth_required");
   if (!e.SUPABASE_SERVICE_ROLE_KEY?.trim() || !e.OPENAI_API_KEY?.trim()) throw Error("missing_credential");
   results.safety = true;
+  try {
   phase = "clerk_frontend_key";
   const frontend = Buffer.from(e.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.slice(8), "base64").toString("utf8").replace(/\$$/, "");
   if (!/^[a-z0-9-]+\.clerk\.accounts\.dev$/.test(frontend)) throw Error("development_frontend");
@@ -32,11 +33,18 @@ try {
   phase = "clerk_instance_match";
   if (!backend.keys?.length || !publicSet.keys?.some(k => backend.keys.some(b => fingerprint(b) === fingerprint(k)))) throw Error("instance_mismatch");
   results.clerk = true;
+  } catch (error) {
+    results.clerkFailurePhase = phase;
+    if (Number.isInteger(error?.status)) results.clerkStatus = error.status;
+  }
+  try {
   phase = "supabase";
   const db = createClient(e.NEXT_PUBLIC_SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: (url, init) => fetch(url, { ...init, signal: AbortSignal.timeout(15000) }) } });
   const schema = await db.rpc("ai_usage_schema_version");
   if (schema.error || schema.data !== 1) throw Error("service_rpc");
   results.supabase = true;
+  } catch { results.supabaseFailurePhase = phase; }
+  try {
   phase = "openai";
   const model = e.OPENAI_ASSISTANT_MODEL?.trim() || "gpt-5-mini";
   const response = await fetch("https://api.openai.com/v1/responses", {
@@ -51,7 +59,10 @@ try {
   results.openai = true;
   results.inputTokens = output.usage.input_tokens;
   results.outputTokens = output.usage.output_tokens;
-  console.log("MYARI_STAGING_CHECK", JSON.stringify({ ...results, success: true }));
+  } catch { results.openaiFailurePhase = phase; }
+  const success = results.clerk && results.supabase && results.openai;
+  console.log("MYARI_STAGING_CHECK", JSON.stringify({ ...results, success }));
+  if (!success) process.exitCode = 1;
 } catch (error) {
   // Never log provider bodies, exception text, request headers or any key value.
   const status = Number.isInteger(error?.status) ? error.status : undefined;
