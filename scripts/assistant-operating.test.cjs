@@ -919,12 +919,35 @@ test("repeated native prepare tool-call IDs return the same saved proposal inste
 });
 
 test("approval digest survives jsonb key reordering and still binds nested content", () => {
-  const f = setup(), { digest } = f.load("lib/assistant/store.ts");
+  const f = setup(), { assistantDigest: digest } = f.load("lib/assistant/store.ts");
   const a = { action: {kind:"task",title:"Synthetic",contactId:id(1)},preview:{identity:{name:"Test",id:id(1)},steps:[{day:1,body:"First"},{day:2,body:"Second"}]}};
   const reorder = value => Array.isArray(value) ? value.map(reorder) : value && typeof value === "object" ? Object.fromEntries(Object.keys(value).sort().reverse().map(k=>[k,reorder(value[k])])) : value;
   assert.equal(digest(a),digest(reorder(a)));
   const changed=structuredClone(a);changed.preview.steps[0].body="Changed";assert.notEqual(digest(a),digest(changed));
   const moved=structuredClone(a);moved.preview.steps.reverse();assert.notEqual(digest(a),digest(moved));
+});
+
+test("canonical Assistant approval hashing does not change legacy billing fingerprints", () => {
+  const { createHash } = require("node:crypto");
+  const f=setup(), {digest,assistantDigest}=f.load("lib/assistant/store.ts");
+  const quote={revision:"Synthetic",subscriptionId:"synthetic-sub",item:"synthetic-item",price:"synthetic-price",quantity:1};
+  const previous=createHash("sha256").update(JSON.stringify(quote)).digest("hex");
+  assert.equal(digest(quote),previous);
+  const reordered=Object.fromEntries(Object.entries(quote).reverse());
+  assert.notEqual(digest(quote),digest(reordered));
+  assert.equal(assistantDigest(quote),assistantDigest(reordered));
+});
+
+test("persisted JSONB proposal key reordering still permits one exact task approval and safe replay", async () => {
+  const f=setup(),proposals=f.load("lib/assistant/proposals.ts"),execution=f.load("lib/assistant/execution.ts");
+  const p=await proposals.prepareAction(owner,{kind:"task",contactId:id(2),title:"Synthetic JSONB approval",dueAt:"2026-11-06T15:00:00Z",notes:"Internal task only"});
+  const reorder=value=>Array.isArray(value)?value.map(reorder):value&&typeof value==="object"?Object.fromEntries(Object.keys(value).sort().reverse().map(k=>[k,reorder(value[k])])):value;
+  const stored=f.tables.audit_logs.find(r=>r.entity_type==="assistant_proposal"&&r.entity_id===p.id);
+  stored.metadata=reorder(JSON.parse(JSON.stringify(stored.metadata)));
+  const first=await execution.executeApproved(owner,p.id,p.digest,"CONFIRM_SAVE");
+  assert.equal(first.state,"completed");
+  assert.deepEqual(await execution.executeApproved(owner,p.id,p.digest,"CONFIRM_SAVE"),first);
+  assert.equal(f.tables.contact_tasks.length,1);
 });
 
 test("OpenAI schema conversion omits unsupported Unicode regex hints without changing server validation", async () => {

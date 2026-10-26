@@ -17,7 +17,7 @@ import {
 import type { ProviderTool } from "./provider";
 import { brandKit, ownedContact, rows, searchContacts, buyerPreferences } from "./reads";
 import { prepareAction } from "./proposals";
-import { AssistantFailure, put, entries, digest, getProposal } from "./store";
+import { AssistantFailure, put, entries, assistantDigest as digest, getProposal } from "./store";
 import { readContactActivity } from "@/lib/activity/read-model";
 import { readCalendar } from "@/lib/calendar/read-model";
 import { readDelivery } from "@/lib/delivery/store";

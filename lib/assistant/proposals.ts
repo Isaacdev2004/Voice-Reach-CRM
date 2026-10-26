@@ -8,7 +8,7 @@ import { advanceProposal, proposalRoot } from "./roots";
 import { meteredAi } from "@/lib/billing/ai/meter";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { ActionSchema, type AssistantAction, type Proposal } from "./schema";
-import { AssistantFailure, put, digest, getProposal, entries } from "./store";
+import { AssistantFailure, put, assistantDigest as digest, getProposal, entries } from "./store";
 import { brandKit, ownedContact } from "./reads";
 import { calculate, DISCLOSURE } from "@/lib/financing/calculators";
 import { renderMessage } from "@/lib/campaigns/render-message";

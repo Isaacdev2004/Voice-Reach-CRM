@@ -4,10 +4,10 @@ Review baseline: Production `9acc1a944454b3138570496fa64c7c0c7bd98211`; tested s
 
 ## Minimum release scope
 
-The eight runtime files under `lib/assistant/` are byte-for-byte the tested staging versions:
+The eight runtime files under `lib/assistant/` carry the tested staging fixes. Five remain byte-for-byte identical. The only additional runtime refinement isolates canonical hashing in `store.ts`, `proposals.ts` and `tools.ts` so existing billing fingerprints retain their Production behavior:
 
 - `provider.ts`: remove only OpenAI-incompatible Unicode-regex schema hints. Server Zod validation remains authoritative. Claude integration is preserved.
-- `store.ts`: canonical object-key hashing survives PostgreSQL JSONB persistence; content and array order remain bound to approval.
+- `store.ts`: Assistant-specific canonical object-key hashing survives PostgreSQL JSONB persistence; content and array order remain bound to approval. The existing shared `digest` export remains byte-for-byte equivalent to Production because billing quote fingerprints use it. Only Assistant proposal/tool consumers select the new `assistantDigest` export.
 - `reads.ts`: read owner-authorized base buyer context when optional preference columns are absent; permission and transport errors still fail closed. Allow explicit campaign-step ordering.
 - `tools.ts`: check parent campaign ownership, preserve sequence order, disclose truncation and saved-record editing limitations, and use the compatible buyer read.
 - `optional-capabilities.ts`, `orchestrator.ts`, `proposals.ts`, `execution.ts`: keep unverified partner, transaction and inbound tools/actions unavailable at every boundary, including forged direct proposals and approval requests.
@@ -42,7 +42,7 @@ These checks establish schema compatibility, not permission to mutate Production
 
 ## Before any approved release
 
-1. Review the complete PR, confirm main still matches the stated baseline, and rerun checks if it changes. Runtime files must match tested staging exactly.
+1. Review the complete PR, confirm main still matches the stated baseline, and rerun checks if it changes. Five runtime files must match staging exactly; the remaining three may differ only by the reviewed digest-consumer isolation, whose canonical algorithm is unchanged.
 2. Require successful security/unit/regression checks, TypeScript, lint and Next production build. Browser fixture tests use mocks; the 20 hosted checks belong to the staging revision, not an untested new Production deployment.
 3. Through authorized hosting access, verify Production uses the correct Supabase project and the existing Live Clerk instance. Do not use this workspace's Development Clerk credentials for Production. Do not pull credential values into source, logs or chat.
 4. Verify Production Assistant flags are false and access/send allowlists empty. Verify new AI billing/pricing/plan-change/entitlement/public-launch flags are false. Keep optional capability flags false or unset. This review does not change any of these settings.

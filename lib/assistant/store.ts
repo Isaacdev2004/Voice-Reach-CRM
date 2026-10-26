@@ -68,9 +68,12 @@ export async function getProposal(
   if (!rows[0]) throw new AssistantFailure("Proposal not found", 404);
   return rows[0].metadata as unknown as Proposal;
 }
-// PostgreSQL jsonb reorders object keys. Approval bindings must survive that
-// round trip while preserving array order and every content value.
+// Keep the existing shared helper stable for billing quote fingerprints.
 export const digest = (value: unknown) =>
+  createHash("sha256").update(JSON.stringify(value)).digest("hex");
+// PostgreSQL jsonb reorders object keys. Assistant approval bindings must
+// survive that round trip while preserving array order and every value.
+export const assistantDigest = (value: unknown) =>
   createHash("sha256").update(JSON.stringify(value, (_key, item) =>
     item && typeof item === "object" && !Array.isArray(item)
       ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]]))
