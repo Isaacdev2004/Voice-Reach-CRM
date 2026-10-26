@@ -84,7 +84,9 @@ try {
   const chat=message=>({conversationId,requestId:randomUUID(),message,context:{path:"/dashboard/campaigns"}});
   await check("live_ai_contact_search_and_factual_summary",async()=>{
     const body=chat("Find the contact named SyntheticAcceptanceA and summarize only their recorded home preferences in one sentence. Do not prepare actions or send anything."); body.context.path="/dashboard/contacts";
-    const r=await http(0,"/api/assistant/chat","POST",body);assert.equal(r.status,200);assert.match(r.data.message,/courtyard/i);assert.ok(r.data.results.some(x=>x.name==="search_contacts"));assert.ok(r.data.usage.inputTokens>0);assert.equal(r.data.usage.provider,"openai");
+    const r=await http(0,"/api/assistant/chat","POST",body);
+    console.log("MYARI_SYNTHETIC_SUMMARY",JSON.stringify({status:r.status,message:r.data.message?.slice(0,1000),results:r.data.results?.map(x=>({name:x.name,error:!!x.error})),usage:r.data.usage}));
+    assert.equal(r.status,200);assert.match(r.data.message,/courtyard/i);assert.ok(r.data.results.some(x=>x.name==="search_contacts"));assert.ok(r.data.usage.inputTokens>0);assert.equal(r.data.usage.provider,"openai");
   });
   await check("conversation_persistence_and_isolation",async()=>{
     const own=await http(0,`/api/assistant/history?conversationId=${conversationId}`),foreign=await http(1,`/api/assistant/history?conversationId=${conversationId}`);
