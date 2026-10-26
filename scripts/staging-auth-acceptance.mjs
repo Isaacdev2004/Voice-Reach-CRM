@@ -83,6 +83,8 @@ try {
   const codes = new Set(["form_identifier_exists","form_param_format_invalid","form_param_missing","form_identifier_missing","form_password_missing","form_param_unknown","form_param_value_not_allowed","form_param_nil","form_password_not_strong_enough","form_username_invalid_length","form_identifier_not_allowed","form_identifier_not_found","form_param_array_size_exceeds_maximum"]);
   const first = error?.errors?.find(e => codes.has(e.code));
   if (first) out.providerErrorCode = first.code;
+  const safeCodes = error?.errors?.map(e => e.code).filter(c => typeof c === "string" && /^[a-z][a-z_]{2,79}$/.test(c));
+  if (safeCodes?.length) out.providerValidationCodes = safeCodes.slice(0,4);
   const parameter = error?.errors?.map(e => e.meta?.paramName ?? e.meta?.param_name).find(p => ["email_address","phone_number","username","password","first_name","last_name","external_id","limit"].includes(p));
   if (parameter) out.providerParameter = parameter;
 } finally {
