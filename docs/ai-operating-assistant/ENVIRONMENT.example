@@ -1,6 +1,10 @@
 # Feature defaults remain off. Values below are documentation, not active configuration.
 ASSISTANT_V2_ENABLED=false
 ASSISTANT_V2_OWNER_IDS=
+# Optional dependencies remain unavailable until separately verified.
+ASSISTANT_PARTNERS_VERIFIED=false
+ASSISTANT_TRANSACTIONS_VERIFIED=false
+ASSISTANT_INBOUND_VERIFIED=false
 ASSISTANT_REASONING_PROVIDER=openai
 OPENAI_API_KEY=
 OPENAI_ASSISTANT_MODEL=gpt-5-mini

@@ -50,7 +50,7 @@
     "test:public-polish": "node scripts/public-polish-browser.test.cjs",
     "test:pricing-billing": "node scripts/pricing-billing.test.cjs",
     "test:campaign-premium": "node scripts/campaign-premium.test.cjs",
-    "test:assistant": "node scripts/assistant-operating.test.cjs",
+    "test:assistant": "node scripts/assistant-operating.test.cjs && node scripts/assistant-production-connectivity-check.test.mjs",
     "test:ai-pricing": "node scripts/ai-pricing.test.cjs",
     "test:ai-usage-db": "node scripts/ai-usage-database.test.cjs",
     "test:assistant-browser": "node scripts/assistant-browser.test.cjs",

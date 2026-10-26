@@ -1,4 +1,5 @@
 import { advanceProposal } from "./roots";
+import { requireOptionalAction } from "./optional-capabilities";
 import { reserveAi, settleAi } from "@/lib/billing/ai/meter";
 import { assertApproval, proposalOutcome } from "./proposals";
 import { put, AssistantFailure, getProposal } from "./store";
@@ -44,6 +45,7 @@ export async function executeApproved(
       400,
     );
   const action = proposal.action;
+  requireOptionalAction(action);
   const capability =
     action.kind === "task" || action.kind === "checklist"
       ? "tasks"

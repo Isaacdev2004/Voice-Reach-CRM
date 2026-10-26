@@ -139,6 +139,16 @@ export function responsesInput(messages: ProviderMessage[]) {
     );
   });
 }
+// OpenAI's schema validator rejects JS Unicode property escapes (\p{L},
+// \p{N}). Omit only those provider hints; runTool's Zod validation remains
+// authoritative and retains the full Unicode-aware input restrictions.
+export function openaiToolSchema(schema: Record<string, unknown>): Record<string, unknown> {
+  return JSON.parse(JSON.stringify(schema, (key, value) =>
+    key === "pattern" && typeof value === "string" && /\\[pP]\{/.test(value)
+      ? undefined
+      : value,
+  ));
+}
 export const openaiProvider: ReasoningProvider = {
   name: "openai",
   async respond(input) {
@@ -167,7 +177,7 @@ export const openaiProvider: ReasoningProvider = {
               type: "function",
               name: t.name,
               description: t.description,
-              parameters: t.input_schema,
+              parameters: openaiToolSchema(t.input_schema),
               strict: false,
             })),
             max_output_tokens: 2400,
