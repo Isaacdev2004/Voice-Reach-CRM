@@ -14,7 +14,7 @@ test("host check refuses Production, production database and live provider crede
   }
 });
 test("host check compares Clerk public signing keys, verifies service RPC and emits sanitized usage", async () => {
-  const f = setup(); await f.execute(); assert.equal(f.output[0].success,true); assert.equal(f.requests,2); assert.equal(f.output[0].inputTokens,5); assert.ok(!JSON.stringify(f.output).includes("sk_test_"));
+  const f = setup(); await f.execute(); assert.equal(f.output[0].success,true); assert.equal(f.requests,3); assert.equal(f.output[0].inputTokens,5); assert.ok(!JSON.stringify(f.output).includes("sk_test_"));
 });
 test("failed Clerk validation does not prevent independent Supabase and OpenAI checks", async () => {
   const f = setup({ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_" + Buffer.from("wrong.example$").toString("base64") });

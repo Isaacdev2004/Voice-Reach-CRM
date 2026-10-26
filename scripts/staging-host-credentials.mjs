@@ -1,6 +1,5 @@
 // Private Preview build check. No HTTP endpoint, credential export or CRM writes.
 import { createHash } from "node:crypto";
-import { createClerkClient } from "@clerk/backend";
 import { createClient } from "@supabase/supabase-js";
 const results = { execution: "preview_build_not_runtime", safety: false, clerk: false, supabase: false, openai: false };
 let phase = "safety";
@@ -19,10 +18,15 @@ try {
   phase = "clerk_frontend_key";
   const frontend = Buffer.from(e.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.slice(8), "base64").toString("utf8").replace(/\$$/, "");
   if (!/^[a-z0-9-]+\.clerk\.accounts\.dev$/.test(frontend)) throw Error("development_frontend");
-  const clerk = createClerkClient({ secretKey: e.CLERK_SECRET_KEY, publishableKey: e.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY });
   // Pair the keys cryptographically; do not require optional instance-admin APIs.
   phase = "clerk_backend_jwks";
-  const backend = await clerk.jwks.getJwks();
+  const backendResponse = await fetch("https://api.clerk.com/v1/jwks", {
+    headers: { Authorization: `Bearer ${e.CLERK_SECRET_KEY}` },
+    signal: AbortSignal.timeout(15000),
+  });
+  results.clerkBackendStatus = backendResponse.status;
+  if (!backendResponse.ok) throw Error("backend_jwks");
+  const backend = await backendResponse.json();
   phase = "clerk_frontend_jwks";
   const r = await fetch(`https://${frontend}/.well-known/jwks.json`, { signal: AbortSignal.timeout(15000) });
   if (!r.ok) { results.clerkFrontendStatus = r.status; throw Error("frontend_jwks"); }
