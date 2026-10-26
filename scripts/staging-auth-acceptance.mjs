@@ -21,8 +21,10 @@ try {
   const users = [];
   for (const label of ["a","b"]) {
     const externalId = `myari-isolated-acceptance-${label}`;
+    phase = "development_account_lookup";
     const found = await clerk.users.getUserList({ externalId: [externalId], limit: 2 });
     if (found.data.length > 1) throw Error("ambiguous_user");
+    phase = "development_account_create";
     const user = found.data[0] ?? await clerk.users.createUser({ externalId, firstName: "MyARI Synthetic", lastName: `Acceptance ${label.toUpperCase()}`, emailAddress: [`myari_isolation_${label}+clerk_test@example.com`], skipPasswordRequirement: true, privateMetadata: { myariStagingAcceptance: true } });
     if (user.privateMetadata?.myariStagingAcceptance !== true) throw Error("unowned_test_user");
     users.push(user); out.accounts++;
@@ -78,6 +80,11 @@ try {
   out.success = false; out.failedPhase = phase;
   const status = error?.status ?? error?.statusCode;
   if (Number.isInteger(status)) out.providerStatus = status;
+  const codes = new Set(["form_identifier_exists","form_param_format_invalid","form_param_missing","form_identifier_missing","form_password_missing","form_param_unknown","form_param_value_not_allowed","form_param_nil","form_password_not_strong_enough","form_username_invalid_length","form_identifier_not_allowed","form_identifier_not_found","form_param_array_size_exceeds_maximum"]);
+  const first = error?.errors?.find(e => codes.has(e.code));
+  if (first) out.providerErrorCode = first.code;
+  const parameter = error?.errors?.map(e => e.meta?.paramName ?? e.meta?.param_name).find(p => ["email_address","phone_number","username","password","first_name","last_name","external_id","limit"].includes(p));
+  if (parameter) out.providerParameter = parameter;
 } finally {
   let cleaned = true;
   for (const c of contacts) {
