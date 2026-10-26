@@ -13,7 +13,8 @@ import {
   type ReasoningProvider,
   type ProviderMessage,
 } from "./provider";
-import { toolDefinitions, runTool } from "./tools";
+import { enabledToolDefinitions, runTool } from "./tools";
+import { requireOptionalCapability } from "./optional-capabilities";
 import {
   entries,
   put,
@@ -74,6 +75,7 @@ async function runAssistantCore(
     ] as const) {
       const id = body.context?.[key];
       if (id) {
+        if (key === "transactionId") requireOptionalCapability("transactions");
         const { rows } = await import("./reads");
         if (!(await rows(owner, table, "id", { id })).records.length)
           throw new AssistantFailure("Selected record not found", 404);
@@ -166,7 +168,7 @@ async function runAssistantCore(
           SYSTEM +
           `\nServer time: ${new Date().toISOString()}. Saved timezone: ${timezone}. Saved style preferences (never approval): ${JSON.stringify(preferences.success ? preferences.data : {})}.`,
         messages,
-        tools: toolDefinitions,
+        tools: enabledToolDefinitions(),
       });
       model = reply.model;
       await put(

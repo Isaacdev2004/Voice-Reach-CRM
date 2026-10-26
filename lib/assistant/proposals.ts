@@ -1,4 +1,5 @@
 import { resolveRecipientAddress } from "@/lib/providers/dispatch-message";
+import { requireOptionalAction } from "./optional-capabilities";
 import {
   senderSnapshot,
   assistantSendIssues,
@@ -7,7 +8,7 @@ import { advanceProposal, proposalRoot } from "./roots";
 import { meteredAi } from "@/lib/billing/ai/meter";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { ActionSchema, type AssistantAction, type Proposal } from "./schema";
-import { AssistantFailure, put, digest, getProposal, entries } from "./store";
+import { AssistantFailure, put, assistantDigest as digest, getProposal, entries } from "./store";
 import { brandKit, ownedContact } from "./reads";
 import { calculate, DISCLOSURE } from "@/lib/financing/calculators";
 import { renderMessage } from "@/lib/campaigns/render-message";
@@ -20,6 +21,7 @@ export async function actionPreview(
   owner: string,
   action: AssistantAction,
 ): Promise<Record<string, unknown>> {
+  requireOptionalAction(action);
   const contact =
     "contactId" in action && action.contactId
       ? await ownedContact(owner, action.contactId)

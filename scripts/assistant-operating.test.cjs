@@ -67,6 +67,79 @@ const note = {
   title: "Consultation recap",
   body: "Synthetic meeting summary; verify details.",
 };
+test("campaign context checks parent ownership and discloses truncated sequence context", async () => {
+  const f = setup();
+  const tools = f.load("lib/assistant/tools.ts");
+  const calls = [];
+  const reads = f.load("lib/assistant/reads.ts");
+  reads.rows = async (...args) => {
+    calls.push(args);
+    return args[1] === "campaigns"
+      ? { records: [{ id: id(1), name: "Synthetic draft" }], limited: false }
+      : { records: [{ id: id(20), step_order: 1 }], limited: true };
+  };
+  const result = await tools.runTool(owner, "read_campaigns", { campaignId: id(1) }, id(90));
+  assert.equal(result.stepsLimited, true);
+  assert.equal(calls[1][4], "step_order");
+  assert.match(result.editingScope, /campaign editor/);
+  calls.length = 0;
+  reads.rows = async (...args) => {
+    calls.push(args);
+    return { records: [], limited: false };
+  };
+  await assert.rejects(tools.runTool(owner, "read_campaigns", { campaignId: id(9) }, id(91)), /Campaign not found/);
+  assert.equal(calls.length, 1);
+});
+test("campaign sequence retrieval follows step order instead of UUID order", async () => {
+  const f = setup();
+  f.tables.campaigns = [{ id: id(1), owner_id: owner, name: "Synthetic campaign", status: "draft" }];
+  f.tables.campaign_steps = [
+    { id: id(10), owner_id: owner, campaign_id: id(1), step_order: 2, title: "Second email" },
+    { id: id(20), owner_id: owner, campaign_id: id(1), step_order: 1, title: "First email" },
+    { id: id(30), owner_id: "foreign", campaign_id: id(1), step_order: 0, title: "Private" },
+  ];
+  const result = await f.load("lib/assistant/tools.ts").runTool(owner, "read_campaigns", { campaignId: id(1) }, id(92));
+  assert.deepEqual(result.steps.map(s => s.title), ["First email", "Second email"]);
+  assert.equal(result.stepsLimited, false);
+});
+test("optional beta tools fail closed before any CRM read and cannot be smuggled into proposals", async () => {
+  const f = setup(), t = f.load("lib/assistant/tools.ts"), p = f.load("lib/assistant/proposals.ts");
+  for (const name of ["read_preferred_partners", "read_transaction_milestones", "prepare_checklist", "read_unanswered_replies"]) {
+    assert.equal(t.enabledToolDefinitions().some(x => x.name === name), false);
+    await assert.rejects(t.runTool(owner, name, {}, id(93)), /unavailable in this beta/);
+  }
+  const before = f.tables.audit_logs.length;
+  await assert.rejects(p.prepareAction(owner, { kind: "flyer", propertyContactId: id(2), headline: "Synthetic", description: "Draft", partnerIds: [id(9)] }), /unavailable in this beta/);
+  assert.equal(f.tables.audit_logs.length, before);
+  const flags = f.load("lib/assistant/optional-capabilities.ts");
+  assert.throws(() => flags.requireOptionalAction({ kind: "checklist" }), /unavailable in this beta/);
+  process.env.ASSISTANT_INBOUND_VERIFIED = "true";
+  try {
+    assert.equal(t.enabledToolDefinitions().some(x => x.name === "read_unanswered_replies"), true);
+    assert.equal(t.enabledToolDefinitions().some(x => x.name === "read_preferred_partners"), false);
+  } finally { delete process.env.ASSISTANT_INBOUND_VERIFIED; }
+});
+test("owner beta daily policy enforces five interactions, ten provider calls and observed 20000 tokens", async () => {
+  const f = setup(), s = f.load("lib/assistant/store.ts");
+  const values = { ASSISTANT_DAILY_REQUEST_LIMIT: "5", ASSISTANT_DAILY_CALL_LIMIT: "10", ASSISTANT_DAILY_TOKEN_THRESHOLD: "20000" };
+  const prior = Object.fromEntries(Object.keys(values).map(k => [k, process.env[k]]));
+  Object.assign(process.env, values);
+  try {
+    const attempts = await Promise.allSettled(Array.from({ length: 8 }, (_, i) => s.reserveUsage(owner, id(700 + i))));
+    assert.equal(attempts.filter(x => x.status === "fulfilled").length, 5);
+    const calls = await Promise.allSettled(Array.from({ length: 13 }, (_, i) => s.reserveProviderCall(owner, id(720 + i))));
+    assert.equal(calls.filter(x => x.status === "fulfilled").length, 10);
+    await s.checkObservedBudget(owner);
+    await s.put(owner, "tokens", id(750), "one", { inputTokens: 19000, outputTokens: 1000 });
+    // The shared fixture defaults inserted timestamps to a fixed historical date.
+    f.tables.audit_logs.find(r => r.entity_type === "assistant_tokens").created_at = new Date().toISOString();
+    await assert.rejects(s.checkObservedBudget(owner), /observed token threshold/);
+    await s.checkObservedBudget("foreign");
+    await s.reserveUsage("foreign", id(751));
+  } finally {
+    for (const [key, value] of Object.entries(prior)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
+  }
+});
 test("tool registry has bounded read/prepare tools and no SQL, billing, deletion or activation capability", () => {
   const t = setup().load("lib/assistant/tools.ts").toolDefinitions;
   assert.ok(t.length >= 25);
@@ -843,4 +916,62 @@ test("repeated native prepare tool-call IDs return the same saved proposal inste
       "same-native-call",
     ),
   );
+});
+
+test("approval digest survives jsonb key reordering and still binds nested content", () => {
+  const f = setup(), { assistantDigest: digest } = f.load("lib/assistant/store.ts");
+  const a = { action: {kind:"task",title:"Synthetic",contactId:id(1)},preview:{identity:{name:"Test",id:id(1)},steps:[{day:1,body:"First"},{day:2,body:"Second"}]}};
+  const reorder = value => Array.isArray(value) ? value.map(reorder) : value && typeof value === "object" ? Object.fromEntries(Object.keys(value).sort().reverse().map(k=>[k,reorder(value[k])])) : value;
+  assert.equal(digest(a),digest(reorder(a)));
+  const changed=structuredClone(a);changed.preview.steps[0].body="Changed";assert.notEqual(digest(a),digest(changed));
+  const moved=structuredClone(a);moved.preview.steps.reverse();assert.notEqual(digest(a),digest(moved));
+});
+
+test("canonical Assistant approval hashing does not change legacy billing fingerprints", () => {
+  const { createHash } = require("node:crypto");
+  const f=setup(), {digest,assistantDigest}=f.load("lib/assistant/store.ts");
+  const quote={revision:"Synthetic",subscriptionId:"synthetic-sub",item:"synthetic-item",price:"synthetic-price",quantity:1};
+  const previous=createHash("sha256").update(JSON.stringify(quote)).digest("hex");
+  assert.equal(digest(quote),previous);
+  const reordered=Object.fromEntries(Object.entries(quote).reverse());
+  assert.notEqual(digest(quote),digest(reordered));
+  assert.equal(assistantDigest(quote),assistantDigest(reordered));
+});
+
+test("persisted JSONB proposal key reordering still permits one exact task approval and safe replay", async () => {
+  const f=setup(),proposals=f.load("lib/assistant/proposals.ts"),execution=f.load("lib/assistant/execution.ts");
+  const p=await proposals.prepareAction(owner,{kind:"task",contactId:id(2),title:"Synthetic JSONB approval",dueAt:"2026-11-06T15:00:00Z",notes:"Internal task only"});
+  const reorder=value=>Array.isArray(value)?value.map(reorder):value&&typeof value==="object"?Object.fromEntries(Object.keys(value).sort().reverse().map(k=>[k,reorder(value[k])])):value;
+  const stored=f.tables.audit_logs.find(r=>r.entity_type==="assistant_proposal"&&r.entity_id===p.id);
+  stored.metadata=reorder(JSON.parse(JSON.stringify(stored.metadata)));
+  const first=await execution.executeApproved(owner,p.id,p.digest,"CONFIRM_SAVE");
+  assert.equal(first.state,"completed");
+  assert.deepEqual(await execution.executeApproved(owner,p.id,p.digest,"CONFIRM_SAVE"),first);
+  assert.equal(f.tables.contact_tasks.length,1);
+});
+
+test("OpenAI schema conversion omits unsupported Unicode regex hints without changing server validation", async () => {
+  const f=setup(), {openaiToolSchema}=f.load("lib/assistant/provider.ts");
+  const original={type:"object",properties:{query:{type:"string",maxLength:80,pattern:"^[\\p{L}\\p{N}]*$"},color:{pattern:"^#[a-f0-9]{6}$"}},additionalProperties:false};
+  const converted=openaiToolSchema(original);
+  assert.equal(converted.properties.query.pattern,undefined);
+  assert.equal(converted.properties.query.maxLength,80);
+  assert.equal(converted.properties.color.pattern,"^#[a-f0-9]{6}$");
+  assert.ok(original.properties.query.pattern.includes("\\p{L}"));
+  const tools=f.load("lib/assistant/tools.ts");
+  await assert.rejects(tools.runTool(owner,"search_contacts",{query:"; DROP TABLE contacts;"},id(750)));
+});
+
+test("buyer preference reads retain authorized base notes when optional columns are absent", async () => {
+  const f=setup(), db=f.stubs["@/lib/supabaseAdmin"].supabaseAdmin, original=db.from.bind(db);
+  let errorCode="42703";
+  const row=f.tables.contacts.find(r=>r.id===id(2));row.notes="Synthetic courtyard preference";
+  db.from=table=>{const q=original(table),select=q.select.bind(q),single=q.maybeSingle.bind(q);let optional=false;
+    q.select=columns=>{optional=String(columns).startsWith("preferred_property_type");return select(columns);};
+    q.maybeSingle=()=>optional?Promise.resolve({data:null,error:{code:errorCode}}):single();return q;};
+  const {buyerPreferences}=f.load("lib/assistant/reads.ts");
+  const result=await buyerPreferences(owner,id(2));
+  assert.equal(result.records[0].notes,"Synthetic courtyard preference");assert.equal(result.expandedPreferencesAvailable,false);assert.match(result.limitation,/unknown/);
+  await assert.rejects(buyerPreferences(owner,id(9)),/Contact not found/);
+  errorCode="42501";await assert.rejects(buyerPreferences(owner,id(2)),/could not be verified/);
 });
