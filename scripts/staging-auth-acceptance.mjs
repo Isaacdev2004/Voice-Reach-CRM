@@ -23,7 +23,7 @@ try {
     const externalId = `myari-isolated-acceptance-${label}`;
     const found = await clerk.users.getUserList({ externalId: [externalId], limit: 2 });
     if (found.data.length > 1) throw Error("ambiguous_user");
-    const user = found.data[0] ?? await clerk.users.createUser({ externalId, firstName: `MyARI Synthetic ${label.toUpperCase()}`, skipPasswordRequirement: true, privateMetadata: { myariStagingAcceptance: true } });
+    const user = found.data[0] ?? await clerk.users.createUser({ externalId, firstName: "MyARI Synthetic", lastName: `Acceptance ${label.toUpperCase()}`, emailAddress: [`myari_isolation_${label}+clerk_test@example.com`], skipPasswordRequirement: true, privateMetadata: { myariStagingAcceptance: true } });
     if (user.privateMetadata?.myariStagingAcceptance !== true) throw Error("unowned_test_user");
     users.push(user); out.accounts++;
   }
