@@ -25,7 +25,7 @@ try {
     const found = await clerk.users.getUserList({ externalId: [externalId], limit: 2 });
     if (found.data.length > 1) throw Error("ambiguous_user");
     phase = "development_account_create";
-    const user = found.data[0] ?? await clerk.users.createUser({ externalId, firstName: "MyARI Synthetic", lastName: `Acceptance ${label.toUpperCase()}`, emailAddress: [`myari_isolation_${label}+clerk_test@example.com`], password: randomUUID().replaceAll("-", "") + "Aa9!", privateMetadata: { myariStagingAcceptance: true } });
+    const user = found.data[0] ?? await clerk.users.createUser({ externalId, username: `myari_stage_${label}`, firstName: "MyARI Synthetic", lastName: `Acceptance ${label.toUpperCase()}`, emailAddress: [`myari_isolation_${label}+clerk_test@example.com`], password: randomUUID().replaceAll("-", "") + "Aa9!", privateMetadata: { myariStagingAcceptance: true } });
     if (user.privateMetadata?.myariStagingAcceptance !== true) throw Error("unowned_test_user");
     users.push(user); out.accounts++;
   }
