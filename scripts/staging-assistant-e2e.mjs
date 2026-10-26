@@ -44,7 +44,8 @@ try {
     assert.equal(auth.toAuth()?.userId,owner);
   }
   async function http(actor,path,method="GET",body) {
-    const headers = {Authorization:`Bearer ${tokens[actor]}`};
+    const freshToken = await clerk.sessions.getToken(sessions[actor]);
+    const headers = {Authorization:`Bearer ${freshToken.jwt}`};
     if (e.VERCEL_OIDC_TOKEN) headers["x-vercel-trusted-oidc-idp-token"]=e.VERCEL_OIDC_TOKEN;
     if (body!==undefined) headers["content-type"]="application/json";
     const r=await fetch(new URL(path,target),{method,headers,body:body===undefined?undefined:JSON.stringify(body),redirect:"manual",signal:AbortSignal.timeout(115000)});
