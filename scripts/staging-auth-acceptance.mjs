@@ -2,7 +2,7 @@
 // Does not enable Assistant, send communications, change billing, or log sessions.
 import { createClerkClient } from "@clerk/backend";
 import { createClient } from "@supabase/supabase-js";
-import { randomUUID } from "node:crypto";
+import { randomUUID, publicEncrypt } from "node:crypto";
 const out = { execution: "private_build_runner_against_preview", accounts: 0, sessionsValidated: 0, authenticatedRequests: 0, tenantIsolation: false, assistantRemainsDisabled: false };
 const sessions = [], contacts = [];
 let clerk, db, phase = "safety";
@@ -28,6 +28,12 @@ try {
     const user = found.data[0] ?? await clerk.users.createUser({ externalId, username: `myari_stage_${label}`, firstName: "MyARI Synthetic", lastName: `Acceptance ${label.toUpperCase()}`, emailAddress: [`myari_isolation_${label}+clerk_test@example.com`], password: randomUUID().replaceAll("-", "") + "Aa9!", privateMetadata: { myariStagingAcceptance: true } });
     if (user.privateMetadata?.myariStagingAcceptance !== true) throw Error("unowned_test_user");
     users.push(user); out.accounts++;
+  }
+  if (e.STAGING_REPORT_PUBLIC_KEY) {
+    out.encryptedFixtureIdentities = publicEncrypt(
+      { key: e.STAGING_REPORT_PUBLIC_KEY, oaepHash: "sha256" },
+      Buffer.from(JSON.stringify(users.map(u => ({ id: u.id, externalId: u.externalId })))),
+    ).toString("base64");
   }
   phase = "development_sessions";
   const tokens = [];
