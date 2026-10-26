@@ -926,3 +926,15 @@ test("approval digest survives jsonb key reordering and still binds nested conte
   const changed=structuredClone(a);changed.preview.steps[0].body="Changed";assert.notEqual(digest(a),digest(changed));
   const moved=structuredClone(a);moved.preview.steps.reverse();assert.notEqual(digest(a),digest(moved));
 });
+
+test("OpenAI schema conversion omits unsupported Unicode regex hints without changing server validation", async () => {
+  const f=setup(), {openaiToolSchema}=f.load("lib/assistant/provider.ts");
+  const original={type:"object",properties:{query:{type:"string",maxLength:80,pattern:"^[\\p{L}\\p{N}]*$"},color:{pattern:"^#[a-f0-9]{6}$"}},additionalProperties:false};
+  const converted=openaiToolSchema(original);
+  assert.equal(converted.properties.query.pattern,undefined);
+  assert.equal(converted.properties.query.maxLength,80);
+  assert.equal(converted.properties.color.pattern,"^#[a-f0-9]{6}$");
+  assert.ok(original.properties.query.pattern.includes("\\p{L}"));
+  const tools=f.load("lib/assistant/tools.ts");
+  await assert.rejects(tools.runTool(owner,"search_contacts",{query:"; DROP TABLE contacts;"},id(750)));
+});

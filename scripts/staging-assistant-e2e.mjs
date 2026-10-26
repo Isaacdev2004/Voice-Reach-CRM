@@ -187,5 +187,5 @@ finally {
   out.syntheticAccountsLocked=cleaned;
   out.cleanup=cleaned;if(!cleaned)out.success=false;
   console.log("MYARI_E2E_DIAGNOSTICS",JSON.stringify({providerStatus:out.toolSchemaProviderStatus,provider:out.providerDiagnostic,signals:out.failureSignals,cleanup:out.cleanup,locked:out.syntheticAccountsLocked}));
-  console.log("MYARI_ASSISTANT_E2E",JSON.stringify(out));if(!out.success)process.exitCode=1;
+  console.log("MYARI_ASSISTANT_E2E",JSON.stringify({tests:out.tests,success:out.success,cleanup:out.cleanup,locked:out.syntheticAccountsLocked,inputTokens:out.providerInputTokens,outputTokens:out.providerOutputTokens,failedPhase:out.failedPhase}));if(!out.success)process.exitCode=1;
 }

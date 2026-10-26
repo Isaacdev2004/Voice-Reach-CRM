@@ -9,6 +9,6 @@ test('enabled acceptance refuses Production, wrong database and live effects bef
     let calls=0; const reports=[];
     const process={env:{VERCEL_ENV:'preview',VERCEL_GIT_COMMIT_REF:'feat/ai-operating-assistant',NEXT_PUBLIC_SUPABASE_URL:'https://jojgdfpmaxvbhobjrsbm.supabase.co',ASSISTANT_V2_ENABLED:'true',ALLOW_LIVE_OUTBOUND:'false',ASSISTANT_APPROVED_SENDS_ENABLED:'false',MYARI_AI_BILLING_ENABLED:'false',MYARI_AI_PUBLIC_LAUNCH_VERIFIED:'false',MYARI_AI_ENTITLEMENTS_ENABLED:'false',...overrides}};
     await new Run('createClerkClient','createClient','randomUUID','assert','process','console',source)(()=>{calls++;},()=>{calls++;},()=> 'synthetic',assert,process,{log:(_,r)=>reports.push(JSON.parse(r))});
-    assert.equal(calls,0); assert.equal(process.exitCode,1); assert.equal(reports[0].failedPhase,'safety');
+    assert.equal(calls,0); assert.equal(process.exitCode,1); assert.equal(reports.find(r=>r.failedPhase).failedPhase,'safety');
   }
 });
