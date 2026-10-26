@@ -4,7 +4,7 @@ import { createClerkClient } from "@clerk/backend";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID, publicEncrypt } from "node:crypto";
 const out = { execution: "private_build_runner_against_preview", accounts: 0, sessionsValidated: 0, authenticatedRequests: 0, tenantIsolation: false, assistantRemainsDisabled: false };
-const sessions = [], contacts = [];
+const sessions = [], contacts = [], users = [];
 let clerk, db, phase = "safety";
 try {
   const e = process.env;
@@ -18,7 +18,6 @@ try {
   clerk = createClerkClient({ secretKey: e.CLERK_SECRET_KEY.trim(), publishableKey: e.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.trim() });
   db = createClient(e.NEXT_PUBLIC_SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
   phase = "development_accounts";
-  const users = [];
   for (const label of ["a","b"]) {
     const externalId = `myari-isolated-acceptance-${label}`;
     phase = "development_account_lookup";
@@ -28,6 +27,7 @@ try {
     const user = found.data[0] ?? await clerk.users.createUser({ externalId, username: `myari_stage_${label}`, firstName: "MyARI Synthetic", lastName: `Acceptance ${label.toUpperCase()}`, emailAddress: [`myari_isolation_${label}+clerk_test@example.com`], password: randomUUID().replaceAll("-", "") + "Aa9!", privateMetadata: { myariStagingAcceptance: true } });
     if (user.privateMetadata?.myariStagingAcceptance !== true) throw Error("unowned_test_user");
     users.push(user); out.accounts++;
+    await clerk.users.unlockUser(user.id);
   }
   if (e.STAGING_REPORT_PUBLIC_KEY) {
     out.encryptedFixtureIdentities = publicEncrypt(
@@ -102,6 +102,8 @@ try {
     try { const r = await db.from("contacts").delete().eq("id",c.id).eq("owner_id",c.owner_id).eq("notes",c.notes); if(r.error) cleaned=false; } catch { cleaned=false; }
   }
   for (const id of sessions) { try { await clerk.sessions.revokeSession(id); } catch { cleaned=false; } }
+  for(const user of users){try{const locked=await clerk.users.lockUser(user.id);if(!locked.locked)cleaned=false;}catch{cleaned=false;}}
+  out.syntheticAccountsLocked=cleaned;
   out.syntheticContactsAndSessionsCleaned = cleaned;
   if (!cleaned) out.success=false;
   console.log("MYARI_STAGING_AUTH",JSON.stringify(out));
