@@ -20,13 +20,7 @@ try {
   const frontend = Buffer.from(e.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.slice(8), "base64").toString("utf8").replace(/\$$/, "");
   if (!/^[a-z0-9-]+\.clerk\.accounts\.dev$/.test(frontend)) throw Error("development_frontend");
   const clerk = createClerkClient({ secretKey: e.CLERK_SECRET_KEY, publishableKey: e.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY });
-  phase = "clerk_instance";
-  const instance = await clerk.instance.get();
-  if (instance.environmentType !== "development") {
-    results.clerkDevelopmentInstance = false;
-    throw Error("instance_type");
-  }
-  results.clerkDevelopmentInstance = true;
+  // Pair the keys cryptographically; do not require optional instance-admin APIs.
   phase = "clerk_backend_jwks";
   const backend = await clerk.jwks.getJwks();
   phase = "clerk_frontend_jwks";
@@ -36,6 +30,7 @@ try {
   const fingerprint = k => createHash("sha256").update(JSON.stringify([k.kty,k.n,k.e,k.crv,k.x,k.y])).digest("hex");
   phase = "clerk_instance_match";
   if (!backend.keys?.length || !publicSet.keys?.some(k => backend.keys.some(b => fingerprint(b) === fingerprint(k)))) throw Error("instance_mismatch");
+  results.clerkDevelopmentInstance = true;
   results.clerk = true;
   } catch (error) {
     results.clerkFailurePhase = phase;
