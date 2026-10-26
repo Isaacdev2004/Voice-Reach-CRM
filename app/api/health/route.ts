@@ -1,6 +1,11 @@
 import { apiOk, withApiHandler } from "@/lib/api-response";
 import { isGoogleCalendarConfigured } from "@/lib/calendar/google";
-import { hasClerkEnv, hasClerkPublishableKey, hasClerkSecretKey } from "@/lib/clerk-env";
+import {
+  getClerkKeyMode,
+  hasClerkEnv,
+  hasClerkPublishableKey,
+  hasClerkSecretKey,
+} from "@/lib/clerk-env";
 import { isElevenLabsConfigured } from "@/lib/providers/elevenlabs";
 import { isLiveProvidersConfigured } from "@/lib/providers/registry";
 import { isSupabaseConfigured } from "@/lib/server-config";
@@ -18,8 +23,10 @@ export const GET = withApiHandler(async () => {
     status: supabase && clerk ? "ok" : "degraded",
     supabase,
     clerk,
+    clerkMode: getClerkKeyMode(),
     clerkPublishableKey,
     clerkSecretKey,
+    openaiConfigured: Boolean(process.env.OPENAI_API_KEY?.trim()),
     providers,
     voiceAi: isElevenLabsConfigured(),
     googleCalendar: isGoogleCalendarConfigured(),

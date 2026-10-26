@@ -35,3 +35,12 @@ export function hasClerkSecretKey(): boolean {
 export function hasClerkEnv(): boolean {
   return hasClerkPublishableKey() && hasClerkSecretKey();
 }
+
+/** Whether deployment uses Clerk production (`pk_live_`) or development (`pk_test_`) keys. */
+export function getClerkKeyMode(): "live" | "test" | "missing" {
+  const publishableKey = getClerkPublishableKey();
+  if (!publishableKey) return "missing";
+  if (publishableKey.startsWith("pk_live_")) return "live";
+  if (publishableKey.startsWith("pk_test_")) return "test";
+  return "missing";
+}
