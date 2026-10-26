@@ -22,7 +22,11 @@ try {
   const clerk = createClerkClient({ secretKey: e.CLERK_SECRET_KEY, publishableKey: e.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY });
   phase = "clerk_instance";
   const instance = await clerk.instance.get();
-  if (instance.environmentType !== "development") throw Error("instance_type");
+  if (instance.environmentType !== "development") {
+    results.clerkDevelopmentInstance = false;
+    throw Error("instance_type");
+  }
+  results.clerkDevelopmentInstance = true;
   phase = "clerk_backend_jwks";
   const backend = await clerk.jwks.getJwks();
   phase = "clerk_frontend_jwks";
@@ -35,7 +39,11 @@ try {
   results.clerk = true;
   } catch (error) {
     results.clerkFailurePhase = phase;
-    if (Number.isInteger(error?.status)) results.clerkStatus = error.status;
+    const status = error?.status ?? error?.statusCode;
+    if (Number.isInteger(status)) results.clerkStatus = status;
+    const allowedCodes = new Set(["clerk_key_invalid", "invalid_api_key", "authentication_invalid", "api_key_invalid", "resource_not_found", "authorization_invalid", "form_param_format_invalid"]);
+    const code = error?.errors?.find(x => allowedCodes.has(x.code))?.code;
+    if (code) results.clerkErrorCode = code;
   }
   try {
   phase = "supabase";
@@ -52,7 +60,13 @@ try {
     signal: AbortSignal.timeout(25000),
     body: JSON.stringify({ model, input: "Reply with OK.", store: false, max_output_tokens: 512, ...(model.startsWith("gpt-5") ? { reasoning: { effort: "low" } } : {}) }),
   });
-  if (!response.ok) { results.providerStatus = response.status; throw Error("provider_rejected"); }
+  if (!response.ok) {
+    results.providerStatus = response.status;
+    const error = await response.json().catch(() => null);
+    if (["invalid_api_key", "insufficient_quota", "billing_hard_limit_reached", "rate_limit_exceeded", "model_not_found", "permission_denied"].includes(error?.error?.code))
+      results.providerErrorCode = error.error.code;
+    throw Error("provider_rejected");
+  }
   const output = await response.json();
   const text = (output.output ?? []).flatMap(x => x.type === "message" ? x.content ?? [] : []).filter(x => x.type === "output_text").map(x => x.text).join("").trim();
   if (output.status !== "completed" || text !== "OK" || !Number.isInteger(output.usage?.input_tokens) || !Number.isInteger(output.usage?.output_tokens)) throw Error("incomplete_result");
