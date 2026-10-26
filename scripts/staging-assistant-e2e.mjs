@@ -158,7 +158,7 @@ try {
     await assert.rejects(store.reserveProviderCall(owners[1],randomUUID()),/provider-call limit/);
   });
   await check("observed_token_threshold",async()=>{
-    await store.put(owners[1],"tokens",randomUUID(),"synthetic-threshold",{inputTokens:19000,outputTokens:1000});
+    await store.put(owners[1],"tokens",randomUUID(),"synthetic-threshold",{inputTokens:Number(e.ASSISTANT_DAILY_TOKEN_THRESHOLD)-1000,outputTokens:1000});
     await assert.rejects(store.checkObservedBudget(owners[1]),/observed token threshold/);
   });
   await check("monthly_rpc_idempotency_cap_release_and_future_period_guard",async()=>{
