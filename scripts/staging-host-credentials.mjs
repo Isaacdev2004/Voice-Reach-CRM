@@ -1,0 +1,55 @@
+// Private Preview build check. No HTTP endpoint, credential export or CRM writes.
+import { createHash } from "node:crypto";
+import { createClerkClient } from "@clerk/backend";
+import { createClient } from "@supabase/supabase-js";
+const results = { execution: "preview_build_not_runtime", safety: false, clerk: false, supabase: false, openai: false };
+let phase = "safety";
+try {
+  const e = process.env;
+  if (e.VERCEL_ENV !== "preview" || e.VERCEL_GIT_COMMIT_REF !== "feat/ai-operating-assistant") throw Error("scope");
+  if (e.NEXT_PUBLIC_SUPABASE_URL !== "https://jojgdfpmaxvbhobjrsbm.supabase.co") throw Error("database_target");
+  for (const key of ["ALLOW_LIVE_OUTBOUND", "ASSISTANT_V2_ENABLED", "ASSISTANT_APPROVED_SENDS_ENABLED", "MYARI_AI_BILLING_ENABLED", "MYARI_AI_PUBLIC_LAUNCH_VERIFIED"])
+    if (e[key] !== "false") throw Error("release_gate");
+  for (const key of ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "TWILIO_AUTH_TOKEN", "RESEND_API_KEY", "SLYBROADCAST_PASSWORD", "ELEVENLABS_API_KEY"])
+    if (e[key]?.trim()) throw Error("live_credential");
+  if (!e.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith("pk_test_") || !e.CLERK_SECRET_KEY?.startsWith("sk_test_")) throw Error("development_auth_required");
+  if (!e.SUPABASE_SERVICE_ROLE_KEY?.trim() || !e.OPENAI_API_KEY?.trim()) throw Error("missing_credential");
+  results.safety = true;
+  phase = "clerk";
+  const frontend = Buffer.from(e.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.slice(8), "base64").toString("utf8").replace(/\$$/, "");
+  if (!/^[a-z0-9-]+\.clerk\.accounts\.dev$/.test(frontend)) throw Error("development_frontend");
+  const clerk = createClerkClient({ secretKey: e.CLERK_SECRET_KEY, publishableKey: e.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY });
+  const instance = await clerk.instance.get();
+  if (instance.environmentType !== "development") throw Error("instance_type");
+  const backend = await clerk.jwks.getJwks();
+  const r = await fetch(`https://${frontend}/.well-known/jwks.json`, { signal: AbortSignal.timeout(15000) });
+  if (!r.ok) throw Error("frontend_jwks");
+  const publicSet = await r.json();
+  const fingerprint = k => createHash("sha256").update(JSON.stringify([k.kty,k.n,k.e,k.crv,k.x,k.y])).digest("hex");
+  if (!backend.keys?.length || !publicSet.keys?.some(k => backend.keys.some(b => fingerprint(b) === fingerprint(k)))) throw Error("instance_mismatch");
+  results.clerk = true;
+  phase = "supabase";
+  const db = createClient(e.NEXT_PUBLIC_SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: (url, init) => fetch(url, { ...init, signal: AbortSignal.timeout(15000) }) } });
+  const schema = await db.rpc("ai_usage_schema_version");
+  if (schema.error || schema.data !== 1) throw Error("service_rpc");
+  results.supabase = true;
+  phase = "openai";
+  const model = e.OPENAI_ASSISTANT_MODEL?.trim() || "gpt-5-mini";
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST", headers: { Authorization: `Bearer ${e.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(25000),
+    body: JSON.stringify({ model, input: "Reply with OK.", store: false, max_output_tokens: 512, ...(model.startsWith("gpt-5") ? { reasoning: { effort: "low" } } : {}) }),
+  });
+  if (!response.ok) { results.providerStatus = response.status; throw Error("provider_rejected"); }
+  const output = await response.json();
+  const text = (output.output ?? []).flatMap(x => x.type === "message" ? x.content ?? [] : []).filter(x => x.type === "output_text").map(x => x.text).join("").trim();
+  if (output.status !== "completed" || text !== "OK" || !Number.isInteger(output.usage?.input_tokens) || !Number.isInteger(output.usage?.output_tokens)) throw Error("incomplete_result");
+  results.openai = true;
+  results.inputTokens = output.usage.input_tokens;
+  results.outputTokens = output.usage.output_tokens;
+  console.log("MYARI_STAGING_CHECK", JSON.stringify({ ...results, success: true }));
+} catch {
+  // Never log provider bodies, exception text, request headers or any key value.
+  console.log("MYARI_STAGING_CHECK", JSON.stringify({ ...results, success: false, failedPhase: phase }));
+  process.exitCode = 1;
+}
