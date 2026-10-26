@@ -917,3 +917,12 @@ test("repeated native prepare tool-call IDs return the same saved proposal inste
     ),
   );
 });
+
+test("approval digest survives jsonb key reordering and still binds nested content", () => {
+  const f = setup(), { digest } = f.load("lib/assistant/store.ts");
+  const a = { action: {kind:"task",title:"Synthetic",contactId:id(1)},preview:{identity:{name:"Test",id:id(1)},steps:[{day:1,body:"First"},{day:2,body:"Second"}]}};
+  const reorder = value => Array.isArray(value) ? value.map(reorder) : value && typeof value === "object" ? Object.fromEntries(Object.keys(value).sort().reverse().map(k=>[k,reorder(value[k])])) : value;
+  assert.equal(digest(a),digest(reorder(a)));
+  const changed=structuredClone(a);changed.preview.steps[0].body="Changed";assert.notEqual(digest(a),digest(changed));
+  const moved=structuredClone(a);moved.preview.steps.reverse();assert.notEqual(digest(a),digest(moved));
+});

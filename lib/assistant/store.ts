@@ -68,8 +68,14 @@ export async function getProposal(
   if (!rows[0]) throw new AssistantFailure("Proposal not found", 404);
   return rows[0].metadata as unknown as Proposal;
 }
+// PostgreSQL jsonb reorders object keys. Approval bindings must survive that
+// round trip while preserving array order and every content value.
 export const digest = (value: unknown) =>
-  createHash("sha256").update(JSON.stringify(value)).digest("hex");
+  createHash("sha256").update(JSON.stringify(value, (_key, item) =>
+    item && typeof item === "object" && !Array.isArray(item)
+      ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]]))
+      : item,
+  )).digest("hex");
 /** Fixed owner/day slots, enforced by unique PK. Concurrency cannot exceed the configured hard cap. */
 export async function reserveUsage(
   owner: string,

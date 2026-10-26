@@ -53,6 +53,7 @@ try {
     out.statuses[phase]=r.status;
     assert.ok(r.headers.get("content-type")?.includes("application/json"));
     const data=await r.json(); out.statuses[phase]=r.status;
+    if(data.error) { out.failureSignals ??= {}; out.failureSignals[phase]={openai:/OpenAI/i.test(data.error),incomplete:/incomplete/i.test(data.error),storage:/storage/i.test(data.error),contextChanged:/context changed/i.test(data.error),rate:/rate limit/i.test(data.error),generic:/service is unavailable/i.test(data.error)}; }
     return {status:r.status,data:data?.data??data};
   }
   for (let i=0;i<2;i++) {
@@ -64,6 +65,20 @@ try {
   });
   await check("http_contact_tenant_isolation",async()=>{
     for(let i=0;i<2;i++){const own=await http(i,`/api/contacts/${contacts[i].id}`),foreign=await http(i,`/api/contacts/${contacts[1-i].id}`);assert.equal(own.status,200);assert.equal(foreign.status,404);}
+  });
+  await check("live_provider_with_actual_tool_schemas",async()=>{
+    const {openaiProvider}=await import("../lib/assistant/provider.ts");
+    const {enabledToolDefinitions}=await import("../lib/assistant/tools.ts");
+    const original=globalThis.fetch;
+    globalThis.fetch=async(...args)=>{
+      const response=await original(...args);
+      if(String(args[0]).startsWith("https://api.openai.com/")) {
+        out.toolSchemaProviderStatus=response.status;
+        if(!response.ok){const b=await response.clone().json().catch(()=>null);for(const key of ["code","param","type"])if(typeof b?.error?.[key]==="string"&&/^[a-zA-Z0-9_.\[\]-]{1,180}$/.test(b.error[key])){out.providerDiagnostic??={};out.providerDiagnostic[key]=b.error[key];}}
+      }
+      return response;
+    };
+    try{const r=await openaiProvider.respond({system:"Synthetic staging integration check. Reply OK. Do not call tools.",messages:[{role:"user",content:"Reply OK."}],tools:enabledToolDefinitions()});assert.ok(r.usage.inputTokens>0);}finally{globalThis.fetch=original;}
   });
   const conversationId=randomUUID(); let initialCampaign,revisedCampaign,editedCampaign;
   const chat=message=>({conversationId,requestId:randomUUID(),message,context:{path:"/dashboard/campaigns"}});
