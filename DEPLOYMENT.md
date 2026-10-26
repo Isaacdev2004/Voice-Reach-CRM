@@ -135,7 +135,25 @@ After env vars are set, **Redeploy**. Agent flow: Sign up → pick plan → Stri
 
 ## Verify
 
-1. `GET /api/health` → `"status": "ok"` and `providers: { voicemail: true, sms: true, email: true }`
-2. Sign in → add contact with phone + email + consent
-3. Approve voice asset → send voicemail batch
-4. Campaign with SMS/email steps → **Run scheduler** or wait for cron
+1. `GET /api/health` → `"status": "ok"`, `clerkMode: "live"` (production Clerk), `openaiConfigured: true` when Notes transcription is enabled
+2. **Live OpenAI + Clerk (authenticated):** sign in on production, then call  
+   `GET /api/integrations/status?probe=1`  
+   with your session cookie. If `INTEGRATIONS_PROBE_SECRET` is set on Vercel, also send header `x-integrations-probe-secret`. Expect `openai.probe.ok` and `clerk.probe.ok` without any API keys in the response.
+3. Sign in → add contact with phone + email + consent
+4. Approve voice asset → send voicemail batch
+5. Campaign with SMS/email steps → **Run scheduler** or wait for cron
+
+### Clerk production workspace
+
+In [Clerk Dashboard](https://dashboard.clerk.com) → your **production** instance:
+
+- Copy **API keys** into Vercel (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` must be `pk_live_…`, `CLERK_SECRET_KEY` must be `sk_live_…`).
+- **Domains:** add `myari.io` / `www.myari.io` (match `APP_BASE_URL`).
+- **Paths:** `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in`, sign-up and fallback URLs as in `.env.example`.
+
+Redeploy after changing keys. `/api/health` only reports presence and `clerkMode`; it does not call Clerk or OpenAI.
+
+### OpenAI (Notes audio transcription)
+
+- Create a **project-scoped** key in OpenAI with minimal scope; store only in Vercel **Production** env as `OPENAI_API_KEY` (never commit).
+- After deploy, run the probe in step 2 or upload a short test clip in Notes with consent checked (uses the same server key).
