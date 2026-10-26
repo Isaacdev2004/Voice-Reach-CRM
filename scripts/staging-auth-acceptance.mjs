@@ -25,7 +25,7 @@ try {
     const found = await clerk.users.getUserList({ externalId: [externalId], limit: 2 });
     if (found.data.length > 1) throw Error("ambiguous_user");
     phase = "development_account_create";
-    const user = found.data[0] ?? await clerk.users.createUser({ externalId, firstName: "MyARI Synthetic", lastName: `Acceptance ${label.toUpperCase()}`, emailAddress: [`myari_isolation_${label}+clerk_test@example.com`], skipPasswordRequirement: true, privateMetadata: { myariStagingAcceptance: true } });
+    const user = found.data[0] ?? await clerk.users.createUser({ externalId, firstName: "MyARI Synthetic", lastName: `Acceptance ${label.toUpperCase()}`, emailAddress: [`myari_isolation_${label}+clerk_test@example.com`], password: randomUUID().replaceAll("-", "") + "Aa9!", privateMetadata: { myariStagingAcceptance: true } });
     if (user.privateMetadata?.myariStagingAcceptance !== true) throw Error("unowned_test_user");
     users.push(user); out.accounts++;
   }
@@ -85,6 +85,9 @@ try {
   if (first) out.providerErrorCode = first.code;
   const safeCodes = error?.errors?.map(e => e.code).filter(c => typeof c === "string" && /^[a-z][a-z_]{2,79}$/.test(c));
   if (safeCodes?.length) out.providerValidationCodes = safeCodes.slice(0,4);
+  const validationText = error?.errors?.map(e => `${e.message ?? ""} ${e.longMessage ?? ""}`).join(" ").toLowerCase() ?? "";
+  const hintedFields = ["username","password","phone","email","first name","last name","legal","terms"].filter(word => validationText.includes(word));
+  if (hintedFields.length) out.validationFieldHints = hintedFields;
   const parameter = error?.errors?.map(e => e.meta?.paramName ?? e.meta?.param_name).find(p => ["email_address","phone_number","username","password","first_name","last_name","external_id","limit"].includes(p));
   if (parameter) out.providerParameter = parameter;
 } finally {
