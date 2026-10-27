@@ -1,47 +1,53 @@
 "use client";
-
 import "@/components/marketing/public-auth-refinement.css";
 import Link from "next/link";
+import { Suspense, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
+import { AuthExplore } from "@/components/auth/auth-explore";
+import { AuthModeSwitch } from "@/components/auth/auth-mode-switch";
 import { AriLogo } from "@/components/brand/ari-logo";
-import type { ReactNode } from "react";
 
-type AuthShellProps = { children: ReactNode; mode?: "sign-in" | "sign-up" };
-
-export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
+export function AuthShell({
+  children,
+  mode = "sign-in",
+}: {
+  children: ReactNode;
+  mode?: "sign-in" | "sign-up";
+}) {
+  const path = usePathname();
+  const entry = /^\/sign-(in|up)\/?$/.test(path ?? "");
   return (
-    <div className="public-auth-surface">
+    <div className="public-auth-surface" data-auth-entry={entry}>
       <AuthBrandPanel mode={mode} />
       <main className="auth-content">
         <header className="auth-content-header">
-          <Link href="/" className="auth-mobile-logo" aria-label="MyARI home">
-            <AriLogo height={46} />
-          </Link>
           <Link href="/" className="auth-back-link">
-            <span aria-hidden="true">←</span> Back to MyARI
+            <span aria-hidden="true">‹</span> Back to MyARI
           </Link>
         </header>
         <div className="auth-form-stage">
           <div className="auth-form-panel">
-            <p className="auth-form-eyebrow">
-              YOUR BUSINESS. BEAUTIFULLY CONNECTED.
-            </p>
+            <Link href="/" className="auth-form-logo" aria-label="MyARI home">
+              <AriLogo height={80} />
+              <span>
+                REAL ESTATE FOLLOW-UP
+                <br />
+                BUILT FOR WHAT’S NEXT
+              </span>
+            </Link>
+            <Suspense
+              fallback={
+                <div className="auth-switch-placeholder" aria-hidden="true" />
+              }
+            >
+              <AuthModeSwitch mode={mode} />
+            </Suspense>
             {children}
-            <p className="auth-reassurance">
-              <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
-                <rect
-                  x="5"
-                  y="8.5"
-                  width="10"
-                  height="8"
-                  rx="2"
-                  stroke="currentColor"
-                />
-                <path d="M7 8.5V6a3 3 0 0 1 6 0v2.5" stroke="currentColor" />
-              </svg>{" "}
-              A little more clarity. A lot more possibility.
-            </p>
           </div>
+        </div>
+        <div className="auth-secondary-actions">
+          <AuthExplore />
         </div>
         <footer className="auth-legal">
           <span>© {new Date().getFullYear()} MyARI</span>

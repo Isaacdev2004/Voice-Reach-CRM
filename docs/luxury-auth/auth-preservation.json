@@ -1,0 +1,32 @@
+{
+  "baseline": "aabbf1aa25e679e70b251b4c8ed9af9cb6740982",
+  "evidence": {
+    "proxy.ts": {
+      "unchanged": true,
+      "sha256": "a2c9fbfc9daa4b81ed54d68e329c903822888549efdd239c738e88e973de70bc"
+    },
+    "lib/auth.ts": {
+      "unchanged": true,
+      "sha256": "aa57140a74f9f7d70df76181d12d84cea8fcd43a75519083c24b138bd89eb03b"
+    },
+    "lib/billing/activate-trial-client.ts": {
+      "unchanged": true,
+      "sha256": "93bcc7d5785842bf447a0528188c31aad652e41eef585fb13879757e26dcc8b9"
+    },
+    "lib/billing/pending-plan.ts": {
+      "unchanged": true,
+      "sha256": "2aa23a93e3c9cf1244a23732b50000c5c21318e3a458b1b24f3dfc228c946133"
+    },
+    "app/api/billing/claim/route.ts": {
+      "unchanged": true,
+      "sha256": "9435bfccb19ae65d73f37a3a12d7d0bc5d5b142f73b65c898d6ff102a7428400"
+    },
+    "app/api/billing/start-trial/route.ts": {
+      "unchanged": true,
+      "sha256": "d15cc7ebfb49a0a25f434904dc24e57074aacbf9ad1cac3ac7f075fb33f4d037"
+    },
+    "signupTrialClaimAttributionEffects": {
+      "unchanged": true
+    }
+  }
+}
