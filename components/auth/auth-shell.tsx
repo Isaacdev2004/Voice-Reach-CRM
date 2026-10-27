@@ -1,48 +1,56 @@
 "use client";
 
 import "@/components/marketing/public-auth-refinement.css";
+import Link from "next/link";
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { AriLogo } from "@/components/brand/ari-logo";
-import { BRAND_TAGLINE } from "@/lib/brand";
 import type { ReactNode } from "react";
 
-type AuthShellProps = {
-  children: ReactNode;
-  mode?: "sign-in" | "sign-up";
-};
+type AuthShellProps = { children: ReactNode; mode?: "sign-in" | "sign-up" };
 
 export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
   return (
-    <div className="public-auth-surface grid min-h-screen w-full lg:grid-cols-[1fr_1fr]">
+    <div className="public-auth-surface">
       <AuthBrandPanel mode={mode} />
-
-      {/* Right - form */}
-      <div className="flex min-h-screen flex-col bg-cream">
-        <div className="flex flex-1 flex-col justify-center px-5 py-10 sm:px-10 lg:px-14 xl:px-20">
-          {/* Mobile brand strip */}
-          <div className="mb-8 flex flex-col items-center rounded-2xl border border-outline-variant/15 bg-ivory/80 px-6 py-5 text-center lg:hidden">
-            <AriLogo height={44} />
-            <p className="mt-2 max-w-[260px] text-[14px] leading-snug text-taupe">{BRAND_TAGLINE}</p>
+      <main className="auth-content">
+        <header className="auth-content-header">
+          <Link href="/" className="auth-mobile-logo" aria-label="MyARI home">
+            <AriLogo height={46} />
+          </Link>
+          <Link href="/" className="auth-back-link">
+            <span aria-hidden="true">←</span> Back to MyARI
+          </Link>
+        </header>
+        <div className="auth-form-stage">
+          <div className="auth-form-panel">
+            <p className="auth-form-eyebrow">
+              YOUR BUSINESS. BEAUTIFULLY CONNECTED.
+            </p>
+            {children}
+            <p className="auth-reassurance">
+              <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
+                <rect
+                  x="5"
+                  y="8.5"
+                  width="10"
+                  height="8"
+                  rx="2"
+                  stroke="currentColor"
+                />
+                <path d="M7 8.5V6a3 3 0 0 1 6 0v2.5" stroke="currentColor" />
+              </svg>{" "}
+              A little more clarity. A lot more possibility.
+            </p>
           </div>
-
-          <div className="auth-form-panel mx-auto w-full max-w-[420px]">{children}</div>
         </div>
-
-        <footer className="flex justify-center gap-6 px-6 pb-8 text-center">
-          <a
-            className="text-[14px] text-taupe transition-colors hover:text-rose-gold-deep"
-            href="/privacy"
-          >
-            Privacy Policy
-          </a>
-          <a
-            className="text-[14px] text-taupe transition-colors hover:text-rose-gold-deep"
-            href="/terms"
-          >
-            Terms of Service
-          </a>
+        <footer className="auth-legal">
+          <span>© {new Date().getFullYear()} MyARI</span>
+          <nav aria-label="Legal">
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/terms">Terms of Service</Link>
+          </nav>
         </footer>
-      </div>
+      </main>
     </div>
   );
 }

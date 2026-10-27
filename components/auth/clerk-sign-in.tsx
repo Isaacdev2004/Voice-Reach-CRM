@@ -7,11 +7,13 @@ import { AUTH_AFTER_URL } from "@/lib/clerk-env";
 
 export function ClerkSignIn() {
   return (
-    <div className="w-full rounded-[24px] border border-outline-variant/15 bg-ivory px-6 py-8 shadow-card sm:px-8">
+    <div className="auth-credential-card">
       <div className="mb-6">
-        <h2 className="font-serif text-[28px] font-semibold text-ink">Sign in</h2>
+        <h2 className="font-serif text-[28px] font-semibold text-ink">
+          Welcome back.
+        </h2>
         <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
-          Access your dashboard, contacts, and campaigns.
+          Your relationships, plans, and next opportunities await.
         </p>
       </div>
 
@@ -26,8 +28,11 @@ export function ClerkSignIn() {
 
       <p className="mt-6 text-center text-[14px] text-slate-text">
         Don&apos;t have an account?{" "}
-        <Link className="font-semibold text-rose-gold-deep hover:underline" href="/sign-up">
-          Create one
+        <Link
+          className="font-semibold text-rose-gold-deep hover:underline"
+          href="/sign-up"
+        >
+          Create an account
         </Link>
       </p>
     </div>
