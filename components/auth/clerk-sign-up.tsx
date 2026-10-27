@@ -114,7 +114,7 @@ export function ClerkSignUp() {
   }
 
   return (
-    <div className="w-full rounded-[24px] border border-outline-variant/15 bg-ivory px-6 py-8 shadow-card sm:px-8">
+    <div className="auth-credential-card">
       <div className="mb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
           {FOUNDING_100.name} · {FOUNDING_100.trialDays}-day free trial
