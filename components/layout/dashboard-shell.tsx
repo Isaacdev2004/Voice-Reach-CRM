@@ -184,6 +184,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 "/dashboard/activity",
                 "/dashboard/voice-scripts",
                 "/dashboard/settings",
+                "/dashboard/concierge",
+                "/dashboard/admin/concierge",
               ].includes(normalizedPath) ? (
                 <div className={DASHBOARD_MAIN_COLUMN}>{children}</div>
               ) : (
