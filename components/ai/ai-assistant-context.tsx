@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import { useUser } from "@clerk/nextjs";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  type ReactNode,
+} from "react";
 
 export type AiTaskType =
   | "daily_briefing"
@@ -24,6 +31,8 @@ type AiAssistantState = {
     goal?: string;
   };
   brief?: string;
+  mode: "drawer" | "overlay" | "workspace";
+  tool: "assistant" | "legacy";
 };
 
 type AiAssistantContextValue = {
@@ -38,13 +47,24 @@ const AiAssistantContext = createContext<AiAssistantContextValue | null>(null);
 
 export function useAiAssistant() {
   const ctx = useContext(AiAssistantContext);
-  if (!ctx) throw new Error("useAiAssistant must be used within AiAssistantProvider");
+  if (!ctx)
+    throw new Error("useAiAssistant must be used within AiAssistantProvider");
   return ctx;
 }
 
 export function AiAssistantProvider({ children }: { children: ReactNode }) {
+  const { user } = useUser();
+  return (
+    <OwnedAiAssistantProvider key={user?.id ?? "signed-out"}>
+      {children}
+    </OwnedAiAssistantProvider>
+  );
+}
+function OwnedAiAssistantProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AiAssistantState>({
     open: false,
+    mode: "drawer",
+    tool: "assistant",
     task: "follow_up",
     context: { tone: "luxury" },
   });
@@ -66,7 +86,9 @@ export function AiAssistantProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AiAssistantContext.Provider value={{ state, openAssistant, closeAssistant, setBrief, setTask }}>
+    <AiAssistantContext.Provider
+      value={{ state, openAssistant, closeAssistant, setBrief, setTask }}
+    >
       {children}
     </AiAssistantContext.Provider>
   );

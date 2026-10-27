@@ -1,4 +1,5 @@
 "use client";
+import { StructuredData } from "./source-results";
 import type { Proposal } from "@/lib/assistant/schema";
 const value = (x: unknown) =>
   typeof x === "string" || typeof x === "number" ? String(x) : "";
@@ -57,7 +58,17 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
         <>
           <h4>{a.title}</h4>
           <p className="assistant-copy">{a.script}</p>
-          <p>Text draft only. No audio generation or approval.</p>
+          <p>
+            Text draft only. Approximately{" "}
+            {Math.ceil(a.script.trim().split(/\s+/).length / 2.5)} seconds at
+            150 words per minute. Actual speaking duration varies.
+          </p>
+          <p>
+            No audio generated or sent. Sapphire availability and authorized
+            voice selection are checked in Voice Studio; no substitute voice is
+            selected here.
+          </p>
+          <a href="/dashboard/voice-scripts">Open Voice Studio</a>
         </>
       )}
       {a.kind === "calendar" && (
@@ -81,6 +92,7 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
           <p>
             {a.durationDays} days · {a.audience}
           </p>
+          <p>{a.description}</p>
           <ol>
             {a.steps.map((s, i) => (
               <li key={i}>
@@ -127,13 +139,9 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
           </p>
           <details>
             <summary>Calculation and assumptions</summary>
-            <pre>
-              {JSON.stringify(
-                { input: a.calculation, result: p.preview.result },
-                null,
-                2,
-              )}
-            </pre>
+            <StructuredData
+              value={{ input: a.calculation, result: p.preview.result }}
+            />
           </details>
         </>
       )}
@@ -146,16 +154,12 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
           </p>
           <details>
             <summary>Review proposed steps and deadlines</summary>
-            <pre>
-              {JSON.stringify(
-                {
-                  template: p.preview.template,
-                  deadlines: p.preview.proposedDeadlines,
-                },
-                null,
-                2,
-              )}
-            </pre>
+            <StructuredData
+              value={{
+                template: p.preview.template,
+                deadlines: p.preview.proposedDeadlines,
+              }}
+            />
           </details>
         </>
       )}
@@ -181,8 +185,8 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
         </>
       )}
       <details>
-        <summary>Record references and full structured preview</summary>
-        <pre>{JSON.stringify(p.preview, null, 2)}</pre>
+        <summary>Additional verified preview details</summary>
+        <StructuredData value={p.preview} />
       </details>
     </div>
   );

@@ -50,7 +50,7 @@
     "test:public-polish": "node scripts/public-polish-browser.test.cjs",
     "test:pricing-billing": "node scripts/pricing-billing.test.cjs",
     "test:campaign-premium": "node scripts/campaign-premium.test.cjs",
-    "test:assistant": "node scripts/assistant-operating.test.cjs && node scripts/assistant-production-connectivity-check.test.mjs",
+    "test:assistant": "node scripts/assistant-operating.test.cjs && node scripts/assistant-production-connectivity-check.test.mjs && npm run test:assistant-workspace",
     "test:ai-pricing": "node scripts/ai-pricing.test.cjs",
     "test:ai-usage-db": "node scripts/ai-usage-database.test.cjs",
     "test:assistant-browser": "node scripts/assistant-browser.test.cjs",
@@ -59,7 +59,9 @@
     "test:assistant-messaging-browser": "node scripts/assistant-messaging-browser.test.cjs",
     "test:concierge": "node scripts/concierge.test.cjs",
     "test:concierge-db": "node scripts/concierge-database.test.cjs",
-    "test:concierge-browser": "node scripts/concierge-browser.test.cjs"
+    "test:concierge-browser": "node scripts/concierge-browser.test.cjs",
+    "test:assistant-workspace": "node scripts/assistant-workspace.test.cjs",
+    "test:assistant-workspace-browser": "node scripts/assistant-workspace-browser.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",

@@ -12,10 +12,12 @@ export function ActionPreview({
   proposal,
   owner,
   onUpdated,
+  allowSending = true,
 }: {
   proposal: Proposal;
   owner: string;
   onUpdated: () => void;
+  allowSending?: boolean;
 }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -86,6 +88,16 @@ export function ActionPreview({
     };
   }, [p.id, p.action.kind, owner, outcomeState, deliveryState]);
   async function mutate(mode: "save" | "cancel" | "edit" | "check") {
+    if (
+      mode === "save" &&
+      !allowSending &&
+      ["sms", "email"].includes(p.action.kind)
+    ) {
+      setError(
+        "Sending is unavailable in this workspace. This is a draft only.",
+      );
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -283,6 +295,77 @@ export function ActionPreview({
                 />
               </label>
             ))}
+          {p.action.kind === "campaign" && Array.isArray(parsedDraft.steps) && (
+            <fieldset>
+              <legend>Sequence steps</legend>
+              {(
+                parsedDraft.steps as {
+                  type: string;
+                  day: number;
+                  title: string;
+                  description: string;
+                }[]
+              ).map((step, index) => (
+                <div key={index} className="aw-step-editor">
+                  <label>
+                    Day
+                    <input
+                      type="number"
+                      min={1}
+                      max={365}
+                      aria-label={`Step ${index + 1} day`}
+                      value={step.day}
+                      onChange={(e) => {
+                        const next = JSON.parse(draft);
+                        next.steps[index].day = Number(e.target.value);
+                        setDraft(JSON.stringify(next));
+                      }}
+                    />
+                  </label>
+                  <label>
+                    Channel
+                    <select
+                      aria-label={`Step ${index + 1} channel`}
+                      value={step.type}
+                      onChange={(e) => {
+                        const next = JSON.parse(draft);
+                        next.steps[index].type = e.target.value;
+                        setDraft(JSON.stringify(next));
+                      }}
+                    >
+                      {["sms", "email", "voicemail", "task"].map((type) => (
+                        <option key={type}>{type}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Title
+                    <input
+                      aria-label={`Step ${index + 1} title`}
+                      value={step.title}
+                      onChange={(e) => {
+                        const next = JSON.parse(draft);
+                        next.steps[index].title = e.target.value;
+                        setDraft(JSON.stringify(next));
+                      }}
+                    />
+                  </label>
+                  <label>
+                    Message
+                    <textarea
+                      aria-label={`Step ${index + 1} message`}
+                      value={step.description}
+                      onChange={(e) => {
+                        const next = JSON.parse(draft);
+                        next.steps[index].description = e.target.value;
+                        setDraft(JSON.stringify(next));
+                      }}
+                    />
+                  </label>
+                </div>
+              ))}
+            </fieldset>
+          )}
           <details>
             <summary>Advanced structured fields</summary>
             <textarea
@@ -325,6 +408,9 @@ export function ActionPreview({
             Refresh message status
           </button>
         )}
+      {!allowSending && ["sms", "email"].includes(p.action.kind) && (
+        <p>Message draft only. Sending is disabled in this workspace.</p>
+      )}
       {!outcome && (
         <>
           <div className="assistant-actions">
@@ -344,30 +430,31 @@ export function ActionPreview({
               Check saved result
             </button>
           </div>
-          {p.executable && (
-            <>
-              <label className="assistant-confirm">
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={(e) => setChecked(e.target.checked)}
-                />
-                I reviewed the exact target, content, effects and costs and
-                explicitly approve this action.
-              </label>
-              <button
-                className="assistant-primary"
-                disabled={busy || !checked}
-                onClick={() => void mutate("save")}
-              >
-                {busy
-                  ? "Confirming…"
-                  : ["sms", "email"].includes(p.action.kind)
-                    ? "Approve & send this message"
-                    : "Approve & save"}
-              </button>
-            </>
-          )}
+          {p.executable &&
+            (allowSending || !["sms", "email"].includes(p.action.kind)) && (
+              <>
+                <label className="assistant-confirm">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(e) => setChecked(e.target.checked)}
+                  />
+                  I reviewed the exact target, content, effects and costs and
+                  explicitly approve this action.
+                </label>
+                <button
+                  className="assistant-primary"
+                  disabled={busy || !checked}
+                  onClick={() => void mutate("save")}
+                >
+                  {busy
+                    ? "Confirming…"
+                    : ["sms", "email"].includes(p.action.kind)
+                      ? "Approve & send this message"
+                      : "Approve & save"}
+                </button>
+              </>
+            )}
         </>
       )}
     </article>

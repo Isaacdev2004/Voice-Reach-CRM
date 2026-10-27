@@ -1,0 +1,201 @@
+{
+  "environment": "local UI with mocked APIs, not hosted Clerk/provider acceptance",
+  "checks": 87,
+  "results": [
+    {
+      "width": 1440,
+      "status": "PASS",
+      "chatCalls": 4,
+      "mutations": [
+        {
+          "path": "/api/assistant/transcribe",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/proposals",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "DELETE"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "status": "PASS",
+      "chatCalls": 4,
+      "mutations": [
+        {
+          "path": "/api/assistant/transcribe",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/proposals",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "DELETE"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "status": "PASS",
+      "chatCalls": 4,
+      "mutations": [
+        {
+          "path": "/api/assistant/transcribe",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/proposals",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "DELETE"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "status": "PASS",
+      "chatCalls": 4,
+      "mutations": [
+        {
+          "path": "/api/assistant/transcribe",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/proposals",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "DELETE"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "status": "PASS",
+      "chatCalls": 4,
+      "mutations": [
+        {
+          "path": "/api/assistant/transcribe",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/proposals",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "DELETE"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        }
+      ]
+    }
+  ]
+}

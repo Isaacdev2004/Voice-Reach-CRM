@@ -4,15 +4,21 @@ import { useCallback, useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { ActionPreview } from "./preview";
 import type { Proposal } from "@/lib/assistant/schema";
-export function CommandCenter() {
+export function CommandCenter({ embedded = false }: { embedded?: boolean }) {
   const { user } = useUser();
   return user ? (
-    <OwnedCommandCenter key={user.id} owner={user.id} />
+    <OwnedCommandCenter key={user.id} owner={user.id} embedded={embedded} />
   ) : (
     <p>Sign in to review assistant work.</p>
   );
 }
-function OwnedCommandCenter({ owner }: { owner: string }) {
+function OwnedCommandCenter({
+  owner,
+  embedded,
+}: {
+  owner: string;
+  embedded: boolean;
+}) {
   const [work, setWork] = useState<
       {
         proposal: Proposal;
@@ -56,28 +62,32 @@ function OwnedCommandCenter({ owner }: { owner: string }) {
   }, [load]);
   return (
     <section className="assistant-command-center">
-      <details>
-        <summary>AI allowance &amp; billing</summary>
-        <AiUsagePanel />
-      </details>
-      <header>
-        <p className="text-xs uppercase tracking-widest">MyARI Assistant</p>
-        <h1 className="font-serif text-4xl">
-          Your work, thoughtfully organized.
-        </h1>
-        <p>
-          Drafts, approvals and confirmed results. Nothing sends or activates
-          automatically.
-        </p>
-        <button
-          onClick={() =>
-            window.dispatchEvent(new Event("myari-assistant-open"))
-          }
-        >
-          Open assistant
-        </button>
-        <button onClick={() => void load()}>Refresh results</button>
-      </header>
+      {!embedded && (
+        <details>
+          <summary>AI allowance &amp; billing</summary>
+          <AiUsagePanel />
+        </details>
+      )}
+      {!embedded && (
+        <header>
+          <p className="text-xs uppercase tracking-widest">MyARI Assistant</p>
+          <h1 className="font-serif text-4xl">
+            Your work, thoughtfully organized.
+          </h1>
+          <p>
+            Drafts, approvals and confirmed results. Nothing sends or activates
+            automatically.
+          </p>
+          <button
+            onClick={() =>
+              window.dispatchEvent(new Event("myari-assistant-open"))
+            }
+          >
+            Open assistant
+          </button>
+          <button onClick={() => void load()}>Refresh results</button>
+        </header>
+      )}
       <div className="assistant-actions">
         <label>
           Search work
@@ -131,6 +141,7 @@ function OwnedCommandCenter({ owner }: { owner: string }) {
                 proposal={w.proposal}
                 owner={owner}
                 onUpdated={() => void load()}
+                allowSending={false}
               />
             )}
           </section>
