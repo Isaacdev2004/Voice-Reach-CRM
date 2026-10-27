@@ -7,9 +7,7 @@ Do **not** apply these Vercel Production variables until verification steps belo
 Sign in at **https://www.myari.io**, then run in the browser console:
 
 ```javascript
-fetch("/api/assistant/verify", {
-  headers: { "x-integrations-probe-secret": "<INTEGRATIONS_PROBE_SECRET>" },
-})
+fetch("/api/assistant/verify")
   .then((r) => r.json())
   .then(console.log);
 ```
@@ -30,13 +28,13 @@ Confirm in the response:
 While still signed in:
 
 ```javascript
-fetch("/api/assistant/verify", {
-  method: "POST",
-  headers: { "x-integrations-probe-secret": "<INTEGRATIONS_PROBE_SECRET>" },
-})
+fetch("/api/assistant/verify", { method: "POST" })
   .then((r) => r.json())
   .then(console.log);
 ```
+
+If `INTEGRATIONS_PROBE_SECRET` is set on Vercel, add header  
+`x-integrations-probe-secret` with the **exact** Production value (or clear that env var and redeploy to use sign-in only for POST).
 
 Expect `success: true` and `openai.model` **`gpt-5-mini`** (or your configured `OPENAI_ASSISTANT_MODEL`). No API keys appear in the response.
 

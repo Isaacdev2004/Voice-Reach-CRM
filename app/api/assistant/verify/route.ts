@@ -19,11 +19,8 @@ function requireProbeSecret(request: Request) {
   return null;
 }
 
-/** Signed-in owner workspace + Clerk linkage (for allowlist setup). */
-export const GET = withApiHandler(async (request) => {
-  const denied = requireProbeSecret(request);
-  if (denied) return denied;
-
+/** Signed-in owner workspace + Clerk linkage (for allowlist setup). Auth only — no probe secret. */
+export const GET = withApiHandler(async () => {
   const ownerId = await requireUserId();
   const clerkMode = getClerkKeyMode();
 
