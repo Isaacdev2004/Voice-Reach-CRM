@@ -43,7 +43,7 @@
     "test:voice-repair-browser": "node scripts/voice-repair-browser.test.cjs",
     "test:communications": "node scripts/twilio-communications.test.cjs",
     "test:calendar-db": "node scripts/calendar-database.test.cjs",
-    "test:public-marketing": "node --import tsx scripts/public-marketing.test.ts && node scripts/public-contact.test.cjs && node scripts/public-playbook.test.cjs && node scripts/public-capture-assets.test.cjs",
+    "test:public-marketing": "node --import tsx scripts/public-marketing.test.ts && node scripts/public-contact.test.cjs && node scripts/public-playbook.test.cjs && node scripts/public-capture-assets.test.cjs && node scripts/auth-overview.test.cjs",
     "test:public-browser": "node scripts/public-browser.test.cjs",
     "test:public-production": "node scripts/public-production-smoke.cjs",
     "test:public-refinement": "node scripts/public-home-correction.test.cjs",
