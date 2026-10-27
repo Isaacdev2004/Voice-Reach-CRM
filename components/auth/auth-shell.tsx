@@ -2,6 +2,7 @@
 
 import "@/components/marketing/public-auth-refinement.css";
 import Link from "next/link";
+import { AuthExplore } from "@/components/auth/auth-explore";
 import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { AriLogo } from "@/components/brand/ari-logo";
 import type { ReactNode } from "react";
@@ -16,6 +17,9 @@ export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
         <header className="auth-content-header">
           <Link href="/" className="auth-mobile-logo" aria-label="MyARI home">
             <AriLogo height={46} />
+            <span className="auth-header-tagline">
+              THE ART OF STAYING CONNECTED
+            </span>
           </Link>
           <Link href="/" className="auth-back-link">
             <span aria-hidden="true">←</span> Back to MyARI
@@ -27,6 +31,7 @@ export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
               YOUR BUSINESS. BEAUTIFULLY CONNECTED.
             </p>
             {children}
+            <AuthExplore />
             <p className="auth-reassurance">
               <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
                 <rect
@@ -40,6 +45,9 @@ export function AuthShell({ children, mode = "sign-in" }: AuthShellProps) {
                 <path d="M7 8.5V6a3 3 0 0 1 6 0v2.5" stroke="currentColor" />
               </svg>{" "}
               A little more clarity. A lot more possibility.
+            </p>
+            <p className="auth-mobile-inspiration">
+              “Your next chapter starts with the relationships you build today.”
             </p>
           </div>
         </div>
