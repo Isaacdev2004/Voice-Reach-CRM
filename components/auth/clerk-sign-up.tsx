@@ -7,12 +7,13 @@ import {
   stashPlanFromQuery,
 } from "@/lib/billing/activate-trial-client";
 import { clearPendingPlan } from "@/lib/billing/pending-plan";
-import { clerkAppearance } from "@/lib/clerk-appearance";
+import { luxuryAuthAppearance } from "@/lib/clerk-appearance";
 import { AUTH_AFTER_URL } from "@/lib/clerk-env";
 import { FOUNDING_100 } from "@/lib/marketing/founding";
 import { handleTrialClaimSuccess } from "@/lib/marketing/trial-tracking";
 import { trackMarketingEvent } from "@/lib/marketing/track";
 import { readUtmAttribution } from "@/lib/marketing/utm";
+import { authModeHref } from "@/lib/auth-presentation";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -115,17 +116,21 @@ export function ClerkSignUp() {
 
   return (
     <div className="auth-credential-card">
-      <div className="mb-6">
+      <div className="auth-copy mb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
-          {FOUNDING_100.name} · {FOUNDING_100.trialDays}-day free trial
+          {FOUNDING_100.trialDays}-day free trial · No credit card
         </p>
         <h2 className="mt-2 font-serif text-[28px] font-semibold text-ink">
-          Create your account
+          Your next chapter
+          <br />
+          <em>starts here.</em>
         </h2>
         <p className="mt-2 text-[15px] leading-relaxed text-slate-text">
-          Email and password only — no credit card. Your{" "}
-          {FOUNDING_100.trialDays}-day trial starts when you finish signup.
-          We&apos;ll reach out within 24 hours for white-glove setup.
+          A more beautiful way to grow your business.
+          <span className="auth-signup-support">
+            More meaningful connections. Smarter follow-up. More room for what
+            matters.
+          </span>
         </p>
       </div>
 
@@ -135,14 +140,14 @@ export function ClerkSignUp() {
         signInUrl="/sign-in"
         fallbackRedirectUrl={AUTH_AFTER_URL}
         forceRedirectUrl={AUTH_AFTER_URL}
-        appearance={clerkAppearance}
+        appearance={luxuryAuthAppearance}
       />
 
       <p className="mt-6 text-center text-[14px] text-slate-text">
         Already have an account?{" "}
         <Link
           className="font-semibold text-rose-gold-deep hover:underline"
-          href="/sign-in"
+          href={authModeHref("/sign-in", searchParams.toString())}
         >
           Sign in
         </Link>

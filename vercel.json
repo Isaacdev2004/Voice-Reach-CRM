@@ -4,7 +4,8 @@
     "deploymentEnabled": {
       "fix/assistant-production-readiness": false,
       "feat/myari-concierge": false,
-      "feat/premium-auth-refresh": false
+      "feat/premium-auth-refresh": false,
+      "feat/luxury-auth-approved": false
     }
   },
   "crons": [

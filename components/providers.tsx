@@ -6,6 +6,8 @@ import { ui } from "@clerk/ui";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import { AUTH_AFTER_URL } from "@/lib/clerk-env";
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { authEntryLocalization } from "@/lib/auth-presentation";
 
 type ProvidersProps = {
   children: ReactNode;
@@ -14,6 +16,7 @@ type ProvidersProps = {
 };
 
 export function Providers({ children, publishableKey }: ProvidersProps) {
+  const pathname = usePathname();
   if (!publishableKey) {
     return (
       <>
@@ -27,6 +30,7 @@ export function Providers({ children, publishableKey }: ProvidersProps) {
     <ClerkProvider
       publishableKey={publishableKey}
       ui={ui}
+      localization={authEntryLocalization(pathname)}
       appearance={clerkAppearance}
       signInUrl="/sign-in"
       signUpUrl="/sign-up"

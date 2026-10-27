@@ -50,3 +50,18 @@ export const clerkAppearance = {
     showOptionalFields: true,
   },
 };
+
+/** Scoped form appearance: recovery/verification headers must remain visible. */
+export const luxuryAuthAppearance = {
+  ...clerkAppearance,
+  elements: {
+    ...clerkAppearance.elements,
+    header: { display: "block" as const },
+    headerTitle: { display: "block" as const },
+    headerSubtitle: { display: "block" as const },
+  },
+  layout: {
+    ...clerkAppearance.layout,
+    socialButtonsPlacement: "bottom" as const,
+  },
+};
