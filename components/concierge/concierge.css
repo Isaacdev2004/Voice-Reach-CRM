@@ -1,0 +1,331 @@
+.concierge {
+  --cq-ink: #342d28;
+  --cq-muted: #7c7065;
+  --cq-bronze: #946643;
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 24px;
+  color: var(--cq-ink);
+  font-size: 14px;
+}
+.concierge h1,
+.concierge h2,
+.concierge h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+.concierge h1 {
+  font-size: 36px;
+  line-height: 1.2;
+  margin: 8px 0 12px;
+}
+.concierge h2 {
+  font-size: 25px;
+  margin: 6px 0 12px;
+}
+.concierge h3 {
+  font-size: 21px;
+  margin: 8px 0;
+}
+.concierge p {
+  color: var(--cq-muted);
+  line-height: 1.7;
+  margin: 8px 0 16px;
+}
+.concierge-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 12px 4px 24px;
+}
+.concierge-welcome > div:first-child {
+  max-width: 650px;
+}
+.concierge-eyebrow,
+.concierge-next span {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.17em;
+  color: var(--cq-bronze);
+}
+.concierge-score {
+  min-width: 210px;
+  text-align: right;
+}
+.concierge-score strong {
+  display: block;
+  font:
+    36px Georgia,
+    serif;
+  color: var(--cq-bronze);
+}
+.concierge-score span {
+  display: block;
+  color: var(--cq-muted);
+  font-size: 12px;
+}
+.concierge progress {
+  accent-color: var(--cq-bronze);
+  width: 100%;
+  height: 7px;
+  margin-top: 12px;
+}
+.concierge-next,
+.concierge-card {
+  border: 1px solid #e7ded2;
+  border-radius: 22px;
+  background: #fffdf8;
+  box-shadow: 0 8px 30px #6b4f3210;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.concierge-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: linear-gradient(115deg, #f4ebdf, #fffdf8);
+}
+.concierge-next h2 {
+  margin-bottom: 4px;
+}
+.concierge-next p {
+  margin-bottom: 0;
+}
+.concierge-tabs {
+  display: flex;
+  gap: 6px;
+  overflow: auto;
+  padding: 4px 0 16px;
+  margin-bottom: 4px;
+}
+.concierge button,
+.concierge a {
+  cursor: pointer;
+}
+.concierge button,
+.concierge-next > a,
+.concierge-next > button {
+  border: 1px solid #d8c4ae;
+  border-radius: 24px;
+  padding: 10px 17px;
+  background: #fffcf7;
+  color: #875c3b;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+.concierge button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.concierge button:focus-visible,
+.concierge a:focus-visible {
+  outline: 2px solid #946643;
+  outline-offset: 3px;
+}
+.concierge .concierge-primary,
+.concierge-tabs button[aria-current="page"] {
+  background: #946643;
+  color: white;
+  border-color: #946643;
+}
+.concierge-tabs button {
+  white-space: nowrap;
+  background: transparent;
+}
+.concierge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 20px 0;
+}
+.concierge label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #65564a;
+  font-size: 12px;
+  margin: 12px 0;
+}
+.concierge input:not([type="checkbox"]),
+.concierge select,
+.concierge textarea {
+  width: 100%;
+  border: 1px solid #ded2c4;
+  border-radius: 12px;
+  background: #fff;
+  padding: 11px 12px;
+  color: #342d28;
+  font: 14px/1.5 inherit;
+}
+.concierge textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+.concierge input:focus,
+.concierge select:focus,
+.concierge textarea:focus {
+  outline: 2px solid #c4a487;
+  outline-offset: 1px;
+}
+.concierge .concierge-check {
+  flex-direction: row;
+  align-items: flex-start;
+  line-height: 1.6;
+  font-size: 13px;
+  gap: 10px;
+  margin: 16px 0;
+}
+.concierge-check input {
+  accent-color: #946643;
+  flex: none;
+  margin-top: 3px;
+}
+.concierge fieldset {
+  border: 1px solid #e7ded2;
+  border-radius: 12px;
+  padding: 8px 15px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.concierge fieldset legend {
+  font-size: 12px;
+  color: #7c7065;
+}
+.concierge a:not(.concierge-next a) {
+  color: #946643;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.concierge-card > a,
+.concierge-card > button {
+  display: inline-block;
+  margin: 14px 12px 4px 0;
+}
+.concierge-grid article {
+  border: 1px solid #e7ded2;
+  border-radius: 16px;
+  padding: 18px;
+  background: #fbf7f1;
+}
+.concierge-preview {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f7f0e6;
+  border-radius: 16px;
+  border: 1px solid #dfcbb4;
+}
+.concierge details {
+  border-bottom: 1px solid #e8ded0;
+  padding: 13px 0;
+}
+.concierge summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: #875c3b;
+}
+.concierge-copy {
+  white-space: pre-wrap;
+}
+.concierge-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.concierge-table {
+  max-height: 250px;
+  overflow: auto;
+}
+.concierge table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.concierge th,
+.concierge td {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #dfd3c4;
+  overflow-wrap: anywhere;
+}
+.concierge .concierge-error {
+  background: #fff2ed;
+  border: 1px solid #dfaa91;
+  color: #883f25;
+  padding: 14px;
+  border-radius: 12px;
+}
+.concierge .concierge-notice {
+  background: #eff3e9;
+  color: #4e6244;
+  padding: 14px;
+  border-radius: 12px;
+}
+.concierge-staff-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+.concierge-metrics {
+  display: flex;
+  gap: 25px;
+  flex-wrap: wrap;
+  padding: 15px 0;
+}
+.concierge-metrics strong {
+  display: block;
+  font:
+    28px Georgia,
+    serif;
+}
+.concierge code {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+@media (max-width: 700px) {
+  .concierge {
+    padding: 14px;
+  }
+  .concierge h1 {
+    font-size: 30px;
+  }
+  .concierge-welcome {
+    gap: 18px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .concierge-score {
+    min-width: 0;
+    width: 100%;
+    text-align: left;
+  }
+  .concierge-score strong {
+    font-size: 28px;
+  }
+  .concierge-next {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .concierge-card,
+  .concierge-next {
+    padding: 19px;
+    border-radius: 18px;
+  }
+  .concierge-grid,
+  .concierge-staff-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .concierge-tabs button {
+    padding: 9px 12px;
+  }
+  .concierge input:not([type="checkbox"]),
+  .concierge select,
+  .concierge textarea {
+    font-size: 16px;
+  }
+}
+.concierge progress::-webkit-progress-bar{background:#e8ddd1;border-radius:8px}.concierge progress::-webkit-progress-value{background:#946643;border-radius:8px}.concierge progress::-moz-progress-bar{background:#946643;border-radius:8px}

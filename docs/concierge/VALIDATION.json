@@ -1,0 +1,17 @@
+{
+  "baseline": "e409de41304e06e908643309d17d45c1e1bca913",
+  "unitTests": 399,
+  "unitFailures": 0,
+  "typecheck": "PASS",
+  "lint": {
+    "errors": 0,
+    "existingWarnings": 7
+  },
+  "productionBuild": "PASS",
+  "embeddedDatabase": "PASS",
+  "hostedDatabaseRehearsal": "PASS; transaction rolled back, independent CRM/consent counts unchanged; no synthetic rows",
+  "browser": "PASS synthetic component APIs at 1440/768/390; not hosted Clerk acceptance",
+  "hostedPreview": "BLOCKED: dedicated branch lacks verified nonproduction secret overrides",
+  "productionChanges": false,
+  "schemaSha256": "d15568198a68831e4732bd02538b85096043d977aedcf1c04a4fa81eb6e7eab6"
+}

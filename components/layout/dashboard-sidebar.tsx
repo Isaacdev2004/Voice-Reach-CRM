@@ -1,4 +1,5 @@
 "use client";
+import { ConciergeEntry } from "@/components/concierge/entry";
 
 import { useUpgradePlan } from "@/components/billing/upgrade-plan-provider";
 import { AriLogo } from "@/components/brand/ari-logo";
@@ -83,6 +84,7 @@ export function DashboardSidebar({
             );
           })}
         </nav>
+        <ConciergeEntry />
 
         <div className="dashboard-upgrade mt-auto space-y-2.5 border-t border-outline-variant/10 px-4 pb-1 pt-4">
           <div className="flex justify-center text-rose-gold-deep">
