@@ -1,4 +1,5 @@
 const paths: Record<string, string> = {
+  arrow: "M5 19L19 5 M5 5h14v14",
   briefing: "M3 6h18v13H3z M3 6l9 7 9-7",
   campaign: "M4 9h5l10-4v14l-10-4H4z M7 15l2 6h4l-2-6",
   message: "M3 4h18v13H8l-5 4z M7 8h10 M7 12h7",

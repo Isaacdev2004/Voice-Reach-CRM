@@ -1,6 +1,6 @@
 # Protected Preview acceptance runbook
 
-Do not mark this runbook complete from local fixtures. No protected Preview has been created for this branch yet.
+Do not mark this runbook complete from local fixtures. Protected Previews and private Development credential validation now exist; use the latest exact-commit Preview recorded in LUXURY-REFINEMENT.md. Signed-in functional hosted acceptance remains pending.
 
 1. Confirm Vercel team magnificent-soless-projects, project voice-reach-crm, Git ref feat/premium-assistant-workspace and exact PR commit. Never use main's credentials for a Preview.
 2. Configure branch-specific Clerk Development keys, test Supabase URL/anon/service credentials for jojgdfpmaxvbhobjrsbm and staging OpenAI key through Vercel's secure UI. Verify effective server/runtime pairing privately without printing secrets. No Production Supabase, Clerk Live, Stripe live or live communications credentials may be inherited. Configure deployment protection before test access.

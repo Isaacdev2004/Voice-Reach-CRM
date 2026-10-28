@@ -1,5 +1,7 @@
 # MyARI premium Assistant workspace
 
+> Current refinement and release status: see [LUXURY-REFINEMENT.md](LUXURY-REFINEMENT.md). The original audit below records the first implementation and earlier configuration blockers; it is historical where superseded.
+
 Implementation branch: `feat/premium-assistant-workspace`. Base main revision: `aabbf1aa25e679e70b251b4c8ed9af9cb6740982`. This work is separate from authentication draft PR #49. Production is unchanged.
 
 ## Existing architecture audit

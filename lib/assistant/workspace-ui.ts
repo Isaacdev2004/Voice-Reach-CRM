@@ -73,6 +73,56 @@ export const workspaceActions = [
       "Prepare a warm past-client referral and review campaign for review. Use appreciation, natural check-ins and optional honest review invitations. Ask for my own verified review destination; never assume a shared review link, incentivize reviews or request only positive reviews. No enrollment or sending.",
   },
 ] as const;
+/** Four primary starters; secondary tools remain in the compact tools menu. */
+export const primaryWorkspaceActions = [
+  "campaign",
+  "message",
+  "day",
+  "pipeline",
+].map((id) => {
+  const action = workspaceActions.find((a) => a.id === id)!;
+  return {
+    ...action,
+    detail:
+      id === "campaign"
+        ? "Build a follow-up sequence"
+        : id === "pipeline"
+          ? "Find opportunities and next steps"
+          : action.detail,
+  };
+});
+export const popularPrompts = [
+  {
+    label: "Create a buyer follow-up campaign",
+    message:
+      "Create a reviewable buyer follow-up campaign. Ask for any missing details. Do not save, enroll or send until explicitly approved.",
+  },
+  {
+    label: "Write a seller update email",
+    message:
+      "Help draft a seller update email using verified authorized CRM information. Ask which seller and listing first. Do not send.",
+  },
+  {
+    label: "Generate a flyer for my listing",
+    message:
+      "Help prepare a flyer using my saved authorized listing and Brand Kit. Ask which listing; do not invent facts or promise a downloadable or editable flyer unless the available tools support it.",
+  },
+  {
+    label: "Show me my most active leads",
+    message:
+      "Search my authorized CRM for leads with recorded recent activity. Explain the evidence and missing coverage; do not invent engagement scores.",
+  },
+  {
+    label: "Plan my day for this week",
+    message:
+      "Read my authorized tasks and calendar for this week and suggest priorities. Explain missing external calendar coverage. Propose changes for review only.",
+  },
+  {
+    label: "Give me market stats for Apopka",
+    message:
+      "Can you provide current market statistics for Apopka using verified dated sources? If live market data is unavailable, state that clearly and do not fabricate statistics.",
+  },
+] as const;
 export type WorkspaceMode = "workspace" | "drawer" | "overlay";
 export const conversationPointerKey = (owner: string) =>
   `myari:assistant:conversation:${owner}`;

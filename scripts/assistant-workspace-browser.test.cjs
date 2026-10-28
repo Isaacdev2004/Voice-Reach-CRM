@@ -71,7 +71,7 @@ const fs = require("node:fs"),
   try {
     for (const width of [1440, 1280, 1024, 768, 390]) {
       const context = await browser.newContext({
-          viewport: { width, height: 1000 },
+          viewport: { width, height: width >= 1280 ? 800 : 1000 },
           reducedMotion: "reduce",
         }),
         page = await context.newPage(),
@@ -299,9 +299,13 @@ const fs = require("node:fs"),
           body: JSON.stringify(data),
         });
       });
+      const clickTool = async (name) => {
+        await page.getByLabel("More Assistant tools", { exact: true }).click();
+        await page.getByRole("button", { name, exact: true }).click();
+      };
       await page.goto(origin + "/dashboard/assistant");
       await page
-        .getByRole("heading", { name: /Turn ideas/ })
+        .getByRole("heading", { name: /how can I help you today/ })
         .waitFor({ timeout: 8000 })
         .catch(async (e) => {
           console.error(
@@ -311,12 +315,61 @@ const fs = require("node:fs"),
           await page.screenshot({ path: "/tmp/assistant-debug.png" });
           throw e;
         });
+      assert.equal(await page.locator(".aw-quick-actions button").count(), 4);
+      assert.equal(await page.locator(".aw-popular button").count(), 6);
+      assert.equal(await page.locator(".aw-history").isVisible(), false);
+      assert.equal(await page.locator(".aw-action-panel").isVisible(), false);
+      const composerBox = await page.locator(".aw-composer").boundingBox();
+      assert(
+        composerBox.y + composerBox.height <= (width >= 1280 ? 800 : 1000),
+      );
+      if (width >= 1280)
+        assert.equal(
+          await page
+            .locator(".aw-scroll")
+            .evaluate((e) => e.scrollHeight > e.clientHeight + 2),
+          false,
+        );
+      checks += 5;
       await page.screenshot({
         path: path.join(out, `workspace-welcome-${width}.jpg`),
         fullPage: true,
         type: "jpeg",
         quality: 82,
       });
+      for (const prompt of await page.locator(".aw-popular button").all()) {
+        await prompt.click();
+        assert(
+          (
+            await page
+              .getByRole("textbox", { name: "Assistant command" })
+              .inputValue()
+          ).length > 35,
+        );
+        assert.equal(calls, 0);
+        checks++;
+      }
+      await page
+        .getByRole("textbox", { name: "Assistant command" })
+        .fill("Unsent context survives Concierge");
+      await page
+        .locator(".aw-header-actions")
+        .getByRole("link", { name: /Concierge/ })
+        .click();
+      await page.waitForURL("**/dashboard/concierge");
+      await page.goBack();
+      await page.waitForURL("**/dashboard/assistant");
+      assert.equal(
+        await page
+          .getByRole("textbox", { name: "Assistant command" })
+          .inputValue(),
+        "Unsent context survives Concierge",
+      );
+      await page.locator(".aw-header-actions").getByRole("button", { name: /CRM/ }).click();
+      await page.waitForURL("**/dashboard/concierge");
+      await page.goBack();
+      await page.waitForURL("**/dashboard/assistant");
+      checks += 2;
       await page
         .getByRole("button", { name: "Create a campaign", exact: false })
         .first()
@@ -353,9 +406,12 @@ const fs = require("node:fs"),
       await command.fill(
         "Prepare a reviewable 21-day cold buyer follow-up campaign. Save nothing until I approve the exact draft. Do not enroll or send.",
       );
-      await page
-        .getByRole("button", { name: "Prepare response →", exact: true })
-        .click();
+      await command.press("Shift+Enter");
+      assert((await command.inputValue()).endsWith("\n"));
+      assert.equal(calls, 0);
+      await command.press("Enter");
+      checks++;
+
       await page
         .getByText("Here is your reviewable campaign draft.", { exact: false })
         .waitFor();
@@ -367,11 +423,18 @@ const fs = require("node:fs"),
         type: "jpeg",
         quality: 82,
       });
+      assert.equal(await page.locator(".aw-hero").count(), 0);
+      await page.getByLabel("Close action workspace", { exact: true }).click();
+      await page.screenshot({
+        path: path.join(out, `workspace-conversation-${width}.jpg`),
+        type: "jpeg",
+        quality: 82,
+      });
+      await clickTool("Action workspace");
+      checks++;
       await command.fill("Make the messages warmer, but keep this unsent.");
-      await page
-        .getByRole("button", { name: "Compact Drawer", exact: true })
-        .click();
-      await page.waitForURL("**/dashboard");
+      await clickTool("Compact Drawer");
+      await page.waitForURL(/\/dashboard(?:\/concierge)?$/);
       assert.equal(
         await command.inputValue(),
         "Make the messages warmer, but keep this unsent.",
@@ -390,11 +453,9 @@ const fs = require("node:fs"),
         "Make the messages warmer, but keep this unsent.",
       );
       await page.goForward();
-      await page.waitForURL("**/dashboard");
+      await page.waitForURL(/\/dashboard(?:\/concierge)?$/);
       checks++;
-      await page
-        .getByRole("button", { name: "Expanded Overlay", exact: true })
-        .click();
+      await clickTool("Expanded Overlay");
       assert.equal(
         await page
           .getByRole("dialog", { name: "MyARI Assistant" })
@@ -415,6 +476,8 @@ const fs = require("node:fs"),
         true,
       );
       await page.keyboard.press("Escape");
+      if (await page.locator(".aw-host:not([hidden])").count())
+        await page.keyboard.press("Escape");
       await page
         .getByRole("button", { name: "Ask MyARI", exact: true })
         .click();
@@ -429,9 +492,7 @@ const fs = require("node:fs"),
         type: "jpeg",
         quality: 82,
       });
-      await page
-        .getByRole("button", { name: "Claude draft tools", exact: true })
-        .click();
+      await clickTool("Claude draft tools");
       await page
         .getByRole("heading", { name: "Claude draft tools", exact: true })
         .waitFor();
@@ -453,9 +514,7 @@ const fs = require("node:fs"),
         await command.inputValue(),
         "Make the messages warmer, but keep this unsent.",
       );
-      await page
-        .getByRole("button", { name: "Claude draft tools", exact: true })
-        .click();
+      await clickTool("Claude draft tools");
       assert.equal(
         await legacy.locator("textarea").inputValue(),
         "Preserve this standalone Claude brief.",
@@ -464,10 +523,10 @@ const fs = require("node:fs"),
         .getByRole("button", { name: "← Return to Assistant", exact: true })
         .click();
       checks++;
-      await page
-        .getByRole("button", { name: "Full Workspace", exact: true })
-        .click();
+      await clickTool("Full Workspace");
       await page.waitForURL("**/dashboard/assistant");
+      if (!(await page.locator(".aw-action-panel").isVisible()))
+        await clickTool("Action workspace");
       await page
         .locator(".assistant-preview")
         .getByRole("button", { name: "Edit", exact: true })
@@ -475,12 +534,8 @@ const fs = require("node:fs"),
       await page
         .getByRole("textbox", { name: "Step 1 message" })
         .fill("A warmer synthetic message. Reply STOP to opt out.");
-      await page
-        .getByRole("button", { name: "Compact Drawer", exact: true })
-        .click();
-      await page
-        .getByRole("button", { name: "Full Workspace", exact: true })
-        .click();
+      await clickTool("Compact Drawer");
+      await clickTool("Full Workspace");
       assert.equal(
         await page
           .getByRole("textbox", { name: "Step 1 message" })
@@ -537,7 +592,9 @@ const fs = require("node:fs"),
       await page
         .getByRole("button", { name: "＋ New conversation", exact: true })
         .click();
-      await page.getByRole("heading", { name: /Turn ideas/ }).waitFor();
+      await page
+        .getByRole("heading", { name: /how can I help you today/ })
+        .waitFor();
       await page.screenshot({
         path: path.join(out, `workspace-home-${width}.jpg`),
         fullPage: true,
@@ -547,7 +604,7 @@ const fs = require("node:fs"),
       await command.fill("Synthetic retry text");
       fail = true;
       await page
-        .getByRole("button", { name: "Prepare response →", exact: true })
+        .getByRole("button", { name: "Send message", exact: true })
         .click();
       await page
         .getByRole("alert")
@@ -605,7 +662,7 @@ const fs = require("node:fs"),
         .click();
       fail = false;
       await page
-        .getByRole("button", { name: "Prepare response →", exact: true })
+        .getByRole("button", { name: "Send message", exact: true })
         .click();
       await page
         .locator(".assistant-preview")
@@ -620,7 +677,9 @@ const fs = require("node:fs"),
         window.__owner = "stage_b";
         window.dispatchEvent(new Event("review:auth"));
       });
-      await page.getByRole("heading", { name: /Turn ideas/ }).waitFor();
+      await page
+        .getByRole("heading", { name: /how can I help you today/ })
+        .waitFor();
       assert.equal(
         await page
           .getByText("Here is your reviewable campaign draft.", {
@@ -633,8 +692,13 @@ const fs = require("node:fs"),
         .getByRole("textbox", { name: "Assistant command" })
         .fill("Find my authorized synthetic contact");
       await page
-        .getByRole("button", { name: "Prepare response →", exact: true })
+        .getByRole("button", { name: "Send message", exact: true })
         .click();
+      await page.getByText("search contacts", { exact: true }).waitFor();
+      if (await page.locator(".aw-action-panel").isVisible())
+        await page
+          .getByLabel("Close action workspace", { exact: true })
+          .click();
       await page.getByText("search contacts", { exact: true }).click();
       await page.getByText("Blair Example", { exact: true }).waitFor();
       assert.equal(

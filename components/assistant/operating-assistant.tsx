@@ -20,6 +20,8 @@ import { WorkspaceIcon } from "./workspace-icon";
 import { SourceResults } from "./source-results";
 import {
   workspaceActions,
+  primaryWorkspaceActions,
+  popularPrompts,
   conversationId,
   conversationPointerKey,
   recentConversations,
@@ -56,7 +58,7 @@ export function OperatingAssistant({
     ),
     [historyQuery, setHistoryQuery] = useState(""),
     [showHistory, setShowHistory] = useState(false),
-    [showPreview, setShowPreview] = useState(true),
+    [showPreview, setShowPreview] = useState(false),
     [showWork, setShowWork] = useState(false);
   const previousPage = useRef("/dashboard");
   const [limits, setLimits] = useState<{
@@ -162,8 +164,20 @@ export function OperatingAssistant({
     const prior = document.activeElement as HTMLElement | null;
     panel.current?.focus();
     const escape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && mode !== "workspace" && !dictationBusy)
-        closeAssistant();
+      if (event.key === "Escape" && !dictationBusy) {
+        const menu =
+          panel.current?.querySelector<HTMLDetailsElement>(".aw-more[open]");
+        if (menu) {
+          menu.open = false;
+          menu.querySelector<HTMLElement>("summary")?.focus();
+          return;
+        }
+        if (showHistory || showPreview) {
+          setShowHistory(false);
+          setShowPreview(false);
+          panel.current?.focus();
+        } else if (mode !== "workspace") closeAssistant();
+      }
       if (event.key !== "Tab" || mode !== "overlay") return;
       const nodes = Array.from(
         panel.current?.querySelectorAll<HTMLElement>(
@@ -192,7 +206,7 @@ export function OperatingAssistant({
       if (mode === "overlay") document.body.style.overflow = overflow;
       if (prior?.isConnected) prior.focus();
     };
-  }, [visible, mode, dictationBusy, closeAssistant]);
+  }, [visible, mode, dictationBusy, closeAssistant, showHistory, showPreview]);
   function changeMode(next: WorkspaceMode) {
     if (dictationBusy) {
       setError("Stop recording before switching display modes.");
@@ -207,17 +221,20 @@ export function OperatingAssistant({
   function newConversation() {
     if (busy || dictationBusy) return;
     if (
-      command.trim() &&
+      (command.trim() || proposals.length > 0) &&
       !window.confirm(
-        "Start a new conversation? Your unsent text will stay in the composer.",
+        "Start a new conversation? Your unsent text stays in the composer. Unsubmitted proposal edits will be discarded; saved history remains available.",
       )
     )
       return;
+    if (legacyOpen) onReturn?.();
     setConversation(crypto.randomUUID());
     setNeedsRecovery(false);
     setMessages([]);
     setProposals([]);
     setResults([]);
+    setShowPreview(false);
+    setShowHistory(false);
     setError("");
   }
   const resumeSequence = useRef(0);
@@ -238,6 +255,7 @@ export function OperatingAssistant({
       setNeedsRecovery(false);
       setShowHistory(false);
       setProposals([]);
+      setShowPreview(false);
       setResults([]);
       const ids = [
         ...new Set<string>(
@@ -253,8 +271,10 @@ export function OperatingAssistant({
           return response.ok && !data.outcome ? data.proposal : null;
         }),
       );
-      if (active.current && sequence === resumeSequence.current)
+      if (active.current && sequence === resumeSequence.current) {
         setProposals(loaded.filter(Boolean));
+        setShowPreview(loaded.some(Boolean));
+      }
     } catch (e) {
       if (active.current && sequence === resumeSequence.current) {
         setConversation(id);
@@ -303,7 +323,10 @@ export function OperatingAssistant({
       if (!active.current) return;
       setMessages((m) => [...m, { role: "assistant", content: d.message }]);
       setProposals((p) => [...p, ...(d.proposals ?? [])]);
-      if (d.proposals?.length) setShowPreview(true);
+      if (d.proposals?.length) {
+        setShowHistory(false);
+        setShowPreview(true);
+      }
       setResults(d.results ?? []);
       setProvider(d.usage?.provider ?? "");
       setUsage(
@@ -354,6 +377,21 @@ export function OperatingAssistant({
       setError(e instanceof Error ? e.message : "Deletion unavailable");
     }
   }
+  function choosePrompt(prompt: string) {
+    if (legacyOpen) onReturn?.();
+    setCommand(prompt);
+    panel.current
+      ?.querySelector<HTMLTextAreaElement>('[aria-label="Assistant command"]')
+      ?.focus();
+  }
+  function returnToCrm() {
+    if (dictationBusy) {
+      setError("Stop recording before leaving.");
+      return;
+    }
+    closeAssistant();
+    router.push(previousPage.current);
+  }
   const section = pathname.split("/")[2] || "dashboard";
   const conversations = recentConversations(recents).filter((r) =>
     r.message.toLowerCase().includes(historyQuery.toLowerCase()),
@@ -396,22 +434,99 @@ export function OperatingAssistant({
                 : "Your real estate relationship copilot"}
             </small>
           </div>
-          <nav aria-label="Assistant display mode">
-            {(
-              [
-                ["workspace", "Full Workspace"],
-                ["drawer", "Compact Drawer"],
-                ["overlay", "Expanded Overlay"],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                aria-pressed={mode === value}
-                onClick={() => changeMode(value)}
-              >
-                {label}
-              </button>
-            ))}
+          <nav aria-label="Assistant tools" className="aw-header-actions">
+            <button disabled={busy || dictationBusy} onClick={newConversation}>
+              ＋ New Chat
+            </button>
+            <button
+              onClick={() => {
+                if (legacyOpen) onReturn?.();
+                setShowHistory(!showHistory);
+                setShowPreview(false);
+              }}
+              aria-expanded={showHistory}
+              aria-controls="aw-history"
+            >
+              History
+            </button>
+            <Link href="/dashboard/concierge">
+              Concierge <WorkspaceIcon name="arrow" />
+            </Link>
+            <button onClick={returnToCrm}>
+              <span className="aw-wide-label">Return to </span>CRM{" "}
+              <WorkspaceIcon name="arrow" />
+            </button>
+            <details className="aw-more">
+              <summary aria-label="More Assistant tools">•••</summary>
+              <div className="aw-more-menu">
+                <span className="aw-menu-label">Display mode</span>
+                {(
+                  [
+                    ["workspace", "Full Workspace"],
+                    ["drawer", "Compact Drawer"],
+                    ["overlay", "Expanded Overlay"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    aria-pressed={mode === value}
+                    onClick={(e) => {
+                      changeMode(value);
+                      e.currentTarget
+                        .closest("details")
+                        ?.removeAttribute("open");
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+                <button
+                  onClick={(e) => {
+                    if (!dictationBusy) onLegacy();
+                    e.currentTarget.closest("details")?.removeAttribute("open");
+                  }}
+                >
+                  Claude draft tools
+                </button>
+                <button
+                  onClick={(e) => {
+                    setShowWork(!showWork);
+                    e.currentTarget.closest("details")?.removeAttribute("open");
+                  }}
+                  aria-expanded={showWork}
+                >
+                  Saved work
+                </button>
+                {messages.length > 0 &&
+                  workspaceActions.map((a) => (
+                    <button
+                      key={a.id}
+                      onClick={(e) => {
+                        choosePrompt(a.prompt);
+                        e.currentTarget
+                          .closest("details")
+                          ?.removeAttribute("open");
+                      }}
+                    >
+                      {a.title}
+                    </button>
+                  ))}
+                {proposals.length > 0 && (
+                  <button
+                    onClick={(e) => {
+                      setShowPreview(!showPreview);
+                      setShowHistory(false);
+                      e.currentTarget
+                        .closest("details")
+                        ?.removeAttribute("open");
+                    }}
+                    aria-expanded={showPreview}
+                  >
+                    Action workspace
+                  </button>
+                )}
+              </div>
+            </details>
           </nav>
           {mode !== "workspace" && (
             <button
@@ -428,45 +543,28 @@ export function OperatingAssistant({
             </button>
           )}
         </header>
-        <div className="aw-toolbar">
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            aria-expanded={showHistory}
-          >
-            History
+        {legacyOpen && (
+          <button className="aw-return" onClick={onReturn}>
+            ← Return to Assistant
           </button>
-          <button
-            onClick={() => {
-              if (!dictationBusy) onLegacy();
-            }}
-          >
-            Claude draft tools
-          </button>
-          <Link href="/dashboard/concierge">MyARI Concierge →</Link>
-          <button
-            onClick={() => setShowWork(!showWork)}
-            aria-expanded={showWork}
-          >
-            Saved work
-          </button>
-          <button
-            onClick={() => setShowPreview(!showPreview)}
-            aria-expanded={showPreview}
-          >
-            Action workspace
-          </button>
-          {legacyOpen && (
-            <button onClick={onReturn}>← Return to Assistant</button>
-          )}
-        </div>
+        )}
         <div hidden={!legacyOpen} className="aw-legacy">
           {legacyContent}
         </div>
         <div hidden={legacyOpen} className="aw-layout">
           <aside
-            className={`aw-history ${showHistory ? "aw-open" : ""}`}
+            id="aw-history"
+            hidden={!showHistory}
+            className="aw-history"
             aria-label="Conversation history"
           >
+            <button
+              className="aw-panel-close"
+              onClick={() => setShowHistory(false)}
+              aria-label="Close history"
+            >
+              ×
+            </button>
             <button
               className="assistant-primary"
               disabled={busy || dictationBusy}
@@ -494,9 +592,9 @@ export function OperatingAssistant({
                 disabled={busy || dictationBusy}
                 onClick={() => {
                   if (
-                    command.trim() &&
+                    (command.trim() || proposals.length > 0) &&
                     !window.confirm(
-                      "Switch conversation? Your unsent text stays in the composer.",
+                      "Switch conversation? Your unsent text stays in the composer. Unsubmitted proposal edits will be discarded.",
                     )
                   )
                     return;
@@ -508,6 +606,12 @@ export function OperatingAssistant({
               </button>
             ))}
             <button onClick={() => void history()}>Refresh history</button>
+            <button
+              disabled={!messages.length || busy || dictationBusy}
+              onClick={() => void remove()}
+            >
+              Delete conversation messages
+            </button>
             <div className="aw-shortcuts">
               <h2>Your workspace</h2>
               <Link href="/dashboard/campaigns">Campaign drafts →</Link>
@@ -539,43 +643,32 @@ export function OperatingAssistant({
                       src="/brand/heroes/dashboard-interior.jpg"
                       alt=""
                       fill
-                      sizes="(max-width: 700px) 100vw, 800px"
+                      sizes="(max-width: 700px) 100vw, 1100px"
                       priority
                     />
                     <div>
-                      <p>ASK. CREATE. ORGANIZE. GROW.</p>
+                      <p className="aw-eyebrow">ASK. CREATE. ORGANIZE. GROW.</p>
                       <h1>
-                        Turn ideas
+                        {firstName ? `Hi ${firstName},` : "Welcome,"}
                         <br />
-                        <em>into action.</em>
+                        <em>how can I help you today?</em>
                       </h1>
-                      <p>Ask, plan, create, and get results with MyARI.</p>
+                      <p className="aw-intro">
+                        Turn your real estate ideas into action. Create
+                        campaigns, write messages, plan your day, analyze your
+                        pipeline, generate flyers, and more.
+                      </p>
                     </div>
                   </div>
-                  <div className="aw-welcome">
-                    <h2>
-                      {firstName
-                        ? `Hi ${firstName}. What would you like to move forward?`
-                        : "What would you like to move forward?"}
-                    </h2>
-                    <p>
-                      Thoughtful plans. Verified CRM context. Every action yours
-                      to approve.
-                    </p>
-                  </div>
-                  <div className="aw-quick-actions">
-                    {workspaceActions.map((a) => (
+                  <div
+                    className="aw-quick-actions"
+                    aria-label="Start a conversation"
+                  >
+                    {primaryWorkspaceActions.map((a) => (
                       <button
                         key={a.id}
-                        disabled={busy}
-                        onClick={() => {
-                          setCommand(a.prompt);
-                          panel.current
-                            ?.querySelector<HTMLTextAreaElement>(
-                              '[aria-label="Assistant command"]',
-                            )
-                            ?.focus();
-                        }}
+                        disabled={busy || dictationBusy}
+                        onClick={() => choosePrompt(a.prompt)}
                       >
                         <span>
                           <WorkspaceIcon name={a.id} />
@@ -585,6 +678,23 @@ export function OperatingAssistant({
                       </button>
                     ))}
                   </div>
+                  <section className="aw-popular" aria-label="Popular prompts">
+                    <h2>
+                      <span aria-hidden="true">✧</span> Popular prompts
+                    </h2>
+                    <div>
+                      {popularPrompts.map((prompt) => (
+                        <button
+                          key={prompt.label}
+                          disabled={busy || dictationBusy}
+                          onClick={() => choosePrompt(prompt.message)}
+                        >
+                          {prompt.label}
+                          <WorkspaceIcon name="arrow" />
+                        </button>
+                      ))}
+                    </div>
+                  </section>
                 </>
               )}
               <div
@@ -636,11 +746,15 @@ export function OperatingAssistant({
                 aria-label="Assistant command"
                 value={command}
                 maxLength={6000}
-                rows={3}
+                rows={2}
                 onChange={(e) => setCommand(e.target.value)}
-                placeholder="Plan a follow-up, find a contact, or create a campaign…"
+                placeholder="Ask MyARI anything..."
                 onKeyDown={(e) => {
-                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                  if (
+                    e.key === "Enter" &&
+                    !e.shiftKey &&
+                    !e.nativeEvent.isComposing
+                  ) {
                     e.preventDefault();
                     void run();
                   }
@@ -678,7 +792,8 @@ export function OperatingAssistant({
                   <button onClick={cancelResponse}>Stop response</button>
                 ) : (
                   <button
-                    className="assistant-primary"
+                    className="assistant-primary aw-send"
+                    aria-label="Send message"
                     disabled={
                       !command.trim() ||
                       !conversation ||
@@ -687,7 +802,7 @@ export function OperatingAssistant({
                     }
                     onClick={() => void run()}
                   >
-                    Prepare response →
+                    <span aria-hidden="true">→</span>
                   </button>
                 )}
               </div>
@@ -702,27 +817,19 @@ export function OperatingAssistant({
             </div>
           </div>
           <aside
-            hidden={!showPreview}
+            hidden={!showPreview || !proposals.length}
             className="aw-action-panel"
             aria-label="Action workspace"
           >
+            <button
+              className="aw-panel-close"
+              onClick={() => setShowPreview(false)}
+              aria-label="Close action workspace"
+            >
+              ×
+            </button>
             <h2>Action workspace</h2>
             <p>Review the exact changes before deciding what to save.</p>
-            {!proposals.length && (
-              <div className="aw-empty">
-                <span aria-hidden="true">✧</span>
-                <h3>A little clarity, before action.</h3>
-                <p>
-                  Your campaign sequences, messages and proposed tasks appear
-                  here.
-                </p>
-                <p>
-                  Existing saved campaigns are edited in the campaign builder.
-                  AI revises unsaved proposals only.
-                </p>
-                <Link href="/dashboard/campaigns">Open campaign drafts →</Link>
-              </div>
-            )}
             {proposals.map((proposal) => (
               <ActionPreview
                 key={proposal.id}
@@ -732,12 +839,6 @@ export function OperatingAssistant({
                 allowSending={false}
               />
             ))}
-            <button
-              disabled={busy || !messages.length || dictationBusy}
-              onClick={() => void remove()}
-            >
-              Delete conversation messages
-            </button>
             <p className="aw-note">
               CRM records and execution audit history are retained.
             </p>
