@@ -1,0 +1,26 @@
+{
+  "environment": "local actual UI, synthetic fixtures and mocked APIs; not authenticated hosted acceptance",
+  "checks": 48,
+  "results": [
+    {
+      "width": 1440,
+      "status": "PASS",
+      "draftSaveRequests": 2
+    },
+    {
+      "width": 1280,
+      "status": "PASS",
+      "draftSaveRequests": 2
+    },
+    {
+      "width": 768,
+      "status": "PASS",
+      "draftSaveRequests": 2
+    },
+    {
+      "width": 390,
+      "status": "PASS",
+      "draftSaveRequests": 2
+    }
+  ]
+}

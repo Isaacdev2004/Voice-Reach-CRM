@@ -1,0 +1,566 @@
+.cw-shell {
+  position: fixed;
+  inset: 64px 0 0 256px;
+  z-index: 60;
+  background: #fbf8f2;
+  color: #302b25;
+  display: flex;
+  flex-direction: column;
+  font:
+    14px/1.55 Arial,
+    sans-serif;
+  --cw-border: #e5d9ca;
+  --cw-bronze: #92643e;
+}
+.cw-focus {
+  inset: 0;
+  z-index: 65;
+}
+.cw-shell * {
+  box-sizing: border-box;
+}
+.cw-shell button,
+.cw-shell summary {
+  cursor: pointer;
+  min-height: 42px;
+  padding: 9px 13px;
+  border: 1px solid var(--cw-border);
+  border-radius: 11px;
+  background: #fffdf9;
+  color: #694b31;
+  font: inherit;
+}
+.cw-shell button:hover:not(:disabled) {
+  background: #eee1cf;
+}
+.cw-shell button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.cw-shell .cw-primary {
+  background: #92643e;
+  color: white;
+  border-color: #92643e;
+}
+.cw-shell .cw-primary:hover:not(:disabled) {
+  background: #755032;
+}
+.cw-shell :is(button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid #80582f;
+  outline-offset: 3px;
+}
+.cw-header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--cw-border);
+  padding: 16px 24px;
+  background: #fffdf9;
+  flex-shrink: 0;
+  z-index: 5;
+}
+.cw-header > div {
+  min-width: 0;
+}
+.cw-header h1 {
+  font:
+    400 clamp(22px, 2vw, 30px)/1.15 Georgia,
+    serif;
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+.cw-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: #835c37;
+  margin: 0 0 5px;
+  font-weight: 600;
+}
+.cw-eyebrow span {
+  letter-spacing: 0;
+  background: #efe3d3;
+  border-radius: 10px;
+  padding: 3px 8px;
+  margin-left: 8px;
+}
+.cw-header nav {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.cw-header button,
+.cw-header summary {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.cw-header details {
+  position: relative;
+}
+.cw-header summary {
+  list-style: none;
+}
+.cw-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--cw-border);
+  border-radius: 12px;
+  background: #fffdf9;
+  box-shadow: 0 8px 25px #302b2520;
+  z-index: 9;
+}
+.cw-menu button {
+  text-align: left;
+}
+.cw-subbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 24px;
+  border-bottom: 1px solid var(--cw-border);
+  color: #706353;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.cw-subbar > button {
+  font-size: 12px;
+}
+.cw-subbar > span {
+  flex: 1;
+}
+.cw-body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.cw-sequence {
+  width: 220px;
+  flex-shrink: 0;
+  padding: 20px 14px;
+  border-right: 1px solid var(--cw-border);
+  overflow-y: auto;
+  background: #f6efe4;
+}
+.cw-sequence h2 {
+  font:
+    23px Georgia,
+    serif;
+  margin: 0 0 18px;
+}
+.cw-sequence ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cw-sequence li {
+  margin-bottom: 9px;
+}
+.cw-sequence li > button {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  padding: 12px 10px;
+}
+.cw-sequence button[aria-current="step"] {
+  border-color: #b18c62;
+  background: #ecdfcd;
+}
+.cw-step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5d3ba;
+  text-align: center;
+  flex-shrink: 0;
+  color: #68472c;
+  font-size: 12px;
+  line-height: 24px;
+}
+.cw-sequence strong,
+.cw-sequence small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.cw-sequence strong {
+  font-size: 13px;
+  margin: 4px 0;
+}
+.cw-sequence small {
+  font-size: 10px;
+  color: #706353;
+}
+.cw-add {
+  width: 100%;
+  border-style: dashed !important;
+}
+.cw-sequence > p {
+  font-size: 11px;
+  color: #706353;
+  margin: 15px 0;
+}
+.cw-editor {
+  min-width: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px clamp(18px, 3vw, 42px);
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.cw-editor-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+.cw-editor h2,
+.cw-context h2,
+.cw-confirm h2 {
+  font:
+    400 28px/1.2 Georgia,
+    serif;
+  margin: 3px 0 10px;
+}
+.cw-badge {
+  font-size: 10px;
+  color: #795535;
+  background: #efe3d3;
+  padding: 5px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.cw-shell label {
+  display: block;
+  font-size: 12px;
+  color: #685540;
+  margin: 12px 0;
+}
+.cw-shell input,
+.cw-shell select,
+.cw-shell textarea {
+  width: 100%;
+  display: block;
+  background: #fffefb;
+  border: 1px solid #dcd0bf;
+  border-radius: 11px;
+  padding: 12px;
+  color: #302b25;
+  font:
+    14px/1.6 Arial,
+    sans-serif;
+  margin-top: 6px;
+}
+.cw-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 16px;
+}
+.cw-shell .cw-message-input {
+  min-height: 280px;
+  resize: vertical;
+  font-size: 16px;
+  padding: 20px;
+  line-height: 1.8;
+}
+.cw-text-info {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: #706353;
+  font-size: 11px;
+}
+.cw-text-info button {
+  font-size: 12px;
+}
+.cw-merge summary {
+  display: inline-block;
+  font-size: 12px;
+}
+.cw-merge > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 0;
+}
+.cw-merge button {
+  font-size: 11px;
+}
+.cw-timing {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+.cw-hint {
+  font-size: 11px;
+  color: #706353;
+  margin: 12px 0;
+}
+.cw-step-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+.cw-step-actions button {
+  font-size: 12px;
+}
+.cw-validation {
+  border: 1px solid #d8b99a;
+  background: #fff7ed;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 12px;
+  margin: 16px 0;
+}
+.cw-validation h3 {
+  font-size: 13px;
+  margin: 0;
+}
+.cw-validation ul {
+  padding-left: 18px;
+}
+.cw-context {
+  width: 340px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  padding: 22px;
+  border-left: 1px solid var(--cw-border);
+  background: #fffaf3;
+  overscroll-behavior: contain;
+}
+.cw-panel-close {
+  float: right;
+  font-size: 24px !important;
+  line-height: 1;
+  margin: 0 0 12px 12px;
+  padding: 4px 12px !important;
+}
+.cw-preview-controls {
+  display: flex;
+  gap: 7px;
+  margin: 20px 0;
+}
+.cw-preview-controls button[aria-pressed="true"] {
+  background: #e8d8c3;
+}
+.cw-message-preview {
+  background: white;
+  border: 1px solid var(--cw-border);
+  border-radius: 14px;
+  padding: 20px;
+  overflow-wrap: anywhere;
+  margin: 18px auto;
+}
+.cw-message-preview h3 {
+  font:
+    23px/1.3 Georgia,
+    serif;
+  margin: 0 0 16px;
+}
+.cw-message-preview p {
+  white-space: pre-wrap;
+}
+.cw-mobile-preview {
+  max-width: 240px;
+  border-width: 5px;
+}
+.cw-context ol {
+  padding-left: 20px;
+  font-size: 12px;
+}
+.cw-context li {
+  margin: 14px 0;
+}
+.cw-context small {
+  display: block;
+  color: #706353;
+}
+.cw-confirm {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100% - 24px));
+  padding: 28px;
+  border: 1px solid #cbb391;
+  box-shadow: 0 0 0 100vmax #302b2570;
+  background: #fffdf9;
+  z-index: 20;
+  border-radius: 18px;
+}
+.cw-confirm button {
+  margin: 8px 8px 0 0;
+}
+.cw-notice,
+.cw-error {
+  padding: 12px 24px;
+  margin: 0;
+  border-bottom: 1px solid var(--cw-border);
+  font-size: 12px;
+}
+.cw-notice {
+  background: #eef2e7;
+}
+.cw-error {
+  background: #fff0e6;
+}
+.cw-loading {
+  padding: 32px;
+}
+@media (max-width: 1250px) {
+  .cw-header {
+    flex-wrap: wrap;
+    padding: 12px 20px;
+    gap: 10px;
+  }
+  .cw-header nav {
+    flex-wrap: wrap;
+  }
+  .cw-header h1 {
+    font-size: 25px;
+  }
+  .cw-context {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(420px, 100%);
+    z-index: 4;
+    box-shadow: -8px 0 28px #302b2520;
+  }
+  .cw-sequence {
+    width: 190px;
+  }
+  .cw-editor {
+    padding: 20px;
+  }
+  .cw-timing {
+    grid-template-columns: 1fr 1fr;
+  }
+  .cw-editor-heading {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 1023px) {
+  .cw-shell {
+    inset: 60px 0 0;
+  }
+  .cw-focus {
+    inset: 0;
+  }
+  .cw-sequence {
+    display: none;
+  }
+  .cw-sequence.cw-open {
+    display: block;
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 4;
+    width: min(300px, 100%);
+    box-shadow: 8px 0 28px #302b2520;
+  }
+  .cw-header > div {
+    width: 100%;
+  }
+  .cw-header nav {
+    width: 100%;
+  }
+  .cw-header nav > .cw-primary {
+    margin-left: auto;
+  }
+  .cw-editor {
+    padding: 20px 24px;
+  }
+}
+@media (max-width: 600px) {
+  .cw-header {
+    padding: 10px 12px;
+  }
+  .cw-header h1 {
+    font-size: 22px;
+  }
+  .cw-header button,
+  .cw-header summary {
+    font-size: 11px;
+    padding: 8px 9px;
+  }
+  .cw-header nav {
+    gap: 5px;
+  }
+  .cw-subbar {
+    padding: 7px 12px;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .cw-subbar > span {
+    font-size: 10px;
+  }
+  .cw-editor {
+    padding: 16px 14px max(24px, env(safe-area-inset-bottom));
+  }
+  .cw-editor h2 {
+    font-size: 25px;
+  }
+  .cw-fields {
+    grid-template-columns: 1fr;
+  }
+  .cw-fields label {
+    margin: 6px 0;
+  }
+  .cw-shell input,
+  .cw-shell select,
+  .cw-shell textarea {
+    font-size: 16px;
+  }
+  .cw-timing {
+    grid-template-columns: 1fr;
+  }
+  .cw-shell .cw-message-input {
+    min-height: 260px;
+    padding: 15px;
+  }
+  .cw-context {
+    width: 100%;
+  }
+  .cw-text-info {
+    flex-wrap: wrap;
+  }
+  .cw-badge {
+    display: none;
+  }
+  .cw-header nav > .cw-primary {
+    margin-left: 0;
+    flex: 1;
+  }
+  .cw-menu {
+    right: -70px;
+  }
+  .cw-confirm {
+    padding: 20px;
+  }
+  .cw-sequence.cw-open {
+    width: 100%;
+    box-shadow: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cw-shell button {
+    transition:
+      background 0.15s,
+      border-color 0.15s;
+  }
+}
+
+.cw-sequence button[aria-current="step"] small {
+  color: #665440;
+}

@@ -31,7 +31,11 @@ export function CampaignPreviewDrawer({
   onDuplicate,
   onInstall,
   onChanged,
+  initialTab,
+  initialStep,
 }: {
+  initialTab?: string;
+  initialStep?: string;
   campaign: LibraryCampaign;
   cover: Cover;
   templatePreview?: LibraryPreview;
@@ -42,10 +46,13 @@ export function CampaignPreviewDrawer({
   onInstall?: () => Promise<void>;
   onChanged: () => void;
 }) {
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
+  const [tab, setTab] = useState<(typeof TABS)[number]>(
+    TABS.find((t) => t === initialTab) ?? "Overview",
+  );
   const [data, setData] = useState<LibraryPreview | null>(
     templatePreview ?? null,
   );
+  const [selectedStep, setSelectedStep] = useState<string>(initialStep ?? "");
   const [error, setError] = useState(false);
   const [version, setVersion] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -333,7 +340,12 @@ export function CampaignPreviewDrawer({
                               stepName={`Step ${i + 1} · ${s.title}`}
                             />
                           )}
-                          <details>
+                          <details
+                            open={selectedStep === s.id}
+                            onToggle={(e) => {
+                              if (e.currentTarget.open) setSelectedStep(s.id);
+                            }}
+                          >
                             <summary>Message preview</summary>
                             <div className="cl-message">
                               {s.description ||
@@ -492,6 +504,14 @@ export function CampaignPreviewDrawer({
           ) : null}
         </div>
         <footer className="cl-drawer-actions">
+          {!templatePreview && (
+            <Link
+              className="cl-button"
+              href={`/dashboard/campaigns/${campaign.id}/workspace?tab=${tab}&step=${selectedStep}`}
+            >
+              Expand to Full Workspace
+            </Link>
+          )}
           {templatePreview ? (
             <button
               className="cl-button cl-primary"
@@ -508,15 +528,15 @@ export function CampaignPreviewDrawer({
             <>
               <Link
                 className="cl-button cl-primary"
-                href={`/dashboard/campaigns/${campaign.id}`}
+                href={`/dashboard/campaigns/${campaign.id}/workspace?tab=${tab}&step=${selectedStep}`}
               >
                 Open full campaign
               </Link>
               <Link
                 className="cl-button"
-                href={`/dashboard/campaigns?edit=${campaign.id}#campaign-builder`}
+                href={`/dashboard/campaigns/${campaign.id}/workspace?tab=${tab}&step=${selectedStep}`}
               >
-                Edit
+                Edit in Full Workspace
               </Link>
               <Link
                 className="cl-button"

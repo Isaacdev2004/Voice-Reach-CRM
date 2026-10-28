@@ -38,5 +38,10 @@
         }
       ]
     }
-  ]
+  ],
+  "github": {
+    "deploymentEnabled": {
+      "feat/full-campaign-workspace": false
+    }
+  }
 }

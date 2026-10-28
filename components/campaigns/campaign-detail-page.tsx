@@ -725,7 +725,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             </button>
           ) : null}
           <Link
-            href={`/dashboard/campaigns?edit=${campaignId}#campaign-builder`}
+            href={`/dashboard/campaigns/${campaignId}/workspace`}
             className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-ivory px-5 py-2 text-[13px] font-medium text-ink hover:bg-champagne"
           >
             <Icon name="edit" className="text-[18px]" />
@@ -1284,7 +1284,7 @@ export function CampaignDetailPage({ campaignId }: { campaignId: string }) {
             Sequence
           </h2>
           <Link
-            href={`/dashboard/campaigns?edit=${campaignId}#campaign-builder`}
+            href={`/dashboard/campaigns/${campaignId}/workspace`}
             className="text-[13px] font-medium text-rose-gold-deep hover:underline"
           >
             Edit SMS / email copy →
