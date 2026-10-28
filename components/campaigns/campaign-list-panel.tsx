@@ -5,6 +5,7 @@ import {
 } from "@/lib/campaigns/library-art";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -105,6 +106,7 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
   const [sort, setSort] = useState("edited");
   const [view, setView] = useState("grid");
   const [pins, setPins] = useState<string[]>([]);
+  const router = useRouter();
   const [selected, setSelected] = useState<LibraryCampaign | null>(null);
   const [notice, setNotice] = useState("");
   const [importOpen, setImportOpen] = useState(false);
@@ -118,6 +120,13 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
     return () => window.removeEventListener("myari:campaigns-changed", changed);
   }, []);
   const closePreview = useCallback(() => setSelected(null), []);
+  useEffect(() => {
+    const id = routeQuery.get("preview");
+    if (id) {
+      const match = campaigns.find((c) => c.id === id);
+      if (match) setSelected(match);
+    }
+  }, [campaigns, routeQuery]);
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
   useEffect(() => {
     try {
@@ -211,7 +220,10 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
           `${c.name} ${c.description ?? ""}`
             .toLowerCase()
             .includes(query.trim().toLowerCase())) &&
-        (!status || (status === "active" ? campaignCounts([c]).active === 1 : c.status === status)) &&
+        (!status ||
+          (status === "active"
+            ? campaignCounts([c]).active === 1
+            : c.status === status)) &&
         (!channel || c.channels.includes(channel)) &&
         (!goal || c.goals?.includes(goal)) &&
         (!audience || c.audience === audience),
@@ -275,23 +287,31 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
   };
   const install = async () => {
     if (!selectedTemplate) return;
-    const res = await safeFetch<{ campaignId: string; alreadyExisted?:boolean }>(
-      "/api/campaigns/from-template",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          templateKey: selectedTemplate.campaign.id.replace("template:", ""),
-          createAutomation: false,
-        }),
-      },
-    );
+    const res = await safeFetch<{
+      campaignId: string;
+      alreadyExisted?: boolean;
+    }>("/api/campaigns/from-template", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        templateKey: selectedTemplate.campaign.id.replace("template:", ""),
+        createAutomation: false,
+      }),
+    });
     if (!res.success) throw Error();
     refresh();
     setTab("mine");
     setSelected(null);
-    setQuery("");setStatus("");setChannel("");setGoal("");setAudience("");
-    setNotice(res.data.alreadyExisted ? "This playbook is already in your library. Its existing status is unchanged." : "Playbook available as a draft. No automation was activated.");
+    setQuery("");
+    setStatus("");
+    setChannel("");
+    setGoal("");
+    setAudience("");
+    setNotice(
+      res.data.alreadyExisted
+        ? "This playbook is already in your library. Its existing status is unchanged."
+        : "Playbook available as a draft. No automation was activated.",
+    );
   };
   const importDraft = async () => {
     setBusy(true);
@@ -327,7 +347,14 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
       cover={cover(c)}
       pinned={pins.includes(c.id)}
       onPin={c.id.startsWith("template:") ? undefined : () => togglePin(c.id)}
-      onOpen={() => setSelected(c)}
+      onOpen={() =>
+        c.id.startsWith("template:")
+          ? setSelected(c)
+          : router.push(`/dashboard/campaigns/${c.id}/workspace${routeQuery.get("selected")===c.id?`?step=${encodeURIComponent(routeQuery.get("step")||"")}&tab=${encodeURIComponent(routeQuery.get("tab")||"Sequence")}`:""}`)
+      }
+      onPreview={
+        c.id.startsWith("template:") ? undefined : () => setSelected(c)
+      }
       isTemplate={c.id.startsWith("template:")}
       view={view}
     />
@@ -417,7 +444,7 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
             </button>
             <Link
               className="cl-button cl-primary"
-              href="/dashboard/campaigns?new=1#campaign-builder"
+              href="/dashboard/campaigns/new/workspace"
             >
               <Icon name="add" />
               Build custom
@@ -624,6 +651,8 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
       {selected ? (
         <CampaignPreviewDrawer
           key={selected.id}
+          initialTab={routeQuery.get("tab") ?? undefined}
+          initialStep={routeQuery.get("step") ?? undefined}
           campaign={selected}
           cover={cover(selected)}
           templatePreview={selectedTemplate}

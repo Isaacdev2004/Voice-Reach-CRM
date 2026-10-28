@@ -62,6 +62,7 @@ export function CampaignLibraryCard({
   pinned,
   onOpen,
   onPin,
+  onPreview,
   isTemplate = false,
   view = "grid",
 }: {
@@ -70,6 +71,7 @@ export function CampaignLibraryCard({
   pinned: boolean;
   onOpen: () => void;
   onPin?: () => void;
+  onPreview?: () => void;
   isTemplate?: boolean;
   view?: string;
 }) {
@@ -80,7 +82,7 @@ export function CampaignLibraryCard({
         type="button"
         className="cl-card-open"
         onClick={onOpen}
-        aria-label={`Preview ${campaign.name}`}
+        aria-label={`${isTemplate ? "Preview" : "Open workspace for"} ${campaign.name}`}
       >
         <div className="cl-card-photo">
           <CampaignCover cover={cover} />
@@ -122,6 +124,15 @@ export function CampaignLibraryCard({
           </p>
         </div>
       </button>
+      {onPreview && (
+        <button
+          className="cl-button"
+          onClick={onPreview}
+          aria-label={`Quick preview ${campaign.name}`}
+        >
+          Quick Preview
+        </button>
+      )}
       {onPin ? (
         <button
           type="button"

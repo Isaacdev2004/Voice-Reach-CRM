@@ -17,7 +17,7 @@
     "test:contacts-browser": "node scripts/contacts-browser.test.cjs",
     "test:property-finder": "node --import tsx scripts/property-finder.test.ts && node scripts/property-finder-routes.test.cjs",
     "test:property-finder-browser": "node scripts/property-finder-browser.test.cjs",
-    "test:campaign-library": "node --import tsx scripts/campaign-library.test.ts && node scripts/campaign-library-routes.test.cjs",
+    "test:campaign-library": "node --import tsx scripts/campaign-library.test.ts && node scripts/campaign-library-routes.test.cjs && npm run test:campaign-workspace",
     "test:campaign-library-browser": "node scripts/campaign-library-browser.test.cjs",
     "test:campaign-audit": "node scripts/campaign-delivery-audit.test.cjs",
     "audit:campaign-report": "node --import tsx scripts/campaign-audit/report.ts",
@@ -59,7 +59,9 @@
     "test:assistant-messaging-browser": "node scripts/assistant-messaging-browser.test.cjs",
     "test:concierge": "node scripts/concierge.test.cjs",
     "test:concierge-db": "node scripts/concierge-database.test.cjs",
-    "test:concierge-browser": "node scripts/concierge-browser.test.cjs"
+    "test:concierge-browser": "node scripts/concierge-browser.test.cjs",
+    "test:campaign-workspace": "node scripts/campaign-workspace.test.cjs && node scripts/campaign-workspace-routes.test.cjs",
+    "test:campaign-workspace-browser": "node scripts/campaign-workspace-browser.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",

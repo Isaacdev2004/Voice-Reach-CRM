@@ -3,7 +3,7 @@ import { PremiumDraftLibrary } from "./premium-draft-library";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { CampaignListPanel } from "./campaign-list-panel";
 import { CampaignBuilderPage } from "@/components/pages/stitch/CampaignBuilderPage";
 export function CampaignsWorkspacePage() {
@@ -16,6 +16,14 @@ export function CampaignsWorkspacePage() {
 }
 function CampaignsOwnerWorkspace() {
   const search = useSearchParams();
+  const router = useRouter();
+  useEffect(() => {
+    const edit = search.get("edit");
+    if (edit)
+      router.replace(
+        `/dashboard/campaigns/${encodeURIComponent(edit)}/workspace`,
+      );
+  }, [search, router]);
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const update = () => {
