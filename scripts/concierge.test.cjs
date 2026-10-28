@@ -213,7 +213,7 @@ test("campaign Concierge reuses reviewed premium drafts and builder template act
   const f = fixture();
   let captured = null;
   f.stubs["@/lib/concierge/store"] = {
-    loadCase: async () => ({ version: 1 }),
+    loadCase: async () => ({ version: 1, milestones: {} }),
     mutate: async () => ({ version: 2 }),
   };
   f.stubs["@/lib/billing/plan-limits"] = {
@@ -222,6 +222,8 @@ test("campaign Concierge reuses reviewed premium drafts and builder template act
   f.stubs["@/app/api/campaigns/builder/route"] = {
     POST: async (req) => {
       captured = await req.json();
+      f.tables.campaigns.push({id:id(42),owner_id:owner,status:"draft",provider:"mock",script_id:`builder-${captured.campaign.id}`});
+      f.tables.campaign_steps.push(...captured.campaign.steps.map(s=>({owner_id:owner,campaign_id:id(42),step_order:s.order,type:s.type,title:s.title,description:s.description??"",delay_minutes:s.delayMinutes??0,time_label:s.timeLabel??null})));
       return Response.json({ success: true, data: { campaignId: id(42) } });
     },
   };
@@ -244,7 +246,7 @@ test("Starter and unconfirmed campaign requests cannot create multi-step drafts 
   process.env.CONCIERGE_ENABLED = "true";
   process.env.CONCIERGE_OWNER_IDS = owner;
   const f = fixture();
-  f.stubs["@/lib/concierge/store"] = { loadCase: async () => ({ version: 1 }) };
+  f.stubs["@/lib/concierge/store"] = { loadCase: async () => ({ version: 1, milestones: {} }) };
   f.stubs["@/lib/billing/plan-limits"] = {
     resolveOwnerPlan: async () => ({ id: "starter" }),
   };
@@ -315,4 +317,71 @@ test("analytics uses actual scoped events and leaves unsupported conversion deno
   assert.equal(result.importsCompleted, 1);
   assert.equal(result.trialToPaidConversion, null);
   assert.equal(result.registrationToStart, null);
+});
+
+test("staff signoff expires on any later case version; subscriber cannot forge reserved evidence", () => {
+  const f=fixture(), {staffSignoff}=f.load("lib/concierge/readiness"), {CaseChange}=f.load("lib/concierge/schema");
+  assert.equal(staffSignoff({version:4,milestones:{staffReview:{reviewedVersion:4,reviewedAt:"2026-10-28T00:00:00Z"}}}).approved,true);
+  assert.equal(staffSignoff({version:5,milestones:{staffReview:{reviewedVersion:4}}}).approved,false);
+  for(const field of ["staffReview","connectionReview","preparedCampaignId"]) assert.equal(CaseChange.safeParse({requestId:id(55),version:0,milestones:{[field]:{}}}).success,false);
+});
+test("interrupted campaign inspection rejects partial, foreign or changed drafts without writes", async()=>{
+  const f=fixture(), draft=f.load("lib/campaigns/premium-drafts").PREMIUM_CAMPAIGN_DRAFTS[0], verify=f.load("lib/concierge/campaign-recovery").verifyPreparedDraft;
+  f.tables.campaigns.push({id:id(66),owner_id:owner,status:"draft",provider:"mock",script_id:`builder-${draft.id}`});
+  await assert.rejects(verify(owner,id(66),draft),/incomplete/);
+  f.tables.campaign_steps.push(...draft.steps.map(s=>({owner_id:owner,campaign_id:id(66),step_order:s.order,type:s.type,title:s.title,description:s.description??"",delay_minutes:s.delayMinutes??0,time_label:s.timeLabel??null})));
+  await verify(owner,id(66),draft);
+  await assert.rejects(verify("foreign",id(66),draft),/unverified/);
+  f.tables.campaign_steps[0].title="Edited";
+  await assert.rejects(verify(owner,id(66),draft),/changed/);
+  assert.equal(f.calls.some(c=>["insert","update","delete"].includes(c.mode)),false);
+});
+test("staff signoff rejects sales, specialists, self-review and incomplete cases", async()=>{
+  process.env.CONCIERGE_ENABLED="true";process.env.CONCIERGE_OWNER_IDS=owner;
+  const f=fixture(); let saves=0;
+  const caseRecord={owner_id:owner,version:3,discovery:{channels:[]},milestones:{}};
+  f.stubs["@/lib/concierge/store"]={loadCase:async()=>caseRecord,mutate:async()=>{saves++;return {version:4}}};
+  f.stubs["@/lib/concierge/status"]={caseFacts:async()=>({facts:{imported:false,campaignDraft:false,integrationsVerified:false}})};
+  const route=f.load("app/api/concierge/staff/review/route");
+  const body={owner,version:3,requestId:id(70),confirmed:true,note:"Manual checks recorded",voice:"not_required"};
+  process.env.CONCIERGE_SALES_IDS="sales";f.actor("sales");assert.equal((await route.POST(request(body))).status,403);
+  process.env.CONCIERGE_SPECIALIST_IDS="specialist";f.actor("specialist");assert.equal((await route.POST(request(body))).status,403);
+  process.env.CONCIERGE_MANAGER_IDS=owner;f.actor(owner);assert.equal((await route.POST(request(body))).status,403);
+  process.env.CONCIERGE_MANAGER_IDS="manager";f.actor("manager");assert.equal((await route.POST(request(body))).status,409);
+  assert.equal(saves,0);
+});
+test("staff signoff checks completed readiness, voice attestation, owner scope and version", async()=>{
+  process.env.CONCIERGE_ENABLED="true";process.env.CONCIERGE_OWNER_IDS=owner;process.env.CONCIERGE_MANAGER_IDS="manager";
+  const f=fixture();f.actor("manager"); let saved;
+  const c={owner_id:owner,version:3,discovery:{agentName:"Test",market:"Test",goals:"Test",channels:["voicemail"]},milestones:{stagesReviewed:true,campaignReviewed:true,launchReview:true,training:["dashboard","contacts","campaigns","calendar","tasks","notes","reporting"]}};
+  f.stubs["@/lib/concierge/store"]={loadCase:async()=>c,mutate:async(...args)=>{saved=args;return {version:4}}};
+  f.stubs["@/lib/concierge/status"]={caseFacts:async()=>({facts:{imported:true,campaignDraft:true,integrationsVerified:true}})};
+  const route=f.load("app/api/concierge/staff/review/route"),b={owner,version:3,requestId:id(71),confirmed:true,note:"Reviewed synthetic evidence",voice:"not_required"};
+  assert.equal((await route.POST(request({...b,owner:"foreign"}))).status,404);
+  assert.equal((await route.POST(request({...b,version:2}))).status,409);
+  assert.equal((await route.POST(request(b))).status,400);
+  assert.equal((await route.POST(request({...b,voice:"manually_verified"}))).status,200);
+  assert.equal(saved[4].milestones.staffReview.actor,"manager");assert.equal(saved[4].milestones.staffReview.reviewedVersion,4);
+});
+test("CSV cleanup requires independent enablement and scheduler authorization; only expired previews change", async()=>{
+  const f=fixture();f.tables.concierge_imports=[{id:id(80),owner_id:owner,state:"preview",expires_at:"2000-01-01",rows:[{phone:"synthetic"}],row_errors:[{}]},{id:id(81),owner_id:owner,state:"completed",expires_at:"2000-01-01",rows:[]},{id:id(82),owner_id:"foreign",state:"preview",expires_at:"2999-01-01",rows:[{}]}];
+  process.env.CRON_SECRET="synthetic-fixture-only";delete process.env.CONCIERGE_RETENTION_ENABLED;
+  const route=f.load("app/api/concierge/retention/route"),req=()=>new Request("http://localhost/api/concierge/retention",{method:"POST",headers:{authorization:"Bearer synthetic-fixture-only"}});
+  assert.equal((await route.POST(req())).status,401);process.env.CONCIERGE_RETENTION_ENABLED="true";
+  assert.equal((await route.POST(new Request("http://localhost/api/concierge/retention",{method:"POST"}))).status,401);
+  assert.equal((await route.POST(req())).status,200);assert.equal(f.tables.concierge_imports[0].state,"expired");assert.deepEqual(f.tables.concierge_imports[0].rows,[]);assert.equal(f.tables.concierge_imports[1].state,"completed");assert.equal(f.tables.concierge_imports[2].state,"preview");
+  delete process.env.CRON_SECRET;delete process.env.CONCIERGE_RETENTION_ENABLED;
+});
+test("health separates provider presence from the outbound kill switch", async()=>{
+  const f=fixture();
+  f.stubs["@/lib/providers/registry"]={isLiveProvidersConfigured:()=>({sms:true,email:true,voicemail:true})};
+  f.stubs["@/lib/clerk-env"]={getClerkKeyMode:()=>"test",hasClerkEnv:()=>true,hasClerkPublishableKey:()=>true,hasClerkSecretKey:()=>true};
+  f.stubs["@/lib/stripe/config"]={isStripeConfigured:()=>false,stripePublishableKey:()=>""};
+  f.stubs["@/lib/server-config"]={isSupabaseConfigured:()=>true};
+  f.stubs["@/lib/calendar/google"]={isGoogleCalendarConfigured:()=>false};
+  f.stubs["@/lib/providers/elevenlabs"]={isElevenLabsConfigured:()=>false};
+  process.env.ALLOW_LIVE_OUTBOUND="false";
+  const route=f.load("app/api/health/route"), r=await (await route.GET(new Request("http://localhost/api/health"))).json();
+  const data=r.data??r;
+  assert.equal(data.providers.sms,true);assert.equal(data.liveOutboundAllowed,false);assert.equal(data.liveSending,false);
 });

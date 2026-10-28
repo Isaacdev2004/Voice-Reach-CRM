@@ -77,7 +77,12 @@ export type CaseRecord = {
   owner_id: string;
   version: number;
   discovery: z.infer<typeof Discovery>;
-  milestones: z.infer<typeof Milestones>;
+  milestones: z.infer<typeof Milestones> & {
+    connectionReview?: { checkedAt: string; sms: boolean; calendar: boolean };
+    staffReview?: { actor: string; reviewedVersion: number; reviewedAt: string; note: string; voice: "not_required" | "manually_verified" };
+    preparedCampaignId?: string;
+    campaignPreparation?: { templateKey: string; status: "pending" | "complete"; startedAt: string };
+  };
   stage: string;
   assignee_id: string | null;
   next_followup: string | null;
