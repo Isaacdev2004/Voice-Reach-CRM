@@ -1,4 +1,6 @@
 const paths: Record<string, string> = {
+  voice:
+    "M8 5a4 4 0 1 0 0 8H6a4 4 0 1 0 0 8 M16 5a4 4 0 1 1 0 8h2a4 4 0 1 1 0 8 M6 13h12",
   arrow: "M5 19L19 5 M5 5h14v14",
   briefing: "M3 6h18v13H3z M3 6l9 7 9-7",
   campaign: "M4 9h5l10-4v14l-10-4H4z M7 15l2 6h4l-2-6",

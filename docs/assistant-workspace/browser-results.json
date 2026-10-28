@@ -1,7 +1,85 @@
 {
   "environment": "local UI with mocked APIs, not hosted Clerk/provider acceptance",
-  "checks": 172,
+  "checks": 268,
   "results": [
+    {
+      "width": 1920,
+      "status": "PASS",
+      "chatCalls": 4,
+      "mutations": [
+        {
+          "path": "/api/assistant/transcribe",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/proposals",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "DELETE"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        }
+      ]
+    },
+    {
+      "width": 1600,
+      "status": "PASS",
+      "chatCalls": 4,
+      "mutations": [
+        {
+          "path": "/api/assistant/transcribe",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/proposals",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        },
+        {
+          "path": "/api/assistant/approve",
+          "method": "DELETE"
+        },
+        {
+          "path": "/api/assistant/chat",
+          "method": "POST"
+        }
+      ]
+    },
     {
       "width": 1440,
       "status": "PASS",

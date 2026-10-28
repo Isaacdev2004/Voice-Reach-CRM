@@ -69,7 +69,7 @@ const fs = require("node:fs"),
   let checks = 0;
   const results = [];
   try {
-    for (const width of [1440, 1280, 1024, 768, 390]) {
+    for (const width of [1920, 1600, 1440, 1280, 1024, 768, 390]) {
       const context = await browser.newContext({
           viewport: { width, height: width >= 1280 ? 800 : 1000 },
           reducedMotion: "reduce",
@@ -429,7 +429,18 @@ const fs = require("node:fs"),
         .getByText("Here is your reviewable campaign draft.", { exact: false })
         .waitFor();
       assert.equal(calls, 1);
-      checks++;
+      assert.equal(await page.locator(".aw-hero").count(), 0);
+      assert.equal(await page.locator(".aw-scenery").isVisible(), true);
+      const messagesWidth = (await page.locator(".aw-messages").boundingBox())
+        .width;
+      if (width >= 1440) assert(messagesWidth >= 1100 && messagesWidth <= 1241);
+      assert.equal(
+        await page
+          .locator(".aw-message.aw-assistant .assistant-preview")
+          .count(),
+        1,
+      );
+      checks += 4;
       await page.screenshot({
         path: path.join(out, `workspace-campaign-${width}.jpg`),
         fullPage: true,
@@ -443,7 +454,7 @@ const fs = require("node:fs"),
         type: "jpeg",
         quality: 82,
       });
-      await clickTool("Action workspace");
+      await clickTool("Review proposals");
       checks++;
       await command.fill("Make the messages warmer, but keep this unsent.");
       await clickTool("Expanded Overlay");
@@ -543,7 +554,7 @@ const fs = require("node:fs"),
       await clickTool("Full Workspace");
       await page.waitForURL("**/dashboard/assistant");
       if (!(await page.locator(".aw-action-panel").isVisible()))
-        await clickTool("Action workspace");
+        await clickTool("Review proposals");
       await page
         .locator(".assistant-preview")
         .getByRole("button", { name: "Edit", exact: true })
@@ -592,12 +603,27 @@ const fs = require("node:fs"),
         0,
       );
       checks++;
+      await page.addInitScript(() => {
+        window.__welcomeFlashed = false;
+        if (sessionStorage.getItem("review:assert-restoration") === "yes")
+          new MutationObserver(() => {
+            if (document.querySelector(".aw-hero"))
+              window.__welcomeFlashed = true;
+          }).observe(document, { subtree: true, childList: true });
+      });
+      await page.evaluate(() =>
+        sessionStorage.setItem("review:assert-restoration", "yes"),
+      );
       await page.reload();
       await page
         .getByText("Here is your reviewable campaign draft.", { exact: false })
         .waitFor();
       assert.equal(calls, 1);
-      checks++;
+      assert.equal(await page.evaluate(() => window.__welcomeFlashed), false);
+      await page.evaluate(() =>
+        sessionStorage.removeItem("review:assert-restoration"),
+      );
+      checks += 2;
       if (
         !(await page
           .getByRole("button", { name: "＋ New conversation", exact: true })
@@ -767,7 +793,7 @@ const fs = require("node:fs"),
       ),
     );
     console.log(
-      `PASS ${checks} Assistant workspace checks across 5 viewports: navigation, persistent modes/Claude, restore, campaign revision/approval, error recovery and no outbound/billing requests. All remote APIs mocked.`,
+      `PASS ${checks} Assistant workspace checks across 7 viewports: navigation, persistent modes/Claude, restore, campaign revision/approval, error recovery and no outbound/billing requests. All remote APIs mocked.`,
     );
   } finally {
     await browser.close();

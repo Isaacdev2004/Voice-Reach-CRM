@@ -60,7 +60,9 @@ export function OperatingAssistant({
     [showHistory, setShowHistory] = useState(false),
     [showPreview, setShowPreview] = useState(false),
     [showWork, setShowWork] = useState(false),
-    [conciergeEnabled, setConciergeEnabled] = useState<boolean | null>(null);
+    [conciergeEnabled, setConciergeEnabled] = useState<boolean | null>(null),
+    [restoring, setRestoring] = useState(true),
+    [greeting, setGreeting] = useState("Hello");
   const previousPage = useRef("/dashboard");
   const [limits, setLimits] = useState<{
     dailyInteractions: number;
@@ -94,8 +96,22 @@ export function OperatingAssistant({
     } catch {
       /* Browser storage is optional. */
     }
-    if (saved) void resume(saved);
-    else setConversation(crypto.randomUUID());
+    const hour = new Date().getHours();
+    setGreeting(
+      hour < 12
+        ? "Good morning"
+        : hour < 18
+          ? "Good afternoon"
+          : "Good evening",
+    );
+    if (saved)
+      void resume(saved).finally(() => {
+        if (active.current) setRestoring(false);
+      });
+    else {
+      setConversation(crypto.randomUUID());
+      setRestoring(false);
+    }
     void fetch("/api/concierge/access")
       .then(async (r) => {
         const d = await r.json();
@@ -174,9 +190,19 @@ export function OperatingAssistant({
   useEffect(() => {
     if (messageBox.current && !messages.length)
       messageBox.current.scrollTop = 0;
-    else if (followNewest.current && messageBox.current)
-      messageBox.current.scrollTop = messageBox.current.scrollHeight;
-  }, [messages, busy]);
+    else if (followNewest.current && messageBox.current) {
+      const el = messageBox.current;
+      const reply = el.querySelector<HTMLElement>(
+        ".aw-message.aw-assistant:last-child",
+      );
+      el.scrollTop =
+        messages.length <= 2
+          ? 0
+          : proposals.length && messages.at(-1)?.role === "assistant" && reply
+            ? Math.max(0, reply.offsetTop - 14)
+            : el.scrollHeight;
+    }
+  }, [messages, busy, proposals.length]);
   const visible = fullRoute || state.open || dictationBusy;
   useEffect(() => {
     if (!visible) return;
@@ -246,6 +272,7 @@ export function OperatingAssistant({
       return;
     if (legacyOpen) onReturn?.();
     setConversation(crypto.randomUUID());
+    setRestoring(false);
     setNeedsRecovery(false);
     setMessages([]);
     setProposals([]);
@@ -316,6 +343,7 @@ export function OperatingAssistant({
     setError("");
     const text = command;
     setCommand("");
+    followNewest.current = true;
     setMessages((m) => [...m, { role: "user", content: text }]);
     try {
       const context = pageContext(pathname, window.location.search, {
@@ -338,7 +366,14 @@ export function OperatingAssistant({
       const d = await r.json();
       if (!r.ok) throw Error(d.error ?? "Assistant could not respond");
       if (!active.current) return;
-      setMessages((m) => [...m, { role: "assistant", content: d.message }]);
+      setMessages((m) => [
+        ...m,
+        {
+          role: "assistant",
+          content: d.message,
+          proposalIds: (d.proposals ?? []).map((p: Proposal) => p.id),
+        },
+      ]);
       setProposals((p) => [...p, ...(d.proposals ?? [])]);
       if (d.proposals?.length) {
         setShowHistory(false);
@@ -435,6 +470,38 @@ export function OperatingAssistant({
     );
   }
 
+  function renderProposals(group: Proposal[]) {
+    if (!group.length) return null;
+    return (
+      <section
+        hidden={!showPreview || !group.length}
+        className="aw-action-panel aw-inline-proposals"
+        aria-label="Proposed work"
+      >
+        <button
+          className="aw-panel-close"
+          onClick={() => setShowPreview(false)}
+          aria-label="Close action workspace"
+        >
+          ×
+        </button>
+        <h2>Review your proposed work</h2>
+        <p>Review the exact changes before deciding what to save.</p>
+        {group.map((proposal) => (
+          <ActionPreview
+            key={proposal.id}
+            proposal={proposal}
+            owner={owner}
+            onUpdated={() => void history()}
+            allowSending={false}
+          />
+        ))}
+        <p className="aw-note">
+          CRM records and execution audit history are retained.
+        </p>
+      </section>
+    );
+  }
   return (
     <div className={`aw-host aw-${mode}`} hidden={!visible}>
       {mode === "overlay" && (
@@ -459,12 +526,8 @@ export function OperatingAssistant({
             <span className="aw-emblem" aria-hidden="true">
               ✧
             </span>
-            <strong>MyARI Assistant</strong>
-            <small>
-              {provider
-                ? `${provider} · Connected conversation`
-                : "Your real estate relationship copilot"}
-            </small>
+            <h1 className="aw-app-title">MyARI Assistant</h1>
+            <small>Your real estate relationship copilot.</small>
           </div>
           <nav aria-label="Assistant tools" className="aw-header-actions">
             <button disabled={busy || dictationBusy} onClick={newConversation}>
@@ -556,7 +619,7 @@ export function OperatingAssistant({
                     }}
                     aria-expanded={showPreview}
                   >
-                    Action workspace
+                    Review proposals
                   </button>
                 )}
               </div>
@@ -586,6 +649,15 @@ export function OperatingAssistant({
           {legacyContent}
         </div>
         <div hidden={legacyOpen} className="aw-layout">
+          <div className="aw-scenery" aria-hidden="true">
+            <Image
+              src="/brand/heroes/dashboard-interior.jpg"
+              alt=""
+              fill
+              sizes="(max-width: 1023px) 100vw, calc(100vw - 256px)"
+              priority
+            />
+          </div>
           <aside
             id="aw-history"
             hidden={!showHistory}
@@ -675,23 +747,23 @@ export function OperatingAssistant({
                   el.scrollHeight - el.scrollTop - el.clientHeight < 120;
               }}
             >
-              {!messages.length && (
+              {restoring && (
+                <p role="status" className="aw-loading">
+                  Loading your saved conversation…
+                </p>
+              )}
+              {!messages.length && !restoring && !error && (
                 <>
                   <div className="aw-hero">
-                    <Image
-                      src="/brand/heroes/dashboard-interior.jpg"
-                      alt=""
-                      fill
-                      sizes="(max-width: 700px) 100vw, 1100px"
-                      priority
-                    />
                     <div>
                       <p className="aw-eyebrow">ASK. CREATE. ORGANIZE. GROW.</p>
-                      <h1>
-                        {firstName ? `Hi ${firstName},` : "Welcome,"}
+                      <h2>
+                        {firstName
+                          ? `${greeting}, ${firstName}`
+                          : `${greeting}.`}
                         <br />
                         <em>how can I help you today?</em>
-                      </h1>
+                      </h2>
                       <p className="aw-intro">
                         Turn your real estate ideas into action. Create
                         campaigns, write messages, plan your day, analyze your
@@ -746,11 +818,44 @@ export function OperatingAssistant({
                     key={index}
                     className={`aw-message aw-${message.role}`}
                   >
-                    <strong>{message.role === "user" ? "You" : "MyARI"}</strong>
+                    <strong>
+                      <span
+                        className={`aw-avatar ${message.role === "user" ? "aw-avatar-user" : ""}`}
+                        aria-hidden="true"
+                      >
+                        {message.role === "user" ? (
+                          firstName?.slice(0, 1) || "U"
+                        ) : (
+                          <Image
+                            src="/brand/myari-logo.png"
+                            alt=""
+                            width={30}
+                            height={32}
+                          />
+                        )}
+                      </span>
+                      {message.role === "user" ? "You" : "MyARI"}
+                    </strong>
                     <p>{message.content}</p>
+                    {message.role === "assistant" &&
+                      renderProposals(
+                        proposals.filter(
+                          (p) =>
+                            message.proposalIds?.includes(p.id) &&
+                            messages.findIndex((m) =>
+                              m.proposalIds?.includes(p.id),
+                            ) === index,
+                        ),
+                      )}
                   </article>
                 ))}
               </div>
+              {renderProposals(
+                proposals.filter(
+                  (p) => !messages.some((m) => m.proposalIds?.includes(p.id)),
+                ),
+              )}
+
               {results.length > 0 && <SourceResults results={results} />}
               {busy && (
                 <p role="status" className="aw-loading">
@@ -841,7 +946,9 @@ export function OperatingAssistant({
                     }
                     onClick={() => void run()}
                   >
-                    <span aria-hidden="true">→</span>
+                    <span aria-hidden="true">
+                      {messages.length ? "↑" : "→"}
+                    </span>
                   </button>
                 )}
               </div>
@@ -851,37 +958,10 @@ export function OperatingAssistant({
                 {limits
                   ? `${limits.dailyInteractions} interactions / ${limits.dailyProviderCalls} provider calls per UTC day.`
                   : "Account usage limits apply."}{" "}
-                {usage}
+                {provider ? `${provider} · ${usage}` : usage}
               </p>
             </div>
           </div>
-          <aside
-            hidden={!showPreview || !proposals.length}
-            className="aw-action-panel"
-            aria-label="Action workspace"
-          >
-            <button
-              className="aw-panel-close"
-              onClick={() => setShowPreview(false)}
-              aria-label="Close action workspace"
-            >
-              ×
-            </button>
-            <h2>Action workspace</h2>
-            <p>Review the exact changes before deciding what to save.</p>
-            {proposals.map((proposal) => (
-              <ActionPreview
-                key={proposal.id}
-                proposal={proposal}
-                owner={owner}
-                onUpdated={() => void history()}
-                allowSending={false}
-              />
-            ))}
-            <p className="aw-note">
-              CRM records and execution audit history are retained.
-            </p>
-          </aside>
         </div>
       </section>
     </div>

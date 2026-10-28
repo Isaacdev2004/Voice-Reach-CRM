@@ -1,4 +1,5 @@
 "use client";
+import { WorkspaceIcon } from "./workspace-icon";
 import { StructuredData } from "./source-results";
 import type { Proposal } from "@/lib/assistant/schema";
 const value = (x: unknown) =>
@@ -87,29 +88,88 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
         </>
       )}
       {a.kind === "campaign" && (
-        <>
-          <h4>{a.name}</h4>
-          <p>
-            {a.durationDays} days · {a.audience}
-          </p>
+        <section
+          className="assistant-campaign-card"
+          aria-label="Campaign proposal"
+        >
+          <header>
+            <div>
+              <p className="aw-eyebrow">CAMPAIGN PROPOSAL</p>
+              <h4>{a.name}</h4>
+            </div>
+            <span className="aw-draft-badge">Unsaved proposal</span>
+          </header>
           <p>{a.description}</p>
-          <ol>
+          <dl className="aw-campaign-facts">
+            <div>
+              <dt>Audience</dt>
+              <dd>{a.audience}</dd>
+            </div>
+            <div>
+              <dt>Duration</dt>
+              <dd>{a.durationDays} days</dd>
+            </div>
+            <div>
+              <dt>Steps</dt>
+              <dd>{a.steps.length} proposed steps</dd>
+            </div>
+            <div>
+              <dt>Channels</dt>
+              <dd>
+                {[
+                  ...new Set(
+                    a.steps.map((s) =>
+                      s.type === "sms"
+                        ? "SMS"
+                        : s.type === "email"
+                          ? "Email"
+                          : s.type === "voicemail"
+                            ? "Voicemail script"
+                            : "Task",
+                    ),
+                  ),
+                ].join(", ")}
+              </dd>
+            </div>
+          </dl>
+          <h5>Campaign sequence</h5>
+          <ol className="aw-campaign-sequence">
             {a.steps.map((s, i) => (
               <li key={i}>
+                <span className="aw-sequence-number">{i + 1}</span>
                 <details>
                   <summary>
-                    Day {s.day} · {s.type} · {s.title}
+                    <WorkspaceIcon
+                      name={
+                        s.type === "email"
+                          ? "briefing"
+                          : s.type === "sms"
+                            ? "message"
+                            : s.type === "voicemail"
+                              ? "voice"
+                              : "day"
+                      }
+                    />
+                    <span>
+                      <strong>{s.title}</strong>
+                      <small>
+                        {s.type === "sms" ? "SMS" : s.type}
+                        {s.type === "voicemail" ? " · text script" : ""}
+                      </small>
+                    </span>
+                    <span className="aw-sequence-day">Day {s.day}</span>
                   </summary>
                   <p className="assistant-copy">{s.description}</p>
                 </details>
               </li>
             ))}
           </ol>
-          <p>
-            No enrollment or activation. Review consent, personalization,
-            attachments and exact approved recordings in the campaign builder.
+          <p className="aw-review-note">
+            Review the exact sequence before saving. No enrollment, activation
+            or sending. Existing saved campaigns use the campaign editor; AI
+            revises this unsaved proposal only.
           </p>
-        </>
+        </section>
       )}
       {a.kind === "flyer" && (
         <>

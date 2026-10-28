@@ -155,7 +155,7 @@ export function ActionPreview({
     }
   }
   return (
-    <article className="assistant-preview">
+    <article className="assistant-preview" data-kind={p.action.kind}>
       <header>
         <strong>
           {p.action.kind.replaceAll("_", " ")} ·{" "}
