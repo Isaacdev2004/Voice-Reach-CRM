@@ -123,7 +123,7 @@ export const popularPrompts = [
       "Can you provide current market statistics for Apopka using verified dated sources? If live market data is unavailable, state that clearly and do not fabricate statistics.",
   },
 ] as const;
-export type WorkspaceMode = "workspace" | "drawer" | "overlay";
+export type WorkspaceMode = "workspace" | "overlay";
 export const conversationPointerKey = (owner: string) =>
   `myari:assistant:conversation:${owner}`;
 export function conversationId(value: string | null) {

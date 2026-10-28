@@ -177,7 +177,9 @@ const fs = require("node:fs"),
         let data = {},
           status = 200;
         if (method !== "GET") writes.push({ path: u.pathname, method, body });
-        if (u.pathname === "/api/assistant/config")
+        if (u.pathname === "/api/concierge/access")
+          data = { success: true, enabled: sessionOwner !== "stage_b" };
+        else if (u.pathname === "/api/assistant/config")
           data = {
             enabled: owner !== "denied",
             safetyLimits: { dailyInteractions: 5, dailyProviderCalls: 10 },
@@ -315,6 +317,14 @@ const fs = require("node:fs"),
           await page.screenshot({ path: "/tmp/assistant-debug.png" });
           throw e;
         });
+      await page.getByLabel("More Assistant tools", { exact: true }).click();
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Compact Drawer", exact: true })
+          .count(),
+        0,
+      );
+      await page.getByLabel("More Assistant tools", { exact: true }).click();
       assert.equal(await page.locator(".aw-quick-actions button").count(), 4);
       assert.equal(await page.locator(".aw-popular button").count(), 6);
       assert.equal(await page.locator(".aw-history").isVisible(), false);
@@ -354,7 +364,7 @@ const fs = require("node:fs"),
         .fill("Unsent context survives Concierge");
       await page
         .locator(".aw-header-actions")
-        .getByRole("link", { name: /Concierge/ })
+        .getByRole("button", { name: /Concierge/ })
         .click();
       await page.waitForURL("**/dashboard/concierge");
       await page.goBack();
@@ -365,7 +375,10 @@ const fs = require("node:fs"),
           .inputValue(),
         "Unsent context survives Concierge",
       );
-      await page.locator(".aw-header-actions").getByRole("button", { name: /CRM/ }).click();
+      await page
+        .locator(".aw-header-actions")
+        .getByRole("button", { name: /CRM/ })
+        .click();
       await page.waitForURL("**/dashboard/concierge");
       await page.goBack();
       await page.waitForURL("**/dashboard/assistant");
@@ -433,7 +446,7 @@ const fs = require("node:fs"),
       await clickTool("Action workspace");
       checks++;
       await command.fill("Make the messages warmer, but keep this unsent.");
-      await clickTool("Compact Drawer");
+      await clickTool("Expanded Overlay");
       await page.waitForURL(/\/dashboard(?:\/concierge)?$/);
       assert.equal(
         await command.inputValue(),
@@ -481,6 +494,10 @@ const fs = require("node:fs"),
       await page
         .getByRole("button", { name: "Ask MyARI", exact: true })
         .click();
+      await page.waitForURL("**/dashboard/assistant");
+      assert.equal(await page.locator(".aw-drawer").count(), 0);
+      checks++;
+
       assert.equal(
         await command.inputValue(),
         "Make the messages warmer, but keep this unsent.",
@@ -534,7 +551,7 @@ const fs = require("node:fs"),
       await page
         .getByRole("textbox", { name: "Step 1 message" })
         .fill("A warmer synthetic message. Reply STOP to opt out.");
-      await clickTool("Compact Drawer");
+      await clickTool("Expanded Overlay");
       await clickTool("Full Workspace");
       assert.equal(
         await page
@@ -688,6 +705,17 @@ const fs = require("node:fs"),
           .count(),
         0,
       );
+      const conciergeUrl = page.url();
+      await page
+        .locator(".aw-header-actions")
+        .getByRole("button", { name: /Concierge/ })
+        .click();
+      await page
+        .getByRole("alert")
+        .getByText(/Concierge is not enabled/)
+        .waitFor();
+      assert.equal(page.url(), conciergeUrl);
+      checks++;
       await page
         .getByRole("textbox", { name: "Assistant command" })
         .fill("Find my authorized synthetic contact");

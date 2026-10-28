@@ -54,12 +54,13 @@ export function OperatingAssistant({
     router = useRouter();
   const fullRoute = pathname === "/dashboard/assistant";
   const [mode, setMode] = useState<WorkspaceMode>(
-      fullRoute ? "workspace" : "drawer",
+      fullRoute ? "workspace" : "overlay",
     ),
     [historyQuery, setHistoryQuery] = useState(""),
     [showHistory, setShowHistory] = useState(false),
     [showPreview, setShowPreview] = useState(false),
-    [showWork, setShowWork] = useState(false);
+    [showWork, setShowWork] = useState(false),
+    [conciergeEnabled, setConciergeEnabled] = useState<boolean | null>(null);
   const previousPage = useRef("/dashboard");
   const [limits, setLimits] = useState<{
     dailyInteractions: number;
@@ -95,6 +96,14 @@ export function OperatingAssistant({
     }
     if (saved) void resume(saved);
     else setConversation(crypto.randomUUID());
+    void fetch("/api/concierge/access")
+      .then(async (r) => {
+        const d = await r.json();
+        if (active.current) setConciergeEnabled(r.ok && d.enabled === true);
+      })
+      .catch(() => {
+        if (active.current) setConciergeEnabled(false);
+      });
     void fetch("/api/assistant/config", { headers: { "X-MyARI-Owner": owner } })
       .then((r) => r.json())
       .then((d) => {
@@ -129,13 +138,23 @@ export function OperatingAssistant({
   useEffect(() => {
     if (state.open || fullRoute) void history();
   }, [state.open, fullRoute, history]);
+  const priorPath = useRef(pathname);
   useEffect(() => {
+    const leftWorkspace =
+      priorPath.current === "/dashboard/assistant" && !fullRoute;
+    priorPath.current = pathname;
     if (fullRoute) setMode("workspace");
     else {
       previousPage.current = pathname;
-      setMode(state.mode === "overlay" ? "overlay" : "drawer");
+      if (leftWorkspace && state.mode !== "overlay") {
+        closeAssistant();
+        setMode("workspace");
+      } else if (state.open && state.mode !== "overlay") {
+        setMode("workspace");
+        router.push("/dashboard/assistant");
+      } else setMode(state.mode === "overlay" ? "overlay" : "workspace");
     }
-  }, [fullRoute, pathname, state.mode]);
+  }, [fullRoute, pathname, state.open, state.mode, closeAssistant, router]);
   useEffect(() => {
     if (conversation) {
       try {
@@ -214,9 +233,7 @@ export function OperatingAssistant({
     }
     setMode(next);
     openAssistant({ mode: next });
-    if (next === "workspace" && !fullRoute) router.push("/dashboard/assistant");
-    else if (next !== "workspace" && fullRoute)
-      router.push(previousPage.current);
+    if (next !== "workspace" && fullRoute) router.push(previousPage.current);
   }
   function newConversation() {
     if (busy || dictationBusy) return;
@@ -384,6 +401,21 @@ export function OperatingAssistant({
       ?.querySelector<HTMLTextAreaElement>('[aria-label="Assistant command"]')
       ?.focus();
   }
+  function openConcierge() {
+    if (dictationBusy) {
+      setError("Stop recording before opening Concierge.");
+      return;
+    }
+    if (legacyOpen) onReturn?.();
+    if (conciergeEnabled !== true) {
+      setError(
+        "Concierge is not enabled for this account in this environment. Your Assistant work is preserved.",
+      );
+      return;
+    }
+    closeAssistant();
+    router.push("/dashboard/concierge");
+  }
   function returnToCrm() {
     if (dictationBusy) {
       setError("Stop recording before leaving.");
@@ -449,9 +481,12 @@ export function OperatingAssistant({
             >
               History
             </button>
-            <Link href="/dashboard/concierge">
+            <button
+              onClick={openConcierge}
+              disabled={conciergeEnabled === null}
+            >
               Concierge <WorkspaceIcon name="arrow" />
-            </Link>
+            </button>
             <button onClick={returnToCrm}>
               <span className="aw-wide-label">Return to </span>CRM{" "}
               <WorkspaceIcon name="arrow" />
@@ -463,7 +498,6 @@ export function OperatingAssistant({
                 {(
                   [
                     ["workspace", "Full Workspace"],
-                    ["drawer", "Compact Drawer"],
                     ["overlay", "Expanded Overlay"],
                   ] as const
                 ).map(([value, label]) => (
@@ -616,7 +650,12 @@ export function OperatingAssistant({
               <h2>Your workspace</h2>
               <Link href="/dashboard/campaigns">Campaign drafts →</Link>
               <Link href="/dashboard/voice-scripts">Voice Studio →</Link>
-              <Link href="/dashboard/concierge">Onboarding & setup →</Link>
+              <button
+                onClick={openConcierge}
+                disabled={conciergeEnabled === null}
+              >
+                Onboarding & setup →
+              </button>
               <Link href="/dashboard/settings?tab=brand">
                 Brand & review preferences →
               </Link>

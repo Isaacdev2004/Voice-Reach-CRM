@@ -46,3 +46,11 @@ No conversation rename API exists; none is invented. History remains bounded by 
 - [Campaign proposal](previews/luxury-campaign.jpg)
 
 These are synthetic local fixtures, not screenshots of a signed-in hosted session.
+
+## Owner correction — full workspace by default
+
+Compact Drawer is removed from the Assistant view menu. Authorized Ask MyARI entry points now route to Full Workspace by default, preserving the mounted session. Expanded Overlay remains an optional large view. The older protected deployment and historical drawer screenshots do not include this correction. Campaign editing is a separate development branch and is not yet part of PR #50.
+
+Concierge navigation checks the existing authenticated `/api/concierge/access` endpoint. Eligible accounts navigate to Concierge; unavailable accounts receive an in-place explanation with work retained, rather than a 404. Concierge flags and allowlists are not changed.
+
+Latest correction validation: 172 mocked browser checks passed, including default full-workspace launch, absence of Compact Drawer, authorized Concierge return and denied Concierge remaining in-place. Build, type-check and affected lint pass. Hosted signed-in acceptance remains outstanding.
