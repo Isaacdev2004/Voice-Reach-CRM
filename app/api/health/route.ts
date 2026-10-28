@@ -1,4 +1,5 @@
 import { apiOk, withApiHandler } from "@/lib/api-response";
+import { isLiveOutboundAllowed } from "@/lib/billing/live-outbound";
 import { isGoogleCalendarConfigured } from "@/lib/calendar/google";
 import {
   getClerkKeyMode,
@@ -34,7 +35,8 @@ export const GET = withApiHandler(async () => {
       configured: stripe,
       publishableKey: Boolean(stripePublishableKey()),
     },
-    liveSending: providers.voicemail || providers.sms || providers.email,
+    liveSending: isLiveOutboundAllowed() && (providers.voicemail || providers.sms || providers.email),
+    liveOutboundAllowed: isLiveOutboundAllowed(),
     message:
       supabase && clerk
         ? "All core services configured."

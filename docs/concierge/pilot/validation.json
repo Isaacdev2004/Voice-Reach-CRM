@@ -1,0 +1,38 @@
+{
+  "productionChanged": false,
+  "migrationSha256": "d15568198a68831e4732bd02538b85096043d977aedcf1c04a4fa81eb6e7eab6",
+  "embeddedExactMigration": "PASS",
+  "hostedSqlRehearsal": "PASS, independently verified rollback",
+  "stagingCountsBeforeAndAfter": {
+    "contacts": 236,
+    "campaigns": 30,
+    "campaignSteps": 147,
+    "calendarEvents": 71,
+    "auditLogs": 17061
+  },
+  "syntheticRowsRemaining": 0,
+  "productionReadOnlyBaseline": {
+    "contacts": 236,
+    "campaigns": 29,
+    "campaignSteps": 139,
+    "calendarEvents": 71,
+    "auditLogs": 17049
+  },
+  "focusedTests": 18,
+  "focusedFailures": 0,
+  "typecheck": "PASS",
+  "authenticatedHostedAcceptance": "BLOCKED: protected deployment401 and no signed-in Development browser session",
+  "backupRefresh": "PENDING owner dashboard timestamp; tool has no backup listing",
+  "previewIsolation": "PARTIAL: kill switches false, inherited provider credentials not certified",
+  "decision": "NO-GO activation/paid launch",
+  "nodeRegressionTests": 405,
+  "nodeRegressionFailures": 0,
+  "security": "PASS",
+  "lint": {
+    "errors": 0,
+    "existingWarnings": 7
+  },
+  "affectedLint": "PASS",
+  "syntheticBrowser": "PASS desktop1440/tablet768/mobile390, not hosted authentication",
+  "productionBuild": "PASS"
+}

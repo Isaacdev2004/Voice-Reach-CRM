@@ -11,7 +11,7 @@ import {
   ids,
 } from "@/lib/concierge/access";
 import { mutate } from "@/lib/concierge/store";
-import { readiness, suggestedCommunications } from "@/lib/concierge/readiness";
+import { readiness, staffSignoff, suggestedCommunications } from "@/lib/concierge/readiness";
 import { caseFacts } from "@/lib/concierge/status";
 import type { CaseRecord } from "@/lib/concierge/schema";
 const ownerList = () => ids(process.env.CONCIERGE_OWNER_IDS);
@@ -64,6 +64,7 @@ export const GET = conciergeHandler(async (request, actor) => {
         }
       : {
           ...c,
+          staffSignoff: staffSignoff(c),
           readiness: details.find((d) => d.owner === c.owner_id)?.readiness,
           subscription: details.find((d) => d.owner === c.owner_id)
             ?.subscription,
