@@ -11,9 +11,33 @@ export const CATEGORIES = [
   "Meeting Notes",
   "Templates",
 ] as const;
+export function noteTagKey(tag: string) {
+  return tag
+    .normalize("NFKC")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("en-US");
+}
+export function normalizeNoteTags(tags: string[]) {
+  const seen = new Set<string>();
+  return tags
+    .map((tag) => tag.normalize("NFKC").trim().replace(/\s+/g, " "))
+    .filter((tag) => {
+      const key = noteTagKey(tag);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
 export const MetadataSchema = z.object({
   category: z.enum(CATEGORIES).default("General"),
-  tags: z.array(z.string().trim().min(1).max(40)).max(16).default([]),
+  tags: z
+    .array(z.string().trim().min(1).max(40))
+    .max(16)
+    .default([])
+    .transform(normalizeNoteTags),
+  campaignIds: z.array(z.string().uuid()).max(20).default([]),
+  taskIds: z.array(z.string().uuid()).max(20).default([]),
   contactIds: z.array(z.string().uuid()).max(20).default([]),
   propertyContactIds: z.array(z.string().uuid()).max(20).default([]),
   pinned: z.boolean().default(false),
@@ -27,6 +51,8 @@ export type WorkspaceNote = NoteRow & {
   metadata: NoteMetadata;
   revision: number;
   client_key: string;
+  edited_by?: string | null;
+  last_edited_by?: string | null;
 };
 export type NoteContact = {
   id: string;
@@ -105,7 +131,8 @@ export function filterNotes(
         .toLowerCase();
       return (
         terms.every((t) => hay.includes(t)) &&
-        (!tag || m.tags.includes(tag)) &&
+        (!tag ||
+          m.tags.some((value) => noteTagKey(value) === noteTagKey(tag))) &&
         (!contactId || ids.includes(contactId)) &&
         (category === "All Notes" ||
           (category === "Pinned" && m.pinned) ||
@@ -201,24 +228,53 @@ export function plannerRange(day: string, view: "day" | "week" | "month") {
 }
 
 export const TEMPLATE_DESCRIPTIONS: Record<string, string> = {
-  "Daily Agent Planner": "Prioritize three outcomes, appointments and promised follow-ups.",
-  "Weekly Business Planner": "Plan client commitments, marketing work and pipeline next steps.",
-  "Monthly Goals": "Set measurable goals and review progress against verified results.",
-  "Buyer Consultation": "Capture client-stated needs, financing questions and agreed next steps.",
-  "Seller Consultation": "Clarify timing, property preparation and pricing questions.",
-  "Listing Presentation Preparation": "Prepare verified comparables, talking points and a reviewable plan.",
-  "Open House Planning": "Organize permissions, preparation, visitor notes and consent-aware follow-up.",
-  "Client Follow-Up": "Honor commitments with a clear reason, useful questions and next action.",
-  "Marketing Strategy": "Connect audience needs to deliverables, owners and review dates.",
-  "Transaction Checklist": "Track confirmed deadlines, documents, responsibilities and open questions.",
-  "Team Meeting Notes": "Turn discussion into explicit decisions, owners and due dates.",
+  "Daily Agent Planner":
+    "Prioritize three outcomes, appointments and promised follow-ups.",
+  "Weekly Business Planner":
+    "Plan client commitments, marketing work and pipeline next steps.",
+  "Monthly Goals":
+    "Set measurable goals and review progress against verified results.",
+  "Buyer Consultation":
+    "Capture client-stated needs, financing questions and agreed next steps.",
+  "Seller Consultation":
+    "Clarify timing, property preparation and pricing questions.",
+  "Listing Presentation Preparation":
+    "Prepare verified comparables, talking points and a reviewable plan.",
+  "Open House Planning":
+    "Organize permissions, preparation, visitor notes and consent-aware follow-up.",
+  "Client Follow-Up":
+    "Honor commitments with a clear reason, useful questions and next action.",
+  "Marketing Strategy":
+    "Connect audience needs to deliverables, owners and review dates.",
+  "Transaction Checklist":
+    "Track confirmed deadlines, documents, responsibilities and open questions.",
+  "Team Meeting Notes":
+    "Turn discussion into explicit decisions, owners and due dates.",
 };
 
 /** Create compatible template content without inheriting any client associations. */
-export function templateNote(template: readonly [string, string, string], advanced: boolean) {
-  const kind: "note" | "strategy" | "goal" = template[1] === "Goals" ? "goal" : template[1] === "Strategy" ? "strategy" : "note";
+export function templateNote(
+  template: readonly [string, string, string],
+  advanced: boolean,
+) {
+  const kind: "note" | "strategy" | "goal" =
+    template[1] === "Goals"
+      ? "goal"
+      : template[1] === "Strategy"
+        ? "strategy"
+        : "note";
   return {
-    title: template[0], body: template[2], kind,
-    metadata: MetadataSchema.parse({ category: advanced ? template[1] : kind === "goal" ? "Goals" : kind === "strategy" ? "Strategy" : "General" }),
+    title: template[0],
+    body: template[2],
+    kind,
+    metadata: MetadataSchema.parse({
+      category: advanced
+        ? template[1]
+        : kind === "goal"
+          ? "Goals"
+          : kind === "strategy"
+            ? "Strategy"
+            : "General",
+    }),
   };
 }

@@ -1,0 +1,103 @@
+{
+  "measurements": [
+    {
+      "width": 1440,
+      "height": 900,
+      "editorWidth": 584.5,
+      "editorBottom": 848,
+      "outerOverflow": 0,
+      "horizontal": false,
+      "heroHeight": 152,
+      "longNoteInputAndTwoFramesMs": 63.07586399999991,
+      "testedCharacters": 20716
+    },
+    {
+      "width": 1366,
+      "height": 768,
+      "editorWidth": 544.296875,
+      "editorBottom": 716,
+      "outerOverflow": 0,
+      "horizontal": false,
+      "heroHeight": 152,
+      "longNoteInputAndTwoFramesMs": 68.63905699999941,
+      "testedCharacters": 20716
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "editorWidth": 465.984375,
+      "editorBottom": 748,
+      "outerOverflow": 0,
+      "horizontal": false,
+      "heroHeight": 152,
+      "longNoteInputAndTwoFramesMs": 56.99046100000032,
+      "testedCharacters": 20716
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "editorWidth": 462,
+      "editorBottom": 848,
+      "outerOverflow": 0,
+      "horizontal": false,
+      "heroHeight": 152,
+      "longNoteInputAndTwoFramesMs": 67.90061699999933,
+      "testedCharacters": 20716
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "editorWidth": 696,
+      "editorBottom": 1006,
+      "outerOverflow": 0,
+      "horizontal": false,
+      "heroHeight": 138,
+      "longNoteInputAndTwoFramesMs": 71.22253600000113,
+      "testedCharacters": 20716
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "editorWidth": 334,
+      "editorBottom": 826,
+      "outerOverflow": 0,
+      "horizontal": false,
+      "heroHeight": 138,
+      "longNoteInputAndTwoFramesMs": 71.34314900000027,
+      "testedCharacters": 20716
+    }
+  ],
+  "results": [
+    {
+      "width": 1440,
+      "height": 900,
+      "passed": true
+    },
+    {
+      "width": 1366,
+      "height": 768,
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "passed": true
+    },
+    {
+      "width": 1024,
+      "height": 900,
+      "passed": true
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "passed": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "passed": true
+    }
+  ],
+  "note": "Real components with synthetic HTTP fixtures; no live credentials or outbound requests."
+}

@@ -21,6 +21,7 @@ export const PartnerSchema = z
     address: text(500),
     website: safeUrl,
     logoUrl: safeUrl,
+    headshotUrl: safeUrl,
     serviceAreas: text(1000),
     license: text(500),
     feeReference: text(1000),
@@ -46,6 +47,14 @@ export const ContextSchema = z
     disclosures: text(4000),
     reportTitle: text(200),
     preparedDate: text(30),
+    loanType: text(60),
+    rateSource: text(250),
+    rateAsOf: text(30),
+    feeSource: text(250),
+    feeAsOf: text(30),
+    closingCosts: z.number().finite().min(0).max(1e12).nullable().default(null),
+    prepaids: z.number().finite().min(0).max(1e12).nullable().default(null),
+    reserves: z.number().finite().min(0).max(1e12).nullable().default(null),
   })
   .strict();
 export type ReportContext = z.infer<typeof ContextSchema>;

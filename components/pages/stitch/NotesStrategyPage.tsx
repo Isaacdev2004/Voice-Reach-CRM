@@ -1,8 +1,20 @@
 "use client";
 import Image from "next/image";
+import { VersionHistory } from "@/components/notes/version-history";
+import { TagManager } from "@/components/notes/tag-manager";
+import { RecordLinks } from "@/components/notes/record-links";
+import { wallTimeToInstant, validTimeZone } from "@/lib/calendar/time";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
 import { Modal } from "@/components/crm/modal";
@@ -50,11 +62,129 @@ export function NotesStrategyPage() {
 }
 function NotesWorkspace({ owner }: { owner: string }) {
   const [taskReviewOpen, setTaskReviewOpen] = useState(false);
+  const [contextOpen, setContextOpen] = useState(true);
+  const [libraryOpen, setLibraryOpen] = useState(true),
+    [panelsReady, setPanelsReady] = useState(false);
+  const priorPanels = useRef({ library: true, context: true });
+  const selection = useRef<{
+    start: number;
+    end: number;
+    scroll: number;
+    renderedScroll: number;
+  } | null>(null);
+  const panelKey = `myari:notes:panels:v1:${owner}`;
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(panelKey) || "null");
+      if (
+        saved &&
+        typeof saved.library === "boolean" &&
+        typeof saved.context === "boolean"
+      ) {
+        setLibraryOpen(saved.library);
+        setContextOpen(saved.context);
+        if (
+          saved.previous &&
+          typeof saved.previous.library === "boolean" &&
+          typeof saved.previous.context === "boolean" &&
+          (saved.previous.library || saved.previous.context)
+        )
+          priorPanels.current = saved.previous;
+        else if (saved.library || saved.context) priorPanels.current = saved;
+      } else if (window.matchMedia("(max-width:1100px)").matches)
+        setContextOpen(false);
+    } catch {}
+    setPanelsReady(true);
+  }, [panelKey]);
+  useEffect(() => {
+    if (panelsReady)
+      try {
+        localStorage.setItem(
+          panelKey,
+          JSON.stringify({
+            library: libraryOpen,
+            context: contextOpen,
+            previous: priorPanels.current,
+          }),
+        );
+      } catch {}
+  }, [libraryOpen, contextOpen, panelKey, panelsReady]);
+  const [contextTab, setContextTab] = useState<
+    "Tasks" | "Linked Records" | "Planner" | "AI Insights"
+  >("Tasks");
+  const [timezone, setTimezone] = useState(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+  );
+  useEffect(() => {
+    notesRequest<{ preferences: { timezone: string } }>(
+      "/api/calendar/preferences",
+    )
+      .then((d) => {
+        if (validTimeZone(d.preferences?.timezone))
+          setTimezone(d.preferences.timezone);
+      })
+      .catch(() => {});
+  }, []);
   const w = useNotesWorkspace(owner),
     { draft, setDraft } = w,
     params = useSearchParams(),
     deep = useRef(false),
     editor = useRef<HTMLTextAreaElement>(null);
+  function preserveWritingPosition() {
+    const el = editor.current;
+    selection.current = {
+      start: el?.selectionStart ?? 0,
+      end: el?.selectionEnd ?? 0,
+      scroll: el?.scrollTop ?? 0,
+      renderedScroll: document.querySelector(".notes-rendered")?.scrollTop ?? 0,
+    };
+  }
+  function restoreWritingPosition() {
+    requestAnimationFrame(() => {
+      const pos = selection.current,
+        el = editor.current;
+      if (!pos) return;
+      if (el) {
+        el.setSelectionRange(pos.start, pos.end);
+        el.scrollTop = pos.scroll;
+      }
+      const rendered = document.querySelector(".notes-rendered");
+      if (rendered) rendered.scrollTop = pos.renderedScroll;
+    });
+  }
+  function togglePanel(which: "library" | "context") {
+    preserveWritingPosition();
+    if (which === "library") {
+      if (libraryOpen && mobilePanel === "notes") setMobilePanel("editor");
+      setLibraryOpen((v) => !v);
+    } else {
+      if (contextOpen && mobilePanel === "context") setMobilePanel("editor");
+      const inside = document.activeElement?.closest("#notes-context-panel");
+      setContextOpen((v) => !v);
+      if (contextOpen && inside)
+        requestAnimationFrame(() =>
+          document
+            .querySelector<HTMLButtonElement>(
+              '[aria-label="Expand contextual tools"]',
+            )
+            ?.focus(),
+        );
+    }
+    restoreWritingPosition();
+  }
+  function toggleFocus() {
+    preserveWritingPosition();
+    if (libraryOpen || contextOpen) {
+      priorPanels.current = { library: libraryOpen, context: contextOpen };
+      setLibraryOpen(false);
+      setContextOpen(false);
+    } else {
+      setLibraryOpen(priorPanels.current.library);
+      setContextOpen(priorPanels.current.context);
+    }
+    setMobilePanel("editor");
+    restoreWritingPosition();
+  }
   const [category, setCategory] = useState("All Notes"),
     [query, setQuery] = useState(""),
     [tag, setTag] = useState(""),
@@ -79,6 +209,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
       due: "",
       priority: "normal",
       reminder: false,
+      completed: false,
     }),
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
@@ -139,22 +270,29 @@ function NotesWorkspace({ owner }: { owner: string }) {
       (params.get("new") === "note" || w.recovery
         ? undefined
         : (w.notes.find((n) => n.metadata.pinned) ?? w.notes[0]));
-    if (note) void w.open(note);
+    if (note)
+      void w.open(note).then((ok) => {
+        if (ok) setPreview(Boolean(note.body));
+      });
   }, [w.loading, w.notes, params, w]);
+  const deferredQuery = useDeferredValue(query);
   const filtered = useMemo(
     () =>
       filterNotes(
         w.notes,
-        query,
+        deferredQuery,
         category,
         tag,
         contactFilter,
         sort,
         w.contacts,
       ),
-    [w.notes, w.contacts, query, category, tag, contactFilter, sort],
+    [w.notes, w.contacts, deferredQuery, category, tag, contactFilter, sort],
   );
-  const allTags = [...new Set(w.notes.flatMap((n) => n.metadata.tags))].sort(),
+  const allTags = useMemo(
+      () => [...new Set(w.notes.flatMap((n) => n.metadata.tags))].sort(),
+      [w.notes],
+    ),
     linked = w.contacts.filter((c) => draft.metadata.contactIds.includes(c.id)),
     properties = w.contacts.filter((c) => c.property_address),
     linkedProperties = properties.filter((c) =>
@@ -202,12 +340,16 @@ function NotesWorkspace({ owner }: { owner: string }) {
     if (await w.open(n)) {
       setMobilePanel("editor");
       setNotice("");
-      setPreview(false);
+      setPreview(Boolean(n?.body));
     }
   }
   function format(before: string, after = "") {
     const el = editor.current;
-    if (!el) return;
+    if (!el) {
+      setPreview(false);
+      requestAnimationFrame(() => editor.current?.focus());
+      return;
+    }
     const a = el.selectionStart,
       b = el.selectionEnd;
     setDraft((d) => ({
@@ -225,7 +367,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
     });
   }
   async function versionsOpen() {
-    if (!draft.id) return;
+    if (!draft.id || !(await w.save())) return;
     setBusy(true);
     try {
       const data = await notesRequest<{ versions: WorkspaceNote[] }>(
@@ -253,8 +395,12 @@ function NotesWorkspace({ owner }: { owner: string }) {
       setPanel("");
       setPreview(false);
       setMobilePanel("editor");
-      setNotice("Template added to a new editable note. Replace the prompts with your verified details.");
-    } finally { setBusy(false); }
+      setNotice(
+        "Template added to a new editable note. Replace the prompts with your verified details.",
+      );
+    } finally {
+      setBusy(false);
+    }
   }
   async function duplicate(template = false) {
     if (template && !advanced) return;
@@ -308,13 +454,14 @@ function NotesWorkspace({ owner }: { owner: string }) {
       "";
     setTaskDraft({
       key: t?.key ?? crypto.randomUUID(),
-      title: text.slice(0, 200),
-      description: t?.description ?? "",
+      title: (text || current.title || "Follow up on note").slice(0, 200),
+      description: (t?.description || text || current.body).slice(0, 2000),
       contactId: current.metadata.contactIds[0] ?? "",
       propertyContactId: current.metadata.propertyContactIds[0] ?? "",
       due: "",
       priority: "normal",
       reminder: false,
+      completed: false,
     });
     if (panel === "ai") setTaskReviewOpen(true);
     else setPanel("task");
@@ -336,7 +483,14 @@ function NotesWorkspace({ owner }: { owner: string }) {
             description: taskDraft.description,
             contactId: taskDraft.contactId || null,
             propertyContactId: taskDraft.propertyContactId || null,
-            dueAt: taskDraft.due ? new Date(taskDraft.due).toISOString() : null,
+            dueAt: taskDraft.due
+              ? wallTimeToInstant(
+                  taskDraft.due.slice(0, 10),
+                  taskDraft.due.slice(11, 16),
+                  timezone,
+                )
+              : null,
+            completed: taskDraft.completed,
             priority: taskDraft.priority,
             calendarReminder: taskDraft.reminder,
             approved: true,
@@ -455,11 +609,31 @@ function NotesWorkspace({ owner }: { owner: string }) {
           <option value="high">High</option>
         </select>
       </label>
-      <p>Status: Open. Update completion in Tasks.</p>
+      <label>
+        Status
+        <select
+          aria-label="Task status"
+          value={taskDraft.completed ? "completed" : "open"}
+          onChange={(e) =>
+            setTaskDraft((t) => ({
+              ...t,
+              completed: e.target.value === "completed",
+              reminder: false,
+            }))
+          }
+        >
+          <option value="open">Open</option>
+          <option value="completed">Completed</option>
+        </select>
+      </label>
+      <p>
+        Dates use {timezone}. Choose an explicit date; suggested relative dates
+        are never saved automatically.
+      </p>
       <label className="notes-consent">
         <input
           type="checkbox"
-          disabled={!taskDraft.due}
+          disabled={!taskDraft.due || taskDraft.completed}
           checked={taskDraft.reminder}
           onChange={(e) =>
             setTaskDraft((t) => ({ ...t, reminder: e.target.checked }))
@@ -493,20 +667,17 @@ function NotesWorkspace({ owner }: { owner: string }) {
             Capture insights, organize ideas, and turn strategy into action.
           </span>
         </div>
-        <aside>
-          <Icon name="lightbulb" />
-          <div>
-            <strong>Turn ideas into action.</strong>
-            <p>Connect your thinking to your next step.</p>
-          </div>
-        </aside>
       </section>
       <div className="notes-mobile-switch" aria-label="Workspace panels">
         {(["notes", "editor", "context"] as const).map((p) => (
           <button
             key={p}
             aria-pressed={mobilePanel === p}
-            onClick={() => setMobilePanel(p)}
+            onClick={() => {
+              if (p === "notes") setLibraryOpen(true);
+              if (p === "context") setContextOpen(true);
+              setMobilePanel(p);
+            }}
           >
             {p === "notes"
               ? "Notes library"
@@ -555,7 +726,14 @@ function NotesWorkspace({ owner }: { owner: string }) {
             An unsaved draft from this account is available. It will not
             overwrite the server automatically.
           </p>
-          <button onClick={w.restore}>Recover draft for review</button>
+          <button
+            onClick={() => {
+              w.restore();
+              setPreview(false);
+            }}
+          >
+            Recover draft for review
+          </button>
           <button onClick={w.discardRecovery}>Discard recovery draft</button>
         </div>
       )}
@@ -573,71 +751,109 @@ function NotesWorkspace({ owner }: { owner: string }) {
           {notice}
         </p>
       )}
-      <div className="notes-columns" data-panel={mobilePanel}>
-      <nav className="notes-category-bar" aria-label="Note categories">
-        <div className="notes-category-tabs">
-          {[
-            "All Notes",
-            "Clients",
-            "Properties",
-            "Strategy",
-            "Goals",
-            "Ideas",
-            "Tasks",
-            "Meeting Notes",
-            "Templates",
-            "Pinned",
-          ].map((c, i) => (
-            <button
-              key={c}
-              disabled={
-                !advanced &&
-                !["All Notes", "Clients", "Strategy", "Goals", "Templates"].includes(c)
-              }
-              aria-pressed={category === c}
-              onClick={() => c === "Templates" && !advanced ? setPanel("templates") : setCategory(c)}
-            >
-              <Icon
-                name={
-                  [
-                    "description",
-                    "person",
-                    "home",
-                    "lightbulb",
-                    "flag",
-                    "edit_note",
-                    "checklist",
-                    "groups",
-                    "auto_stories",
-                    "push_pin",
-                  ][i]
-                }
-              />
-              {c}
-            </button>
-          ))}
-        </div>
-        <div className="notes-category-actions">
-          <button className="notes-primary" onClick={() => void open()}>
-            <Icon name="add" />
-            New Note
-          </button>
-          <button
-            aria-label="AI Assist"
-            onClick={() => {
-              setAiSource(draft.body);
-              setPanel("ai");
-            }}
-          >
-            <Icon name="auto_awesome" />
-            AI Assist
-          </button>
-          <button onClick={() => setPanel("templates")}>
-            Use Template
-          </button>
-        </div>
-      </nav>
-        <aside className="notes-library notes-surface">
+      <div
+        className="notes-focus-controls"
+        aria-label="Writing workspace panels"
+      >
+        <button
+          aria-label={
+            libraryOpen ? "Collapse notes library" : "Expand notes library"
+          }
+          aria-controls="notes-library-panel"
+          aria-expanded={libraryOpen}
+          onClick={() => togglePanel("library")}
+        >
+          <Icon name="view_sidebar" />
+          {libraryOpen ? "Hide library" : "Notes library"}
+        </button>
+        <button
+          aria-label={
+            contextOpen
+              ? "Collapse contextual tools"
+              : "Expand contextual tools"
+          }
+          aria-controls="notes-context-panel"
+          aria-expanded={contextOpen}
+          onClick={() => togglePanel("context")}
+        >
+          <Icon name="tune" />
+          {contextOpen ? "Hide context" : "Context tools"}
+        </button>
+      </div>
+      <div
+        className="notes-columns"
+        data-panel={mobilePanel}
+        data-context={contextOpen ? "open" : "closed"}
+        data-library={libraryOpen ? "open" : "closed"}
+        data-focus={!libraryOpen && !contextOpen ? "true" : "false"}
+      >
+        <aside
+          id="notes-library-panel"
+          className="notes-library notes-surface"
+          aria-label="Notes library"
+        >
+          <nav className="notes-category-bar" aria-label="Note categories">
+            <label className="notes-category-select">
+              Library view
+              <select
+                aria-label="Note library category"
+                value={category}
+                onChange={(e) => {
+                  if (e.target.value === "Templates" && !advanced)
+                    setPanel("templates");
+                  else setCategory(e.target.value);
+                }}
+              >
+                {[
+                  "All Notes",
+                  "Clients",
+                  "Properties",
+                  "Strategy",
+                  "Goals",
+                  "Ideas",
+                  "Tasks",
+                  "Meeting Notes",
+                  "Templates",
+                  "Pinned",
+                ].map((c) => (
+                  <option
+                    key={c}
+                    disabled={
+                      !advanced &&
+                      ![
+                        "All Notes",
+                        "Clients",
+                        "Strategy",
+                        "Goals",
+                        "Templates",
+                      ].includes(c)
+                    }
+                  >
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="notes-category-actions">
+              <button className="notes-primary" onClick={() => void open()}>
+                <Icon name="add" />
+                New Note
+              </button>
+              <button
+                aria-label="AI Assist"
+                onClick={() => {
+                  setAiSource(draft.body);
+                  setPanel("ai");
+                }}
+              >
+                <Icon name="auto_awesome" />
+                AI Assist
+              </button>
+              <button onClick={() => setPanel("templates")}>
+                Use Template
+              </button>
+            </div>
+          </nav>
           <label className="notes-search">
             <Icon name="search" />
             <input
@@ -701,62 +917,75 @@ function NotesWorkspace({ owner }: { owner: string }) {
                 ? "Notes unavailable"
                 : `${filtered.length} ${filtered.length === 1 ? "note" : "notes"}`}
           </p>
-          {filtered.map((n) => (
-            <button
-              className="notes-note-preview"
-              aria-pressed={draft.id === n.id}
-              key={n.id}
-              onClick={() => void open(n)}
-            >
-              <Icon
-                name={
-                  n.metadata.pinned
-                    ? "push_pin"
-                    : n.kind === "goal"
-                      ? "flag"
-                      : "description"
-                }
-              />
-              <div>
-                <strong>{n.title || "Untitled note"}</strong>
-                <span>
-                  {relatedContactIds(n)
-                    .map((id) => w.contacts.find((c) => c.id === id))
-                    .filter(Boolean)
-                    .map((c) => name(c!))
-                    .join(", ") || n.metadata.category}
-                </span>
-                <p>
-                  {n.body.replace(/[#*_[\]]/g, "").slice(0, 140) ||
-                    "No content yet."}
-                </p>
-                <footer>
-                  <em>{n.metadata.category}</em>
-                  <small>{when(n.updated_at ?? n.created_at)}</small>
-                </footer>
-              </div>
-            </button>
-          ))}
-          {!w.loading && !w.loadError && !filtered.length && (
-            <div className="notes-empty">
-              <Icon name="edit_note" />
-              <h3>Room for your next idea.</h3>
-              <p>Create a note or adjust your filters.</p>
+          <div className="notes-library-items" aria-label="Saved notes">
+            {filtered.map((n) => (
               <button
-                onClick={() => {
-                  setQuery("");
-                  setTag("");
-                  setContactFilter("");
-                  setCategory("All Notes");
-                }}
+                className="notes-note-preview"
+                aria-pressed={draft.id === n.id}
+                key={n.id}
+                onClick={() => void open(n)}
               >
-                Clear filters
+                <Icon
+                  name={
+                    n.metadata.pinned
+                      ? "push_pin"
+                      : n.kind === "goal"
+                        ? "flag"
+                        : "description"
+                  }
+                />
+                <div>
+                  <strong>{n.title || "Untitled note"}</strong>
+                  <span>
+                    {relatedContactIds(n)
+                      .map((id) => w.contacts.find((c) => c.id === id))
+                      .filter(Boolean)
+                      .map((c) => name(c!))
+                      .join(", ") || n.metadata.category}
+                  </span>
+                  <p>
+                    {n.body.replace(/[#*_[\]]/g, "").slice(0, 140) ||
+                      "No content yet."}
+                  </p>
+                  <div className="notes-library-tags">
+                    {n.metadata.tags.slice(0, 3).map((t) => (
+                      <span key={t}>{t}</span>
+                    ))}
+                  </div>
+                  <footer>
+                    <em>
+                      {n.metadata.pinned ? "Pinned · " : ""}
+                      {n.metadata.category}
+                    </em>
+                    <small>{when(n.updated_at ?? n.created_at)}</small>
+                  </footer>
+                </div>
               </button>
-              <button onClick={() => void open()}>Create a note</button>
-            </div>
-          )}
+            ))}
+            {!w.loading && !w.loadError && !filtered.length && (
+              <div className="notes-empty">
+                <Icon name="edit_note" />
+                <h3>Room for your next idea.</h3>
+                <p>Create a note or adjust your filters.</p>
+                <button
+                  onClick={() => {
+                    setQuery("");
+                    setTag("");
+                    setContactFilter("");
+                    setCategory("All Notes");
+                  }}
+                >
+                  Clear filters
+                </button>
+                <button onClick={() => void open()}>Create a note</button>
+              </div>
+            )}
+          </div>
         </aside>
-        <section className="notes-editor notes-surface">
+        <section
+          className="notes-editor notes-surface"
+          aria-label="Note editor"
+        >
           <header>
             <div className="notes-panel-heading">
               <span>Notes / {draft.metadata.category}</span>
@@ -793,162 +1022,220 @@ function NotesWorkspace({ owner }: { owner: string }) {
                 setDraft((d) => ({ ...d, title: e.target.value }))
               }
             />
-            <div className="notes-associations">
-              <details>
-                <summary>
-                  <Icon name="person" />
-                  {linked.length
-                    ? `${linked.length} linked contact${linked.length > 1 ? "s" : ""}`
-                    : "Link contacts"}
-                </summary>
-                <input
-                  aria-label="Search contacts to link"
-                  placeholder="Name or email…"
-                  value={contactQuery}
-                  onChange={(e) => setContactQuery(e.target.value)}
-                />
-                <div className="notes-options">
-                  {contactMatches.map((c) => (
-                    <label key={c.id}>
-                      <input
-                        type="checkbox"
-                        checked={draft.metadata.contactIds.includes(c.id)}
-                        onChange={(e) =>
-                          meta({
-                            contactIds: e.target.checked
-                              ? advanced
-                                ? [...draft.metadata.contactIds, c.id]
-                                : [c.id]
-                              : draft.metadata.contactIds.filter(
-                                  (id) => id !== c.id,
-                                ),
-                          })
-                        }
-                      />
-                      {name(c)}
-                      <small>{c.email}</small>
-                    </label>
-                  ))}
-                  {!contactMatches.length && <p>No matching contacts.</p>}
+            <details className="notes-metadata">
+              <summary>
+                Details & links{" "}
+                <span>
+                  {draft.metadata.category} · {draft.metadata.tags.length} tags
+                  ·{" "}
+                  {draft.metadata.contactIds.length +
+                    draft.metadata.propertyContactIds.length +
+                    draft.metadata.campaignIds.length +
+                    draft.metadata.taskIds.length}{" "}
+                  links
+                </span>
+              </summary>
+              <div className="notes-metadata-body">
+                <div className="notes-associations">
+                  <details>
+                    <summary>
+                      <Icon name="person" />
+                      {linked.length
+                        ? `${linked.length} linked contact${linked.length > 1 ? "s" : ""}`
+                        : "Link contacts"}
+                    </summary>
+                    <input
+                      aria-label="Search contacts to link"
+                      placeholder="Name or email…"
+                      value={contactQuery}
+                      onChange={(e) => setContactQuery(e.target.value)}
+                    />
+                    <div className="notes-options">
+                      {contactMatches.map((c) => (
+                        <label key={c.id}>
+                          <input
+                            type="checkbox"
+                            checked={draft.metadata.contactIds.includes(c.id)}
+                            onChange={(e) =>
+                              meta({
+                                contactIds: e.target.checked
+                                  ? advanced
+                                    ? [...draft.metadata.contactIds, c.id]
+                                    : [c.id]
+                                  : draft.metadata.contactIds.filter(
+                                      (id) => id !== c.id,
+                                    ),
+                              })
+                            }
+                          />
+                          {name(c)}
+                          <small>{c.email}</small>
+                        </label>
+                      ))}
+                      {!contactMatches.length && <p>No matching contacts.</p>}
+                    </div>
+                  </details>
+                  <details>
+                    <summary>
+                      <Icon name="home" />
+                      {linkedProperties.length
+                        ? `${linkedProperties.length} linked ${linkedProperties.length === 1 ? "property" : "properties"}`
+                        : "Link property"}
+                    </summary>
+                    {!advanced && (
+                      <p>
+                        Link one contact and its saved property together.
+                        Independent property links need the workspace upgrade.
+                      </p>
+                    )}
+                    <input
+                      aria-label="Search saved property addresses"
+                      placeholder="Saved address or client…"
+                      value={propertyQuery}
+                      onChange={(e) => setPropertyQuery(e.target.value)}
+                    />
+                    <div className="notes-options">
+                      {propertyMatches.map((c) => (
+                        <label key={c.id}>
+                          <input
+                            type="checkbox"
+                            checked={draft.metadata.propertyContactIds.includes(
+                              c.id,
+                            )}
+                            onChange={(e) => {
+                              if (!advanced) {
+                                const current = draft.metadata.contactIds[0];
+                                if (
+                                  current &&
+                                  (current !== c.id || !e.target.checked) &&
+                                  !confirm(
+                                    "Basic notes link one contact and its saved property together. Replace or remove the current contact link?",
+                                  )
+                                )
+                                  return;
+                                meta({
+                                  contactIds: e.target.checked ? [c.id] : [],
+                                });
+                                return;
+                              }
+                              meta({
+                                propertyContactIds: e.target.checked
+                                  ? [...draft.metadata.propertyContactIds, c.id]
+                                  : draft.metadata.propertyContactIds.filter(
+                                      (id) => id !== c.id,
+                                    ),
+                              });
+                            }}
+                          />
+                          {c.property_address}
+                          <small>{name(c)}</small>
+                        </label>
+                      ))}
+                      {!propertyMatches.length && (
+                        <p>
+                          No saved property addresses. Add an address on a
+                          contact first.
+                        </p>
+                      )}
+                    </div>
+                  </details>
                 </div>
-              </details>
-              <details>
-                <summary>
-                  <Icon name="home" />
-                  {linkedProperties.length
-                    ? `${linkedProperties.length} linked ${linkedProperties.length === 1 ? "property" : "properties"}`
-                    : "Link property"}
-                </summary>
-                {!advanced && (
-                  <p>
-                    Link one contact and its saved property together.
-                    Independent property links need the workspace upgrade.
-                  </p>
+                {advanced && (
+                  <RecordLinks metadata={draft.metadata} onChange={meta} />
                 )}
-                <input
-                  aria-label="Search saved property addresses"
-                  placeholder="Saved address or client…"
-                  value={propertyQuery}
-                  onChange={(e) => setPropertyQuery(e.target.value)}
-                />
-                <div className="notes-options">
-                  {propertyMatches.map((c) => (
-                    <label key={c.id}>
-                      <input
-                        type="checkbox"
-                        checked={draft.metadata.propertyContactIds.includes(
-                          c.id,
-                        )}
-                        onChange={(e) => {
-                          if (!advanced) {
-                            const current = draft.metadata.contactIds[0];
-                            if (
-                              current &&
-                              (current !== c.id || !e.target.checked) &&
-                              !confirm(
-                                "Basic notes link one contact and its saved property together. Replace or remove the current contact link?",
-                              )
-                            )
-                              return;
-                            meta({
-                              contactIds: e.target.checked ? [c.id] : [],
-                            });
-                            return;
-                          }
-                          meta({
-                            propertyContactIds: e.target.checked
-                              ? [...draft.metadata.propertyContactIds, c.id]
-                              : draft.metadata.propertyContactIds.filter(
-                                  (id) => id !== c.id,
-                                ),
-                          });
-                        }}
-                      />
-                      {c.property_address}
-                      <small>{name(c)}</small>
-                    </label>
-                  ))}
-                  {!propertyMatches.length && (
-                    <p>
-                      No saved property addresses. Add an address on a contact
-                      first.
-                    </p>
-                  )}
+                <div className="notes-meta">
+                  <select
+                    aria-label="Note category"
+                    value={draft.metadata.category}
+                    onChange={(e) => {
+                      const c = e.target.value as NoteMetadata["category"];
+                      setDraft((d) => ({
+                        ...d,
+                        kind:
+                          c === "Goals"
+                            ? "goal"
+                            : c === "Strategy"
+                              ? "strategy"
+                              : "note",
+                        metadata: { ...d.metadata, category: c },
+                      }));
+                    }}
+                  >
+                    {CATEGORIES.filter(
+                      (c) =>
+                        advanced ||
+                        ["General", "Strategy", "Goals"].includes(c),
+                    ).map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
+                  </select>
+                  <input
+                    disabled={!advanced}
+                    aria-label="Note tags"
+                    placeholder="Tags, separated by commas"
+                    key={draft.clientKey + draft.revision}
+                    defaultValue={draft.metadata.tags.join(", ")}
+                    onBlur={(e) =>
+                      meta({
+                        tags: [
+                          ...new Set(
+                            e.target.value
+                              .split(",")
+                              .map((t) => t.trim().slice(0, 40))
+                              .filter(Boolean),
+                          ),
+                        ].slice(0, 16),
+                      })
+                    }
+                  />
+                  <span>
+                    {draft.id
+                      ? when(w.notes.find((n) => n.id === draft.id)?.created_at)
+                      : "New note"}
+                  </span>
                 </div>
-              </details>
-            </div>
-            <div className="notes-meta">
-              <select
-                aria-label="Note category"
-                value={draft.metadata.category}
-                onChange={(e) => {
-                  const c = e.target.value as NoteMetadata["category"];
-                  setDraft((d) => ({
-                    ...d,
-                    kind:
-                      c === "Goals"
-                        ? "goal"
-                        : c === "Strategy"
-                          ? "strategy"
-                          : "note",
-                    metadata: { ...d.metadata, category: c },
-                  }));
-                }}
-              >
-                {CATEGORIES.filter(
-                  (c) =>
-                    advanced || ["General", "Strategy", "Goals"].includes(c),
-                ).map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-              <input
-                disabled={!advanced}
-                aria-label="Note tags"
-                placeholder="Tags, separated by commas"
-                key={draft.clientKey + draft.revision}
-                defaultValue={draft.metadata.tags.join(", ")}
-                onBlur={(e) =>
-                  meta({
-                    tags: [
-                      ...new Set(
-                        e.target.value
-                          .split(",")
-                          .map((t) => t.trim().slice(0, 40))
-                          .filter(Boolean),
-                      ),
-                    ].slice(0, 16),
-                  })
-                }
-              />
-              <span>
-                {draft.id
-                  ? when(w.notes.find((n) => n.id === draft.id)?.created_at)
-                  : "New note"}
-              </span>
-            </div>
+                {advanced && (
+                  <>
+                    <div className="notes-tag-chips">
+                      {draft.metadata.tags.map((t) => (
+                        <button
+                          key={t}
+                          aria-label={`Remove tag ${t}`}
+                          onClick={() =>
+                            meta({
+                              tags: draft.metadata.tags.filter((x) => x !== t),
+                            })
+                          }
+                        >
+                          {t} ×
+                        </button>
+                      ))}
+                    </div>
+                    <TagManager
+                      selected={draft.metadata.tags}
+                      onAssign={(tags) => meta({ tags })}
+                      beforeManage={w.save}
+                      onManaged={async () => {
+                        await w.useServer();
+                        await w.load();
+                      }}
+                    />
+                  </>
+                )}
+              </div>
+            </details>
           </header>
           <div className="notes-format-toolbar">
+            <button
+              aria-label={
+                !libraryOpen && !contextOpen ? "Exit Focus Mode" : "Focus Mode"
+              }
+              aria-pressed={!libraryOpen && !contextOpen}
+              onClick={toggleFocus}
+            >
+              <Icon name="fullscreen" />
+              {!libraryOpen && !contextOpen ? "Exit focus" : "Focus Mode"}
+            </button>
             <button aria-label="Bold" onClick={() => format("**", "**")}>
               <b>B</b>
             </button>
@@ -996,7 +1283,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
               }}
             >
               <Icon name="auto_awesome" />
-              AI Assist
+              Ask MyARI
             </button>
           </div>
           <div className="notes-editor-mode">
@@ -1097,119 +1384,245 @@ function NotesWorkspace({ owner }: { owner: string }) {
             </details>
           )}
         </section>
-        <aside className="notes-context">
-          <section className="notes-surface">
-            <div className="notes-panel-heading">
-              <h3>Related Tasks</h3>
+        <aside
+          id="notes-context-panel"
+          className="notes-context notes-surface"
+          aria-label="Note context"
+        >
+          <button
+            className="notes-context-dismiss"
+            aria-label="Close contextual panel"
+            onClick={() => togglePanel("context")}
+          >
+            Close contextual tools ×
+          </button>
+          <div
+            className="notes-context-tabs"
+            role="tablist"
+            aria-label="Context tools"
+          >
+            {(
+              ["Tasks", "Linked Records", "Planner", "AI Insights"] as const
+            ).map((tab, i) => (
               <button
-                disabled={(!draft.body && !draft.title) || !advanced}
-                onClick={() => void prepareTask()}
+                key={tab}
+                role="tab"
+                id={`notes-context-tab-${i}`}
+                aria-controls={`notes-context-content-${i}`}
+                aria-selected={contextTab === tab}
+                tabIndex={contextTab === tab ? 0 : -1}
+                onClick={() => setContextTab(tab)}
+                onKeyDown={(e) => {
+                  const tabs = [
+                    "Tasks",
+                    "Linked Records",
+                    "Planner",
+                    "AI Insights",
+                  ] as const;
+                  let n = i;
+                  if (e.key === "ArrowRight") n = (i + 1) % 4;
+                  else if (e.key === "ArrowLeft") n = (i + 3) % 4;
+                  else if (e.key === "Home") n = 0;
+                  else if (e.key === "End") n = 3;
+                  else return;
+                  e.preventDefault();
+                  setContextTab(tabs[n]);
+                  document.getElementById(`notes-context-tab-${n}`)?.focus();
+                }}
               >
-                + Add Task
+                {tab}
               </button>
-            </div>
-            {taskError && <p role="alert">{taskError}</p>}
-            {taskRows
-              .filter((t) => t.source_note_id === draft.id)
-              .map((t) => (
-                <Link
-                  className="notes-related-task"
-                  key={t.id}
-                  href={`/dashboard/contacts/${t.contact_id}`}
+            ))}
+          </div>
+          <div className="notes-context-scroll">
+            <section
+              className="notes-context-content"
+              role="tabpanel"
+              id="notes-context-content-0"
+              aria-labelledby="notes-context-tab-0"
+              hidden={contextTab !== "Tasks"}
+            >
+              <div className="notes-panel-heading">
+                <h3>Related Tasks</h3>
+                <button
+                  disabled={(!draft.body && !draft.title) || !advanced}
+                  onClick={() => void prepareTask()}
                 >
-                  <Icon
-                    name={t.completed ? "check_box" : "check_box_outline_blank"}
-                  />
-                  <span>
-                    {t.title}
-                    <small>
-                      {t.due_at ? when(t.due_at) : "No due date"} ·{" "}
-                      {t.completed ? "Completed" : "Open"}
-                    </small>
-                  </span>
-                </Link>
-              ))}
-            {!advanced && (
-              <p>
-                Open <Link href="/dashboard/tasks">Tasks</Link> to manage tasks.
-                Note-linked tasks are not available yet.
-              </p>
-            )}
-            {advanced &&
-              !taskError &&
-              !taskRows.some((t) => t.source_note_id === draft.id) && (
+                  + Add Task
+                </button>
+              </div>
+              {taskError && <p role="alert">{taskError}</p>}
+              {taskRows
+                .filter((t) => t.source_note_id === draft.id)
+                .map((t) => (
+                  <Link
+                    className="notes-related-task"
+                    key={t.id}
+                    href={`/dashboard/tasks?task=${t.id}`}
+                  >
+                    <Icon
+                      name={
+                        t.completed ? "check_box" : "check_box_outline_blank"
+                      }
+                    />
+                    <span>
+                      {t.title}
+                      <small>
+                        {t.due_at ? when(t.due_at) : "No due date"} ·{" "}
+                        {t.completed ? "Completed" : "Open"}
+                      </small>
+                    </span>
+                  </Link>
+                ))}
+              {!advanced && (
                 <p>
-                  No tasks linked to this note. Select text or review an AI
-                  suggestion to create one.
+                  Open <Link href="/dashboard/tasks">Tasks</Link> to manage
+                  tasks. Note-linked tasks are not available yet.
                 </p>
               )}
-          </section>
-          <section className="notes-surface">
-            <RealtorPlanner
-              readOnly={!advanced}
-              refreshKey={taskRows.length}
-              priorities={draft.metadata.priorityIds}
-              onPriorities={(ids) => meta({ priorityIds: ids })}
-              onTemplate={() => setPanel("templates")}
-            />
-          </section>
-          <section className="notes-surface">
-            <h3>Related contacts &amp; properties</h3>
-            {linked.map((c) => (
-              <Link
-                className="notes-context-link"
-                key={c.id}
-                href={`/dashboard/contacts/${c.id}`}
-              >
-                {name(c)}
-                <small>{c.email || c.phone || "Open contact profile"} →</small>
-              </Link>
-            ))}
-            {linkedProperties.map((c) => (
-              <Link
-                className="notes-context-link"
-                key={c.id}
-                href={`/dashboard/properties?contactId=${c.id}`}
-              >
-                {c.property_address}
-                <small>Saved contact property address · {name(c)} →</small>
-              </Link>
-            ))}
-            {!linked.length && !linkedProperties.length && (
-              <p>
-                Link existing records in the editor to bring context into view.
-              </p>
-            )}
-            <Link className="notes-context-link" href="/dashboard/campaigns">
-              Explore campaign library →
-            </Link>
-            <p>
-              Review campaign choices in the existing workflow; no enrollment is
-              automatic.
-            </p>
-          </section>
-          <section className="notes-surface">
-            <h3>Related Notes</h3>
-            {related.map((n) => (
+              {advanced &&
+                !taskError &&
+                !taskRows.some((t) => t.source_note_id === draft.id) && (
+                  <p>
+                    No tasks linked to this note. Select text or review an AI
+                    suggestion to create one.
+                  </p>
+                )}
+            </section>
+            <section
+              className="notes-context-content"
+              role="tabpanel"
+              id="notes-context-content-2"
+              aria-labelledby="notes-context-tab-2"
+              hidden={contextTab !== "Planner"}
+            >
+              <RealtorPlanner
+                readOnly={!advanced}
+                refreshKey={taskRows.length}
+                priorities={draft.metadata.priorityIds}
+                onPriorities={(ids) => meta({ priorityIds: ids })}
+                onTemplate={() => setPanel("templates")}
+              />
+            </section>
+            <section
+              className="notes-context-content"
+              role="tabpanel"
+              id="notes-context-content-1"
+              aria-labelledby="notes-context-tab-1"
+              hidden={contextTab !== "Linked Records"}
+            >
+              <h3>Linked records</h3>
               <button
-                className="notes-context-link"
-                key={n.id}
-                onClick={() => void open(n)}
+                onClick={() => {
+                  setMobilePanel("editor");
+                  requestAnimationFrame(() => {
+                    const el =
+                      document.querySelector<HTMLDetailsElement>(
+                        ".notes-metadata",
+                      );
+                    if (el) {
+                      el.open = true;
+                      el.querySelector<HTMLElement>("summary")?.focus();
+                    }
+                  });
+                }}
               >
-                {n.title}
-                <small>
-                  {n.metadata.category} · {when(n.updated_at)}
-                </small>
+                Manage associations
               </button>
-            ))}
-            {!related.length && (
-              <p>No other notes share these linked records yet.</p>
-            )}
-          </section>
+              {advanced && (
+                <RecordLinks metadata={draft.metadata} onChange={meta} />
+              )}
+              <h4>Contacts &amp; properties</h4>
+              {linked.map((c) => (
+                <Link
+                  className="notes-context-link"
+                  key={c.id}
+                  href={`/dashboard/contacts/${c.id}`}
+                >
+                  {name(c)}
+                  <small>
+                    {c.email || c.phone || "Open contact profile"} →
+                  </small>
+                </Link>
+              ))}
+              {linkedProperties.map((c) => (
+                <Link
+                  className="notes-context-link"
+                  key={c.id}
+                  href={`/dashboard/properties?contactId=${c.id}`}
+                >
+                  {c.property_address}
+                  <small>Saved contact property address · {name(c)} →</small>
+                </Link>
+              ))}
+              {!linked.length && !linkedProperties.length && (
+                <p>
+                  Link existing records in the editor to bring context into
+                  view.
+                </p>
+              )}
+              <Link className="notes-context-link" href="/dashboard/campaigns">
+                Explore campaign library →
+              </Link>
+              <p>
+                Review campaign choices in the existing workflow; no enrollment
+                is automatic.
+              </p>
+              <h4>Related notes</h4>
+              {related.map((n) => (
+                <button
+                  className="notes-context-link"
+                  key={n.id}
+                  onClick={() => void open(n)}
+                >
+                  {n.title}
+                  <small>
+                    {n.metadata.category} · {when(n.updated_at)}
+                  </small>
+                </button>
+              ))}
+              {!related.length && (
+                <p>No other notes share these linked records yet.</p>
+              )}
+            </section>
+            <section
+              className="notes-context-content"
+              role="tabpanel"
+              id="notes-context-content-3"
+              aria-labelledby="notes-context-tab-3"
+              hidden={contextTab !== "AI Insights"}
+            >
+              <h3>Ask MyARI</h3>
+              <p>
+                Turn this note into a reviewable summary, follow-up plan,
+                meeting outline or communication draft. Nothing is changed or
+                sent automatically.
+              </p>
+              <button
+                className="notes-primary"
+                disabled={!draft.body.trim()}
+                onClick={() => {
+                  setAiSource(draft.body);
+                  setPanel("ai");
+                }}
+              >
+                Review AI suggestions
+              </button>
+              <p>
+                Review source quotes before saving a summary or creating tasks.
+                AI availability and existing access controls apply.
+              </p>
+              <p>
+                Use Manage tags to approve labels yourself. Automatic AI tag
+                recommendations are not available in the current Notes provider.
+              </p>
+            </section>
+          </div>
         </aside>
       </div>
       <Modal
         open={panel !== ""}
+        className={panel === "versions" ? "notes-history-panel" : undefined}
         onClose={() => {
           if (!busy) setPanel("");
         }}
@@ -1226,28 +1639,53 @@ function NotesWorkspace({ owner }: { owner: string }) {
                     ? "Delete note?"
                     : "Review & create task"
         }
-        size={panel === "ai" ? "xl" : "lg"}
+        size={panel === "ai" || panel === "versions" ? "xl" : "lg"}
       >
         <div className="notes-modal">
           {panel === "templates" && (
             <>
-              <p>Choose a starting point, preview its outline, then make it your own. Using a template creates an editable note; it does not schedule tasks or send messages.</p>
-              <label>Find a template<input type="search" value={templateQuery} onChange={event => setTemplateQuery(event.target.value)} placeholder="Buyer, open house, daily planner…" /></label>
-              {!TEMPLATES.some(t => `${t[0]} ${t[1]} ${TEMPLATE_DESCRIPTIONS[t[0]]}`.toLowerCase().includes(templateQuery.toLowerCase())) && <p>No matching templates. Try another search.</p>}
-              {TEMPLATES.filter(t => `${t[0]} ${t[1]} ${TEMPLATE_DESCRIPTIONS[t[0]]}`.toLowerCase().includes(templateQuery.toLowerCase())).map((t) => (
+              <p>
+                Choose a starting point, preview its outline, then make it your
+                own. Using a template creates an editable note; it does not
+                schedule tasks or send messages.
+              </p>
+              <label>
+                Find a template
+                <input
+                  type="search"
+                  value={templateQuery}
+                  onChange={(event) => setTemplateQuery(event.target.value)}
+                  placeholder="Buyer, open house, daily planner…"
+                />
+              </label>
+              {!TEMPLATES.some((t) =>
+                `${t[0]} ${t[1]} ${TEMPLATE_DESCRIPTIONS[t[0]]}`
+                  .toLowerCase()
+                  .includes(templateQuery.toLowerCase()),
+              ) && <p>No matching templates. Try another search.</p>}
+              {TEMPLATES.filter((t) =>
+                `${t[0]} ${t[1]} ${TEMPLATE_DESCRIPTIONS[t[0]]}`
+                  .toLowerCase()
+                  .includes(templateQuery.toLowerCase()),
+              ).map((t) => (
                 <article className="notes-template-option" key={t[0]}>
-                <button
-                  className="notes-template"
-                  key={t[0]}
-                  disabled={busy}
-                  onClick={() => void newFromTemplate(t)}
-                >
-                  <Icon name="auto_stories" />
-                  <strong>{t[0]}</strong>
-                  <small>{t[1]} · {TEMPLATE_DESCRIPTIONS[t[0]]}</small>
-                  <span>Use template →</span>
-                </button>
-                <details><summary>Preview outline</summary><pre>{t[2]}</pre></details>
+                  <button
+                    className="notes-template"
+                    key={t[0]}
+                    disabled={busy}
+                    onClick={() => void newFromTemplate(t)}
+                  >
+                    <Icon name="auto_stories" />
+                    <strong>{t[0]}</strong>
+                    <small>
+                      {t[1]} · {TEMPLATE_DESCRIPTIONS[t[0]]}
+                    </small>
+                    <span>Use template →</span>
+                  </button>
+                  <details>
+                    <summary>Preview outline</summary>
+                    <pre>{t[2]}</pre>
+                  </details>
                 </article>
               ))}
               <button
@@ -1259,7 +1697,12 @@ function NotesWorkspace({ owner }: { owner: string }) {
               >
                 Save current note as reusable template
               </button>
-              {!advanced && <p>Built-in templates work with basic notes. Saving your own reusable templates requires the advanced Notes schema.</p>}
+              {!advanced && (
+                <p>
+                  Built-in templates work with basic notes. Saving your own
+                  reusable templates requires the advanced Notes schema.
+                </p>
+              )}
               {w.notes
                 .filter((n) => n.metadata.isTemplate)
                 .map((n) => (
@@ -1267,7 +1710,13 @@ function NotesWorkspace({ owner }: { owner: string }) {
                     key={n.id}
                     className="notes-template"
                     disabled={busy}
-                    onClick={() => void newFromTemplate([n.title.replace(/ template$/, ""), "General", n.body])}
+                    onClick={() =>
+                      void newFromTemplate([
+                        n.title.replace(/ template$/, ""),
+                        "General",
+                        n.body,
+                      ])
+                    }
                   >
                     {n.title} → Use saved template
                   </button>
@@ -1322,42 +1771,30 @@ function NotesWorkspace({ owner }: { owner: string }) {
               onTask={prepareTask}
             />
           )}
-          {panel === "versions" && (
-            <>
-              <p>
-                Up to 50 previous versions. Restoring creates a new revision and
-                preserves history.
-              </p>
-              {!versions.length && <p>No previous versions yet.</p>}
-              {versions.map((v) => (
-                <details key={v.id}>
-                  <summary>
-                    Version {v.revision} · {when(v.created_at)} · {v.title}
-                  </summary>
-                  <pre>{v.body}</pre>
-                  <button
-                    onClick={() => {
-                      if (
-                        confirm(
-                          "Restore this previous version into the editor?",
-                        )
-                      ) {
-                        setDraft((d) => ({
-                          ...d,
-                          title: v.title,
-                          body: v.body,
-                          kind: v.kind,
-                          metadata: MetadataSchema.parse(v.metadata),
-                        }));
-                        setPanel("");
-                      }
-                    }}
-                  >
-                    Restore this version
-                  </button>
-                </details>
-              ))}
-            </>
+          {panel === "versions" && draft.id && (
+            <VersionHistory
+              versions={versions}
+              current={{
+                ...draft,
+                id: draft.id,
+                client_key: draft.clientKey,
+                contact_id: draft.metadata.contactIds[0] ?? null,
+                created_at:
+                  w.notes.find((n) => n.id === draft.id)?.created_at ??
+                  new Date().toISOString(),
+                updated_at:
+                  w.notes.find((n) => n.id === draft.id)?.updated_at ??
+                  new Date().toISOString(),
+              }}
+              owner={owner}
+              onRestored={(n) => {
+                w.adoptServerNote(n);
+                setPanel("");
+                setNotice(
+                  "Previous version restored. The prior current revision is preserved in history.",
+                );
+              }}
+            />
           )}
           {panel === "delete" && (
             <>
@@ -1423,7 +1860,7 @@ function InlineText({ text }: { text: string }) {
     </>
   );
 }
-function NotePreview({
+const NotePreview = memo(function NotePreview({
   body,
   onToggle,
 }: {
@@ -1431,7 +1868,7 @@ function NotePreview({
   onToggle: (line: number) => void;
 }) {
   return (
-    <div className="notes-rendered">
+    <div className="notes-rendered" tabIndex={0} aria-label="Formatted note">
       {body.split("\n").map((line, i) =>
         line.startsWith("## ") ? (
           <h3 key={i}>{line.slice(3)}</h3>
@@ -1456,4 +1893,4 @@ function NotePreview({
       )}
     </div>
   );
-}
+});

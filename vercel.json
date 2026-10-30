@@ -5,7 +5,8 @@
       "fix/assistant-production-readiness": false,
       "feat/myari-concierge": false,
       "feat/premium-auth-refresh": false,
-      "feat/premium-assistant-workspace": false
+      "feat/premium-assistant-workspace": false,
+      "feat/notes-strategy-2": false
     }
   },
   "crons": [

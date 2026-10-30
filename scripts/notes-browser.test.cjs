@@ -27,7 +27,10 @@ const { chromium } = require("playwright"),
       "@clerk/nextjs": path.join(adapters, "stubs.jsx"),
     },
   });
-  const cssRoot = path.join(root, ".next/static/css");
+  const cssRoot = path.join(
+    process.env.NOTES_CSS_ROOT || root,
+    ".next/static/css",
+  );
   const iconFont = process.env.CONTACTS_ICON_FONT;
   const reviewFonts = process.env.REVIEW_FONTS_DIR;
   const css =
@@ -84,7 +87,8 @@ const { chromium } = require("playwright"),
     }
     const local = file.startsWith("/review-fonts/")
       ? path.join(
-          reviewFonts || path.join(root, ".next/static/media"),
+          reviewFonts ||
+            path.join(process.env.NOTES_CSS_ROOT || root, ".next/static/media"),
           path.basename(file),
         )
       : path.resolve(root, "public", "." + file);
@@ -108,12 +112,14 @@ const { chromium } = require("playwright"),
     executablePath: process.env.CHROMIUM_PATH || "/usr/bin/chromium",
     args: ["--no-sandbox"],
   });
+  browser.on("page", (p) => p.setDefaultTimeout(12000));
   const results = [];
   const output = path.join(root, "docs/notes-premium");
   fs.mkdirSync(output, { recursive: true });
   try {
     const origin = `http://127.0.0.1:${server.address().port}`;
     for (const width of [1440, 1920, 768, 390]) {
+      console.log("REGRESSION viewport", width);
       reset();
       const page = await browser.newPage({ viewport: { width, height: 1050 } }),
         errors = [];
@@ -130,20 +136,39 @@ const { chromium } = require("playwright"),
       await page.getByLabel("Note title", { exact: true }).waitFor();
       if (width > 900) {
         const geometry = await page.evaluate(() => {
-          const editor = document.querySelector('.notes-editor').getBoundingClientRect();
-          const library = document.querySelector('.notes-library').getBoundingClientRect();
-          const tabs = document.querySelector('.notes-category-bar').getBoundingClientRect();
-          const context = document.querySelector('.notes-context').getBoundingClientRect();
-          return { editorWidth: editor.width, libraryWidth: library.width, editorLeft: editor.left, tabsRight: tabs.right, contextRight: context.right };
+          const editor = document
+            .querySelector(".notes-editor")
+            .getBoundingClientRect();
+          const library = document
+            .querySelector(".notes-library")
+            .getBoundingClientRect();
+          const tabs = document
+            .querySelector(".notes-category-bar")
+            .getBoundingClientRect();
+          const context = document
+            .querySelector(".notes-context")
+            .getBoundingClientRect();
+          return {
+            editorWidth: editor.width,
+            libraryWidth: library.width,
+            editorLeft: editor.left,
+            tabsRight: tabs.right,
+            contextRight: context.right,
+          };
         });
         assert.ok(geometry.editorWidth > geometry.libraryWidth * 1.6);
         assert.ok(geometry.tabsRight <= geometry.editorLeft);
-        assert.ok(geometry.contextRight <= geometry.editorLeft);
+        assert.ok(geometry.contextRight > geometry.editorLeft);
       }
 
-      await page
-        .getByRole("button", { name: "Formatted preview", exact: true })
-        .click();
+      if (
+        await page
+          .getByRole("button", { name: "Formatted preview", exact: true })
+          .count()
+      )
+        await page
+          .getByRole("button", { name: "Formatted preview", exact: true })
+          .click();
       await page.screenshot({
         path: path.join(output, `notes-${width}.png`),
         fullPage: false,
@@ -156,6 +181,7 @@ const { chromium } = require("playwright"),
       );
       if (width <= 900) {
         await page.getByRole("button", { name: "Planner & context" }).click();
+        await page.getByRole("tab", { name: "Planner", exact: true }).click();
         await page
           .getByRole("heading", { name: "AI Realtor Planner" })
           .waitFor();
@@ -272,6 +298,7 @@ const { chromium } = require("playwright"),
       await page
         .getByRole("button", { name: "Clear filters", exact: true })
         .click();
+      await page.locator(".notes-note-preview").first().waitFor();
       assert.ok((await page.locator(".notes-note-preview").count()) > 0);
       assert.deepEqual(errors, []);
       results.push({
@@ -290,6 +317,7 @@ const { chromium } = require("playwright"),
       });
       await page.close();
     }
+    console.log("REGRESSION formatting");
     // Formatting, real-record mentions, combined filters, template reuse, and version restoration.
     const edit = await browser.newPage({
       viewport: { width: 1440, height: 1050 },
@@ -297,6 +325,7 @@ const { chromium } = require("playwright"),
     edit.on("dialog", (d) => d.accept());
     await edit.goto(origin + "/dashboard/notes");
     await edit.locator(".notes-note-preview").first().click();
+    await edit.getByRole("button", { name: "Edit text", exact: true }).click();
     await edit.getByLabel("Note content", { exact: true }).waitFor();
     await edit
       .getByLabel("Note content", { exact: true })
@@ -322,6 +351,7 @@ const { chromium } = require("playwright"),
       .getByLabel("Note content", { exact: true })
       .fill("Buyer requested a garden.\n@Jordan");
     await edit.locator(".notes-mention button").first().click();
+    await edit.locator(".notes-metadata>summary").click();
     await edit
       .getByLabel("Note tags", { exact: true })
       .fill("buyer, follow-up");
@@ -338,19 +368,21 @@ const { chromium } = require("playwright"),
       .getByLabel("Filter by contact", { exact: true })
       .selectOption("00000000-0000-4000-8000-000000000002");
     await edit.getByLabel("Search notes", { exact: true }).fill("garden");
+    await edit.waitForFunction(
+      () => document.querySelectorAll(".notes-note-preview").length === 1,
+    );
     assert.equal(await edit.locator(".notes-note-preview").count(), 1);
     await edit
       .getByRole("button", { name: "Clear filters", exact: true })
       .click();
     await edit.getByRole("button", { name: "History", exact: true }).click();
     let historyDialog = edit.getByRole("dialog");
-    await historyDialog.locator("details").first().waitFor();
-    assert.ok((await historyDialog.locator("details").count()) > 0);
-    await historyDialog.locator("summary").first().click();
+    await historyDialog.getByLabel("Saved revision", { exact: true }).waitFor();
+    await historyDialog.getByRole("checkbox").check();
     await historyDialog
-      .getByRole("button", { name: "Restore this version" })
-      .first()
+      .getByRole("button", { name: "Restore this version", exact: true })
       .click();
+    await historyDialog.waitFor({ state: "detached" });
     await edit.getByRole("button", { name: "Save now", exact: true }).click();
     await edit
       .getByRole("button", { name: "Use Template", exact: true })
@@ -386,6 +418,7 @@ const { chromium } = require("playwright"),
         { exact: true },
       )
       .waitFor();
+    await edit.getByRole("tab", { name: "Planner", exact: true }).click();
     for (const label of ["Weekly", "Monthly", "Daily"]) {
       await edit.getByRole("button", { name: label, exact: true }).click();
       await edit.waitForTimeout(60);
@@ -409,6 +442,7 @@ const { chromium } = require("playwright"),
     });
     await page.goto(origin + "/dashboard/notes");
     await page.locator(".notes-note-preview").first().click();
+    await page.getByRole("button", { name: "Edit text", exact: true }).click();
     state.failSave = true;
     await page
       .getByLabel("Note content", { exact: true })
@@ -458,6 +492,9 @@ const { chromium } = require("playwright"),
     const context = await browser.newContext();
     const second = await context.newPage();
     await second.goto(origin + "/dashboard/notes?note=" + note.id);
+    await second
+      .getByRole("button", { name: "Edit text", exact: true })
+      .click();
     await second.getByLabel("Note content", { exact: true }).waitFor();
     await second.waitForTimeout(200);
     assert.equal(
@@ -491,6 +528,7 @@ const { chromium } = require("playwright"),
     await page.close();
     await context.close();
     reset();
+    console.log("REGRESSION basic compatibility");
     state.basic = true;
     state.failCalendar = true;
     const legacy = await browser.newPage({
@@ -507,26 +545,65 @@ const { chromium } = require("playwright"),
         .isDisabled(),
       true,
     );
+    await legacy.locator(".notes-metadata>summary").click();
     assert.equal(
       await legacy.getByLabel("Note tags", { exact: true }).isDisabled(),
       true,
     );
-    const templateDefinitions = require('./campaign-audit/harness.cjs').fixture().load('lib/notes/workspace.ts').TEMPLATES;
+    const templateDefinitions = require("./campaign-audit/harness.cjs")
+      .fixture()
+      .load("lib/notes/workspace.ts").TEMPLATES;
     for (const template of templateDefinitions) {
-      await legacy.getByRole('button', { name: 'Use Template', exact: true }).click();
-      const picker = legacy.getByRole('dialog', { name: 'MyARI planner templates', exact: true });
-      await picker.getByLabel('Find a template', { exact: true }).fill(template[0]);
-      await picker.getByRole('button', { name: template[0], exact: false }).click();
-      assert.equal(await legacy.getByLabel('Note title', { exact: true }).inputValue(), template[0]);
-      assert.equal(await legacy.getByLabel('Note content', { exact: true }).inputValue(), template[2]);
-      await legacy.getByLabel('Note content', { exact: true }).fill(template[2] + '\n\nVerified rehearsal detail.');
-      await legacy.getByRole('button', { name: 'Save now', exact: true }).click();
-      await legacy.getByText('Saved', { exact: true }).waitFor();
-      assert.ok(state.notes.some(note => note.title === template[0] && note.body.includes('Verified rehearsal detail.')));
+      await legacy
+        .getByRole("button", { name: "Use Template", exact: true })
+        .click();
+      const picker = legacy.getByRole("dialog", {
+        name: "MyARI planner templates",
+        exact: true,
+      });
+      await picker
+        .getByLabel("Find a template", { exact: true })
+        .fill(template[0]);
+      await picker
+        .getByRole("button", { name: template[0], exact: false })
+        .click();
+      assert.equal(
+        await legacy.getByLabel("Note title", { exact: true }).inputValue(),
+        template[0],
+      );
+      assert.equal(
+        await legacy.getByLabel("Note content", { exact: true }).inputValue(),
+        template[2],
+      );
+      await legacy
+        .getByLabel("Note content", { exact: true })
+        .fill(template[2] + "\n\nVerified rehearsal detail.");
+      await legacy
+        .getByRole("button", { name: "Save now", exact: true })
+        .click();
+      await legacy.getByText("Saved", { exact: true }).waitFor();
+      assert.ok(
+        state.notes.some(
+          (note) =>
+            note.title === template[0] &&
+            note.body.includes("Verified rehearsal detail."),
+        ),
+      );
     }
     await legacy.reload();
-    await legacy.locator('.notes-note-preview').filter({ hasText: 'Buyer Consultation' }).first().click();
-    assert.ok((await legacy.getByLabel('Note content', { exact: true }).inputValue()).includes('Verified rehearsal detail.'));
+    await legacy
+      .locator(".notes-note-preview")
+      .filter({ hasText: "Buyer Consultation" })
+      .first()
+      .click();
+    await legacy
+      .getByRole("button", { name: "Edit text", exact: true })
+      .click();
+    assert.ok(
+      (
+        await legacy.getByLabel("Note content", { exact: true }).inputValue()
+      ).includes("Verified rehearsal detail."),
+    );
     for (const text of ["Legacy note update one.", "Legacy note update two."]) {
       await legacy.getByLabel("Note content", { exact: true }).fill(text);
       await legacy
@@ -541,6 +618,8 @@ const { chromium } = require("playwright"),
     await legacy
       .getByLabel("Note title", { exact: true })
       .fill("Basic property association");
+    if (!(await legacy.locator(".notes-metadata").evaluate((el) => el.open)))
+      await legacy.locator(".notes-metadata>summary").click();
     const newProperty = legacy.locator(".notes-associations details").nth(1);
     await newProperty.locator("summary").click();
     await newProperty
@@ -578,6 +657,7 @@ const { chromium } = require("playwright"),
       .locator(".notes-note-preview")
       .filter({ hasText: "Basic property association" })
       .click();
+    await legacy.locator(".notes-metadata>summary").click();
     await legacy
       .locator(".notes-associations details")
       .nth(1)
@@ -610,6 +690,7 @@ const { chromium } = require("playwright"),
     });
     await mobile.goto(origin + "/dashboard/notes");
     await mobile.getByRole("button", { name: "Planner & context" }).click();
+    await mobile.getByRole("tab", { name: "Planner", exact: true }).click();
     await mobile
       .locator(".notes-planner-row")
       .filter({ hasText: "Existing task stays visible" })

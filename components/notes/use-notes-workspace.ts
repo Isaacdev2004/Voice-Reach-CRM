@@ -374,7 +374,18 @@ export function useNotesWorkspace(owner: string) {
     setDraft(next);
     return save();
   }
+  function adoptServerNote(note: WorkspaceNote) {
+    const next = draftOf(note);
+    blocked.current = false;
+    saved.current = stamp(next);
+    ref.current = next;
+    setDraft(next);
+    setStatus("Saved");
+    setError("");
+    setNotes((rows) => [note, ...rows.filter((row) => row.id !== note.id)]);
+  }
   return {
+    adoptServerNote,
     mode,
     loadError,
     getDraft: () => ref.current,

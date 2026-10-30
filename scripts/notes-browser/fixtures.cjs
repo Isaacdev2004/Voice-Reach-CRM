@@ -5,6 +5,8 @@ const meta = (m = {}) => ({
   tags: [],
   contactIds: [],
   propertyContactIds: [],
+  campaignIds: [],
+  taskIds: [],
   pinned: false,
   isTemplate: false,
   originalTranscript: "",
@@ -68,6 +70,7 @@ module.exports = function () {
     reset() {
       state.notes = structuredClone(originalNotes);
       state.tasks = [];
+      state.tags=[];
       state.versions = [];
       state.requests = [];
       state.failSave = false;
@@ -111,6 +114,20 @@ module.exports = function () {
           propertyContactIds: n.contact_id === contact.id ? [contact.id] : [],
         }),
       });
+      if(path==="/api/calendar/preferences")return send({preferences:{timezone:"America/New_York"}});
+      if(path==="/api/notes/associations")return send({campaigns:[{id:id(70),name:"Buyer follow-up",status:"draft"}],tasks:state.tasks.filter(t=>t.owner_id===owner)});
+      if(path==="/api/notes/tags"){
+        state.tags??=[];
+        for(const n of state.notes.filter(n=>n.owner_id===owner))for(const name of n.metadata?.tags??[])if(!state.tags.some(t=>t.owner===owner&&t.name.toLowerCase()===name.toLowerCase()))state.tags.push({id:id(800+state.tags.length),name,owner});
+        if(method==="GET")return send({tags:state.tags.filter(t=>t.owner===owner)});
+        if(body.action==="create"){if(!state.tags.some(t=>t.owner===owner&&t.name.toLowerCase()===body.name.toLowerCase()))state.tags.push({id:id(800+state.tags.length),name:body.name,owner});}
+        else{const t=state.tags.find(t=>t.id===body.id&&t.owner===owner);if(!t)return send({error:"Tag not found"},404);for(const n of state.notes.filter(n=>n.owner_id===owner&&n.metadata.tags.includes(t.name))){state.versions.push(structuredClone(n));n.metadata.tags=body.action==="delete"?n.metadata.tags.filter(x=>x!==t.name):n.metadata.tags.map(x=>x===t.name?body.name:x);n.revision++;}if(body.action==="delete")state.tags=state.tags.filter(x=>x!==t);else t.name=body.name;}
+        return send({tag:{}});
+      }
+      if(path.endsWith("/restore")){
+       const n=state.notes.find(n=>n.id===path.split("/")[3]&&n.owner_id===owner),v=state.versions.find(v=>id(500+v.revision)===body.versionId&&v.id===n?.id&&v.owner_id===owner);
+       if(!n||!v)return send({error:"Version not found"},404);if(body.expectedRevision!==n.revision)return send({error:"Conflict"},409);state.versions.push(structuredClone(n));Object.assign(n,{title:v.title,body:v.body,metadata:structuredClone(v.metadata),kind:v.kind,revision:n.revision+1});return send({note:n});
+      }
       if (path === "/api/notes/workspace") {
         if (method === "GET" && state.failLoad)
           return send({ error: "Synthetic read failure." }, 503);
@@ -212,7 +229,7 @@ module.exports = function () {
             source_note_id: note.id,
             note_action_key: body.actionKey,
             due_at: body.dueAt,
-            completed: false,
+            completed: body.completed??false,
             priority: body.priority,
           };
           state.tasks.push(t);
