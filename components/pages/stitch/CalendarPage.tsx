@@ -930,6 +930,15 @@ function CalendarWorkspace() {
             </div>
           ) : displayedView === "month" ? (
             <div className="calendar-month">
+              {(prefs.mondayStart
+                ? ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+              ).map((weekday) => (
+                <div key={weekday} className="calendar-month-weekday" data-weekday={weekday}>
+                  <span className="calendar-weekday-full">{weekday}</span>
+                  <abbr className="calendar-weekday-short" title={weekday}>{weekday.slice(0, 3)}</abbr>
+                </div>
+              ))}
               {days.map((day) => (
                 <div
                   key={day}

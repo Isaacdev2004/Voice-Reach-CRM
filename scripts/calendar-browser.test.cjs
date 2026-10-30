@@ -144,8 +144,11 @@ const { chromium } = require("playwright"),
             .getAttribute("aria-pressed"),
           "true",
         );
-        if (view === "Month")
+        if (view === "Month") {
           assert.equal(await page.locator(".calendar-month-day").count(), 42);
+          assert.deepEqual(await page.locator(".calendar-month-weekday").evaluateAll(nodes => nodes.map(node => node.getAttribute("data-weekday"))), ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]);
+          assert.equal(await page.locator(".calendar-period-heading").evaluate(node => getComputedStyle(node).textAlign), "center");
+        }
         if (view === "Agenda") await page.locator(".calendar-agenda").waitFor();
       }
       await page
