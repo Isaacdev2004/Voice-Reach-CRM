@@ -97,8 +97,9 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             <div className="features-hero-fade" />
             <div className="landing-shell features-hero-inner">
               <div className="features-hero-copy">
+                {home && <p className="public-eyebrow">Built for real estate agents</p>}
                 <h1 id="features-title">
-                  Everything you need to turn follow-up into opportunity.
+                  {home ? <>More than a CRM.<br />A complete business partner.</> : "Everything you need to turn follow-up into opportunity."}
                 </h1>
                 <p className="features-hero-description">
                   One beautifully connected workspace to manage relationships,
@@ -364,10 +365,9 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             aria-labelledby="agent-tools-title"
           >
             <div className="features-editorial-copy">
-              <p className="public-eyebrow">Built for real estate agents</p>
+              {!home && <p className="public-eyebrow">Built for real estate agents</p>}
               <h2 id="agent-tools-title">
-                More than a CRM.
-                <br />A complete business partner.
+                {home ? "Everything you need to turn follow-up into opportunity." : <>More than a CRM.<br />A complete business partner.</>}
               </h2>
               <p>
                 From planning a showing to preparing a client conversation, keep
