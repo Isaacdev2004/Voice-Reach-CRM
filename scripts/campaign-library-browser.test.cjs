@@ -138,6 +138,25 @@ const root = path.resolve(__dirname, "..");
         await page.locator(".cl-hero img").getAttribute("src"),
         "/brand/heroes/campaign-library-interior.png",
       );
+      await page.getByRole("button", { name: "Preview Buyer Nurture QA", exact: true }).click();
+      await page.getByRole("tab", { name: "Sequence", exact: true }).click();
+      await page.getByRole("link", { name: "Edit email", exact: true }).first().click();
+      const emailEditor = page.getByRole("dialog", { name: "Edit sequence step", exact: true });
+      await emailEditor.getByRole("textbox", { name: "Email subject", exact: true }).waitFor();
+      assert.equal(await page.locator(".cl-drawer").count(), 0);
+      assert.equal(await emailEditor.getByRole("textbox", { name: "Email subject", exact: true }).inputValue(), "Your next home");
+      await emailEditor.getByRole("textbox", { name: "Email subject", exact: true }).fill("Updated buyer introduction");
+      await emailEditor.getByRole("textbox", { name: "Email body", exact: true }).fill("Hello {{first_name}}, this is my updated email.");
+      await page.screenshot({ path: path.join(tmp, `email-editor-${width}.png`), fullPage: false });
+      await emailEditor.getByRole("button", { name: "Save step", exact: true }).click();
+      assert.equal(await emailEditor.count(), 0);
+      await page.getByRole("button", { name: "Preview personalized messages", exact: true }).click();
+      const editedPreview = page.getByRole("dialog", { name: "Personalized message preview", exact: true });
+      await editedPreview.getByLabel("Preview for contact").selectOption("00000000-0000-4000-8000-000000000500");
+      await editedPreview.getByRole("button", { name: "Preview messages", exact: true }).click();
+      await editedPreview.getByText("Subject: Updated buyer introduction", { exact: true }).waitFor();
+      await page.keyboard.press("Escape");
+      await page.goto(base + "/dashboard/campaigns");
       const covers = await page
         .locator(".cl-card .cl-cover-tile")
         .evaluateAll((nodes) =>
@@ -593,6 +612,27 @@ const root = path.resolve(__dirname, "..");
       });
       await page.close();
     }
+    const savedEmailPage = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    await savedEmailPage.goto(base + "/dashboard/campaigns");
+    await savedEmailPage.getByRole("button", { name: "Preview Buyer Nurture QA", exact: true }).click();
+    await savedEmailPage.getByRole("tab", { name: "Sequence", exact: true }).click();
+    await savedEmailPage.getByRole("link", { name: "Edit email", exact: true }).first().click();
+    const savedEditor = savedEmailPage.getByRole("dialog", { name: "Edit sequence step", exact: true });
+    await savedEditor.getByRole("textbox", { name: "Email subject", exact: true }).fill("Persisted email subject");
+    await savedEditor.getByRole("textbox", { name: "Email body", exact: true }).fill("Hello {{first_name}}, saved email body.");
+    await savedEditor.getByRole("button", { name: "Save step", exact: true }).click();
+    await savedEmailPage.getByRole("button", { name: "Save as template", exact: true }).click();
+    await savedEmailPage.waitForFunction(() => !!window.__lastBuilderRequest);
+    const payload = await savedEmailPage.evaluate(() => window.__lastBuilderRequest);
+    assert.equal(payload.action, "template");
+    assert.equal(payload.contactIds, undefined);
+    assert.equal(payload.enrollAllEligible, undefined);
+    assert.equal(payload.campaign.steps[0].description, "Subject: Persisted email subject\n\nHello {{first_name}}, saved email body.");
+    await savedEmailPage.waitForFunction(() => Object.values(window.__steps).some(steps => steps.some(step => step.description.includes("Persisted email subject"))));
+    await savedEmailPage.reload();
+    await savedEmailPage.waitForFunction(() => Object.values(window.__steps).some(steps => steps.some(step => step.description.includes("Persisted email subject"))));
+    assert.deepEqual(await savedEmailPage.evaluate(() => window.__forbidden), []);
+    await savedEmailPage.close();
   } finally {
     await browser.close();
     await new Promise((resolve) => server.close(resolve));

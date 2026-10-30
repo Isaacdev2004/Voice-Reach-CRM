@@ -199,6 +199,7 @@ w.fetch = async (input, init = {}) => {
   }
   if (url.pathname === "/api/campaigns/builder" && method === "POST") {
     const body = JSON.parse(init.body);
+    w.__lastBuilderRequest = body;
     if (
       body.action !== "template" ||
       body.contactIds ||
