@@ -99,3 +99,9 @@ export function suggestedCommunications(
         : "Draft; subscriber communication consent required",
     }));
 }
+
+/** Staff signoff applies only to the exact case version reviewed. Any later case write invalidates it. */
+export function staffSignoff(c: CaseRecord | null) {
+  const r = c?.milestones.staffReview;
+  return { approved: !!r && r.reviewedVersion === c?.version, reviewedAt: r?.reviewedAt ?? null };
+}

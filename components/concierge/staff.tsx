@@ -16,7 +16,8 @@ type StaffData = {
     denominatorLabel: string;
   };
   cases: (CaseRecord & {
-    readiness?: { percent: number; completed: number; total: number };
+    readiness?: { percent: number; completed: number; total: number; ready?: boolean };
+    staffSignoff?: { approved: boolean; reviewedAt: string | null };
     subscription?: { plan: string; status: string };
   })[];
   metrics: {
@@ -67,6 +68,16 @@ function StaffWorkspace() {
     } finally {
       setBusy(false);
     }
+  }
+  async function review(c: CaseRecord, form: HTMLFormElement) {
+    if (busy) return;
+    const f = new FormData(form);
+    setBusy(true); setError("");
+    try {
+      await conciergeRequest("/api/concierge/staff/review", { owner: c.owner_id, version: c.version, requestId: crypto.randomUUID(), confirmed: true, note: f.get("reviewNote"), voice: f.get("voice") });
+      await reload(); setNotice("Human review recorded. Sending and campaigns remain unchanged.");
+    } catch(e) { setError(e instanceof Error ? e.message : "Review unavailable"); }
+    finally { setBusy(false); }
   }
   return (
     <div className="concierge">
@@ -203,6 +214,14 @@ function StaffWorkspace() {
                       </>
                     )}
                   </div>
+                  {(data.role === "admin" || data.role === "manager") && <form onSubmit={e => { e.preventDefault(); void review(c, e.currentTarget); }}>
+                    <h3>Human launch-readiness review</h3>
+                    <p>{c.staffSignoff?.approved ? "Signed for this case version." : "Not approved for this case version."} Any later case update requires a fresh review. Staff stage alone is not signoff.</p>
+                    <label>Review notes<input name="reviewNote" minLength={10} maxLength={1000} required /></label>
+                    <label>Voice Studio evidence<select name="voice"><option value="not_required">Voice not required</option><option value="manually_verified">I manually verified recording, script and provider</option></select></label>
+                    <label><input type="checkbox" required /> I reviewed the import, draft, integrations and subscriber checklist. No launch or sending is authorized.</label>
+                    <button disabled={busy || !c.readiness?.ready}>Record human signoff</button>
+                  </form>}
                   {data.role !== "sales" && (
                     <form
                       onSubmit={(e) => {

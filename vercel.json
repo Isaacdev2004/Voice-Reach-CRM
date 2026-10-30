@@ -4,6 +4,7 @@
     "deploymentEnabled": {
       "fix/assistant-production-readiness": false,
       "feat/myari-concierge": false,
+      "feat/concierge-pilot-readiness": false,
       "feat/premium-auth-refresh": false
     }
   },

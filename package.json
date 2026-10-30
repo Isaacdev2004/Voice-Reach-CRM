@@ -57,7 +57,7 @@
     "test:assistant-messaging": "node scripts/assistant-messaging.test.cjs && node scripts/assistant-messaging-safety.test.cjs && node scripts/assistant-repair.test.cjs",
     "test:assistant-roots-db": "node scripts/assistant-roots-database.test.cjs",
     "test:assistant-messaging-browser": "node scripts/assistant-messaging-browser.test.cjs",
-    "test:concierge": "node scripts/concierge.test.cjs",
+    "test:concierge": "node scripts/concierge.test.cjs && node scripts/concierge-preview-auth-check.test.cjs",
     "test:concierge-db": "node scripts/concierge-database.test.cjs",
     "test:concierge-browser": "node scripts/concierge-browser.test.cjs"
   },

@@ -36,6 +36,7 @@ type Snapshot = {
     integrationsVerified: boolean;
   };
   readiness: ReturnType<typeof readiness>;
+  staffSignoff?: { approved: boolean; reviewedAt: string | null };
   templates: {
     key: string;
     name: string;
@@ -858,6 +859,7 @@ function SubscriberWorkspace() {
                   Calendar: result.calendar,
                   Assistant: result.assistant,
                 });
+                await refresh();
                 setNotice(
                   "Connection checks completed. No messages or invitations were sent.",
                 );
@@ -940,6 +942,10 @@ function SubscriberWorkspace() {
       {tab === "Launch review" && (
         <section id="review" className="concierge-card">
           <h2>Your next chapter, reviewed.</h2>
+          <p><strong>Subscriber checklist:</strong> your confirmations below are self-attestations.</p>
+          <p><strong>Human Concierge approval:</strong> {data.staffSignoff?.approved ? "Recorded for this case version" : "Pending manager review; checklist completion does not grant approval"}.</p>
+          <p>Voice Studio: {discovery.channels.includes("voicemail") ? "Manual review required: confirm owned, approved recording, script and provider. Script text alone is not a verified recording." : "Not selected in discovery; no voice readiness claimed."}</p>
+          {data.record?.milestones.connectionReview && <p>Last saved connection check: {new Date(data.record.milestones.connectionReview.checkedAt).toLocaleString()} · SMS {data.record.milestones.connectionReview.sms ? "ownership verified" : "unverified"} · Calendar {data.record.milestones.connectionReview.calendar ? "calendar retrieval verified" : "unverified"}. These checks are point-in-time evidence, not sending permission.</p>}
           <p>
             Current saved subscription: {data.subscription.plan} ·{" "}
             {data.subscription.status}. Concierge never changes your billing.
