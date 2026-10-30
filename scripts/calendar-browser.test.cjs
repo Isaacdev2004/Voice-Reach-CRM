@@ -144,8 +144,16 @@ const { chromium } = require("playwright"),
             .getAttribute("aria-pressed"),
           "true",
         );
-        if (view === "Month")
+        if (view === "Month") {
           assert.equal(await page.locator(".calendar-month-day").count(), 42);
+          assert.deepEqual(await page.locator(".calendar-month-weekday").evaluateAll(nodes => nodes.map(node => node.getAttribute("data-weekday"))), ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]);
+          assert.equal(await page.locator(".calendar-period-heading").evaluate(node => getComputedStyle(node).textAlign), "center");
+          assert.deepEqual(await page.locator('.calendar-weekday-short').allTextContents(), ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']);
+          assert.equal(await page.locator('.calendar-month-weekday').first().evaluate(node => getComputedStyle(node).textTransform), 'uppercase');
+          assert.ok((await page.locator('.calendar-month-day > button').first().evaluate(node => getComputedStyle(node).fontFamily)).includes('Georgia'));
+          assert.equal(await page.locator('.calendar-stage').evaluate(node => getComputedStyle(node, '::before').pointerEvents), 'none');
+
+        }
         if (view === "Agenda") await page.locator(".calendar-agenda").waitFor();
       }
       await page
@@ -166,6 +174,12 @@ const { chromium } = require("playwright"),
       );
       // Date navigation follows the rendered period without a refresh.
       const dateInput = page.locator('.calendar-date input[type="date"]');
+      assert.equal(await page.locator(".calendar-left-desktop").getByRole("heading", { name: "Quick Actions", exact: true, includeHidden: true }).count(), 1);
+      assert.equal(await page.locator(".calendar-left-desktop").getByRole("heading", { name: "Daily agenda", exact: true, includeHidden: true }).count(), 1);
+      await dateInput.fill("2026-12-31");
+      await page.locator(".calendar-period-heading").getByRole("heading", { name: "December 2026", exact: true }).waitFor();
+      await page.getByRole("button", { name: "Next period", exact: true }).click();
+      await page.locator(".calendar-period-heading").getByRole("heading", { name: "January 2027", exact: true }).waitFor();
       await dateInput.fill("2026-10-22");
       await page
         .getByRole("button", { name: "Next period", exact: true })
@@ -398,7 +412,7 @@ const { chromium } = require("playwright"),
       await page.goto(
         `http://127.0.0.1:${server.address().port}/dashboard/calendar?date=2026-10-22&prefReadFail=1`,
       );
-      await page
+      await page.locator(".calendar-stage")
         .getByText(/Buyer consultation/, { exact: true })
         .first()
         .waitFor();

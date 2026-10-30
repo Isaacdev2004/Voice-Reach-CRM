@@ -79,6 +79,7 @@ const { chromium } = require("playwright"),
     if(url.pathname==='/api/integrations/status')return json({claude:{configured:false},dotloop:{connected:false}});
     if(url.pathname==='/api/integrations/google/status')return json({connected:false});
     if(url.pathname==='/api/voice-assets/signed-upload')return json({error:'Synthetic failed upload'},503);
+    if(url.pathname==='/api/voice-assets/'+asset.id && req.method==='PATCH'){let b='';for await(const c of req)b+=c;const body=JSON.parse(b);asset.studio_metadata={...asset.studio_metadata,...body.studioMetadata};return json({voiceAsset:asset});}
     if(url.pathname==='/api/voice-assets')return json({voiceAssets:[asset]});
     if(url.pathname==='/api/voice-assets/profiles')return json({success:true,profiles:[],envVoice:null,configured:false,defaultProfileId:null});
     if(url.pathname==='/api/campaigns')return json({campaigns:[{id:id(30),name:'Owned draft campaign',status:'draft'}]});
@@ -153,6 +154,16 @@ const { chromium } = require("playwright"),
     drafts=[];writes=[];
     const page=await browser.newPage({viewport:{width,height:1024}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto(origin+'/dashboard/voice-scripts');await page.getByRole('heading',{name:'Voice Scripts Library'}).waitFor();
+    await page.getByRole('button',{name:'+ Add category',exact:true}).click();
+    await page.getByRole('textbox',{name:'Category name',exact:true}).fill('Luxury buyers');
+    await page.getByRole('button',{name:'Add category',exact:true}).click();
+    await page.getByRole('combobox',{name:'Script category',exact:true}).selectOption('Luxury buyers');
+    await page.getByText('Script category saved. Audio and campaign assignments are unchanged.',{exact:true}).waitFor();
+    assert.equal(asset.studio_metadata.category,'Luxury buyers');
+    await page.reload();
+    await page.getByRole('combobox',{name:'Script category',exact:true}).waitFor();
+    assert.equal(await page.getByRole('combobox',{name:'Script category',exact:true}).inputValue(),'Luxury buyers');
+
     await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`voice-library-${width}.png`),fullPage:true});
     await page.getByRole('button',{name:/Create script$/}).first().click();await page.getByRole('heading',{name:'Create voice script',exact:true}).waitFor();
     await page.getByLabel('Script title',{exact:true}).fill('Synthetic reviewed draft');await page.getByLabel('Script text',{exact:true}).fill('Hello, this is my synthetic real estate script.');await page.getByRole('button',{name:'Save draft',exact:true}).click();await page.getByRole('status').filter({hasText:'Script draft saved'}).waitFor();assert.equal(drafts.at(-1).title,'Synthetic reviewed draft');await page.waitForFunction(id=>window.__readAssistantRecord().voiceDraftId===id,drafts.at(-1).id);
@@ -177,6 +188,21 @@ const { chromium } = require("playwright"),
     await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`settings-${width}.png`),fullPage:true});assert.ok(await page.evaluate(()=>document.body.scrollWidth<=innerWidth+1));
     await page.getByRole('button',{name:/Brand Kit$/}).first().click();await page.getByRole('heading',{name:'Your professional identity.'}).waitFor();await page.getByLabel('Agent name',{exact:true}).fill(`Alex Brand ${width}`);await page.getByLabel('Business / brokerage name',{exact:true}).fill('Synthetic Realty');await page.getByLabel('Primary brand color',{exact:true}).fill('#996633');await page.getByRole('button',{name:'Email signature',exact:true}).click();await page.getByRole('heading',{name:'Email signature',exact:true}).waitFor();await page.getByRole('checkbox',{name:/I reviewed these details/}).check();await page.getByRole('button',{name:'Save all changes',exact:true}).last().click();await page.getByRole('status').filter({hasText:'All changes saved'}).waitFor();assert.equal(account.brandKit.agentName,`Alex Brand ${width}`);assert.equal(account.brandKit.approved,true);await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`brand-kit-${width}.png`),fullPage:true});assert.ok(await page.evaluate(()=>document.body.scrollWidth<=innerWidth+1));
     assert.deepEqual(errors,[]);results.push({width,overflow:false,pageErrors:errors,checks:['draft save','exact step selection does not assign','safe preview','KPI filtering','search empty results','event details','conversation inbox','Settings profile and tabs','Brand Kit approval and cross-session persistence','mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px']});await page.close();
-   }fs.writeFileSync(path.join(output,'browser-results.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results,null,2));
+   }
+   for(const width of [1440,390]) {
+    const empty = await browser.newPage({viewport:{width,height:1024}});
+    await empty.route('**/api/voice-assets', route => route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({voiceAssets:[]})}));
+    await empty.goto(origin+'/dashboard/voice-scripts');
+    await empty.getByText('No recording to review yet',{exact:true}).waitFor();
+    const readiness = empty.locator('.vs-card').filter({has:empty.getByRole('heading',{name:'Personalization & readiness',exact:true})});
+    assert.equal(await readiness.getByText('Blocked',{exact:true}).count(),0);
+    assert.equal(await readiness.getByText('Passed',{exact:true}).count(),0);
+    assert.equal(await readiness.getByText('Not started',{exact:true}).count(),3);
+    await empty.getByRole('button',{name:'Create or upload a recording',exact:true}).click();
+    await empty.getByRole('heading',{name:'Create voice script',exact:true}).waitFor();
+    assert.ok(await empty.getByLabel('Script text',{exact:true}).isEditable());
+    await empty.close();
+   }
+   fs.writeFileSync(path.join(output,'browser-results.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results,null,2));
   }finally{await browser.close();server.close();fs.rmSync(tmp,{recursive:true,force:true})}
 })().catch(e=>{console.error(e);process.exitCode=1});

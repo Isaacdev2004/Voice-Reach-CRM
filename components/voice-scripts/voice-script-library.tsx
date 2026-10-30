@@ -1,4 +1,6 @@
 "use client";
+import { useUser } from "@clerk/nextjs";
+import { useOwnerLibraryPreferences } from "@/lib/hooks/use-owner-library-preferences";
 import { AudioWaveform } from "@/components/voice-studio/audio-waveform";
 import { AiLauncherButton } from "@/components/ai/ai-launcher-button";
 import { useEffect, useMemo, useState } from "react";
@@ -15,7 +17,13 @@ export function VoiceScriptLibrary({
 }: {
   onCreateScript: (asset?: VoiceAsset) => void;
 }) {
+  const { user } = useUser();
+  const organization = useOwnerLibraryPreferences(user?.id ?? "", "voice-scripts");
+  const [categoryName, setCategoryName] = useState("");
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [savingCategory, setSavingCategory] = useState(false);
   const { assets, loading, error, refresh } = useVoiceAssets();
+  const categories = Array.from(new Set([...SCRIPT_FOLDERS.map(f => f.label), ...organization.categories, ...assets.map(a => a.studio_metadata?.category).filter((name): name is string => !!name)]));
   const [selectedId, setSelectedId] = useState("");
   const [query, setQuery] = useState(""),
     [status, setStatus] = useState("all"),
@@ -36,9 +44,7 @@ export function VoiceScriptLibrary({
               ? !a.approved
               : true) &&
           (!category ||
-            SCRIPT_FOLDERS.find((f) => f.id === category)?.pattern.test(
-              a.title,
-            )),
+            (a.studio_metadata?.category ? a.studio_metadata.category === category : SCRIPT_FOLDERS.find(f => f.label === category)?.pattern.test(a.title) || scriptCategory(a.title) === category)),
       ),
     [assets, query, status, category],
   );
@@ -152,13 +158,22 @@ export function VoiceScriptLibrary({
                 onChange={(e) => setCategory(e.target.value)}
               >
                 <option value="">All categories</option>
-                {SCRIPT_FOLDERS.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.label}
-                  </option>
-                ))}
+                {categories.map((name) => <option key={name} value={name}>{name}</option>)}
               </select>
             </label>
+            <button type="button" onClick={() => setAddingCategory(!addingCategory)} aria-expanded={addingCategory}>+ Add category</button>
+            {addingCategory && <form onSubmit={(event) => {
+              event.preventDefault();
+              const name = categoryName.trim();
+              if (!name) return;
+              const duplicate = categories.find(c => c.toLowerCase() === name.toLowerCase());
+              if (!duplicate) organization.update({ pins: [], categories: [...organization.categories, name] });
+              setCategoryName(""); setAddingCategory(false); setNotice(duplicate ? "That category already exists." : "Category added. Select a script to assign it.");
+            }}>
+              <label>Category name<input aria-label="Category name" maxLength={80} required value={categoryName} onChange={e => setCategoryName(e.target.value)} /></label>
+              <button type="submit" disabled={!organization.ready}>Add category</button>
+            </form>}
+            {organization.storageError && <p role="status">{organization.storageError}</p>}
             <div className="vs-library">
               {loading ? (
                 <p>Loading recordings…</p>
@@ -206,7 +221,7 @@ export function VoiceScriptLibrary({
                   </span>
                 </div>
                 <p>
-                  {scriptCategory(selected.title)} · Created{" "}
+                  {selected.studio_metadata?.category || scriptCategory(selected.title)} · Created{" "}
                   {new Date(selected.created_at).toLocaleDateString()} ·{" "}
                   {selected.studio_metadata?.source === "ai"
                     ? "AI audio"
@@ -214,6 +229,21 @@ export function VoiceScriptLibrary({
                       ? "Human recording"
                       : "Uploaded recording"}
                 </p>
+                <label>Script category
+                  <select aria-label="Script category" value={selected.studio_metadata?.category || scriptCategory(selected.title)} disabled={savingCategory}
+                    onChange={async event => {
+                      const name = event.target.value;
+                      setSavingCategory(true);
+                      try {
+                        const response = await fetch(`/api/voice-assets/${selected.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ studioMetadata: { category: name } }) });
+                        if (!response.ok) throw new Error();
+                        await refresh(); setNotice("Script category saved. Audio and campaign assignments are unchanged.");
+                      } catch { setNotice("Category could not be saved. Please retry."); }
+                      finally { setSavingCategory(false); }
+                    }}>
+                    {Array.from(new Set(["General", ...categories])).map(name => <option key={name} value={name}>{name}</option>)}
+                  </select>
+                </label>
                 <nav className="vs-library-toolbar">
                   {[
                     "Record & edit",
@@ -368,7 +398,15 @@ export function VoiceScriptLibrary({
           </section>
           <section className="vs-card">
             <h3>Personalization & readiness</h3>
-            {voiceChecks(selected, selected?.studio_metadata?.script ?? "")
+            {loading ? <p role="status">Loading recordings before checking readiness…</p> : error ? <p>Readiness cannot be checked until recordings load successfully.</p> : !selected && (
+              <div className="vs-readiness-start">
+                <p><strong>{assets.length ? "Choose a recording to review" : "No recording to review yet"}</strong></p>
+                <p>You can write and save scripts now. These checks apply to recorded audio before campaign use; they do not prevent drafting.</p>
+                <ol><li>Create a script, then record your voice or upload an audio file.</li><li>Save and select the recording.</li><li>Listen and explicitly approve that recording version before campaign assignment.</li></ol>
+                {assets.length ? <button type="button" onClick={() => { setQuery(""); setCategory(""); setStatus("all"); }}>Show my recordings</button> : <button className="vs-primary" type="button" onClick={() => onCreateScript()}>Create or upload a recording</button>}
+              </div>
+            )}
+            {!loading && !error && voiceChecks(selected, selected?.studio_metadata?.script ?? "")
               .slice(0, 4)
               .map((c) => (
                 <div className="vs-check" key={c.label}>
@@ -377,6 +415,11 @@ export function VoiceScriptLibrary({
                   <p>{c.detail}</p>
                 </div>
               ))}
+            {!loading && !error && selected && <div className="vs-actions">
+              <button type="button" onClick={() => onCreateScript(selected)}>Open recording for review</button>
+              {!selected.playbackUrl && <button type="button" onClick={() => void refresh()}>Refresh audio access</button>}
+            </div>}
+            {error && <button type="button" onClick={() => void refresh()}>Retry readiness check</button>}
           </section>
           <section className="vs-card">
             <h3>Performance</h3>

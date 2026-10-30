@@ -9,6 +9,8 @@ import { Modal } from "@/components/crm/modal";
 import {
   CATEGORIES,
   TEMPLATES,
+  TEMPLATE_DESCRIPTIONS,
+  templateNote,
   filterNotes,
   MetadataSchema,
   relatedContactIds,
@@ -185,6 +187,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
     )
     .slice(0, 5);
   const advanced = w.mode === "advanced";
+  const [templateQuery, setTemplateQuery] = useState("");
   function meta(update: Partial<NoteMetadata>) {
     if (!advanced && update.contactIds) {
       const primary = w.contacts.find((c) => c.id === update.contactIds?.[0]);
@@ -239,15 +242,19 @@ function NotesWorkspace({ owner }: { owner: string }) {
     }
   }
   async function newFromTemplate(t: readonly [string, string, string]) {
-    if (!(await w.open())) return;
-    setDraft((d) => ({
-      ...d,
-      title: t[0],
-      body: t[2],
-      metadata: { ...d.metadata, category: t[1] as NoteMetadata["category"] },
-    }));
-    setPanel("");
-    setMobilePanel("editor");
+    if (busy) return;
+    setBusy(true);
+    try {
+      if (!(await w.open())) return;
+      setDraft((d) => ({
+        ...d,
+        ...templateNote(t, advanced),
+      }));
+      setPanel("");
+      setPreview(false);
+      setMobilePanel("editor");
+      setNotice("Template added to a new editable note. Replace the prompts with your verified details.");
+    } finally { setBusy(false); }
   }
   async function duplicate(template = false) {
     if (template && !advanced) return;
@@ -494,69 +501,6 @@ function NotesWorkspace({ owner }: { owner: string }) {
           </div>
         </aside>
       </section>
-      <nav className="notes-category-bar" aria-label="Note categories">
-        <div className="notes-category-tabs">
-          {[
-            "All Notes",
-            "Clients",
-            "Properties",
-            "Strategy",
-            "Goals",
-            "Ideas",
-            "Tasks",
-            "Meeting Notes",
-            "Templates",
-            "Pinned",
-          ].map((c, i) => (
-            <button
-              key={c}
-              disabled={
-                !advanced &&
-                !["All Notes", "Clients", "Strategy", "Goals"].includes(c)
-              }
-              aria-pressed={category === c}
-              onClick={() => setCategory(c)}
-            >
-              <Icon
-                name={
-                  [
-                    "description",
-                    "person",
-                    "home",
-                    "lightbulb",
-                    "flag",
-                    "edit_note",
-                    "checklist",
-                    "groups",
-                    "auto_stories",
-                    "push_pin",
-                  ][i]
-                }
-              />
-              {c}
-            </button>
-          ))}
-        </div>
-        <div className="notes-category-actions">
-          <button className="notes-primary" onClick={() => void open()}>
-            <Icon name="add" />
-            New Note
-          </button>
-          <button
-            aria-label="AI Assist"
-            onClick={() => {
-              setAiSource(draft.body);
-              setPanel("ai");
-            }}
-          >
-            <Icon name="auto_awesome" />
-            AI Assist
-          </button>
-          <button disabled={!advanced} onClick={() => setPanel("templates")}>
-            Use Template
-          </button>
-        </div>
-      </nav>
       <div className="notes-mobile-switch" aria-label="Workspace panels">
         {(["notes", "editor", "context"] as const).map((p) => (
           <button
@@ -630,6 +574,69 @@ function NotesWorkspace({ owner }: { owner: string }) {
         </p>
       )}
       <div className="notes-columns" data-panel={mobilePanel}>
+      <nav className="notes-category-bar" aria-label="Note categories">
+        <div className="notes-category-tabs">
+          {[
+            "All Notes",
+            "Clients",
+            "Properties",
+            "Strategy",
+            "Goals",
+            "Ideas",
+            "Tasks",
+            "Meeting Notes",
+            "Templates",
+            "Pinned",
+          ].map((c, i) => (
+            <button
+              key={c}
+              disabled={
+                !advanced &&
+                !["All Notes", "Clients", "Strategy", "Goals", "Templates"].includes(c)
+              }
+              aria-pressed={category === c}
+              onClick={() => c === "Templates" && !advanced ? setPanel("templates") : setCategory(c)}
+            >
+              <Icon
+                name={
+                  [
+                    "description",
+                    "person",
+                    "home",
+                    "lightbulb",
+                    "flag",
+                    "edit_note",
+                    "checklist",
+                    "groups",
+                    "auto_stories",
+                    "push_pin",
+                  ][i]
+                }
+              />
+              {c}
+            </button>
+          ))}
+        </div>
+        <div className="notes-category-actions">
+          <button className="notes-primary" onClick={() => void open()}>
+            <Icon name="add" />
+            New Note
+          </button>
+          <button
+            aria-label="AI Assist"
+            onClick={() => {
+              setAiSource(draft.body);
+              setPanel("ai");
+            }}
+          >
+            <Icon name="auto_awesome" />
+            AI Assist
+          </button>
+          <button onClick={() => setPanel("templates")}>
+            Use Template
+          </button>
+        </div>
+      </nav>
         <aside className="notes-library notes-surface">
           <label className="notes-search">
             <Icon name="search" />
@@ -1224,23 +1231,27 @@ function NotesWorkspace({ owner }: { owner: string }) {
         <div className="notes-modal">
           {panel === "templates" && (
             <>
-              <p>
-                Original, editable MyARI templates. Prompts are blank
-                intentionally: add verified details.
-              </p>
-              {TEMPLATES.map((t) => (
+              <p>Choose a starting point, preview its outline, then make it your own. Using a template creates an editable note; it does not schedule tasks or send messages.</p>
+              <label>Find a template<input type="search" value={templateQuery} onChange={event => setTemplateQuery(event.target.value)} placeholder="Buyer, open house, daily planner…" /></label>
+              {!TEMPLATES.some(t => `${t[0]} ${t[1]} ${TEMPLATE_DESCRIPTIONS[t[0]]}`.toLowerCase().includes(templateQuery.toLowerCase())) && <p>No matching templates. Try another search.</p>}
+              {TEMPLATES.filter(t => `${t[0]} ${t[1]} ${TEMPLATE_DESCRIPTIONS[t[0]]}`.toLowerCase().includes(templateQuery.toLowerCase())).map((t) => (
+                <article className="notes-template-option" key={t[0]}>
                 <button
                   className="notes-template"
                   key={t[0]}
+                  disabled={busy}
                   onClick={() => void newFromTemplate(t)}
                 >
                   <Icon name="auto_stories" />
                   <strong>{t[0]}</strong>
+                  <small>{t[1]} · {TEMPLATE_DESCRIPTIONS[t[0]]}</small>
                   <span>Use template →</span>
                 </button>
+                <details><summary>Preview outline</summary><pre>{t[2]}</pre></details>
+                </article>
               ))}
               <button
-                disabled={!draft.body}
+                disabled={!draft.body || !advanced}
                 onClick={() => {
                   void duplicate(true);
                   setPanel("");
@@ -1248,25 +1259,15 @@ function NotesWorkspace({ owner }: { owner: string }) {
               >
                 Save current note as reusable template
               </button>
+              {!advanced && <p>Built-in templates work with basic notes. Saving your own reusable templates requires the advanced Notes schema.</p>}
               {w.notes
                 .filter((n) => n.metadata.isTemplate)
                 .map((n) => (
                   <button
                     key={n.id}
                     className="notes-template"
-                    onClick={async () => {
-                      if (!(await w.open())) return;
-                      setDraft((d) => ({
-                        ...d,
-                        title: n.title.replace(/ template$/, ""),
-                        body: n.body,
-                        metadata: {
-                          ...MetadataSchema.parse({}),
-                          category: "General",
-                        },
-                      }));
-                      setPanel("");
-                    }}
+                    disabled={busy}
+                    onClick={() => void newFromTemplate([n.title.replace(/ template$/, ""), "General", n.body])}
                   >
                     {n.title} → Use saved template
                   </button>

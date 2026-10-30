@@ -1,3 +1,4 @@
+import { CampaignFlowchart } from "./campaign-flowchart";
 import { publicAiLaunch } from "@/lib/billing/ai/launch";
 import Image from "next/image";
 import Link from "next/link";
@@ -97,8 +98,9 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             <div className="features-hero-fade" />
             <div className="landing-shell features-hero-inner">
               <div className="features-hero-copy">
+                {home && <p className="public-eyebrow">Built for real estate agents</p>}
                 <h1 id="features-title">
-                  Everything you need to turn follow-up into opportunity.
+                  {home ? <>More than a CRM.<br />A complete business partner.</> : "Everything you need to turn follow-up into opportunity."}
                 </h1>
                 <p className="features-hero-description">
                   One beautifully connected workspace to manage relationships,
@@ -265,7 +267,7 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             aria-labelledby="followup-title"
           >
             <div className="landing-shell features-split">
-              <figure className="features-contact-capture">
+              {home ? <CampaignFlowchart /> : <figure className="features-contact-capture">
                 <Image
                   src="/brand/product-captures/contacts.webp"
                   alt="MyARI Contacts table and selected contact details using synthetic demo records"
@@ -276,7 +278,7 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
                 <figcaption>
                   Actual Contacts workspace · Synthetic demo records
                 </figcaption>
-              </figure>
+              </figure>}
               <div className="features-editorial-copy">
                 <p className="public-eyebrow">Follow-up that works</p>
                 <h2 id="followup-title">
@@ -364,10 +366,9 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             aria-labelledby="agent-tools-title"
           >
             <div className="features-editorial-copy">
-              <p className="public-eyebrow">Built for real estate agents</p>
+              {!home && <p className="public-eyebrow">Built for real estate agents</p>}
               <h2 id="agent-tools-title">
-                More than a CRM.
-                <br />A complete business partner.
+                {home ? "Everything you need to turn follow-up into opportunity." : <>More than a CRM.<br />A complete business partner.</>}
               </h2>
               <p>
                 From planning a showing to preparing a client conversation, keep

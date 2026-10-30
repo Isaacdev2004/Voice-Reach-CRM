@@ -1,0 +1,143 @@
+{
+  "layout": [
+    {
+      "width": 1920,
+      "height": 900,
+      "headerHeight": 57,
+      "gridBottom": 566.84375,
+      "scrollBottom": 737.5,
+      "scrollOverflow": 0,
+      "outerScroll": 0,
+      "columns": 3,
+      "descriptionFont": 14,
+      "beforeHeaderHeight": 82.34375
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "headerHeight": 57,
+      "gridBottom": 566.84375,
+      "scrollBottom": 737.5,
+      "scrollOverflow": 0,
+      "outerScroll": 0,
+      "columns": 3,
+      "descriptionFont": 14,
+      "beforeHeaderHeight": 82.34375
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "headerHeight": 57,
+      "gridBottom": 566.84375,
+      "scrollBottom": 737.5,
+      "scrollOverflow": 0,
+      "outerScroll": 0,
+      "columns": 3,
+      "descriptionFont": 14,
+      "beforeHeaderHeight": 82.34375
+    },
+    {
+      "width": 1366,
+      "height": 768,
+      "headerHeight": 57,
+      "gridBottom": 566.84375,
+      "scrollBottom": 605.5,
+      "scrollOverflow": 0,
+      "outerScroll": 0,
+      "columns": 3,
+      "descriptionFont": 14,
+      "beforeHeaderHeight": 82.34375
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "headerHeight": 57,
+      "gridBottom": 566.84375,
+      "scrollBottom": 637.5,
+      "scrollOverflow": 0,
+      "outerScroll": 0,
+      "columns": 3,
+      "descriptionFont": 14,
+      "beforeHeaderHeight": 82.34375
+    },
+    {
+      "width": 1024,
+      "height": 1000,
+      "headerHeight": 57,
+      "gridBottom": 839.21875,
+      "scrollBottom": 837.5,
+      "scrollOverflow": 9,
+      "outerScroll": 0,
+      "columns": 2,
+      "descriptionFont": 14,
+      "beforeHeaderHeight": 82.34375
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "headerHeight": 57,
+      "gridBottom": 839.21875,
+      "scrollBottom": 861.5,
+      "scrollOverflow": 0,
+      "outerScroll": 0,
+      "columns": 2,
+      "descriptionFont": 14,
+      "beforeHeaderHeight": 78.34375
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "headerHeight": 104.09375,
+      "gridBottom": 1622.25,
+      "scrollBottom": 663.40625,
+      "scrollOverflow": 971,
+      "outerScroll": 0,
+      "columns": 1,
+      "descriptionFont": 14,
+      "beforeHeaderHeight": 122.796875
+    }
+  ],
+  "explanationOpenFrameLatencyMs": [
+    {
+      "width": 1920,
+      "height": 900,
+      "openLatency": 12.099999999627471
+    },
+    {
+      "width": 1600,
+      "height": 900,
+      "openLatency": 12.799999998882413
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "openLatency": 9.200000001117587
+    },
+    {
+      "width": 1366,
+      "height": 768,
+      "openLatency": 12.199999999254942
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "openLatency": 22.09999999962747
+    },
+    {
+      "width": 1024,
+      "height": 1000,
+      "openLatency": 11.5
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "openLatency": 8.599999999627471
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "openLatency": 7.599999999627471
+    }
+  ],
+  "note": "Synthetic browser fixtures; not field INP. Header baseline uses the previous stylesheet with unchanged header markup."
+}

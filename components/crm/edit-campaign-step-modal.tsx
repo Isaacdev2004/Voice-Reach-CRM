@@ -14,6 +14,7 @@ import {
   SMS_MAX_ATTACHMENTS,
   SMS_MMS_MIME_TYPES,
 } from "@/lib/campaigns/attachments";
+import { normalizeOutboundContent } from "@/lib/campaigns/outbound-content";
 import { uploadCampaignAttachment } from "@/lib/campaigns/upload-attachment";
 import {
   CAMPAIGN_STEP_TYPES,
@@ -49,6 +50,7 @@ export function EditCampaignStepModal({
   const [type, setType] = useState<CampaignStepType>("email");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [subject, setSubject] = useState("");
   const [day, setDay] = useState(1);
   const [timeLabel, setTimeLabel] = useState("9:00 AM");
   const [attachments, setAttachments] = useState<CampaignStepAttachment[]>([]);
@@ -60,7 +62,9 @@ export function EditCampaignStepModal({
     if (!open || !step) return;
     setType(step.type);
     setTitle(step.title);
-    setDescription(step.description);
+    const email = normalizeOutboundContent("email", step.description, step.title);
+    setSubject(step.type === "email" ? email.subject ?? "" : "");
+    setDescription(step.type === "email" ? email.body : step.description);
     setDay(parseDayNumber(step.dayLabel));
     setTimeLabel(step.timeLabel || "9:00 AM");
     setAttachments(step.attachments ?? []);
@@ -85,7 +89,9 @@ export function EditCampaignStepModal({
       type,
       title: title.trim(),
       description:
-        description.trim() || getStepTypeOption(type).defaultDescription,
+        type === "email"
+          ? `Subject: ${subject.trim().replace(/[\r\n]+/g, " ") || title.trim()}\n\n${description.trim()}`
+          : description.trim() || getStepTypeOption(type).defaultDescription,
       dayLabel: `Day ${Math.max(1, day)}`,
       delayMinutes:
         `Day ${Math.max(1, day)}` === step.dayLabel
@@ -191,10 +197,16 @@ export function EditCampaignStepModal({
           />
         </ModalField>
 
+        {type === "email" && (
+          <ModalField label="Email subject" required>
+            <input className={modalInputClass} aria-label="Email subject" value={subject}
+              onChange={(e) => setSubject(e.target.value)} required />
+          </ModalField>
+        )}
         <ModalField
           label={
             type === "email"
-              ? "Email copy (optional first line: Subject: …)"
+              ? "Email body"
               : type === "sms"
                 ? "SMS text"
                 : "Script / description"
@@ -202,13 +214,14 @@ export function EditCampaignStepModal({
         >
           <textarea
             className={`${modalInputClass} min-h-[140px] resize-y py-3`}
+            aria-label={type === "email" ? "Email body" : undefined}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={6}
             placeholder={
               type === "sms"
                 ? "Hi {{first_name}}, this is {{agent_name}}…"
-                : "Subject: …\n\nHi {{first_name}},…"
+                : "Hi {{first_name}},…"
             }
           />
         </ModalField>

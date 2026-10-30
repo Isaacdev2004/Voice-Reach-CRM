@@ -476,6 +476,7 @@ function CalendarWorkspace() {
     }
   }
   const left = (
+    <div className="calendar-side-stack">
     <div className="calendar-panel">
       <h2>All Calendars</h2>
       {data.calendars.map((c) => (
@@ -517,6 +518,55 @@ function CalendarWorkspace() {
       >
         Calendar preferences
       </button>
+    </div>
+      <section className="calendar-panel">
+        <h2>Quick Actions</h2>
+        <div className="calendar-actions">
+          <button onClick={() => create()}>
+            <Icon name="event" />
+            Schedule Event
+          </button>
+          <button onClick={() => create(date, prefs.workStart, "task")}>
+            <Icon name="task_alt" />
+            Create Task
+          </button>
+          <button onClick={() => create(date, prefs.workStart, "callback")}>
+            <Icon name="call" />
+            Log Callback
+          </button>
+          <button onClick={() => create(date, prefs.workStart, "reminder")}>
+            <Icon name="notifications" />
+            Add Reminder
+          </button>
+        </div>
+        <p>
+          Callbacks schedule a follow-up. Record completed calls in the contact
+          timeline.
+        </p>
+      </section>
+      <DailyPriorities compact timezone={prefs.timezone} />
+      <section className="calendar-panel">
+        <h2>Daily agenda</h2>
+        <p>{dateLabel(date, { month: "short", day: "numeric" })}</p>
+        {daily.length ? (
+          daily.map((i) => (
+            <button
+              className="calendar-upcoming"
+              key={i.id}
+              onClick={() => setSelected(i)}
+            >
+              <small>
+                {i.allDay
+                  ? "All day"
+                  : formatClock(i.starts_at, prefs.timezone, prefs.hour24)}
+              </small>
+              {i.title}
+            </button>
+          ))
+        ) : (
+          <p>No appointments or dated tasks recorded for this day.</p>
+        )}
+      </section>
     </div>
   );
   const miniDays = monthDates(date, prefs.mondayStart);
@@ -623,28 +673,6 @@ function CalendarWorkspace() {
         </div>
       </section>
       <section className="calendar-panel">
-        <h2>Daily agenda</h2>
-        <p>{dateLabel(date, { month: "short", day: "numeric" })}</p>
-        {daily.length ? (
-          daily.map((i) => (
-            <button
-              className="calendar-upcoming"
-              key={i.id}
-              onClick={() => setSelected(i)}
-            >
-              <small>
-                {i.allDay
-                  ? "All day"
-                  : formatClock(i.starts_at, prefs.timezone, prefs.hour24)}
-              </small>
-              {i.title}
-            </button>
-          ))
-        ) : (
-          <p>No appointments or dated tasks recorded for this day.</p>
-        )}
-      </section>
-      <section className="calendar-panel">
         <h2>Upcoming appointments</h2>
         {upcoming.length ? (
           upcoming.map((i) => (
@@ -671,32 +699,7 @@ function CalendarWorkspace() {
         )}
       </section>
       <BookingRequestsPanel onChanged={refresh} />
-      <DailyPriorities compact timezone={prefs.timezone} />
-      <section className="calendar-panel">
-        <h2>Quick Actions</h2>
-        <div className="calendar-actions">
-          <button onClick={() => create()}>
-            <Icon name="event" />
-            Schedule Event
-          </button>
-          <button onClick={() => create(date, prefs.workStart, "task")}>
-            <Icon name="task_alt" />
-            Create Task
-          </button>
-          <button onClick={() => create(date, prefs.workStart, "callback")}>
-            <Icon name="call" />
-            Log Callback
-          </button>
-          <button onClick={() => create(date, prefs.workStart, "reminder")}>
-            <Icon name="notifications" />
-            Add Reminder
-          </button>
-        </div>
-        <p>
-          Callbacks schedule a follow-up. Record completed calls in the contact
-          timeline.
-        </p>
-      </section>
+
     </div>
   );
   return (
@@ -832,6 +835,10 @@ function CalendarWorkspace() {
           <aside className="calendar-left-desktop">{left}</aside>
         ) : null}
         <section className="calendar-stage" aria-label="Scheduling workspace">
+          <div className="calendar-period-heading">
+            <span className="calendar-period-eyebrow">Your calendar</span>
+            <h2 aria-live="polite"><time dateTime={date.slice(0, 7)}>{new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" })}</time></h2>
+          </div>
           <div className="calendar-stage-header">
             <span>
               {prefs.timezone}
@@ -923,6 +930,15 @@ function CalendarWorkspace() {
             </div>
           ) : displayedView === "month" ? (
             <div className="calendar-month">
+              {(prefs.mondayStart
+                ? ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+              ).map((weekday) => (
+                <div key={weekday} className="calendar-month-weekday" data-weekday={weekday}>
+                  <span className="calendar-weekday-full">{weekday}</span>
+                  <abbr className="calendar-weekday-short" title={weekday}>{weekday.slice(0, 3)}</abbr>
+                </div>
+              ))}
               {days.map((day) => (
                 <div
                   key={day}
@@ -948,6 +964,8 @@ function CalendarWorkspace() {
                 >
                   <button
                     aria-label={`Schedule on ${dateLabel(day)}`}
+                    aria-current={day === today.date ? "date" : undefined}
+                    className={day === today.date ? "calendar-month-today" : undefined}
                     onClick={() => create(day)}
                   >
                     {+day.slice(-2)}

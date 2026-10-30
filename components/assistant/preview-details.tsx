@@ -1,4 +1,6 @@
 "use client";
+import { WorkspaceIcon } from "./workspace-icon";
+import { StructuredData } from "./source-results";
 import type { Proposal } from "@/lib/assistant/schema";
 const value = (x: unknown) =>
   typeof x === "string" || typeof x === "number" ? String(x) : "";
@@ -57,7 +59,17 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
         <>
           <h4>{a.title}</h4>
           <p className="assistant-copy">{a.script}</p>
-          <p>Text draft only. No audio generation or approval.</p>
+          <p>
+            Text draft only. Approximately{" "}
+            {Math.ceil(a.script.trim().split(/\s+/).length / 2.5)} seconds at
+            150 words per minute. Actual speaking duration varies.
+          </p>
+          <p>
+            No audio generated or sent. Sapphire availability and authorized
+            voice selection are checked in Voice Studio; no substitute voice is
+            selected here.
+          </p>
+          <a href="/dashboard/voice-scripts">Open Voice Studio</a>
         </>
       )}
       {a.kind === "calendar" && (
@@ -76,28 +88,88 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
         </>
       )}
       {a.kind === "campaign" && (
-        <>
-          <h4>{a.name}</h4>
-          <p>
-            {a.durationDays} days · {a.audience}
-          </p>
-          <ol>
+        <section
+          className="assistant-campaign-card"
+          aria-label="Campaign proposal"
+        >
+          <header>
+            <div>
+              <p className="aw-eyebrow">CAMPAIGN PROPOSAL</p>
+              <h4>{a.name}</h4>
+            </div>
+            <span className="aw-draft-badge">Unsaved proposal</span>
+          </header>
+          <p>{a.description}</p>
+          <dl className="aw-campaign-facts">
+            <div>
+              <dt>Audience</dt>
+              <dd>{a.audience}</dd>
+            </div>
+            <div>
+              <dt>Duration</dt>
+              <dd>{a.durationDays} days</dd>
+            </div>
+            <div>
+              <dt>Steps</dt>
+              <dd>{a.steps.length} proposed steps</dd>
+            </div>
+            <div>
+              <dt>Channels</dt>
+              <dd>
+                {[
+                  ...new Set(
+                    a.steps.map((s) =>
+                      s.type === "sms"
+                        ? "SMS"
+                        : s.type === "email"
+                          ? "Email"
+                          : s.type === "voicemail"
+                            ? "Voicemail script"
+                            : "Task",
+                    ),
+                  ),
+                ].join(", ")}
+              </dd>
+            </div>
+          </dl>
+          <h5>Campaign sequence</h5>
+          <ol className="aw-campaign-sequence">
             {a.steps.map((s, i) => (
               <li key={i}>
+                <span className="aw-sequence-number">{i + 1}</span>
                 <details>
                   <summary>
-                    Day {s.day} · {s.type} · {s.title}
+                    <WorkspaceIcon
+                      name={
+                        s.type === "email"
+                          ? "briefing"
+                          : s.type === "sms"
+                            ? "message"
+                            : s.type === "voicemail"
+                              ? "voice"
+                              : "day"
+                      }
+                    />
+                    <span>
+                      <strong>{s.title}</strong>
+                      <small>
+                        {s.type === "sms" ? "SMS" : s.type}
+                        {s.type === "voicemail" ? " · text script" : ""}
+                      </small>
+                    </span>
+                    <span className="aw-sequence-day">Day {s.day}</span>
                   </summary>
                   <p className="assistant-copy">{s.description}</p>
                 </details>
               </li>
             ))}
           </ol>
-          <p>
-            No enrollment or activation. Review consent, personalization,
-            attachments and exact approved recordings in the campaign builder.
+          <p className="aw-review-note">
+            Review the exact sequence before saving. No enrollment, activation
+            or sending. Existing saved campaigns use the campaign editor; AI
+            revises this unsaved proposal only.
           </p>
-        </>
+        </section>
       )}
       {a.kind === "flyer" && (
         <>
@@ -127,13 +199,9 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
           </p>
           <details>
             <summary>Calculation and assumptions</summary>
-            <pre>
-              {JSON.stringify(
-                { input: a.calculation, result: p.preview.result },
-                null,
-                2,
-              )}
-            </pre>
+            <StructuredData
+              value={{ input: a.calculation, result: p.preview.result }}
+            />
           </details>
         </>
       )}
@@ -146,16 +214,12 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
           </p>
           <details>
             <summary>Review proposed steps and deadlines</summary>
-            <pre>
-              {JSON.stringify(
-                {
-                  template: p.preview.template,
-                  deadlines: p.preview.proposedDeadlines,
-                },
-                null,
-                2,
-              )}
-            </pre>
+            <StructuredData
+              value={{
+                template: p.preview.template,
+                deadlines: p.preview.proposedDeadlines,
+              }}
+            />
           </details>
         </>
       )}
@@ -181,8 +245,8 @@ export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
         </>
       )}
       <details>
-        <summary>Record references and full structured preview</summary>
-        <pre>{JSON.stringify(p.preview, null, 2)}</pre>
+        <summary>Additional verified preview details</summary>
+        <StructuredData value={p.preview} />
       </details>
     </div>
   );

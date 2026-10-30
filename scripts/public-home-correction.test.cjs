@@ -76,7 +76,7 @@ const { chromium } = require("playwright"),
       .join("\n") +
     (false
       ? ""
-      : ["public-website.css", "public-site-refinement.css"]
+      : ["public-website.css", "public-site-refinement.css", "campaign-flowchart.css"]
           .map((name) =>
             fs.readFileSync(
               path.join(root, "components/marketing", name),
@@ -175,6 +175,18 @@ const { chromium } = require("playwright"),
             false,
           );
           assert.equal(await page.locator("h1").count(), 1);
+          if (route === '/') {
+            const flow = page.getByRole('figure', { name: 'A thoughtful next step. Every time.', exact: false });
+            await flow.waitFor();
+            assert.equal(await flow.locator('.campaign-flow-path > li').count(), 4);
+            assert.equal(await flow.locator('.campaign-flow-branches > div').count(), 2);
+            assert.equal(await page.locator('#outreach .features-contact-capture').count(), 0);
+            assert.ok(await flow.evaluate(node => node.scrollWidth <= node.clientWidth + 1));
+            await flow.screenshot({ path: path.join(output, `campaign-flow-${width}.png`) });
+          } else {
+            assert.equal(await page.locator('.campaign-flow').count(), 0);
+          }
+
           assert.equal(await page.locator(".features-device").count(), 0);
           assert.equal(
             await page

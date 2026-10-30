@@ -1,0 +1,57 @@
+{
+  "baseline": "aabbf1aa25e679e70b251b4c8ed9af9cb6740982",
+  "evidence": {
+    "lib/assistant/api.ts": {
+      "unchanged": true,
+      "sha256": "ef4b9f16b0d0ebed1b02a7676524739ff4239bbec2bda45a6ca0c02e1fda62ae"
+    },
+    "lib/assistant/config.ts": {
+      "unchanged": true,
+      "sha256": "5444e4ce42cd41be2961bbec14b4008fb7320f994c26e29f79f3bba8a487df5c"
+    },
+    "lib/assistant/orchestrator.ts": {
+      "unchanged": true,
+      "sha256": "92594065a2cee5a450bcf6b891ee56ee88e34452a57da835333395eba30bc4f6"
+    },
+    "lib/assistant/provider.ts": {
+      "unchanged": true,
+      "sha256": "9ae14bb54a938d45ce2989aba20d9c0c3adea6fd1710f1a985eacfb52b93f928"
+    },
+    "lib/assistant/tools.ts": {
+      "unchanged": true,
+      "sha256": "6b817476c5298f4edc7164f9b741783702be3f260aeb25d9842180a0d9ef7e45"
+    },
+    "lib/assistant/proposals.ts": {
+      "unchanged": true,
+      "sha256": "18dd9ed75e408a90f96aabae45f59eefa99941222d0c6a2c670021952c3fd1fc"
+    },
+    "lib/assistant/store.ts": {
+      "unchanged": true,
+      "sha256": "668cd9068d5b5443e269880d947f7330b604b7804ff9c3558fd005dd94042542"
+    },
+    "app/api/assistant/chat/route.ts": {
+      "unchanged": true,
+      "sha256": "2905de91ad4fcfe8dcb1b01ae38b0e7b34334e9b31fdbe596f14e8fb0eca0055"
+    },
+    "app/api/assistant/history/route.ts": {
+      "unchanged": true,
+      "sha256": "028def3408ab2affa9939c5a244283251d6f879da702d81eb6061ef58f5f9791"
+    },
+    "app/api/assistant/approve/route.ts": {
+      "unchanged": true,
+      "sha256": "f2b035bd9c2b87726e30181714bd34e8476f7a790411d40cf2d85b06e3d0603d"
+    },
+    "app/api/assistant/proposals/route.ts": {
+      "unchanged": true,
+      "sha256": "bbb2c6bd9999c2b95305151de84d38d03ac02376e96feb741de314657a52aeb8"
+    },
+    "lib/auth.ts": {
+      "unchanged": true,
+      "sha256": "aa57140a74f9f7d70df76181d12d84cea8fcd43a75519083c24b138bd89eb03b"
+    },
+    "lib/providers/assistant-message.ts": {
+      "unchanged": true,
+      "sha256": "9e10197856ebbaff26564228653c3d47223e2020230fe03a7231acfc505253f8"
+    }
+  }
+}
