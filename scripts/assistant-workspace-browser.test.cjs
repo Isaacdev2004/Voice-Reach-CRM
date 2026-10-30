@@ -635,6 +635,13 @@ const fs = require("node:fs"),
       await page
         .getByRole("button", { name: "＋ New conversation", exact: true })
         .click();
+      const confirmation = page.getByRole("dialog", { name: "Confirm Assistant action" });
+      await confirmation.waitFor();
+      await confirmation.getByRole("button", { name: "Cancel", exact: true }).click();
+      assert.equal(await page.locator(".assistant-preview").count() > 0, true);
+      await page.getByRole("button", { name: "＋ New conversation", exact: true }).click();
+      await confirmation.getByRole("button", { name: "Continue", exact: true }).click();
+      checks += 2;
       await page
         .getByRole("heading", { name: /how can I help you today/ })
         .waitFor();

@@ -1,6 +1,6 @@
 {
   "environment": "local UI with mocked APIs, not hosted Clerk/provider acceptance",
-  "checks": 268,
+  "checks": 282,
   "results": [
     {
       "width": 1920,

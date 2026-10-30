@@ -1,6 +1,7 @@
 "use client";
 import {
   useCallback,
+  useMemo,
   useEffect,
   useRef,
   useState,
@@ -16,6 +17,7 @@ const RecentWork = lazy(() =>
     default: module.CommandCenter,
   })),
 );
+import { Confirmation, type AssistantConfirmation } from "./confirmation";
 import { WorkspaceIcon } from "./workspace-icon";
 import { SourceResults } from "./source-results";
 import {
@@ -59,6 +61,7 @@ export function OperatingAssistant({
     [historyQuery, setHistoryQuery] = useState(""),
     [showHistory, setShowHistory] = useState(false),
     [showPreview, setShowPreview] = useState(false),
+    [confirmation, setConfirmation] = useState<AssistantConfirmation | null>(null),
     [showWork, setShowWork] = useState(false),
     [conciergeEnabled, setConciergeEnabled] = useState<boolean | null>(null),
     [restoring, setRestoring] = useState(true),
@@ -209,6 +212,7 @@ export function OperatingAssistant({
     const prior = document.activeElement as HTMLElement | null;
     panel.current?.focus();
     const escape = (event: KeyboardEvent) => {
+      if (document.querySelector("dialog[open]")) return;
       if (event.key === "Escape" && !dictationBusy) {
         const menu =
           panel.current?.querySelector<HTMLDetailsElement>(".aw-more[open]");
@@ -263,13 +267,13 @@ export function OperatingAssistant({
   }
   function newConversation() {
     if (busy || dictationBusy) return;
-    if (
-      (command.trim() || proposals.length > 0) &&
-      !window.confirm(
-        "Start a new conversation? Your unsent text stays in the composer. Unsubmitted proposal edits will be discarded; saved history remains available.",
-      )
-    )
+    if (command.trim() || proposals.length > 0) {
+      setConfirmation({ message: "Start a new conversation? Your unsent text stays in the composer. Unsubmitted proposal edits will be discarded; saved history remains available.", accept: startNewConversation });
       return;
+    }
+    startNewConversation();
+  }
+  function startNewConversation() {
     if (legacyOpen) onReturn?.();
     setConversation(crypto.randomUUID());
     setRestoring(false);
@@ -401,14 +405,11 @@ export function OperatingAssistant({
       if (active.current) setBusy(false);
     }
   }
-  async function remove() {
-    if (
-      busy ||
-      !window.confirm(
-        "Delete this conversation’s messages? CRM records and execution audit history remain.",
-      )
-    )
-      return;
+  function remove() {
+    if (busy || dictationBusy) return;
+    setConfirmation({ message: "Delete this conversation’s messages? CRM records and execution audit history remain.", accept: () => void removeConfirmed() });
+  }
+  async function removeConfirmed() {
     try {
       const r = await fetch("/api/assistant/history", {
         method: "DELETE",
@@ -470,6 +471,17 @@ export function OperatingAssistant({
     );
   }
 
+  const proposalGroups = useMemo(() => {
+    const firstMessage = new Map<string, number>();
+    messages.forEach((message, index) => message.proposalIds?.forEach(id => { if (!firstMessage.has(id)) firstMessage.set(id, index); }));
+    const byMessage = new Map<number, Proposal[]>(), unassigned: Proposal[] = [];
+    for (const proposal of proposals) {
+      const index = firstMessage.get(proposal.id);
+      if (index === undefined) unassigned.push(proposal);
+      else { const group = byMessage.get(index) ?? []; group.push(proposal); byMessage.set(index, group); }
+    }
+    return { byMessage, unassigned };
+  }, [messages, proposals]);
   function renderProposals(group: Proposal[]) {
     if (!group.length) return null;
     return (
@@ -492,7 +504,7 @@ export function OperatingAssistant({
             key={proposal.id}
             proposal={proposal}
             owner={owner}
-            onUpdated={() => void history()}
+            onUpdated={history}
             allowSending={false}
           />
         ))}
@@ -697,13 +709,10 @@ export function OperatingAssistant({
                 key={r.conversationId}
                 disabled={busy || dictationBusy}
                 onClick={() => {
-                  if (
-                    (command.trim() || proposals.length > 0) &&
-                    !window.confirm(
-                      "Switch conversation? Your unsent text stays in the composer. Unsubmitted proposal edits will be discarded.",
-                    )
-                  )
+                  if (command.trim() || proposals.length > 0) {
+                    setConfirmation({ message: "Switch conversation? Your unsent text stays in the composer. Unsubmitted proposal edits will be discarded.", accept: () => void resume(r.conversationId) });
                     return;
+                  }
                   void resume(r.conversationId);
                 }}
               >
@@ -839,22 +848,12 @@ export function OperatingAssistant({
                     <p>{message.content}</p>
                     {message.role === "assistant" &&
                       renderProposals(
-                        proposals.filter(
-                          (p) =>
-                            message.proposalIds?.includes(p.id) &&
-                            messages.findIndex((m) =>
-                              m.proposalIds?.includes(p.id),
-                            ) === index,
-                        ),
+                        proposalGroups.byMessage.get(index) ?? [],
                       )}
                   </article>
                 ))}
               </div>
-              {renderProposals(
-                proposals.filter(
-                  (p) => !messages.some((m) => m.proposalIds?.includes(p.id)),
-                ),
-              )}
+              {renderProposals(proposalGroups.unassigned)}
 
               {results.length > 0 && <SourceResults results={results} />}
               {busy && (
@@ -964,6 +963,7 @@ export function OperatingAssistant({
           </div>
         </div>
       </section>
+      {confirmation && <Confirmation value={confirmation} onClose={() => setConfirmation(null)} />}
     </div>
   );
 }

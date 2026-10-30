@@ -1,6 +1,6 @@
 "use client";
 import { PreviewDetails } from "./preview-details";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import type { Proposal } from "@/lib/assistant/schema";
 type Outcome = {
   delivery?: { state: string; message: string; href: string };
@@ -8,7 +8,7 @@ type Outcome = {
   message?: string;
   result?: { href?: string; message?: string };
 };
-export function ActionPreview({
+export const ActionPreview = memo(function ActionPreview({
   proposal,
   owner,
   onUpdated,
@@ -22,12 +22,12 @@ export function ActionPreview({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [editing, setEditing] = useState(false),
-    [draft, setDraft] = useState(JSON.stringify(proposal.action, null, 2)),
+    [draft, setDraft] = useState(() => JSON.stringify(proposal.action, null, 2)),
     [replacement, setReplacement] = useState<Proposal | null>(null),
     [checked, setChecked] = useState(false),
     [outcome, setOutcome] = useState<Outcome | null>(null);
   const p = replacement ?? proposal;
-  const parsedDraft = (() => {
+  const parsedDraft = useMemo(() => {
     try {
       const value = JSON.parse(draft);
       return value && typeof value === "object" && !Array.isArray(value)
@@ -36,7 +36,7 @@ export function ActionPreview({
     } catch {
       return {};
     }
-  })();
+  }, [draft]);
   useEffect(() => {
     let live = true;
     fetch(`/api/assistant/proposals?id=${p.id}`, {
@@ -459,4 +459,4 @@ export function ActionPreview({
       )}
     </article>
   );
-}
+});
