@@ -1,0 +1,37 @@
+.public-site .campaign-flow { --flow-line: #d4bda0; margin: 0; padding: clamp(18px, 2.5vw, 32px); min-width: 0; border: 1px solid #e6d8c7; border-radius: 24px; background: radial-gradient(ellipse at top left, #f3e7d5a6, transparent 70%), #fffdf8; box-shadow: 0 22px 55px #73533112, inset 0 1px #fff; }
+.public-site .campaign-flow-heading { text-align: center; margin-bottom: 22px; }
+.public-site .campaign-flow-eyebrow { display: block; color: #825a37; font-size: 10px; letter-spacing: .17em; text-transform: uppercase; }
+.public-site .campaign-flow-heading h3 { font-family: var(--font-serif, Georgia), serif; color: #332a22; font-size: clamp(27px, 2.7vw, 38px); line-height: 1.12; font-weight: 400; margin: 10px 0; }
+.public-site .campaign-flow-heading em { color: #916640; font-weight: 400; }
+.public-site .campaign-flow-example { font-size: 10px; color: #776d60; border: 1px solid #e9dece; border-radius: 99px; padding: 4px 9px; }
+.public-site .campaign-flow-path { list-style: none; padding: 0; margin: 0; }
+.public-site .campaign-flow-path > li { margin: 0; padding: 0; }
+.public-site .campaign-flow-node { display: flex; align-items: center; gap: 13px; padding: 13px 16px; border: 1px solid #e9dfd1; border-radius: 14px; background: #fffefa; box-shadow: 0 4px 12px #6d502208; }
+.public-site .campaign-flow-review { background: #f7efe3; border-color: #d6b999; }
+.public-site .campaign-flow-icon { display: grid; place-items: center; flex: 0 0 40px; height: 40px; border-radius: 12px; background: #f2e5d3; color: #91603b; }
+.public-site .campaign-flow-node strong, .public-site .campaign-flow-decision strong { display: block; color: #332a22; font-family: var(--font-serif, Georgia), serif; font-size: 20px; line-height: 1.2; font-weight: 500; margin: 3px 0; }
+.public-site .campaign-flow-node small, .public-site .campaign-flow-decision small, .public-site .campaign-flow-label { color: #805c3d; font-size: 9px; letter-spacing: .09em; text-transform: uppercase; }
+.public-site .campaign-flow-node p { margin: 3px 0 0; font-size: 11px; color: #72685c; line-height: 1.45; }
+.public-site .campaign-flow-connector { display: block; position: relative; width: 1px; height: 20px; margin: 0 auto; background: var(--flow-line); }
+.public-site .campaign-flow-connector::after { content: ''; position: absolute; bottom: 1px; left: -3px; width: 7px; height: 7px; border-right: 1px solid var(--flow-line); border-bottom: 1px solid var(--flow-line); transform: rotate(45deg); }
+.public-site .campaign-flow-label { display: block; text-align: center; margin-bottom: 9px; }
+.public-site .campaign-flow-channels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.public-site .campaign-flow-channels > div { display: flex; flex-direction: column; align-items: center; padding: 12px 5px; text-align: center; border: 1px solid #e8dccb; border-radius: 13px; background: #fffcf7; min-width: 0; }
+.public-site .campaign-flow-channels svg, .public-site .campaign-flow-channels > div > span { width: 24px; height: 24px; color: #936640; font-size: 24px; line-height: 1; }
+.public-site .campaign-flow-channels strong { font-size: 12px; color: #4c3c2e; margin: 7px 0 3px; font-weight: 500; }
+.public-site .campaign-flow-channels small { font-size: 10px; color: #73695d; line-height: 1.35; }
+.public-site .campaign-flow-timing { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 11px 0 0; color: #786951; font-size: 10px; text-align: center; }
+.public-site .campaign-flow-timing svg { width: 13px; height: 13px; }
+.public-site .campaign-flow-decision { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border: 1px solid #c8a578; border-radius: 14px; background: #f6ecdd; text-align: left; }
+.public-site .campaign-flow-diamond { font-size: 36px; line-height: 1; color: #91643c; }
+.public-site .campaign-flow-branches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); position: relative; gap: 12px; padding-top: 22px; }
+.public-site .campaign-flow-branches::before { content: ''; position: absolute; top: 11px; left: 25%; right: 25%; border-top: 1px solid var(--flow-line); }
+.public-site .campaign-flow-branches::after { content: ''; position: absolute; top: 0; height: 11px; left: 50%; border-left: 1px solid var(--flow-line); }
+.public-site .campaign-flow-branches > div { position: relative; text-align: center; padding: 12px 8px; border: 1px solid #e2d4c0; border-radius: 13px; background: #fffdf8; }
+.public-site .campaign-flow-branches > div::before { content: ''; position: absolute; height: 11px; top: -12px; left: 50%; border-left: 1px solid var(--flow-line); }
+.public-site .campaign-flow-branch-label { display: block; color: #825932; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
+.public-site .campaign-flow-branches strong { display: block; font-size: 12px; font-weight: 500; color: #4b3a2d; margin: 6px 0; }
+.public-site .campaign-flow-branches p { font-size: 10px; line-height: 1.45; color: #766958; margin: 0; }
+.public-site .campaign-flow figcaption { display: flex; align-items: center; justify-content: center; gap: 7px; padding-top: 16px; margin-top: 17px; border-top: 1px solid #eadfce; color: #77664f; font-size: 10px; text-align: center; line-height: 1.5; }
+.public-site .campaign-flow figcaption svg { width: 15px; height: 15px; flex-shrink: 0; }
+@media (max-width: 767px) { .public-site .campaign-flow { padding: 18px 14px; border-radius: 18px; } .public-site .campaign-flow-heading { margin-bottom: 18px; } .public-site .campaign-flow-node { padding: 12px; gap: 10px; } .public-site .campaign-flow-node strong { font-size: 19px; } }

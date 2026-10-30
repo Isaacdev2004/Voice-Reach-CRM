@@ -1,3 +1,4 @@
+import { CampaignFlowchart } from "./campaign-flowchart";
 import { publicAiLaunch } from "@/lib/billing/ai/launch";
 import Image from "next/image";
 import Link from "next/link";
@@ -266,7 +267,7 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             aria-labelledby="followup-title"
           >
             <div className="landing-shell features-split">
-              <figure className="features-contact-capture">
+              {home ? <CampaignFlowchart /> : <figure className="features-contact-capture">
                 <Image
                   src="/brand/product-captures/contacts.webp"
                   alt="MyARI Contacts table and selected contact details using synthetic demo records"
@@ -277,7 +278,7 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
                 <figcaption>
                   Actual Contacts workspace · Synthetic demo records
                 </figcaption>
-              </figure>
+              </figure>}
               <div className="features-editorial-copy">
                 <p className="public-eyebrow">Follow-up that works</p>
                 <h2 id="followup-title">
