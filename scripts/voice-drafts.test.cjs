@@ -87,3 +87,15 @@ test('audio upload helper follows signed upload storage before reporting an asse
  global.fetch=async(url,init)=>{calls.push({url:String(url),method:init?.method});if(String(url)==='/api/voice-assets/signed-upload')return new Response(JSON.stringify({success:true,voiceAsset:{id:id(99),title:'New recording',approved:false,script_id:id(11),storage_path:owner+'/new.wav'},signedUrl:'http://qa/signed-audio'}));return new Response('',{status:fail?503:200});};
  try{const saved=await upload(new Blob(['RIFF0000WAVEdata'],{type:'audio/wav'}),'New recording',id(11));assert.equal(saved.id,id(99));assert.equal(calls[1].method,'PUT');fail=true;await assert.rejects(upload(new Blob(['RIFF0000WAVEdata'],{type:'audio/wav'}),'Retry recording',id(11)));assert.ok(calls.some(c=>c.method==='DELETE'));}finally{global.fetch=old;}
 });
+
+test('custom recording categories preserve approved audio and deny foreign owners',async()=>{
+ const f=fixture();f.tables.voice_assets=[{id:id(1),owner_id:owner,approved:true,studio_metadata:{script:'Approved words',source:'human'}}];
+ const route=f.load('app/api/voice-assets/[id]/route');
+ const patch=body=>route.PATCH(new Request('http://qa/category',{method:'PATCH',body:JSON.stringify({studioMetadata:body})}),{params:Promise.resolve({id:id(1)})});
+ assert.equal((await patch({category:'Luxury buyers'})).status,200);
+ assert.equal(f.tables.voice_assets[0].studio_metadata.category,'Luxury buyers');
+ assert.equal(f.tables.voice_assets[0].studio_metadata.script,'Approved words');assert.equal(f.tables.voice_assets[0].approved,true);
+ assert.equal((await patch({category:'New category',script:'Changed approved words'})).status,409);
+ f.actor('foreign');assert.equal((await patch({category:'Stolen'})).status,404);
+ assert.equal(f.tables.voice_assets[0].studio_metadata.category,'Luxury buyers');
+});

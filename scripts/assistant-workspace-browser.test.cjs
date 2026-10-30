@@ -201,7 +201,7 @@ const fs = require("node:fs"),
                       at: new Date().toISOString(),
                     })),
                 };
-          } else data = { deleted: true };
+          } else { chats.delete(owner + body.conversationId); data = { deleted: true }; }
         } else if (u.pathname === "/api/assistant/chat") {
           calls++;
           if (fail) {
@@ -632,6 +632,24 @@ const fs = require("node:fs"),
         await page
           .getByRole("button", { name: "History", exact: true })
           .click();
+      const olderId = "11111111-1111-4111-8111-111111111111";
+      chats.set(sessionOwner + olderId, [{ role: "user", content: "Older conversation to organize" }]);
+      await page.getByRole("button", { name: "Refresh history", exact: true }).click();
+      const olderOptions = page.getByRole("button", { name: "Conversation options: Older conversation to organize", exact: true });
+      await olderOptions.click();
+      await page.getByRole("button", { name: "Pin to top", exact: true }).click();
+      assert.equal(await page.locator(".aw-history-row").first().getByText("Older conversation to organize", { exact: false }).count(), 1);
+      await olderOptions.click();
+      await page.getByRole("button", { name: "Delete conversation", exact: true }).click();
+      const deleteConfirmation = page.getByRole("dialog", { name: "Confirm Assistant action" });
+      await deleteConfirmation.getByRole("button", { name: "Cancel", exact: true }).click();
+      assert.equal(chats.has(sessionOwner + olderId), true);
+      await page.getByRole("button", { name: "Delete conversation", exact: true }).click();
+      await deleteConfirmation.getByRole("button", { name: "Continue", exact: true }).click();
+      await olderOptions.waitFor({ state: "detached" });
+      assert.equal(chats.has(sessionOwner + olderId), false);
+      assert.equal(await page.locator(".assistant-preview").count() > 0, true);
+      checks += 5;
       await page
         .getByRole("button", { name: "＋ New conversation", exact: true })
         .click();

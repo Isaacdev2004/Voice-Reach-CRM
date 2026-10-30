@@ -17,6 +17,7 @@ const RecentWork = lazy(() =>
     default: module.CommandCenter,
   })),
 );
+import { useOwnerLibraryPreferences } from "@/lib/hooks/use-owner-library-preferences";
 import { Confirmation, type AssistantConfirmation } from "./confirmation";
 import { WorkspaceIcon } from "./workspace-icon";
 import { SourceResults } from "./source-results";
@@ -66,6 +67,8 @@ export function OperatingAssistant({
     [conciergeEnabled, setConciergeEnabled] = useState<boolean | null>(null),
     [restoring, setRestoring] = useState(true),
     [greeting, setGreeting] = useState("Hello");
+  const organization = useOwnerLibraryPreferences(owner, "assistant");
+  const [historyMenu, setHistoryMenu] = useState<string | null>(null);
   const previousPage = useRef("/dashboard");
   const [limits, setLimits] = useState<{
     dailyInteractions: number;
@@ -405,30 +408,36 @@ export function OperatingAssistant({
       if (active.current) setBusy(false);
     }
   }
-  function remove() {
+  function remove(id = conversation) {
     if (busy || dictationBusy) return;
-    setConfirmation({ message: "Delete this conversation’s messages? CRM records and execution audit history remain.", accept: () => void removeConfirmed() });
+    setConfirmation({ message: "Delete this conversation’s messages? CRM records and execution audit history remain.", accept: () => void removeConfirmed(id) });
   }
-  async function removeConfirmed() {
+  async function removeConfirmed(id: string) {
+    if (busy || dictationBusy) return;
+    setBusy(true);
     try {
       const r = await fetch("/api/assistant/history", {
         method: "DELETE",
         headers: { "Content-Type": "application/json", "X-MyARI-Owner": owner },
         body: JSON.stringify({
-          conversationId: conversation,
+          conversationId: id,
           confirmation: "DELETE_CONVERSATION",
         }),
       });
       const d = await r.json();
       if (!r.ok) throw Error(d.error);
-      setConversation(crypto.randomUUID());
-      setMessages([]);
-      setProposals([]);
-      setResults([]);
+      if (id === conversation) {
+        setConversation(crypto.randomUUID());
+        setMessages([]);
+        setProposals([]);
+        setResults([]);
+      }
+      organization.update({ pins: organization.pins.filter((pin) => pin !== id), categories: [] });
+      setHistoryMenu(null);
       await history();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Deletion unavailable");
-    }
+    } finally { setBusy(false); }
   }
   function choosePrompt(prompt: string) {
     if (legacyOpen) onReturn?.();
@@ -463,7 +472,7 @@ export function OperatingAssistant({
   const section = pathname.split("/")[2] || "dashboard";
   const conversations = recentConversations(recents).filter((r) =>
     r.message.toLowerCase().includes(historyQuery.toLowerCase()),
-  );
+  ).sort((a, b) => Number(organization.pins.includes(b.conversationId)) - Number(organization.pins.includes(a.conversationId)));
   function cancelResponse() {
     controller.current?.abort();
     setError(
@@ -700,7 +709,9 @@ export function OperatingAssistant({
             </label>
             <h2>Recent conversations</h2>
             {!conversations.length && <p>No matching conversations yet.</p>}
+            {organization.storageError && <p role="status">{organization.storageError}</p>}
             {conversations.map((r) => (
+              <div className="aw-history-row" key={r.conversationId}>
               <button
                 className="aw-history-item"
                 aria-current={
@@ -716,9 +727,19 @@ export function OperatingAssistant({
                   void resume(r.conversationId);
                 }}
               >
-                <span>{r.message.slice(0, 75)}</span>
+                <span>{organization.pins.includes(r.conversationId) && <span className="aw-pinned-label">Pinned · </span>}{r.message.slice(0, 75)}</span>
                 <small>{new Date(r.at).toLocaleDateString()}</small>
               </button>
+              <button type="button" className="aw-history-options" aria-label={`Conversation options: ${r.message.slice(0, 75)}`} aria-expanded={historyMenu === r.conversationId}
+                disabled={busy || dictationBusy} onClick={() => setHistoryMenu(historyMenu === r.conversationId ? null : r.conversationId)}>⋯</button>
+              {historyMenu === r.conversationId && <div className="aw-history-actions" onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); setHistoryMenu(null); } }}>
+                <button type="button" disabled={!organization.ready} onClick={() => {
+                  organization.update({ pins: organization.pins.includes(r.conversationId) ? organization.pins.filter(id => id !== r.conversationId) : [...organization.pins, r.conversationId], categories: [] });
+                  setHistoryMenu(null);
+                }}>{organization.pins.includes(r.conversationId) ? "Unpin" : "Pin to top"}</button>
+                <button type="button" disabled={busy || dictationBusy} onClick={() => remove(r.conversationId)}>Delete conversation</button>
+              </div>}
+              </div>
             ))}
             <button onClick={() => void history()}>Refresh history</button>
             <button

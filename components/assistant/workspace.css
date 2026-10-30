@@ -1511,3 +1511,9 @@
 .aw-confirmation button { min-height:44px; padding:10px 18px; border:1px solid #d8c6af; border-radius:12px; background:#fffdf8; color:#382c22; }
 .aw-confirmation button:last-child { background:#946947; color:white; }
 .aw-confirmation button:focus-visible { outline:3px solid #946947; outline-offset:3px; }
+
+.aw-history-row { position: relative; margin-bottom: 8px; }
+.aw-history-row .aw-history-item { width: 100%; padding-right: 52px; margin: 0; }
+.aw-history-options { position: absolute; right: 5px; top: 7px; width: 44px; height: 44px; font-size: 24px; }
+.aw-history-actions { padding: 6px; border: 1px solid #e6d8c5; border-radius: 12px; background: #fffaf3; display: flex; gap: 6px; flex-wrap: wrap; }
+.aw-history-item .aw-pinned-label { display: inline; color: #80592f; font-size: 11px; }

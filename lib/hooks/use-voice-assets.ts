@@ -17,6 +17,7 @@ export type VoiceAsset = {
     transcript?: string;
     source?: string;
     archived?: boolean;
+    category?: string;
     approvedAt?: string;
     approvedBy?: string;
   };

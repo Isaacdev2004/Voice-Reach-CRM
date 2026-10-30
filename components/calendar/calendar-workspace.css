@@ -826,3 +826,8 @@
   padding: 1px 3px;
   min-height: 20px;
 }
+
+.calendar-period-heading { padding: 22px 24px 16px; border-bottom: 1px solid #eee4d7; background: linear-gradient(120deg, #fffdf9, #f8f1e7); }
+.calendar-period-eyebrow { display: block; color: #866443; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; margin-bottom: 4px; }
+.calendar-period-heading h2 { margin: 0; color: #382e25; font-family: var(--font-serif, Georgia), serif; font-size: clamp(28px, 3vw, 42px); font-weight: 400; line-height: 1.15; letter-spacing: -.025em; }
+@media (max-width: 640px) { .calendar-period-heading { padding: 16px; } }

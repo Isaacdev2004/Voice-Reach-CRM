@@ -166,6 +166,12 @@ const { chromium } = require("playwright"),
       );
       // Date navigation follows the rendered period without a refresh.
       const dateInput = page.locator('.calendar-date input[type="date"]');
+      assert.equal(await page.locator(".calendar-left-desktop").getByRole("heading", { name: "Quick Actions", exact: true, includeHidden: true }).count(), 1);
+      assert.equal(await page.locator(".calendar-left-desktop").getByRole("heading", { name: "Daily agenda", exact: true, includeHidden: true }).count(), 1);
+      await dateInput.fill("2026-12-31");
+      await page.locator(".calendar-period-heading").getByRole("heading", { name: "December 2026", exact: true }).waitFor();
+      await page.getByRole("button", { name: "Next period", exact: true }).click();
+      await page.locator(".calendar-period-heading").getByRole("heading", { name: "January 2027", exact: true }).waitFor();
       await dateInput.fill("2026-10-22");
       await page
         .getByRole("button", { name: "Next period", exact: true })
