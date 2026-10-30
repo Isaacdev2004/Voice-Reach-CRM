@@ -1517,3 +1517,55 @@
 .aw-history-options { position: absolute; right: 5px; top: 7px; width: 44px; height: 44px; font-size: 24px; }
 .aw-history-actions { padding: 6px; border: 1px solid #e6d8c5; border-radius: 12px; background: #fffaf3; display: flex; gap: 6px; flex-wrap: wrap; }
 .aw-history-item .aw-pinned-label { display: inline; color: #80592f; font-size: 11px; }
+
+/* Compact, discoverable welcome. Conversation scrolling remains independent. */
+.aw-topbar { padding: 7px 20px; gap: 10px; }
+.aw-topbar .aw-app-title { font-size: 22px; }
+.aw-header-actions > button, .aw-header-actions > a { padding: 7px 10px; min-height: 36px; }
+.aw-workspace .aw-scroll { padding: 12px 24px 8px; }
+.aw-hero { min-height: 0 !important; margin: 0 0 12px; padding: 0; background: transparent; border: 0; box-shadow: none; }
+.aw-hero > div { padding: 4px 0 6px !important; max-width: none; }
+.aw-host .aw-hero h2 { font-size: 28px; line-height: 1.15; margin: 4px 0 6px; }
+.aw-hero h2 br { display: none; }
+.aw-hero h2 em::before { content: ' '; white-space: pre; }
+.aw-hero .aw-eyebrow { font-size: 10px; }
+.aw-hero .aw-intro { font-size: 14px; line-height: 1.4; max-width: none; }
+.aw-quick-actions.aw-capability-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.aw-capability-card { padding: 12px; border: 1px solid #e4d8c9; border-radius: 14px; background: #fffdf9ee; box-shadow: 0 3px 12px #67503905; min-width: 0; display: flex; flex-direction: column; }
+.aw-host .aw-capability-card > .aw-capability-start { display: grid; grid-template-columns: 22px minmax(0, 1fr); grid-template-rows: auto auto; gap: 4px 8px; width: 100%; min-height: 0; padding: 0; margin: 0; border: 0; background: transparent; box-shadow: none; text-align: left; }
+.aw-capability-start > span { grid-column: 1; grid-row: 1 / span 2; color: #91643d; width: 22px; height: 22px; background: none; padding: 0; }
+.aw-capability-start > span svg { width: 20px; height: 20px; }
+.aw-capability-start strong { grid-column: 2; grid-row: 1; font-size: 16px; line-height: 1.25; color: #392f25; }
+.aw-capability-start small { grid-column: 2; grid-row: 2; font-size: 14px; line-height: 1.4; color: #6b6258; }
+.aw-host .aw-capability-card > .aw-capability-learn { display: block; width: auto; min-height: 28px; padding: 4px 0; margin: 6px 0 0 30px; border: 0; background: transparent; box-shadow: none; color: #79502f; font-size: 14px; line-height: 1.2; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+.aw-capability-start:hover strong, .aw-capability-learn:hover { color: #9b6537; }
+.aw-workspace .aw-composer { padding: 8px 16px; margin-top: 4px; margin-bottom: max(10px, env(safe-area-inset-bottom)); }
+.aw-workspace .aw-composer textarea { min-height: 44px; }
+.aw-capability-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); overflow: auto; border: 1px solid #ddcbb2; border-radius: 20px; padding: 26px; background: #fffaf2; color: #352d25; box-shadow: 0 20px 70px #38291530; }
+.aw-capability-dialog::backdrop { background: #3f332b66; }
+.aw-capability-dialog h2 { font: 400 30px/1.15 Georgia, serif; margin: 10px 0 18px; }
+.aw-capability-dialog p { font-size: 15px; line-height: 1.65; }
+.aw-capability-dialog .aw-capability-eyebrow { color: #865d36; text-transform: uppercase; letter-spacing: .14em; font-size: 11px; }
+.aw-capability-dialog .aw-capability-safety { color: #77664e; font-size: 13px; }
+.aw-capability-dialog > div { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+.aw-capability-dialog button { min-height: 44px; border: 1px solid #deccb2; border-radius: 12px; padding: 10px 14px; background: #fffdfa; color: #704b2b; cursor: pointer; }
+.aw-capability-dialog .assistant-primary { color: white; background: #946640; }
+.aw-capability-dialog .aw-capability-close { float: right; width: 44px; padding: 0; font-size: 24px; }
+.aw-capability-dialog button:focus-visible { outline: 2px solid #946640; outline-offset: 3px; }
+@media (min-width: 701px) and (max-width: 1100px) { .aw-quick-actions.aw-capability-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) {
+  .aw-quick-actions.aw-capability-grid { grid-template-columns: minmax(0, 1fr); }
+  .aw-workspace .aw-scroll { padding: 12px; }
+  .aw-host .aw-hero h2 { font-size: 26px; }
+  .aw-topbar { padding: 7px 12px; }
+  .aw-host .aw-capability-card > .aw-capability-learn { min-height: 44px; }
+  .aw-capability-dialog { padding: 20px; }
+}
+.aw-drawer .aw-quick-actions.aw-capability-grid { grid-template-columns: minmax(0, 1fr); }
+.aw-topbar > div { display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 8px; align-items: center; min-width: 0; }
+.aw-topbar .aw-emblem { grid-column: 1; grid-row: 1 / span 2; line-height: 1; font-size: 22px; margin: 0; }
+.aw-topbar .aw-app-title { grid-column: 2; grid-row: 1; line-height: 1.05; }
+.aw-topbar small { grid-column: 2; grid-row: 2; margin-left: 0; line-height: 1.2; }
+.aw-host .aw-header-actions > button, .aw-host .aw-header-actions > a { min-height: 36px; padding: 6px 10px; }
+@media (max-width: 700px) { .aw-host .aw-header-actions > button, .aw-host .aw-header-actions > a { min-height: 44px; } }
+.aw-quick-actions.aw-capability-grid { grid-auto-rows: 1fr; }

@@ -143,3 +143,15 @@ export function recentConversations<
     ).values(),
   ).sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
 }
+
+export const capabilityInformation: Record<string, { title: string; description: string; explanation: string }> = {
+  briefing: { title: "Inbox Briefing", description: "Review recorded replies and follow-ups that need attention.", explanation: "Summarize available inbox and CRM activity for your workspace. MyARI explains missing coverage and bases priorities on retrieved records rather than invented engagement." },
+  campaign: { title: "Create a Campaign", description: "Build a personalized follow-up sequence for review.", explanation: "Describe your audience, goal and timing. MyARI can prepare and revise a structured campaign proposal. Saving requires your explicit approval; drafting does not enroll contacts or send messages." },
+  message: { title: "Write a Message", description: "Draft a thoughtful email, SMS or voicemail script.", explanation: "Choose a contact and channel, then refine the wording together. Available CRM information can inform the draft. Review the final copy yourself; generating text does not send a communication." },
+  flyer: { title: "Generate a Flyer", description: "Plan listing copy using verified property details.", explanation: "Start with an authorized saved property and your Brand Kit. MyARI helps prepare flyer content and explains which visual/export tools are available. It must not invent listing facts or promise unsupported downloads." },
+  day: { title: "Plan My Day", description: "Organize appointments, tasks and next steps.", explanation: "Review authorized tasks and available calendar records to make a practical plan. External calendar coverage is explained. Suggested changes remain reviewable rather than being saved automatically." },
+  pipeline: { title: "Analyze My Pipeline", description: "Spot next steps in your recorded opportunities.", explanation: "Explore current CRM opportunities with evidence from your authorized records. MyARI explains missing data rather than inventing forecasts, conversion metrics or client intentions." },
+  search: { title: "Search My CRM", description: "Find the right contacts and relevant CRM records.", explanation: "Give a name or search phrase. MyARI searches the records your account is authorized to access and can summarize retrieved information, with tenant boundaries enforced on the server." },
+  organize: { title: "Summarize & Organize", description: "Turn notes and conversations into clear next steps.", explanation: "Select a contact or topic and review a summary grounded in retrieved notes. Task or CRM changes are proposals for review; a summary alone does not modify your records." },
+  referral: { title: "Past-Client Relationships", description: "Prepare warm check-ins and referral conversations.", explanation: "Draft appreciation, referral and honest-review outreach for past clients. MyARI asks for your verified review destination and avoids incentives or requests for only positive reviews. Nothing is enrolled or sent by drafting." },
+};

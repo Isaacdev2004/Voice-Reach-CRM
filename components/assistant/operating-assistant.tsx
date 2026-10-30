@@ -19,12 +19,12 @@ const RecentWork = lazy(() =>
 );
 import { useOwnerLibraryPreferences } from "@/lib/hooks/use-owner-library-preferences";
 import { Confirmation, type AssistantConfirmation } from "./confirmation";
+import { CapabilityDetails } from "./capability-details";
 import { WorkspaceIcon } from "./workspace-icon";
 import { SourceResults } from "./source-results";
 import {
   workspaceActions,
-  primaryWorkspaceActions,
-  popularPrompts,
+  capabilityInformation,
   conversationId,
   conversationPointerKey,
   recentConversations,
@@ -69,6 +69,7 @@ export function OperatingAssistant({
     [greeting, setGreeting] = useState("Hello");
   const organization = useOwnerLibraryPreferences(owner, "assistant");
   const [historyMenu, setHistoryMenu] = useState<string | null>(null);
+  const [learnAbout, setLearnAbout] = useState<(typeof workspaceActions)[number] | null>(null);
   const previousPage = useRef("/dashboard");
   const [limits, setLimits] = useState<{
     dailyInteractions: number;
@@ -795,47 +796,22 @@ export function OperatingAssistant({
                         <em>how can I help you today?</em>
                       </h2>
                       <p className="aw-intro">
-                        Turn your real estate ideas into action. Create
-                        campaigns, write messages, plan your day, analyze your
-                        pipeline, generate flyers, and more.
+                        Choose your next step, or ask MyARI anything about your business.
                       </p>
                     </div>
                   </div>
-                  <div
-                    className="aw-quick-actions"
-                    aria-label="Start a conversation"
-                  >
-                    {primaryWorkspaceActions.map((a) => (
-                      <button
-                        key={a.id}
-                        disabled={busy || dictationBusy}
-                        onClick={() => choosePrompt(a.prompt)}
-                      >
-                        <span>
-                          <WorkspaceIcon name={a.id} />
-                        </span>
-                        <strong>{a.title}</strong>
-                        <small>{a.detail}</small>
-                      </button>
-                    ))}
-                  </div>
-                  <section className="aw-popular" aria-label="Popular prompts">
-                    <h2>
-                      <span aria-hidden="true">✧</span> Popular prompts
-                    </h2>
-                    <div>
-                      {popularPrompts.map((prompt) => (
-                        <button
-                          key={prompt.label}
-                          disabled={busy || dictationBusy}
-                          onClick={() => choosePrompt(prompt.message)}
-                        >
-                          {prompt.label}
-                          <WorkspaceIcon name="arrow" />
+                  <div className="aw-quick-actions aw-capability-grid" aria-label="Start a conversation">
+                    {workspaceActions.map(action => {
+                      const information = capabilityInformation[action.id];
+                      return <article className="aw-capability-card" key={action.id}>
+                        <button type="button" className="aw-capability-start" disabled={busy || dictationBusy} onClick={() => choosePrompt(action.prompt)}>
+                          <span><WorkspaceIcon name={action.id} /></span>
+                          <strong>{information.title}</strong><small>{information.description}</small>
                         </button>
-                      ))}
-                    </div>
-                  </section>
+                        <button type="button" className="aw-capability-learn" disabled={busy || dictationBusy} aria-label={`Learn more about ${information.title}`} onClick={() => setLearnAbout(action)}>Learn More →</button>
+                      </article>;
+                    })}
+                  </div>
                 </>
               )}
               <div
@@ -984,6 +960,7 @@ export function OperatingAssistant({
           </div>
         </div>
       </section>
+      {learnAbout && <CapabilityDetails title={capabilityInformation[learnAbout.id].title} explanation={capabilityInformation[learnAbout.id].explanation} onClose={() => setLearnAbout(null)} onStart={() => { const action = learnAbout; setLearnAbout(null); choosePrompt(action.prompt); requestAnimationFrame(() => panel.current?.querySelector<HTMLTextAreaElement>('[aria-label="Assistant command"]')?.focus()); }} />}
       {confirmation && <Confirmation value={confirmation} onClose={() => setConfirmation(null)} />}
     </div>
   );

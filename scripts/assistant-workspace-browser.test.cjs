@@ -69,9 +69,9 @@ const fs = require("node:fs"),
   let checks = 0;
   const results = [];
   try {
-    for (const width of [1920, 1600, 1440, 1280, 1024, 768, 390]) {
+    for (const {width, height} of [{width:1920,height:900},{width:1600,height:900},{width:1440,height:900},{width:1366,height:768},{width:1280,height:800},{width:1024,height:1000},{width:768,height:1024},{width:390,height:844},{width:1440,height:600}]) {
       const context = await browser.newContext({
-          viewport: { width, height: width >= 1280 ? 800 : 1000 },
+          viewport: { width, height },
           reducedMotion: "reduce",
         }),
         page = await context.newPage(),
@@ -325,15 +325,15 @@ const fs = require("node:fs"),
         0,
       );
       await page.getByLabel("More Assistant tools", { exact: true }).click();
-      assert.equal(await page.locator(".aw-quick-actions button").count(), 4);
-      assert.equal(await page.locator(".aw-popular button").count(), 6);
+      assert.equal(await page.locator(".aw-capability-start").count(), 9);
+      assert.equal(await page.locator(".aw-capability-learn").count(), 9);
       assert.equal(await page.locator(".aw-history").isVisible(), false);
       assert.equal(await page.locator(".aw-action-panel").isVisible(), false);
       const composerBox = await page.locator(".aw-composer").boundingBox();
       assert(
-        composerBox.y + composerBox.height <= (width >= 1280 ? 800 : 1000),
+        composerBox.y + composerBox.height <= height + 1,
       );
-      if (width >= 1280)
+      if (width >= 1280 && height >= 768)
         assert.equal(
           await page
             .locator(".aw-scroll")
@@ -347,17 +347,46 @@ const fs = require("node:fs"),
         type: "jpeg",
         quality: 82,
       });
-      for (const prompt of await page.locator(".aw-popular button").all()) {
-        await prompt.click();
-        assert(
-          (
-            await page
-              .getByRole("textbox", { name: "Assistant command" })
-              .inputValue()
-          ).length > 35,
-        );
-        assert.equal(calls, 0);
-        checks++;
+      if(width===390) {
+        for(const [label, top] of [['top',0],['middle',430],['bottom',99999]]) {
+          await page.locator('.aw-scroll').evaluate((node,top)=>{node.scrollTop=top;},top);
+          await page.screenshot({path:path.join(root,`docs/assistant-workspace/compact/mobile-${label}.png`),fullPage:false});
+        }
+        await page.locator('.aw-scroll').evaluate(node=>{node.scrollTop=0;});
+      }
+      const layout = await page.evaluate(() => {
+        const scroll = document.querySelector('.aw-scroll'), grid = document.querySelector('.aw-capability-grid');
+        return {width:innerWidth,height:innerHeight,headerHeight:document.querySelector('.aw-topbar').getBoundingClientRect().height,gridBottom:grid.getBoundingClientRect().bottom,scrollBottom:scroll.getBoundingClientRect().bottom,scrollOverflow:scroll.scrollHeight-scroll.clientHeight,outerScroll:document.documentElement.scrollHeight-innerHeight,columns:getComputedStyle(grid).gridTemplateColumns.split(' ').length,descriptionFont:parseFloat(getComputedStyle(document.querySelector('.aw-capability-start small')).fontSize)};
+      });
+      console.log('COMPACT_LAYOUT',JSON.stringify(layout));
+      assert.ok(layout.descriptionFont >= 14);
+      assert.equal(layout.columns,width>1100?3:width>700?2:1);
+      if(width>=1280 && height>=768){assert.ok(layout.gridBottom<=layout.scrollBottom+1);assert.ok(layout.outerScroll<=1);}
+      if(width>=1280 && height<768){assert.ok(layout.scrollOverflow>0);assert.ok(layout.outerScroll<=1);}
+      await page.locator('.aw-capability-learn').first().focus();
+      await page.keyboard.press('Enter');
+      await page.getByRole('dialog',{name:'About Inbox Briefing',exact:true}).waitFor();
+      await page.keyboard.press('Escape');
+      await page.getByRole('dialog',{name:'About Inbox Briefing',exact:true}).waitFor({state:'detached'});
+      assert.equal(await page.locator('.aw-capability-learn').first().evaluate(node=>node===document.activeElement),true);
+      const openLatency = await page.evaluate(async()=>{
+        const started=performance.now();document.querySelector('.aw-capability-learn').click();
+        for(let i=0;i<120;i++){await new Promise(resolve=>requestAnimationFrame(resolve));if(document.querySelector('.aw-capability-dialog[open]'))return performance.now()-started;}
+        throw new Error('Capability explanation did not open');
+      });
+      console.log('CAPABILITY_OPEN_MS',JSON.stringify({width,height,openLatency}));
+      await page.keyboard.press('Escape');
+      await page.getByRole('dialog',{name:'About Inbox Briefing',exact:true}).waitFor({state:'detached'});
+      for (const learn of await page.locator('.aw-capability-learn').all()) {
+        await learn.click();
+        const details=page.getByRole('dialog',{name:/About /});
+        await details.waitFor();
+        assert.ok((await details.innerText()).length>150);
+        await details.getByRole('button',{name:/^Start /}).click();
+        await details.waitFor({state:'detached'});
+        await page.waitForFunction(() => document.querySelector('[aria-label="Assistant command"]').value.length > 35);
+        assert.ok((await page.getByRole('textbox',{name:'Assistant command'}).inputValue()).length>35);
+        assert.equal(calls,0); checks++;
       }
       await page
         .getByRole("textbox", { name: "Assistant command" })
@@ -818,7 +847,7 @@ const fs = require("node:fs"),
       ),
     );
     console.log(
-      `PASS ${checks} Assistant workspace checks across 7 viewports: navigation, persistent modes/Claude, restore, campaign revision/approval, error recovery and no outbound/billing requests. All remote APIs mocked.`,
+      `PASS ${checks} Assistant workspace checks across ${results.length} viewports: navigation, persistent modes/Claude, restore, campaign revision/approval, error recovery and no outbound/billing requests. All remote APIs mocked.`,
     );
   } finally {
     await browser.close();
