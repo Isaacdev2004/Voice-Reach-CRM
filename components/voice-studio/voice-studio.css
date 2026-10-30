@@ -432,3 +432,9 @@
 
 .vs-transcription-details > summary { cursor:pointer; font-family:var(--font-serif,Georgia),Georgia,serif; font-size:18px; color:#292520; }
 .vs-transcription-details[open] > summary { margin-bottom:12px; }
+
+.vs-check > span[data-status="Not started"] { color: #756958; }
+.vs-check > span[data-status="Needs review"] { color: #8a5f29; }
+.vs-readiness-start { padding: 14px; margin: 12px 0; border: 1px solid #eadfce; border-radius: 14px; background: #faf5ed; }
+.vs-readiness-start ol { padding-left: 20px; margin: 10px 0 14px; }
+.vs-readiness-start li { margin: 7px 0; }

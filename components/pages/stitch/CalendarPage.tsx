@@ -964,6 +964,8 @@ function CalendarWorkspace() {
                 >
                   <button
                     aria-label={`Schedule on ${dateLabel(day)}`}
+                    aria-current={day === today.date ? "date" : undefined}
+                    className={day === today.date ? "calendar-month-today" : undefined}
                     onClick={() => create(day)}
                   >
                     {+day.slice(-2)}

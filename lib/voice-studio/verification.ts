@@ -72,7 +72,7 @@ export function previewPersonalization(
 }
 export type VoiceCheck = {
   label: string;
-  status: "Passed" | "Warning" | "Blocked" | "Unable to Verify";
+  status: "Passed" | "Warning" | "Blocked" | "Unable to Verify" | "Not started" | "Needs review";
   detail: string;
 };
 export function voiceChecks(
@@ -87,36 +87,36 @@ export function voiceChecks(
   return [
     {
       label: "Recording",
-      status: asset?.playbackUrl ? "Passed" : "Blocked",
+      status: !asset ? "Not started" : asset.playbackUrl ? "Passed" : "Blocked",
       detail: asset?.playbackUrl
         ? "Recording available for playback."
-        : "Select an uploaded recording.",
+        : !asset ? "Create or upload a recording, then select it for review." : "This recording’s playback link is unavailable. Refresh the library or reopen it in the studio before proceeding.",
     },
     {
       label: "Approval",
-      status: asset?.approved ? "Passed" : "Blocked",
+      status: !asset ? "Not started" : asset.approved ? "Passed" : "Needs review",
       detail: asset?.approved
         ? "This recording version is approved."
-        : "Listen and explicitly approve this recording version.",
+        : !asset ? "Approval becomes available after a recording is saved. Script drafts do not need audio approval." : "Open this recording in the studio, listen to it, then explicitly approve this exact audio version.",
     },
     {
       label: "Audio format",
       status:
-        asset && /\.(mp3|wav|webm|m4a|ogg)$/i.test(asset.storage_path)
+        !asset ? "Not started" : /\.(mp3|wav|webm|m4a|ogg)$/i.test(asset.storage_path)
           ? "Passed"
           : "Unable to Verify",
       detail:
-        "Provider-specific encoding compatibility must also be checked before sending.",
+        !asset ? "Audio format can be checked after a recording is uploaded or saved." : "File type recognition does not verify the audio codec. Provider-specific encoding compatibility must also be checked before sending.",
     },
     {
       label: "Personalization",
       status:
-        p.technical || p.unsupported.length
+        !asset || !script.trim() ? "Unable to Verify" : p.technical || p.unsupported.length
           ? "Blocked"
           : p.missing.length
             ? "Warning"
             : "Passed",
-      detail: p.missing.length
+      detail: !asset ? "No recording is selected. Text alone cannot verify spoken personalization." : !script.trim() ? "No script text is available for comparison. Listen to the recording and review its content before approval." : p.missing.length
         ? "Text placeholders do not change prerecorded audio. Listen for unresolved variables."
         : "Review the spoken recording against the script.",
     },

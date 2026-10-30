@@ -188,6 +188,21 @@ const { chromium } = require("playwright"),
     await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`settings-${width}.png`),fullPage:true});assert.ok(await page.evaluate(()=>document.body.scrollWidth<=innerWidth+1));
     await page.getByRole('button',{name:/Brand Kit$/}).first().click();await page.getByRole('heading',{name:'Your professional identity.'}).waitFor();await page.getByLabel('Agent name',{exact:true}).fill(`Alex Brand ${width}`);await page.getByLabel('Business / brokerage name',{exact:true}).fill('Synthetic Realty');await page.getByLabel('Primary brand color',{exact:true}).fill('#996633');await page.getByRole('button',{name:'Email signature',exact:true}).click();await page.getByRole('heading',{name:'Email signature',exact:true}).waitFor();await page.getByRole('checkbox',{name:/I reviewed these details/}).check();await page.getByRole('button',{name:'Save all changes',exact:true}).last().click();await page.getByRole('status').filter({hasText:'All changes saved'}).waitFor();assert.equal(account.brandKit.agentName,`Alex Brand ${width}`);assert.equal(account.brandKit.approved,true);await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`brand-kit-${width}.png`),fullPage:true});assert.ok(await page.evaluate(()=>document.body.scrollWidth<=innerWidth+1));
     assert.deepEqual(errors,[]);results.push({width,overflow:false,pageErrors:errors,checks:['draft save','exact step selection does not assign','safe preview','KPI filtering','search empty results','event details','conversation inbox','Settings profile and tabs','Brand Kit approval and cross-session persistence','mocked microphone permission/record/pause/resume/stop and failed-save retention at 1440px']});await page.close();
-   }fs.writeFileSync(path.join(output,'browser-results.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results,null,2));
+   }
+   for(const width of [1440,390]) {
+    const empty = await browser.newPage({viewport:{width,height:1024}});
+    await empty.route('**/api/voice-assets', route => route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({voiceAssets:[]})}));
+    await empty.goto(origin+'/dashboard/voice-scripts');
+    await empty.getByText('No recording to review yet',{exact:true}).waitFor();
+    const readiness = empty.locator('.vs-card').filter({has:empty.getByRole('heading',{name:'Personalization & readiness',exact:true})});
+    assert.equal(await readiness.getByText('Blocked',{exact:true}).count(),0);
+    assert.equal(await readiness.getByText('Passed',{exact:true}).count(),0);
+    assert.equal(await readiness.getByText('Not started',{exact:true}).count(),3);
+    await empty.getByRole('button',{name:'Create or upload a recording',exact:true}).click();
+    await empty.getByRole('heading',{name:'Create voice script',exact:true}).waitFor();
+    assert.ok(await empty.getByLabel('Script text',{exact:true}).isEditable());
+    await empty.close();
+   }
+   fs.writeFileSync(path.join(output,'browser-results.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results,null,2));
   }finally{await browser.close();server.close();fs.rmSync(tmp,{recursive:true,force:true})}
 })().catch(e=>{console.error(e);process.exitCode=1});

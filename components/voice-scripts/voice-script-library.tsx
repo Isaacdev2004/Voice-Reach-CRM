@@ -398,7 +398,15 @@ export function VoiceScriptLibrary({
           </section>
           <section className="vs-card">
             <h3>Personalization & readiness</h3>
-            {voiceChecks(selected, selected?.studio_metadata?.script ?? "")
+            {loading ? <p role="status">Loading recordings before checking readiness…</p> : error ? <p>Readiness cannot be checked until recordings load successfully.</p> : !selected && (
+              <div className="vs-readiness-start">
+                <p><strong>{assets.length ? "Choose a recording to review" : "No recording to review yet"}</strong></p>
+                <p>You can write and save scripts now. These checks apply to recorded audio before campaign use; they do not prevent drafting.</p>
+                <ol><li>Create a script, then record your voice or upload an audio file.</li><li>Save and select the recording.</li><li>Listen and explicitly approve that recording version before campaign assignment.</li></ol>
+                {assets.length ? <button type="button" onClick={() => { setQuery(""); setCategory(""); setStatus("all"); }}>Show my recordings</button> : <button className="vs-primary" type="button" onClick={() => onCreateScript()}>Create or upload a recording</button>}
+              </div>
+            )}
+            {!loading && !error && voiceChecks(selected, selected?.studio_metadata?.script ?? "")
               .slice(0, 4)
               .map((c) => (
                 <div className="vs-check" key={c.label}>
@@ -407,6 +415,11 @@ export function VoiceScriptLibrary({
                   <p>{c.detail}</p>
                 </div>
               ))}
+            {!loading && !error && selected && <div className="vs-actions">
+              <button type="button" onClick={() => onCreateScript(selected)}>Open recording for review</button>
+              {!selected.playbackUrl && <button type="button" onClick={() => void refresh()}>Refresh audio access</button>}
+            </div>}
+            {error && <button type="button" onClick={() => void refresh()}>Retry readiness check</button>}
           </section>
           <section className="vs-card">
             <h3>Performance</h3>

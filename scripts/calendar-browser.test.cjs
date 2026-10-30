@@ -148,6 +148,11 @@ const { chromium } = require("playwright"),
           assert.equal(await page.locator(".calendar-month-day").count(), 42);
           assert.deepEqual(await page.locator(".calendar-month-weekday").evaluateAll(nodes => nodes.map(node => node.getAttribute("data-weekday"))), ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]);
           assert.equal(await page.locator(".calendar-period-heading").evaluate(node => getComputedStyle(node).textAlign), "center");
+          assert.deepEqual(await page.locator('.calendar-weekday-short').allTextContents(), ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']);
+          assert.equal(await page.locator('.calendar-month-weekday').first().evaluate(node => getComputedStyle(node).textTransform), 'uppercase');
+          assert.ok((await page.locator('.calendar-month-day > button').first().evaluate(node => getComputedStyle(node).fontFamily)).includes('Georgia'));
+          assert.equal(await page.locator('.calendar-stage').evaluate(node => getComputedStyle(node, '::before').pointerEvents), 'none');
+
         }
         if (view === "Agenda") await page.locator(".calendar-agenda").waitFor();
       }
