@@ -135,6 +135,49 @@ export function BrandKitPanel({
   return (
     <div className="brand-kit">
       <section className="brand-card">
+        <h3>Mortgage PDF presentation</h3>
+        <p>
+          Your reusable default for financing reports. Save with your existing
+          Brand Kit settings.
+        </p>
+        <label>
+          Default report branding
+          <select
+            aria-label="Default mortgage PDF branding"
+            value={kit.financingPdf.template}
+            onChange={(e) =>
+              onChange({
+                ...kit,
+                financingPdf: {
+                  ...kit.financingPdf,
+                  template: e.target.value as "myari" | "agent" | "cobranded",
+                },
+              })
+            }
+          >
+            <option value="myari">MyARI luxury</option>
+            <option value="agent">Agent branded</option>
+            <option value="cobranded">Agent & lender</option>
+          </select>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={kit.financingPdf.imagery}
+            onChange={(e) =>
+              onChange({
+                ...kit,
+                financingPdf: {
+                  ...kit.financingPdf,
+                  imagery: e.target.checked,
+                },
+              })
+            }
+          />
+          Include approved architectural imagery
+        </label>
+      </section>
+      <section className="brand-card">
         <h2>Your professional identity.</h2>
         <p>
           Approved branding for client-facing materials. Nothing is published or

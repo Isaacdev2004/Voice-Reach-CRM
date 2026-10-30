@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { loadSavedSettings } from "@/lib/billing/settings-store";
 import { financingHandler } from "@/lib/financing/api";
 import { ReportSchema } from "@/lib/financing/schemas";
+import { subscriberBranding } from "@/lib/settings/branding-service";
 import { calculate, DISCLOSURE } from "@/lib/financing/calculators";
 export const GET = financingHandler(async (request) => {
   const owner = await requireUserId(),
@@ -57,6 +58,7 @@ export const POST = financingHandler(async (request) => {
     partners.push(p.data);
   }
   const s = await loadSavedSettings(owner);
+  const brand = await subscriberBranding(owner);
   const payload = {
     ...body,
     client: clientSnapshot,
@@ -65,11 +67,29 @@ export const POST = financingHandler(async (request) => {
     disclosure: DISCLOSURE,
     partners,
     branding: {
-      name: s?.profile.fullName ?? "",
-      phone: s?.profile.phone ?? "",
-      headshot: s?.profile.avatarUrl ?? "",
-      brokerage: s?.workspace.name ?? "",
-      jobTitle: s?.profile.jobTitle ?? "",
+      name: brand.kit.approved
+        ? brand.kit.agentName
+        : (s?.profile.fullName ?? ""),
+      phone: brand.kit.approved ? brand.kit.phone : (s?.profile.phone ?? ""),
+      headshot: brand.kit.approved
+        ? brand.headshotUrl
+        : (s?.profile.avatarUrl ?? ""),
+      brokerage: brand.kit.approved
+        ? brand.kit.businessName
+        : (s?.workspace.name ?? ""),
+      jobTitle: brand.kit.approved
+        ? brand.kit.jobTitle
+        : (s?.profile.jobTitle ?? ""),
+      ...(brand.kit.approved
+        ? {
+            email: brand.kit.email,
+            website: brand.kit.website,
+            license: brand.kit.licenseNumber,
+            disclosures: brand.kit.disclosures,
+            logo: brand.logoUrl,
+          }
+        : {}),
+      pdfPreferences: brand.kit.financingPdf,
     },
   };
   const r = await supabaseAdmin.rpc("save_financing_report", {

@@ -28,7 +28,7 @@
     "test:notes": "node scripts/notes-workspace.test.cjs && node scripts/notes-strategy-routes.test.cjs",
     "test:notes-db": "node scripts/notes-database.test.cjs && node scripts/notes-strategy-database.test.cjs",
     "test:notes-browser": "node scripts/notes-browser.test.cjs",
-    "test:financing": "node --import tsx scripts/financing.test.ts && node scripts/financing-routes.test.cjs",
+    "test:financing": "node --import tsx scripts/financing.test.ts && node scripts/financing-routes.test.cjs && node --import tsx scripts/mortgage-pdf.test.ts",
     "test:financing-browser": "node scripts/financing-browser.test.cjs",
     "test:financing-db": "node scripts/financing-database.test.cjs",
     "test:tasks": "node --import tsx scripts/tasks.test.ts && node scripts/tasks-routes.test.cjs",
@@ -62,11 +62,13 @@
     "test:concierge-browser": "node scripts/concierge-browser.test.cjs",
     "test:assistant-workspace": "node scripts/assistant-workspace.test.cjs",
     "test:assistant-workspace-browser": "node scripts/assistant-workspace-browser.test.cjs",
-    "test:notes-luxury-browser": "node scripts/notes-luxury-browser.test.cjs"
+    "test:notes-luxury-browser": "node scripts/notes-luxury-browser.test.cjs",
+    "test:mortgage-pdf-browser": "node scripts/mortgage-pdf-browser.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",
     "@clerk/ui": "^1.25.7",
+    "@pdf-lib/fontkit": "1.1.1",
     "@supabase/supabase-js": "^2.105.4",
     "@tailwindcss/postcss": "^4.3.0",
     "autoprefixer": "^10.5.0",
@@ -74,6 +76,7 @@
     "clsx": "^2.1.1",
     "next": "^16.2.6",
     "papaparse": "^5.5.2",
+    "pdf-lib": "1.17.1",
     "postcss": "^8.5.14",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
