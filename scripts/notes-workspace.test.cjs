@@ -506,3 +506,17 @@ test("basic property associations use the actual owned contact key and reject in
     false,
   );
 });
+
+test("all built-in templates save through the real basic-schema handler without unsupported metadata", async () => {
+  const f = basicSetup();
+  const { TEMPLATES, templateNote } = f.load("lib/notes/workspace");
+  const handler = f.load("app/api/notes/workspace/route").POST;
+  for (const [index, template] of TEMPLATES.entries()) {
+    const draft = templateNote(template, false);
+    const response = await handler(req({ ...saveBody(), clientKey: id(600 + index), ...draft }));
+    assert.equal(response.status, 200, template[0]);
+    const result = await response.json();
+    assert.equal(result.note.body, template[2]);
+    assert.equal(result.note.title, template[0]);
+  }
+});

@@ -1033,3 +1033,36 @@
 .notes-note-preview {
   padding: 12px 9px;
 }
+
+/* Writing-first workspace: one organizational rail and a generous editor. */
+@media (min-width: 901px) {
+  .notes-columns { grid-template-columns: minmax(240px, 290px) minmax(0, 1fr); }
+  .notes-columns > .notes-category-bar { grid-column: 1; grid-row: 1; display: block; margin: 0; padding: 12px; border: 1px solid var(--notes-border); border-radius: 17px; background: #fffdfa; }
+  .notes-category-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; overflow: visible; }
+  .notes-category-bar button { white-space: normal !important; justify-content: flex-start !important; }
+  .notes-category-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .notes-columns > .notes-library { grid-column: 1; grid-row: 2; max-height: 450px; overflow: auto; }
+  .notes-columns > .notes-context { grid-column: 1; grid-row: 3; display: flex; flex-direction: column; }
+  .notes-columns > .notes-editor { grid-column: 2; grid-row: 1 / span 3; width: 100%; }
+  .notes-canvas { min-height: max(540px, 65vh) !important; font-size: 15px !important; line-height: 1.8; padding: 24px !important; }
+}
+.notes-template-option { border: 1px solid var(--notes-border); border-radius: 14px; margin: 10px 0; overflow: hidden; }
+.notes-template-option .notes-template { width: 100%; border: 0; margin: 0; }
+.notes-template-option small { display: block; color: var(--notes-muted); font-size: 12px; }
+.notes-template-option details { padding: 0 14px 12px; }
+.notes-template-option summary { cursor: pointer; color: #805b3b; font-size: 12px; }
+.notes-template-option pre { white-space: pre-wrap; font: inherit; font-size: 12px; padding: 12px; background: #faf6ef; border-radius: 10px; }
+@media (max-width: 900px) {
+  .notes-columns > .notes-category-bar { margin-bottom: 12px; }
+  .notes-columns[data-panel="editor"] > .notes-category-bar,
+  .notes-columns[data-panel="context"] > .notes-category-bar { display: none; }
+}
+.notes-template-option .notes-template { display: grid !important; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: start; }
+.notes-template-option .notes-template > .material-symbols-outlined { grid-column: 1; grid-row: 1 / span 2; }
+.notes-template-option .notes-template > strong { grid-column: 2; grid-row: 1; }
+.notes-template-option .notes-template > small { grid-column: 2; grid-row: 2; }
+.notes-template-option .notes-template > span:last-child { grid-column: 3; grid-row: 1 / span 2; align-self: center; }
+@media (max-width: 600px) {
+  .notes-template-option .notes-template { grid-template-columns: 24px minmax(0, 1fr); }
+  .notes-template-option .notes-template > span:last-child { grid-column: 2; grid-row: 3; }
+}

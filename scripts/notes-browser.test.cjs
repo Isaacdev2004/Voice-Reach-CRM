@@ -128,6 +128,19 @@ const { chromium } = require("playwright"),
           .click();
       await page.locator(".notes-note-preview").first().click();
       await page.getByLabel("Note title", { exact: true }).waitFor();
+      if (width > 900) {
+        const geometry = await page.evaluate(() => {
+          const editor = document.querySelector('.notes-editor').getBoundingClientRect();
+          const library = document.querySelector('.notes-library').getBoundingClientRect();
+          const tabs = document.querySelector('.notes-category-bar').getBoundingClientRect();
+          const context = document.querySelector('.notes-context').getBoundingClientRect();
+          return { editorWidth: editor.width, libraryWidth: library.width, editorLeft: editor.left, tabsRight: tabs.right, contextRight: context.right };
+        });
+        assert.ok(geometry.editorWidth > geometry.libraryWidth * 1.6);
+        assert.ok(geometry.tabsRight <= geometry.editorLeft);
+        assert.ok(geometry.contextRight <= geometry.editorLeft);
+      }
+
       await page
         .getByRole("button", { name: "Formatted preview", exact: true })
         .click();
@@ -498,6 +511,22 @@ const { chromium } = require("playwright"),
       await legacy.getByLabel("Note tags", { exact: true }).isDisabled(),
       true,
     );
+    const templateDefinitions = require('./campaign-audit/harness.cjs').fixture().load('lib/notes/workspace.ts').TEMPLATES;
+    for (const template of templateDefinitions) {
+      await legacy.getByRole('button', { name: 'Use Template', exact: true }).click();
+      const picker = legacy.getByRole('dialog', { name: 'MyARI planner templates', exact: true });
+      await picker.getByLabel('Find a template', { exact: true }).fill(template[0]);
+      await picker.getByRole('button', { name: template[0], exact: false }).click();
+      assert.equal(await legacy.getByLabel('Note title', { exact: true }).inputValue(), template[0]);
+      assert.equal(await legacy.getByLabel('Note content', { exact: true }).inputValue(), template[2]);
+      await legacy.getByLabel('Note content', { exact: true }).fill(template[2] + '\n\nVerified rehearsal detail.');
+      await legacy.getByRole('button', { name: 'Save now', exact: true }).click();
+      await legacy.getByText('Saved', { exact: true }).waitFor();
+      assert.ok(state.notes.some(note => note.title === template[0] && note.body.includes('Verified rehearsal detail.')));
+    }
+    await legacy.reload();
+    await legacy.locator('.notes-note-preview').filter({ hasText: 'Buyer Consultation' }).first().click();
+    assert.ok((await legacy.getByLabel('Note content', { exact: true }).inputValue()).includes('Verified rehearsal detail.'));
     for (const text of ["Legacy note update one.", "Legacy note update two."]) {
       await legacy.getByLabel("Note content", { exact: true }).fill(text);
       await legacy
