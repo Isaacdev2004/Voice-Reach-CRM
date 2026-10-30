@@ -404,7 +404,7 @@ const { chromium } = require("playwright"),
       await page.goto(
         `http://127.0.0.1:${server.address().port}/dashboard/calendar?date=2026-10-22&prefReadFail=1`,
       );
-      await page
+      await page.locator(".calendar-stage")
         .getByText(/Buyer consultation/, { exact: true })
         .first()
         .waitFor();
