@@ -132,6 +132,18 @@ const { chromium } = require("playwright");
         });
         await page.close();
       }
+    const loading = await browser.newPage();
+    await loading.goto(`http://127.0.0.1:${server.address().port}/sign-in?fixture=delayed`);
+    await loading.getByRole("status").filter({hasText:"Connecting securely"}).waitFor();
+    await loading.getByRole("button",{name:"Continue",exact:true}).waitFor();
+    assert.equal(await loading.getByRole("status").count(),0);
+    await loading.close();
+    const failed = await browser.newPage();
+    await failed.goto(`http://127.0.0.1:${server.address().port}/sign-in?fixture=empty`);
+    await failed.getByRole("alert").waitFor({timeout:16000});
+    await failed.getByRole("button",{name:"Retry sign in",exact:true}).waitFor();
+    assert.match(await failed.getByRole("alert").innerText(),/No sign-in attempt was submitted/);
+    await failed.close();
     assert.equal(mutations, 0);
     console.log(
       "PASS: sign-in/signup visual fixtures at 1440/768/390, headings, legal links, no overflow, rectangular Clerk card and zero API mutations. Live Clerk authentication not exercised.",

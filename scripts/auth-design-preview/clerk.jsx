@@ -51,5 +51,10 @@ function Fields({ signup = false }) {
     </div>
   );
 }
-export const SignIn = () => <Fields />;
+export function SignIn() {
+  const mode = new URLSearchParams(location.search).get("fixture");
+  const [ready, setReady] = React.useState(mode !== "delayed");
+  React.useEffect(() => { if(mode === "delayed") { const t=setTimeout(()=>setReady(true),1500); return ()=>clearTimeout(t); } }, [mode]);
+  return mode === "empty" || !ready ? null : <Fields />;
+}
 export const SignUp = () => <Fields signup />;
