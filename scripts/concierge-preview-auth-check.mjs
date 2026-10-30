@@ -24,11 +24,24 @@ try {
  const frontend=await fetch(`https://${host}/v1/environment`,{redirect:"error",signal:AbortSignal.timeout(12000)});
  if (!frontend.ok) fail("clerk_frontend_unreachable");
  phase="clerk_browser_script";
- const script=await fetch(`https://${host}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`,{redirect:"error",signal:AbortSignal.timeout(12000)});
+ const script=await fetchBrowserScript(`https://${host}/npm/@clerk/clerk-js@6/dist/clerk.browser.js`,host);
  if (!script.ok) fail("clerk_browser_script_unreachable");
  console.log("MYARI_PREVIEW_AUTH",JSON.stringify({success:true,clerkDevelopmentPair:"PASS",frontendEnvironment:"PASS",browserScript:"PASS",sendingAndBilling:"DISABLED",scope:"read_only_prebuild_not_browser_authentication"}));
 } catch (error) {
  const allowed=["ENOTFOUND","EAI_AGAIN","ECONNRESET","ETIMEDOUT","ERR_TLS_CERT_ALTNAME_INVALID","UNABLE_TO_VERIFY_LEAF_SIGNATURE","UND_ERR_CONNECT_TIMEOUT","ERR_INVALID_CHAR"];
  const raw=error?.cause?.code ?? error?.code;
  fail("private_auth_check_unavailable",{phase,category:allowed.includes(raw)?raw:error?.name==="TimeoutError"?"TIMEOUT":"NETWORK_OR_INVALID_RESPONSE"});
+}
+
+async function fetchBrowserScript(start, host, fetcher = fetch) {
+ let url = new URL(start);
+ for (let hop=0; hop<4; hop++) {
+  if (url.protocol !== "https:" || ![host,"cdn.jsdelivr.net","cdn.clerk.com","unpkg.com"].includes(url.hostname)) throw new Error("untrusted_script_redirect");
+  const response = await fetcher(url.href,{redirect:"manual",signal:AbortSignal.timeout(12000)});
+  if (![301,302,303,307,308].includes(response.status)) return response;
+  const location = response.headers.get("location");
+  if (!location) throw new Error("missing_script_redirect");
+  url = new URL(location,url);
+ }
+ throw new Error("script_redirect_limit");
 }
