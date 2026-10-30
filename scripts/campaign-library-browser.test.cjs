@@ -621,7 +621,7 @@ const root = path.resolve(__dirname, "..");
     await savedEditor.getByRole("textbox", { name: "Email subject", exact: true }).fill("Persisted email subject");
     await savedEditor.getByRole("textbox", { name: "Email body", exact: true }).fill("Hello {{first_name}}, saved email body.");
     await savedEditor.getByRole("button", { name: "Save step", exact: true }).click();
-    await savedEmailPage.getByRole("button", { name: "Save as template", exact: true }).click();
+    await savedEmailPage.getByRole("button", { name: /Save as template/ }).click();
     await savedEmailPage.waitForFunction(() => !!window.__lastBuilderRequest);
     const payload = await savedEmailPage.evaluate(() => window.__lastBuilderRequest);
     assert.equal(payload.action, "template");
