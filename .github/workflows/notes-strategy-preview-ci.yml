@@ -1,0 +1,29 @@
+name: Notes Strategy Preview CI
+on:
+  push:
+    branches: [feat/notes-strategy-2]
+  pull_request:
+    branches: [feat/premium-assistant-workspace]
+permissions:
+  contents: read
+jobs:
+  notes-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run test:security
+      - run: npm run test:unit
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci_placeholder
+          CLERK_SECRET_KEY: sk_test_ci_placeholder
