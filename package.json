@@ -25,8 +25,8 @@
     "test:delivery-browser": "node scripts/delivery-browser.test.cjs",
     "test:calendar": "node scripts/calendar-workspace.test.cjs",
     "test:calendar-browser": "node scripts/calendar-browser.test.cjs",
-    "test:notes": "node scripts/notes-workspace.test.cjs",
-    "test:notes-db": "node scripts/notes-database.test.cjs",
+    "test:notes": "node scripts/notes-workspace.test.cjs && node scripts/notes-strategy-routes.test.cjs",
+    "test:notes-db": "node scripts/notes-database.test.cjs && node scripts/notes-strategy-database.test.cjs",
     "test:notes-browser": "node scripts/notes-browser.test.cjs",
     "test:financing": "node --import tsx scripts/financing.test.ts && node scripts/financing-routes.test.cjs",
     "test:financing-browser": "node scripts/financing-browser.test.cjs",
@@ -61,7 +61,8 @@
     "test:concierge-db": "node scripts/concierge-database.test.cjs",
     "test:concierge-browser": "node scripts/concierge-browser.test.cjs",
     "test:assistant-workspace": "node scripts/assistant-workspace.test.cjs",
-    "test:assistant-workspace-browser": "node scripts/assistant-workspace-browser.test.cjs"
+    "test:assistant-workspace-browser": "node scripts/assistant-workspace-browser.test.cjs",
+    "test:notes-luxury-browser": "node scripts/notes-luxury-browser.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",

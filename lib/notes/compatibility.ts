@@ -62,6 +62,8 @@ export function canSaveBasic(
     meta.contactIds.length <= 1 &&
     meta.category === baseline.category &&
     !meta.tags.length &&
+    !meta.campaignIds.length &&
+    !meta.taskIds.length &&
     meta.propertyContactIds.length <= 1 &&
     meta.propertyContactIds.every((id) => id === meta.contactIds[0]) &&
     !meta.pinned &&

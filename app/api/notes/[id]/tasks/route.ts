@@ -14,6 +14,7 @@ const Schema = z.object({
   dueAt: z.string().datetime().nullable(),
   priority: z.enum(["low", "normal", "high"]).default("normal"),
   calendarReminder: z.boolean().default(false),
+  completed: z.boolean().default(false),
   approved: z.literal(true),
 });
 export const POST = withApiHandler<{ params: Promise<{ id: string }> }>(
@@ -36,8 +37,8 @@ export const POST = withApiHandler<{ params: Promise<{ id: string }> }>(
         .maybeSingle();
       if (contactError) return notesFailure();
       if (!contact) return apiError("Contact not found.", { status: 404 });
-      const { data: task, error } = await supabaseAdmin.rpc(
-        "create_note_task",
+      let { data: task, error } = await supabaseAdmin.rpc(
+        "create_note_task_v2",
         {
           p_owner: owner,
           p_note: id,
@@ -48,14 +49,48 @@ export const POST = withApiHandler<{ params: Promise<{ id: string }> }>(
           p_description: b.description,
           p_due: b.dueAt,
           p_priority: b.priority,
+          p_completed: b.completed,
         },
       );
+      // A missing new RPC has not executed a write. Preserve the foundation workflow
+      // only for open tasks; never retry a timeout or ambiguous database response.
+      if (
+        error?.code === "PGRST202" &&
+        error.message.includes("create_note_task_v2")
+      ) {
+        if (b.completed)
+          return apiError(
+            "Create this as an open task and complete it in Tasks, or apply the reviewed Notes 2 upgrade.",
+            { status: 409 },
+          );
+        ({ data: task, error } = await supabaseAdmin.rpc("create_note_task", {
+          p_owner: owner,
+          p_note: id,
+          p_action: b.actionKey,
+          p_contact: contactId,
+          p_property: b.propertyContactId,
+          p_title: b.title,
+          p_description: b.description,
+          p_due: b.dueAt,
+          p_priority: b.priority,
+        }));
+      }
+      if (error?.message.includes("NOTE_TASK_CONFLICT"))
+        return apiError(
+          "That task action was already used with different details. Review the existing task instead.",
+          { status: 409 },
+        );
       if (error)
         return error.message.includes("NOTE_NOT_FOUND")
           ? apiError("Linked record not found.", { status: 404 })
           : notesFailure();
       let warning: string | undefined;
-      if (b.calendarReminder && task.due_at && !task.calendar_event_id) {
+      if (
+        b.calendarReminder &&
+        !task.completed &&
+        task.due_at &&
+        !task.calendar_event_id
+      ) {
         try {
           const sync = await syncTaskReminderToCalendar({
             ownerId: owner,

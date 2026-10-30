@@ -11,9 +11,7 @@ export const GET = withApiHandler<{ params: Promise<{ id: string }> }>(
         return apiError("Note not found.", { status: 404 });
       const { data, error } = await supabaseAdmin
         .from("note_versions")
-        .select(
-          "id, note_id, revision, title, body, kind, metadata, created_at",
-        )
+        .select("*")
         .eq("owner_id", owner)
         .eq("note_id", id)
         .order("revision", { ascending: false })

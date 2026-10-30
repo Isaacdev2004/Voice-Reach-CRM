@@ -28,6 +28,21 @@ export async function validateLinks(owner: string, meta: NoteMetadata) {
     )
       return false;
   }
+  for (const [table, ids] of [
+    ["campaigns", meta.campaignIds],
+    ["contact_tasks", meta.taskIds],
+  ] as const) {
+    for (const id of new Set(ids)) {
+      const { data, error } = await supabaseAdmin
+        .from(table)
+        .select("id")
+        .eq("owner_id", owner)
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw Error("NOTES_UNAVAILABLE");
+      if (!data) return false;
+    }
+  }
   return true;
 }
 export function notesFailure() {
