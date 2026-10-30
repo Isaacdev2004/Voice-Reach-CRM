@@ -1,5 +1,6 @@
 "use client";
 
+import { ClerkMountGuard } from "./clerk-mount-guard";
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
 import { clerkAppearance } from "@/lib/clerk-appearance";
@@ -17,7 +18,9 @@ export function ClerkSignIn() {
         </p>
       </div>
 
+      <ClerkMountGuard>
       <SignIn
+        fallback={null}
         path="/sign-in"
         routing="path"
         signUpUrl="/sign-up"
@@ -25,6 +28,7 @@ export function ClerkSignIn() {
         forceRedirectUrl={AUTH_AFTER_URL}
         appearance={clerkAppearance}
       />
+      </ClerkMountGuard>
 
       <p className="mt-6 text-center text-[14px] text-slate-text">
         Don&apos;t have an account?{" "}
