@@ -28,7 +28,7 @@
     "test:notes": "node scripts/notes-workspace.test.cjs",
     "test:notes-db": "node scripts/notes-database.test.cjs",
     "test:notes-browser": "node scripts/notes-browser.test.cjs",
-    "test:financing": "node --import tsx scripts/financing.test.ts && node scripts/financing-routes.test.cjs",
+    "test:financing": "node --import tsx scripts/financing.test.ts && node scripts/financing-routes.test.cjs && node --import tsx scripts/mortgage-pdf.test.ts",
     "test:financing-browser": "node scripts/financing-browser.test.cjs",
     "test:financing-db": "node scripts/financing-database.test.cjs",
     "test:tasks": "node --import tsx scripts/tasks.test.ts && node scripts/tasks-routes.test.cjs",
@@ -59,7 +59,8 @@
     "test:assistant-messaging-browser": "node scripts/assistant-messaging-browser.test.cjs",
     "test:concierge": "node scripts/concierge.test.cjs",
     "test:concierge-db": "node scripts/concierge-database.test.cjs",
-    "test:concierge-browser": "node scripts/concierge-browser.test.cjs"
+    "test:concierge-browser": "node scripts/concierge-browser.test.cjs",
+    "test:mortgage-pdf-browser": "node scripts/mortgage-pdf-browser.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",
@@ -78,7 +79,9 @@
     "stripe": "^22.5.0",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "@pdf-lib/fontkit": "1.1.1",
+    "pdf-lib": "1.17.1"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.11",

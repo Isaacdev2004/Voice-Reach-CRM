@@ -1,0 +1,58 @@
+[
+  {
+    "file": "test-no-comparisons.pdf",
+    "pages": 2,
+    "letter": true,
+    "selectableText": true,
+    "textWithinPage": true
+  },
+  {
+    "file": "test-all-zero.pdf",
+    "pages": 2,
+    "letter": true,
+    "selectableText": true,
+    "textWithinPage": true
+  },
+  {
+    "file": "test-long-names.pdf",
+    "pages": 2,
+    "letter": true,
+    "selectableText": true,
+    "textWithinPage": true
+  },
+  {
+    "file": "test-low-insurance.pdf",
+    "pages": 2,
+    "letter": true,
+    "selectableText": true,
+    "textWithinPage": true
+  },
+  {
+    "file": "test-image-free.pdf",
+    "pages": 2,
+    "letter": true,
+    "selectableText": true,
+    "textWithinPage": true
+  },
+  {
+    "file": "myari-illustrative-mortgage.pdf",
+    "pages": 2,
+    "letter": true,
+    "selectableText": true,
+    "textWithinPage": true
+  },
+  {
+    "file": "test-complete.pdf",
+    "pages": 2,
+    "letter": true,
+    "selectableText": true,
+    "textWithinPage": true
+  },
+  {
+    "file": "test-missing.pdf",
+    "pages": 2,
+    "letter": true,
+    "selectableText": true,
+    "textWithinPage": true
+  }
+]

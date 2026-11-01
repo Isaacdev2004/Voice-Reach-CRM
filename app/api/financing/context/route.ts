@@ -22,6 +22,7 @@ export const GET = financingHandler(async () => {
       budget: c.budget,
     })),
     branding: {
+      pdfPreferences: brand.kit.financingPdf,
       name: brand.kit.approved
         ? brand.kit.agentName
         : (s?.profile.fullName ?? ""),

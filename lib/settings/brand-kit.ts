@@ -1,6 +1,7 @@
 import { ZillowReviewUrlSchema } from "@/lib/reviews/model";
 import { AssistantPreferencesSchema } from "@/lib/assistant/preferences";
 import { z } from "zod";
+import { MortgagePdfPreferencesSchema } from "@/lib/financing/pdf-preferences";
 const text = z.string().trim().max(300).default("");
 const https = z
   .union([
@@ -13,6 +14,7 @@ const https = z
   .default("");
 export const BrandKitSchema = z.object({
   assistantPreferences: AssistantPreferencesSchema.optional(),
+  financingPdf: MortgagePdfPreferencesSchema,
   agentName: text,
   jobTitle: text,
   businessName: text,

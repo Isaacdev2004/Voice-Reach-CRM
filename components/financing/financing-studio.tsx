@@ -1,9 +1,24 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { matchingClients, financingLinks } from "@/lib/financing/workflow";
 import Image from "next/image";
+
+import type { MortgagePdfInput } from "@/lib/financing/mortgage-pdf-model";
+const MortgagePdfPreview = lazy(() =>
+  import("./mortgage-pdf-preview").then((m) => ({
+    default: m.MortgagePdfPreview,
+  })),
+);
 import { useAiAssistant } from "@/components/ai/ai-assistant-context";
 import { MortgageCalculatorPage } from "@/components/pages/stitch/MortgageCalculatorPage";
 import { Icon } from "@/components/ui/icon";
@@ -282,6 +297,8 @@ export function FinancingStudio() {
   return <Workspace key={user?.id ?? "signed-out"} owner={user?.id} />;
 }
 function Workspace({ owner }: { owner?: string }) {
+  const [pdfInput, setPdfInput] = useState<MortgagePdfInput | null>(null);
+  const { user: clerkUser } = useUser();
   const { openAssistant } = useAiAssistant();
   const [tab, setTab] = useState<(typeof tabs)[number]>(tabs[0]),
     [tool, setTool] = useState("main");
@@ -351,7 +368,15 @@ function Workspace({ owner }: { owner?: string }) {
       .then((d) => {
         if (active) {
           setContacts(d.contacts);
-          setBranding(d.branding);
+          setBranding({
+            ...d.branding,
+            email:
+              d.branding.email ||
+              (clerkUser?.primaryEmailAddress?.verification?.status ===
+              "verified"
+                ? clerkUser.primaryEmailAddress.emailAddress
+                : ""),
+          });
           setDataError(false);
         }
       })
@@ -378,7 +403,12 @@ function Workspace({ owner }: { owner?: string }) {
     return () => {
       active = false;
     };
-  }, [owner, refresh]);
+  }, [
+    owner,
+    refresh,
+    clerkUser?.primaryEmailAddress?.emailAddress,
+    clerkUser?.primaryEmailAddress?.verification?.status,
+  ]);
   useEffect(() => {
     if (!owner) return;
     try {
@@ -745,6 +775,71 @@ function Workspace({ owner }: { owner?: string }) {
       </div>
       <details className="fc-context-details">
         <summary>Property, partners & report assumptions</summary>
+        {calculation?.kind === "mortgage" && (
+          <section className="fc-pdf-assumptions">
+            <h3>Mortgage PDF details</h3>
+            <p>
+              Optional, subscriber-entered assumptions. Blank amounts remain Not
+              Provided. Closing costs exclude prepaid expenses and reserves to
+              avoid double-counting.
+            </p>
+            <div className="fc-input-grid">
+              <TextField
+                label="Loan type (if known)"
+                value={context.loanType}
+                onChange={(loanType) => patch({ loanType })}
+              />
+              <TextField
+                label="Rate source / reference (if supplied)"
+                value={context.rateSource}
+                onChange={(rateSource) => patch({ rateSource })}
+              />
+              <TextField
+                label="Fee source / reference (if supplied)"
+                value={context.feeSource}
+                onChange={(feeSource) => patch({ feeSource })}
+              />
+              <TextField
+                label="Fee source date"
+                value={context.feeAsOf}
+                onChange={(feeAsOf) => patch({ feeAsOf })}
+              />
+              <TextField
+                label="Rate source date"
+                value={context.rateAsOf}
+                onChange={(rateAsOf) => patch({ rateAsOf })}
+              />
+              {(
+                [
+                  [
+                    "closingCosts",
+                    "Closing costs excluding prepaids / reserves",
+                  ],
+                  ["prepaids", "Prepaid expenses"],
+                  ["reserves", "Reserves"],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key} className="fc-field">
+                  <span>{label}</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    aria-label={label}
+                    value={context[key] ?? ""}
+                    onChange={(e) =>
+                      patch({
+                        [key]:
+                          e.target.value === "" ? null : Number(e.target.value),
+                      })
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className="fc-input-grid">
           <TextField
             label="Property address (editable)"
@@ -1437,9 +1532,21 @@ function Workspace({ owner }: { owner?: string }) {
                 <button
                   className="fc-primary"
                   disabled={!reviewed}
-                  onClick={() => setPreview(true)}
+                  onClick={() => {
+                    if (calculation?.kind === "mortgage")
+                      setPdfInput({
+                        calculation,
+                        context,
+                        branding,
+                        partners: selectedPartners,
+                        client,
+                      });
+                    else setPreview(true);
+                  }}
                 >
-                  Preview / create report
+                  {calculation?.kind === "mortgage"
+                    ? "Preview PDF"
+                    : "Preview / create report"}
                 </button>
                 <button
                   disabled={!reviewed || busy || storageError}
@@ -1590,6 +1697,18 @@ function Workspace({ owner }: { owner?: string }) {
                         p.client ??
                           contacts.find((c) => c.id === p.context.contactId),
                       );
+                      if (p.calculation.kind === "mortgage") {
+                        setPdfInput({
+                          calculation: p.calculation,
+                          context: ContextSchema.parse(p.context),
+                          branding: p.branding,
+                          partners: oldPartners,
+                          client:
+                            p.client ??
+                            contacts.find((c) => c.id === p.context.contactId),
+                        });
+                        return;
+                      }
                       downloadReport(
                         reportPdf(l).buffer as ArrayBuffer,
                         `myari-${r.id}.pdf`,
@@ -1597,7 +1716,9 @@ function Workspace({ owner }: { owner?: string }) {
                       );
                     }}
                   >
-                    Download saved PDF
+                    {r.payload.calculation.kind === "mortgage"
+                      ? "Preview saved PDF"
+                      : "Download saved PDF"}
                   </button>
                 </div>
               </article>
@@ -1611,6 +1732,14 @@ function Workspace({ owner }: { owner?: string }) {
           </p>
         )}
       </section>
+      {pdfInput && (
+        <Suspense fallback={<p role="status">Loading PDF studio…</p>}>
+          <MortgagePdfPreview
+            input={pdfInput}
+            onClose={() => setPdfInput(null)}
+          />
+        </Suspense>
+      )}
       <Modal
         open={preview}
         onClose={() => setPreview(false)}
@@ -1752,6 +1881,7 @@ function Workspace({ owner }: { owner?: string }) {
                   ["address", "Office address"],
                   ["website", "Website (HTTPS)"],
                   ["logoUrl", "Authorized logo URL (HTTPS)"],
+                  ["headshotUrl", "Authorized lender headshot URL (HTTPS)"],
                   ["serviceAreas", "Service areas / counties"],
                   ["license", "License / NMLS information"],
                   [
