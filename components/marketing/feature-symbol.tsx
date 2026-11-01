@@ -10,6 +10,8 @@ const paths: Record<string, string> = {
     "M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3ZM5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8",
   analytics: "M4 21v-7M10 21V7M16 21V3M22 21V11",
   home: "m3 10 9-8 9 8M5 9v12h14V9M9 21v-7h6v7",
+  calculator: "M5 2h14v20H5zM8 5h8v4H8zM8 12h1M12 12h1M16 12h1M8 16h1M12 16h1M16 16h1M8 19h1M12 19h1M16 19h1",
+  notes: "M5 3h14v18H5zM8 7h8M8 11h8M8 15h5",
   check: "m5 12 4 4L19 6",
   layers: "m12 2 10 6-10 6L2 8l10-6ZM2 12l10 6 10-6M2 16l10 6 10-6",
 };

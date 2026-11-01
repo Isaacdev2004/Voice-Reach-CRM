@@ -1,0 +1,46 @@
+name: Public homepage workflow review
+on:
+  push:
+    branches: [feat/public-feature-workflow]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'components/marketing/**'
+      - 'scripts/homepage-workflow-browser.test.cjs'
+      - '.github/workflows/public-feature-workflow.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix /tmp/home-ui-tools --no-audit --no-fund playwright@1.56.1 @axe-core/playwright@4.10.2
+      - run: /tmp/home-ui-tools/node_modules/.bin/playwright install --with-deps chromium
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - name: Real public-page browser acceptance
+        run: |
+          node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000 > /tmp/public-home-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then break; fi
+            sleep 1
+          done
+          NODE_PATH=/tmp/home-ui-tools/node_modules node scripts/homepage-workflow-browser.test.cjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: public-homepage-desktop-tablet-mobile
+          path: docs/public-feature-workflow/
+          retention-days: 14
