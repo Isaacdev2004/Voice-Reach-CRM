@@ -111,8 +111,19 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             <div className="features-hero-fade" />
             <div className="landing-shell features-hero-inner">
               <div className="features-hero-copy">
+                {home && (
+                  <p className="public-eyebrow">BUILT FOR REAL ESTATE AGENTS</p>
+                )}
                 <h1 id="features-title">
-                  Everything you need to turn follow-up into opportunity.
+                  {home ? (
+                    <>
+                      More than a CRM.
+                      <br />
+                      A complete business partner.
+                    </>
+                  ) : (
+                    "Everything you need to turn follow-up into opportunity."
+                  )}
                 </h1>
                 <p className="features-hero-description">
                   One beautifully connected workspace to manage relationships,
