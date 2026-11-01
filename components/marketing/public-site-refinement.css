@@ -1774,3 +1774,19 @@
 @media (min-width:768px) and (max-width:1000px) {
   .public-site .public-prose .approved-pricing .approved-plan header { min-height:85px; }
 }
+
+/* Homepage only: preserve the original architectural photo and responsive crop. */
+.public-site .premium-home-features .features-hero-inner {
+  padding-block: 24px 20px;
+}
+.public-site .premium-home-features .features-hero-copy > .public-eyebrow {
+  margin: 0 0 12px;
+}
+.public-site .premium-home-features .features-hero .features-assurances {
+  margin-top: 18px;
+}
+@media (max-width: 767px) {
+  .public-site .premium-home-features .features-hero-inner {
+    padding-block: 26px 20px;
+  }
+}
