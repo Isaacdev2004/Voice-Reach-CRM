@@ -19,7 +19,9 @@ try{
  const origin="https://voice-reach-crm-git-feat-pro-beed61-magnificent-soless-projects.vercel.app";
  requireCheck(process.env.APP_BASE_URL===origin&&process.env.NEXT_PUBLIC_APP_URL===origin,"wrong_app_origin");
  const pk=process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY??"",sk=process.env.CLERK_SECRET_KEY??"";
- requireCheck(pk.startsWith("pk_test_")&&/^sk_test_[A-Za-z0-9_-]+$/.test(sk),"invalid_development_key_format");
+ requireCheck(pk.startsWith("pk_test_"),"invalid_development_publishable_prefix");
+ requireCheck(sk.startsWith("sk_test_"),"invalid_development_secret_prefix");
+ requireCheck(sk.length>=24&&/^[!-~]+$/.test(sk)&&!sk.includes("..."),"truncated_or_invalid_development_secret");
  const host=Buffer.from(pk.slice(8),"base64").toString("utf8").replace(/\$$/,"");
  requireCheck(/^[a-z0-9-]+[.]clerk[.]accounts[.]dev$/.test(host),"invalid_clerk_frontend");
  const service=process.env.SUPABASE_SERVICE_ROLE_KEY??"";
