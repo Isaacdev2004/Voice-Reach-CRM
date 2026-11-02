@@ -1,4 +1,4 @@
-name: Public homepage workflow review
+name: Public website product review
 on:
   push:
     branches: [feat/public-feature-workflow]
@@ -6,7 +6,8 @@ on:
     branches: [main]
     paths:
       - 'components/marketing/**'
-      - 'scripts/homepage-workflow-browser.test.cjs'
+      - 'scripts/*browser.test.cjs'
+      - 'lib/marketing/**'
       - '.github/workflows/public-feature-workflow.yml'
 permissions:
   contents: read
@@ -38,9 +39,48 @@ jobs:
             sleep 1
           done
           NODE_PATH=/tmp/home-ui-tools/node_modules node scripts/homepage-workflow-browser.test.cjs
+          node scripts/public-image-inventory.cjs
+          PUBLIC_REVIEW_URL=http://127.0.0.1:3000 NODE_PATH=/tmp/home-ui-tools/node_modules node scripts/public-feature-pages-browser.test.cjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: public-homepage-desktop-tablet-mobile
           path: docs/public-feature-workflow/
+          retention-days: 14
+
+  before:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 56a456b96c789215dcf16a588abe3167b80040fb
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix /tmp/home-ui-tools --no-audit --no-fund playwright@1.56.1
+      - run: /tmp/home-ui-tools/node_modules/.bin/playwright install --with-deps chromium
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - name: Capture pinned pre-redesign pages
+        run: |
+          node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000 > /tmp/public-before-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then break; fi
+            sleep 1
+          done
+          NODE_PATH=/tmp/home-ui-tools/node_modules node <<'NODE'
+          const {chromium}=require("playwright"),fs=require("fs");
+          (async()=>{const b=await chromium.launch({args:["--no-sandbox"]});const out="docs/public-feature-workflow/before";fs.mkdirSync(out,{recursive:true});for(const width of [1440,390]){const c=await b.newContext({viewport:{width,height:900},reducedMotion:"reduce"});const p=await c.newPage();await p.route("**/api/**",r=>r.fulfill({status:200,body:"{}"}));for(const slug of ["","features/lead-management","features/campaign-builder","features/ai-assistant"]){await p.goto("http://127.0.0.1:3000/"+slug,{waitUntil:"networkidle"});await p.evaluate(()=>document.fonts.ready);await p.screenshot({path:out+"/"+(slug.split("/").pop()||"home")+"-"+width+".jpg",fullPage:false,quality:85});}await c.close();}await b.close();})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: public-website-before
+          path: docs/public-feature-workflow/before/
           retention-days: 14

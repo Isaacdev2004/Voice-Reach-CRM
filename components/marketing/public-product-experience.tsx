@@ -1,3 +1,4 @@
+import "./feature-product-studio.css";
 import { publicAiLaunch } from "@/lib/billing/ai/launch";
 import Image from "next/image";
 import Link from "next/link";
@@ -127,7 +128,7 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
                 </h1>
                 <p className="features-hero-description">
                   One beautifully connected workspace to manage relationships,
-                  automate outreach, and keep your real estate business moving.
+                  automate follow-up, and keep your real estate business moving.
                 </p>
                 <div className="public-actions">
                   <StartFreeButton
@@ -393,8 +394,7 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             <div className="features-editorial-copy">
               <p className="public-eyebrow">Built for real estate agents</p>
               <h2 id="agent-tools-title">
-                More than a CRM.
-                <br />A complete business partner.
+                {home ? "Your next steps, beautifully connected." : <>More than a CRM.<br />A complete business partner.</>}
               </h2>
               <p>
                 From planning a showing to preparing a client conversation, keep

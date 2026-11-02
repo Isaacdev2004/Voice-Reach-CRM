@@ -109,6 +109,7 @@ export function ProductShowcase() {
             width={PRODUCT_CAPTURES[view.image].width}
             height={PRODUCT_CAPTURES[view.image].height}
             sizes="(max-width:767px) 92vw, 65vw"
+            style={{ width: "100%", maxWidth: PRODUCT_CAPTURES[view.image].width / 2, height: "auto", marginInline: "auto" }}
           />
           <figcaption>
             Application capture · Demonstration data, not customer results
