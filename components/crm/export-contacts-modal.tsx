@@ -38,7 +38,7 @@ export function ExportContactsModal({open,onClose,context}:{open:boolean;onClose
    const a=document.createElement("a");a.href=url;
    a.download=r.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1]??"myari-contacts.csv";
    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-   setNotice("Download started for "+preview.count.toLocaleString()+" contacts. No contact records were changed.");
+   setNotice("Download started for "+preview.count.toLocaleString()+(preview.count===1?" contact.":" contacts.")+" No contact records were changed.");
   }catch(e){if((e as Error).name!=="AbortError")setError((e as Error).message);}
   finally{setBusy(false);running.current=null;}
  }
@@ -47,7 +47,7 @@ export function ExportContactsModal({open,onClose,context}:{open:boolean;onClose
  <div ref={content}><fieldset disabled={busy} className="space-y-3"><legend className="sr-only">Export options</legend>
  {[["all","Export All Contacts"],["selected","Export Selected Contacts"],["filtered","Export Current Filtered Results"]].map(([id,label])=><label key={id} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl border border-outline-variant/20 bg-cream px-4 py-3 text-[14px]"><input type="radio" name="contact-export-scope" value={id} checked={scope===id} disabled={id!=="all"&&!context} onChange={()=>setScope(id as typeof scope)}/>{label}{id==="selected"&&context?<span className="ml-auto text-taupe">{context.selectedIds.length}</span>:null}</label>)}
  </fieldset>
- <div role="status" aria-live="polite" className="my-4 rounded-2xl bg-champagne/50 p-4 text-[14px]">{loading?"Counting your authorized contacts…":preview?preview.count?preview.count.toLocaleString()+" contacts ready to export.":"No contacts match. Select contacts, change your filters, or add contacts.":"Count unavailable."}</div>
+ <div role="status" aria-live="polite" className="my-4 rounded-2xl bg-champagne/50 p-4 text-[14px]">{loading?"Counting your authorized contacts…":preview?preview.count?preview.count.toLocaleString()+(preview.count===1?" contact ready to export.":" contacts ready to export."):"No contacts match. Select contacts, change your filters, or add contacts.":"Count unavailable."}</div>
  <p className="text-[13px] leading-relaxed text-taupe">Includes standard contact fields. Private notes, message history and internal IDs are excluded. Phone numbers and ZIP codes use an apostrophe text marker to preserve leading zeros in spreadsheets.</p>
  {error&&<p role="alert" className="mt-3 text-[14px] text-error">{error}</p>}{notice&&<p role="status" className="mt-3 text-[14px] text-emerald-muted">{notice}</p>}
  <div className="mt-5 flex flex-wrap gap-3"><button disabled={busy||loading} onClick={()=>setRefresh(v=>v+1)} className="min-h-11 rounded-full border border-outline-variant/30 px-4 text-[14px]">Refresh count</button><button disabled={!preview?.count||loading||busy} onClick={()=>void download()} className="min-h-11 rounded-full bg-rose-gold px-5 text-[14px] font-medium text-ivory disabled:opacity-50">{busy?"Preparing CSV…":"Download CSV"}</button><button onClick={close} className="min-h-11 px-3 text-[14px]">{busy?"Cancel export":"Close"}</button></div>
