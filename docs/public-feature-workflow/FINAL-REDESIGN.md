@@ -13,3 +13,6 @@ The temporary capture workflow stores generated Git blob objects and an artifact
 Visual tests capture the homepage and every feature page before/after at 1440×900, 1366×768, 1280×800, 768×900 and 390×900. Baseline is pinned to the approved Production commit. Check original heroes/sections, no walkthroughs, linked CTAs, no horizontal overflow and image display density; compare hero/title geometry. Run TypeScript, lint, build and public marketing regressions before protected Preview deployment. All Preview credentials remain absent; sending, billing, schedulers and unrelated feature access stay disabled.
 
 No SQL, database restore or Production rollback is needed. Production remains unchanged. Merge and release require separate explicit owner approval.
+
+
+Capture generation completed successfully. Six reviewed image blobs and the dimension/provenance records are integrated in the final correction commit. The temporary upload workflow is removed. Final CI compares 100 feature-page hero/title geometries, hero copy, section headings and underlying photograph assets against Production, in addition to full-page screenshots and image density checks. No Production rollback is performed or necessary.
