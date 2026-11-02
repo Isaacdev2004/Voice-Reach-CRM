@@ -1774,3 +1774,11 @@
 @media (min-width:768px) and (max-width:1000px) {
   .public-site .public-prose .approved-pricing .approved-plan header { min-height:85px; }
 }
+
+/* Approved homepage refinements only. Feature-page luxury layout remains Production's. */
+.public-site .premium-home-features .features-hero-inner { padding-block:22px 18px; }
+.public-site .premium-home-features .features-hero-copy > .public-eyebrow { margin:0 0 12px; }
+.public-site .premium-home-features .features-hero .features-assurances { margin-top:18px; }
+.public-site .premium-home-features .features-followup { padding-block:32px; }
+.public-site .premium-home-features .features-agent-tools { padding-block:26px; }
+.public-site .premium-home-features .features-cta { padding-block:32px; }
