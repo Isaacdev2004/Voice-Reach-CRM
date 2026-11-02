@@ -1,0 +1,47 @@
+name: Generate sharp synthetic marketing captures
+on:
+  push:
+    branches: [feat/public-feature-workflow]
+    paths: [scripts/luxury-static-captures.cjs, .github/workflows/marketing-capture-refresh.yml]
+permissions:
+  contents: read
+jobs:
+  capture:
+    if: github.ref == 'refs/heads/feat/public-feature-workflow'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix /tmp/home-ui-tools --no-audit --no-fund playwright@1.56.1
+      - run: /tmp/home-ui-tools/node_modules/.bin/playwright install --with-deps chromium
+      - run: npm run build
+      - run: NODE_PATH=/tmp/home-ui-tools/node_modules node scripts/luxury-static-captures.cjs
+      - name: Store generated image objects without changing any branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node <<'NODE'
+          const fs=require("fs");
+          (async()=>{if(process.env.GITHUB_REF!=="refs/heads/feat/public-feature-workflow")throw Error("Wrong branch");
+          const paths=["calendar","notes","financing","properties","tasks","campaigns"].map(n=>"public/brand/product-captures/"+n+".webp").concat(["lib/marketing/product-captures.ts","docs/public-feature-workflow/luxury-correction/capture-provenance.json"]);
+          const objects=[];
+          for(const path of paths){const r=await fetch("https://api.github.com/repos/Isaacdev2004/Voice-Reach-CRM/git/blobs",{method:"POST",headers:{Authorization:"Bearer "+process.env.GH_TOKEN,"Content-Type":"application/json",Accept:"application/vnd.github+json"},body:JSON.stringify({content:fs.readFileSync(path).toString("base64"),encoding:"base64"})});if(!r.ok)throw Error("Git object upload failed: "+r.status);const d=await r.json();objects.push({path,sha:d.sha});}
+          console.log("CAPTURE_GIT_BLOBS="+JSON.stringify(objects));
+          })().catch(e=>{console.error(e.message);process.exitCode=1});
+          NODE
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: sharp-marketing-captures
+          path: |
+            public/brand/product-captures/
+            docs/public-feature-workflow/luxury-correction/capture-provenance.json
+          retention-days: 14

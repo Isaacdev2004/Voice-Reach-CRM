@@ -1,4 +1,3 @@
-import "./feature-product-studio.css";
 import { publicAiLaunch } from "@/lib/billing/ai/launch";
 import Image from "next/image";
 import Link from "next/link";
