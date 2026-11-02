@@ -52,6 +52,12 @@ export function mapAuditRow(row: AuditRow): ActivityLogEntry | null {
     case "DASHBOARD_BRIEFING_READY":
       return entry(row, { category: "system", icon: "auto_awesome", tone: "default", title: "Your daily business briefing is ready.", body: "Open your dashboard to review verified priorities.", href: "/dashboard#morning-briefing" });
     case "VOICE_SCRIPT_DRAFT_DOCUMENT": return null; // Private draft persistence, not a business event.
+    case "PROPERTY_INTEREST_REVIEW_READY":
+      return entry(row,{category:"contacts",icon:"home_work",tone:"accent",alert:true,
+        title:"Property link interest is ready for review",
+        body:"Three separated visits on a recipient-specific MyARI link. Buyer identity is not verified. Review the draft before any outreach.",
+        href:typeof meta.campaignId === "string" ? "/dashboard/campaigns?edit="+meta.campaignId : "/dashboard/property-interest",
+        metadata:meta});
     case "PROPERTY_SEARCH_ACTION":
       return entry(row, {
         category: "contacts", icon: "home_work", tone: "default",

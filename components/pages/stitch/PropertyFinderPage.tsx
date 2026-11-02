@@ -1,4 +1,5 @@
 "use client";
+import PropertyInterestEntry from "@/components/property-interest/PropertyInterestEntry";
 
 import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -166,6 +167,7 @@ function PropertyFinderWorkspace({ownerId}: {ownerId?:string}) {
 
   return <div className="property-finder-page property-finder-premium">
     <PropertyFinderHero />
+    <PropertyInterestEntry contactId={mode === "client" ? contact?.id : undefined}/>
     <PropertySearchWorkspace mode={mode} onModeChange={setMode} contacts={contacts} loading={loading} selectedId={mode === "client" ? contact?.id ?? "" : ""} onSelectContact={pickContact} area={area} onAreaChange={changeArea} budget={budget} onBudgetChange={changeBudget} budgetNumber={budgetNumber} budgetError={parsedBudget.error} preferenceError={parsedPreferences.error} preferencesEditor={mode === "client" && contact ? <PropertyPreferencesEditor value={preferences} onChange={next => {draftVersion.current += 1;setPreferences(next);setSaved(false);}} error={parsedPreferences.error} /> : null} searchUrl={searchUrl} onSearch={() => void recordAction("search_requested")} saving={saving} saveError={saveError} saved={saved} onSave={() => void saveCriteria()} />
     {mode === "client" ? <div className="pf-client-tools">
       {contact ? <section className="pf-client-share" aria-label="Selected client and Zillow sharing"><PropertyLifestyleArt tile={6} className="pf-client-hero-art"/>

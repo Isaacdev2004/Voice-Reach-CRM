@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { MarketingScripts } from "@/components/marketing/marketing-scripts";
 import { Providers } from "@/components/providers";
@@ -43,16 +44,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const clerkPublishableKey = getClerkPublishableKey();
+  const privateIntroduction = (await headers()).get('x-myari-property-introduction') === '1';
+  const clerkPublishableKey = privateIntroduction ? undefined : getClerkPublishableKey();
 
   return (
     <html lang="en" className="light">
       <head>
+        {!privateIntroduction && <>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href={GOOGLE_FONTS_HREF} rel="stylesheet" />
@@ -60,10 +63,10 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"
           rel="stylesheet"
         />
+      </>}
       </head>
       <body className="font-sans antialiased">
-        <MarketingScripts />
-        <Providers publishableKey={clerkPublishableKey}>{children}</Providers>
+        {privateIntroduction ? children : <><MarketingScripts /><Providers publishableKey={clerkPublishableKey}>{children}</Providers></>}
       </body>
     </html>
   );
