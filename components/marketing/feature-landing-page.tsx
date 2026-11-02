@@ -118,6 +118,8 @@ export function FeatureLandingPage({ page }: { page: FeaturePageConfig }) {
                 width={image.width}
                 height={image.height}
                 sizes="(max-width:767px) 94vw, (max-width:1440px) 90vw, 1240px"
+                unoptimized
+                style={{ maxWidth: image.width / 2, marginInline: "auto" }}
               />
               <figcaption>
                 {showcase.caption}{" "}

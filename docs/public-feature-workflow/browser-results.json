@@ -1,0 +1,62 @@
+[
+  {
+    "width": 1440,
+    "height": 900,
+    "featureCards": 9,
+    "allLinksFunctional": true,
+    "featureSectionHeight": 616,
+    "horizontalOverflow": false,
+    "accessibilityViolations": 0,
+    "keyboardNavigation": "PASS",
+    "reducedMotion": "PASS",
+    "featuresPagePreserved": true
+  },
+  {
+    "width": 1366,
+    "height": 768,
+    "featureCards": 9,
+    "allLinksFunctional": true,
+    "featureSectionHeight": 616,
+    "horizontalOverflow": false,
+    "accessibilityViolations": 0,
+    "keyboardNavigation": "PASS",
+    "reducedMotion": "PASS",
+    "featuresPagePreserved": true
+  },
+  {
+    "width": 1280,
+    "height": 800,
+    "featureCards": 9,
+    "allLinksFunctional": true,
+    "featureSectionHeight": 616,
+    "horizontalOverflow": false,
+    "accessibilityViolations": 0,
+    "keyboardNavigation": "PASS",
+    "reducedMotion": "PASS",
+    "featuresPagePreserved": true
+  },
+  {
+    "width": 768,
+    "height": 900,
+    "featureCards": 9,
+    "allLinksFunctional": true,
+    "featureSectionHeight": 903,
+    "horizontalOverflow": false,
+    "accessibilityViolations": 0,
+    "keyboardNavigation": "PASS",
+    "reducedMotion": "PASS",
+    "featuresPagePreserved": true
+  },
+  {
+    "width": 390,
+    "height": 900,
+    "featureCards": 9,
+    "allLinksFunctional": true,
+    "featureSectionHeight": 1551,
+    "horizontalOverflow": false,
+    "accessibilityViolations": 0,
+    "keyboardNavigation": "PASS",
+    "reducedMotion": "PASS",
+    "featuresPagePreserved": true
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "key": "campaigns",
+    "src": "/brand/product-captures/campaigns.webp",
+    "width": 2880,
+    "height": 2172,
+    "bytes": 778870,
+    "fixture": "campaign-library-browser.test.cjs",
+    "dpr": 2,
+    "quality": 96
+  },
+  {
+    "key": "calendar",
+    "src": "/brand/product-captures/calendar.webp",
+    "width": 2272,
+    "height": 2272,
+    "bytes": 186498,
+    "fixture": "calendar-browser.test.cjs",
+    "dpr": 2,
+    "quality": 96
+  },
+  {
+    "key": "notes",
+    "src": "/brand/product-captures/notes.webp",
+    "width": 2192,
+    "height": 1308,
+    "bytes": 210504,
+    "fixture": "notes-browser.test.cjs",
+    "dpr": 2,
+    "quality": 96
+  },
+  {
+    "key": "financing",
+    "src": "/brand/product-captures/financing.webp",
+    "width": 2880,
+    "height": 1624,
+    "bytes": 460054,
+    "fixture": "financing-browser.test.cjs",
+    "dpr": 2,
+    "quality": 96
+  },
+  {
+    "key": "properties",
+    "src": "/brand/product-captures/properties.webp",
+    "width": 2320,
+    "height": 1290,
+    "bytes": 484312,
+    "fixture": "property-finder-browser.test.cjs",
+    "dpr": 2,
+    "quality": 96
+  },
+  {
+    "key": "tasks",
+    "src": "/brand/product-captures/tasks.webp",
+    "width": 2880,
+    "height": 1392,
+    "bytes": 302634,
+    "fixture": "tasks-browser.test.cjs",
+    "dpr": 2,
+    "quality": 96
+  }
+]
