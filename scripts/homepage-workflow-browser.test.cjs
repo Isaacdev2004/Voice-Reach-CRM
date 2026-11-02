@@ -19,7 +19,7 @@ const AxeBuilder = require("@axe-core/playwright").default;
       await page.goto(base+"/",{waitUntil:"networkidle"});
       await page.evaluate(()=>document.fonts.ready);
       const hero = page.locator(".features-hero");
-      assert.equal((await hero.locator("h1").innerText()).replace(/\\s+/g," ").trim(),"More than a CRM. A complete business partner.");
+      assert.equal((await hero.locator("h1").innerText()).replace(/\s+/g," ").trim(),"More than a CRM. A complete business partner.");
       assert.equal(await hero.locator(".public-eyebrow").innerText(),"BUILT FOR REAL ESTATE AGENTS");
       assert.ok((await hero.locator(".features-hero-photo").getAttribute("src")).includes("public-architectural-hero.webp"),"preserve original live coastal photograph");
       assert.equal(await hero.locator(".features-hero-photo").evaluate(img=>img.complete && img.naturalWidth>0),true);
