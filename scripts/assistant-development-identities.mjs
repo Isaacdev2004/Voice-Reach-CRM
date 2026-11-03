@@ -24,8 +24,9 @@ async function inspect() {
     });
     if (!response.ok) { accounts.push({ label, lookup: "unverified", status: response.status }); continue; }
     const payload = await response.json();
-    if (!Array.isArray(payload.data)) { accounts.push({ label, lookup: "unverified" }); continue; }
-    const matches = payload.data.filter(user => normalize([user.first_name, user.last_name].filter(Boolean).join(" ")) === normalize(label));
+    const users = Array.isArray(payload) ? payload : payload.data;
+    if (!Array.isArray(users)) { accounts.push({ label, lookup: "unverified" }); continue; }
+    const matches = users.filter(user => normalize([user.first_name, user.last_name].filter(Boolean).join(" ")) === normalize(label));
     accounts.push({ label, exactMatches: matches.length, users: matches.map(user => {
       const primary = user.email_addresses?.find(email => email.id === user.primary_email_address_id);
       return {
