@@ -1,5 +1,6 @@
 "use client";
 import { PremiumDraftLibrary } from "./premium-draft-library";
+import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -31,6 +32,11 @@ function CampaignsOwnerWorkspace() {
   }, [search]);
   return (
     <div className="campaigns-workspace">
+      <div className="flex justify-end px-2">
+        <Link href="/dashboard/delivery" className="cl-button">
+          Delivery Audit Log
+        </Link>
+      </div>
       <CampaignListPanel />
       <PremiumDraftLibrary />
       <details

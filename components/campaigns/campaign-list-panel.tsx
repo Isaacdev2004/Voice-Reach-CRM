@@ -407,7 +407,6 @@ function CampaignLibraryWorkspace({ ownerId }: { ownerId: string }) {
             ))}
           </div>
           <div className="cl-library-actions">
-            <Link href="/dashboard/delivery" className="cl-button">Delivery Audit Log</Link>
             <button
               aria-label="Import campaign"
               className="cl-button"

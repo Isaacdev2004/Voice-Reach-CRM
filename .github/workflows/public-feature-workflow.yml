@@ -1,0 +1,108 @@
+name: Public luxury baseline review
+on:
+  push:
+    branches: [feat/public-feature-workflow]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix /tmp/home-ui-tools --no-audit --no-fund playwright@1.56.1 @axe-core/playwright@4.10.2
+      - run: /tmp/home-ui-tools/node_modules/.bin/playwright install --with-deps chromium
+      - run: npm run build
+      - name: Test corrected pages
+        run: |
+          node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000 > /tmp/luxury-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then break; fi
+            sleep 1
+          done
+          NODE_PATH=/tmp/home-ui-tools/node_modules node scripts/homepage-workflow-browser.test.cjs
+          NODE_PATH=/tmp/home-ui-tools/node_modules node scripts/luxury-public-browser.test.cjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: public-luxury-corrected-desktop-tablet-mobile
+          path: docs/public-feature-workflow/
+          retention-days: 14
+  before:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          path: review
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 8e64dc4c7db7c26da8724d66ac2953cbbfe08b48
+          persist-credentials: false
+          path: baseline
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: baseline/package-lock.json
+      - run: npm ci
+        working-directory: baseline
+      - run: npm install --prefix /tmp/home-ui-tools --no-audit --no-fund playwright@1.56.1
+      - run: /tmp/home-ui-tools/node_modules/.bin/playwright install --with-deps chromium
+      - run: npm run build
+        working-directory: baseline
+      - name: Capture approved Production baseline
+        working-directory: baseline
+        run: |
+          node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000 > /tmp/luxury-baseline.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then break; fi
+            sleep 1
+          done
+          LUXURY_BASELINE=1 NODE_PATH=/tmp/home-ui-tools/node_modules node ../review/scripts/luxury-public-browser.test.cjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: public-luxury-production-baseline
+          path: baseline/docs/public-feature-workflow/luxury-correction/before/
+          retention-days: 14
+
+  compare:
+    needs: [browser, before]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: public-luxury-production-baseline
+          path: baseline
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: public-luxury-corrected-desktop-tablet-mobile
+          path: corrected
+      - name: Verify approved layout geometry and content
+        run: |
+          node <<'NODE'
+          const fs=require("fs"),assert=require("node:assert/strict");
+          const before=JSON.parse(fs.readFileSync("baseline/geometry.json"));
+          const after=JSON.parse(fs.readFileSync("corrected/luxury-correction/after/geometry.json"));
+          assert.equal(before.length,100);assert.equal(after.length,100);
+          for(const a of after){const b=before.find(b=>b.slug===a.slug&&b.width===a.width);assert.ok(b);
+          for(const region of ["hero","title"])for(const key of ["x","y","width","height"])assert.ok(Math.abs(a[region][key]-b[region][key])<=1,a.slug+" "+a.width+" "+region+" "+key);
+          assert.equal(a.copy,b.copy);assert.deepEqual(a.sections,b.sections);
+          const photo=s=>new URL(s,"http://localhost").searchParams.get("url")||s;
+          assert.equal(photo(a.photo),photo(b.photo));}
+          console.log("PASS: 100 feature-page layouts retain Production hero/title geometry, copy, section headings and original photographs. Product capture improvements are intentional.");
+          NODE

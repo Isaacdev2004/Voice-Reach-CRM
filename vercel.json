@@ -5,7 +5,9 @@
       "fix/assistant-production-readiness": false,
       "feat/myari-concierge": false,
       "feat/premium-auth-refresh": false,
-      "feat/premium-assistant-workspace": false
+      "release/luxury-mortgage-pdf-2": false,
+      "feat/public-feature-workflow": false,
+      "feat/contacts-csv-export": false
     }
   },
   "crons": [

@@ -1,43 +1,33 @@
 import { FeatureSymbol } from "./feature-symbol";
 import "./campaign-flowchart.css";
 
-/** An illustrative sequence, never a live campaign or a sending control. */
+const stages = [
+  { name: "Capture", icon: "contacts", body: "Add contacts manually or import an authorized CSV.", tool: "CRM & Contacts" },
+  { name: "Organize", icon: "notes", body: "Keep stages, notes, tasks and follow-up priorities together.", tool: "Notes · Tasks · Calendar" },
+  { name: "Nurture", icon: "campaign", body: "Prepare SMS, email and voicemail sequences for review.", tool: "Campaigns · Reviewed outreach" },
+  { name: "Convert", icon: "calendar", body: "Support opportunities with appointments and personal next steps.", tool: "Agent-led follow-through" },
+];
+
+/** Refines PR #50's illustrative flowchart; never a live campaign or automatic conversion. */
 export function CampaignFlowchart() {
-  return (
-    <figure className="campaign-flow" aria-labelledby="campaign-flow-title">
-      <header className="campaign-flow-heading">
-        <span className="campaign-flow-eyebrow">The art of staying connected</span>
-        <h3 id="campaign-flow-title">A thoughtful next step.<br /><em>Every time.</em></h3>
-        <span className="campaign-flow-example">Illustrative workflow</span>
-      </header>
-      <ol className="campaign-flow-path">
-        <li>
-          <div className="campaign-flow-node"><span className="campaign-flow-icon"><FeatureSymbol name="contacts" /></span><div><small>01 · A relationship begins</small><strong>New lead in your CRM</strong><p>Start with the details you know.</p></div></div>
-          <span className="campaign-flow-connector" aria-hidden="true" />
-        </li>
-        <li>
-          <div className="campaign-flow-node campaign-flow-review"><span className="campaign-flow-icon"><FeatureSymbol name="check" /></span><div><small>02 · Make it personal</small><strong>Review your sequence</strong><p>Choose the message, channels and timing.</p></div></div>
-          <span className="campaign-flow-connector" aria-hidden="true" />
-        </li>
-        <li>
-          <span className="campaign-flow-label">03 · Thoughtful touchpoints</span>
-          <div className="campaign-flow-channels">
-            <div><FeatureSymbol name="email" /><strong>Email</strong><small>A useful introduction</small></div>
-            <div><FeatureSymbol name="sms" /><strong>SMS</strong><small>A warm check-in</small></div>
-            <div><FeatureSymbol name="voice" /><strong>Voicemail</strong><small>A personal touch</small></div>
-          </div>
-          <span className="campaign-flow-timing"><FeatureSymbol name="calendar" /> Scheduled steps · your chosen timing</span>
-          <span className="campaign-flow-connector" aria-hidden="true" />
-        </li>
-        <li>
-          <div className="campaign-flow-decision"><span className="campaign-flow-diamond" aria-hidden="true">◇</span><div><small>04 · Keep the relationship first</small><strong>Check for a reply</strong></div></div>
-          <div className="campaign-flow-branches">
-            <div><span className="campaign-flow-branch-label">Reply received</span><strong>Respond personally</strong><p>Pause the sequence when configured.</p></div>
-            <div><span className="campaign-flow-branch-label">No reply yet</span><strong>Stay thoughtfully in touch</strong><p>Continue the next step only when permitted.</p></div>
-          </div>
-        </li>
-      </ol>
-      <figcaption><FeatureSymbol name="check" /> Review first. Consent required. You stay in control.</figcaption>
-    </figure>
-  );
+  return <figure className="campaign-flow" aria-labelledby="campaign-flow-title">
+    <header className="campaign-flow-heading">
+      <span className="campaign-flow-eyebrow">One connected workflow</span>
+      <h3 id="campaign-flow-title">From first connection<br /><em>to your next opportunity.</em></h3>
+    </header>
+    <ol className="campaign-flow-path" aria-label="Capture, organize, nurture and convert">
+      {stages.map((stage, index) => <li key={stage.name}>
+        <div className="campaign-flow-node">
+          <div className="campaign-flow-node-top"><span className="campaign-flow-icon"><FeatureSymbol name={stage.icon} /></span><span className="campaign-flow-number">{String(index + 1).padStart(2, "0")}</span></div>
+          <h4>{stage.name}</h4>
+          <p>{stage.body}</p>
+          <span className="campaign-flow-tool">{stage.tool}</span>
+        </div>
+        {index < stages.length - 1 && <span className="campaign-flow-connector" aria-hidden="true" />}
+      </li>)}
+    </ol>
+    <div className="campaign-flow-assistant"><span className="campaign-flow-icon"><FeatureSymbol name="ai" /></span><p><strong>MyARI Assistant, alongside you.</strong> Draft messages, summarize supplied notes and plan next steps—where configured and available to your account.</p></div>
+    <figcaption>Illustrative journey · Your relationships. Your decisions.</figcaption>
+    <p className="campaign-flow-note">Campaign sending requires your review, plan access, provider setup and consent.</p>
+  </figure>;
 }

@@ -1,6 +1,7 @@
 import { calculate, DISCLOSURE, usd, type Calculation } from "./calculators";
 import type { Partner, ReportContext } from "./schemas";
 export type Branding = {
+  pdfPreferences?: import("./pdf-preferences").MortgagePdfPreferences;
   logo?: string;
   email?: string;
   website?: string;

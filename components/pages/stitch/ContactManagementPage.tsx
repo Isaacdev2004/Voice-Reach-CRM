@@ -321,7 +321,11 @@ function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
         submitting={bulkSubmitting}
         error={bulkError}
       />
-      <ContactsLuxuryHero onRefresh={() => { void refresh(); void loadPulse(); }} />
+      <ContactsLuxuryHero onRefresh={() => { void refresh(); void loadPulse(); }} exportContext={{
+          filters: { q: state.q, search: state.search, segment: state.segment, category: state.category,
+            type: state.type, source: state.source, compliance: state.compliance, activity: state.activity, sort: state.sort },
+          selectedIds, ...(pulseFilterIds ? {viewIds:[...pulseFilterIds]} : {})
+        }} />
       <div className="contacts-kpi-grid">
         {[
           { id: "total", segment: "all" as const, label: "Total Contacts", value: total, icon: "group" },

@@ -1,4 +1,3 @@
-import { CampaignFlowchart } from "./campaign-flowchart";
 import { publicAiLaunch } from "@/lib/billing/ai/launch";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,6 +5,7 @@ import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { StartFreeButton } from "@/components/landing/start-free-button";
 import { FeatureSymbol } from "@/components/marketing/feature-symbol";
 import { ProductShowcase } from "@/components/marketing/product-showcase";
+import { CampaignFlowchart } from "@/components/marketing/campaign-flowchart";
 import {
   WalkthroughProvider,
   WalkthroughButton,
@@ -73,6 +73,19 @@ const tools = [
     body: "Keep important details and your next steps connected to each relationship.",
   },
 ];
+const homeDescriptions: Record<string, string> = {
+  "lead-management": "Keep contacts, conversations and opportunities organized.",
+  "campaign-builder": "Plan reviewed SMS, email and voicemail follow-up.",
+  "ai-assistant": "Draft messages, summarize notes and plan your next step.",
+  "calendar-and-tasks": "Appointments, tasks and reminders in one workspace.",
+  "voice-studio": "Write and record scripts; review audio before campaign use.",
+  "analytics": "Review recorded activity and available delivery evidence.",
+  "property-finder": "Save buyer preferences and open tailored Zillow searches.",
+  "mortgage-calculator": "Compare illustrative payments and financing scenarios.",
+  "notes-and-strategy": "Capture client details, ideas and agreed next steps."
+};
+const homeCapabilities = [...capabilities, ...tools.map((tool, index) => ({ ...tool, icon: ["home", "calculator", "notes"][index] }))].map(capability => ({ ...capability, body: homeDescriptions[capability.slug] ?? capability.body }));
+
 export function PublicProductExperience({ home = false }: { home?: boolean }) {
   return (
     <WalkthroughProvider>
@@ -85,7 +98,7 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             ])}
           />
         )}
-        <div className="premium-features">
+        <div className={home ? "premium-features premium-home-features" : "premium-features"}>
           <section className="features-hero" aria-labelledby="features-title">
             <Image
               className="features-hero-photo"
@@ -98,13 +111,23 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             <div className="features-hero-fade" />
             <div className="landing-shell features-hero-inner">
               <div className="features-hero-copy">
-                {home && <p className="public-eyebrow">Built for real estate agents</p>}
+                {home && (
+                  <p className="public-eyebrow">BUILT FOR REAL ESTATE AGENTS</p>
+                )}
                 <h1 id="features-title">
-                  {home ? <>More than a CRM.<br />A complete business partner.</> : "Everything you need to turn follow-up into opportunity."}
+                  {home ? (
+                    <>
+                      More than a CRM.
+                      <br />
+                      A complete business partner.
+                    </>
+                  ) : (
+                    "Everything you need to turn follow-up into opportunity."
+                  )}
                 </h1>
                 <p className="features-hero-description">
                   One beautifully connected workspace to manage relationships,
-                  automate outreach, and keep your real estate business moving.
+                  automate follow-up, and keep your real estate business moving.
                 </p>
                 <div className="public-actions">
                   <StartFreeButton
@@ -152,7 +175,7 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             aria-labelledby="core-title"
           >
             <div className="public-section-intro">
-              <p className="public-eyebrow">Core capabilities</p>
+              <p className="public-eyebrow">{home ? "Explore MyARI’s Features" : "Core capabilities"}</p>
               <h2 id="core-title">A complete real estate workspace.</h2>
               <p>
                 Powerful tools designed to help you save time, stay connected,
@@ -170,8 +193,8 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
                 <a href="#productivity">Productivity</a>
               </nav>
             )}
-            <div className="features-core-grid">
-              {capabilities.map((c) => (
+            <div className={home ? "features-core-grid home-feature-grid" : "features-core-grid"}>
+              {(home ? homeCapabilities : capabilities).map((c) => (
                 <Link
                   href={`/features/${c.slug}`}
                   key={c.slug}
@@ -267,7 +290,8 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
             aria-labelledby="followup-title"
           >
             <div className="landing-shell features-split">
-              {home ? <CampaignFlowchart /> : <figure className="features-contact-capture">
+              {home ? <CampaignFlowchart /> : (
+              <figure className="features-contact-capture">
                 <Image
                   src="/brand/product-captures/contacts.webp"
                   alt="MyARI Contacts table and selected contact details using synthetic demo records"
@@ -278,9 +302,10 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
                 <figcaption>
                   Actual Contacts workspace · Synthetic demo records
                 </figcaption>
-              </figure>}
+              </figure>
+              )}
               <div className="features-editorial-copy">
-                <p className="public-eyebrow">Follow-up that works</p>
+                <p className="public-eyebrow">{home ? "See how MyARI works together" : "Follow-up that works"}</p>
                 <h2 id="followup-title">
                   Stay connected,
                   <br /> effortlessly.
@@ -362,13 +387,13 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
           )}
           <section
             id="productivity"
-            className="features-agent-tools landing-shell"
+            className={home ? "features-agent-tools landing-shell home-productivity-bridge" : "features-agent-tools landing-shell"}
             aria-labelledby="agent-tools-title"
           >
             <div className="features-editorial-copy">
-              {!home && <p className="public-eyebrow">Built for real estate agents</p>}
+              <p className="public-eyebrow">Built for real estate agents</p>
               <h2 id="agent-tools-title">
-                {home ? "Everything you need to turn follow-up into opportunity." : <>More than a CRM.<br />A complete business partner.</>}
+                {home ? "Your next steps, beautifully connected." : <>More than a CRM.<br />A complete business partner.</>}
               </h2>
               <p>
                 From planning a showing to preparing a client conversation, keep
@@ -381,7 +406,7 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
                 Explore the Workspace <span aria-hidden>→</span>
               </a>
             </div>
-            <div className="features-tools-grid">
+            {!home && <div className="features-tools-grid">
               {tools.map((t) => (
                 <Link
                   key={t.slug}
@@ -405,7 +430,7 @@ export function PublicProductExperience({ home = false }: { home?: boolean }) {
                   </div>
                 </Link>
               ))}
-            </div>
+            </div>}
           </section>
           {!home && (
             <section

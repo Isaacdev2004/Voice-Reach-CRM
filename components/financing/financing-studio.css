@@ -1021,3 +1021,13 @@ html[data-dashboard-route="mortgage"] .dashboard-hero-copy h1 {
     margin-top: 4px;
   }
 }
+.fc-pdf-tools {display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+.fc-pdf-tools label {display:flex;gap:8px;align-items:center;font-size:14px;color:#5c4936;}
+.fc-pdf-tools select {border:1px solid #dfd3c2;border-radius:10px;background:#fffaf2;padding:10px;}
+.fc-pdf-frame {width:100%;height:65vh;min-height:300px;border:1px solid #ded3c2;border-radius:12px;background:#eee8df;}
+.fc-luxury-pdf-modal {max-width:960px!important;}
+.fc-luxury-pdf-modal .fc-actions {display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:16px 0;}
+.fc-luxury-pdf-modal .fc-actions a {color:#825637;text-decoration:underline;}
+.fc-luxury-pdf-modal .fc-primary {min-height:44px;background:#956b48;color:white;border:0;border-radius:12px;padding:10px 20px;}
+.fc-pdf-assumptions {padding:14px;border:1px solid #e7dccb;border-radius:12px;background:#fcf8f0;margin:14px 0;}
+@media(max-width:600px){.fc-pdf-tools {align-items:flex-start;flex-direction:column;}.fc-pdf-frame {height:50vh;}.fc-luxury-pdf-modal .fc-actions>* {min-height:44px;}}

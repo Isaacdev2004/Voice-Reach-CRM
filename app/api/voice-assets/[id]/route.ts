@@ -16,7 +16,6 @@ const PatchSchema = z.object({
       transcript: z.string().max(5000).optional(),
       source: z.enum(["human", "upload", "ai"]).optional(),
       archived: z.boolean().optional(),
-      category: z.string().trim().min(1).max(80).optional(),
     })
     .optional(),
 });
@@ -39,7 +38,7 @@ export const PATCH = withApiHandler<RouteContext>(async (request, context) => {
   if (!current.data) return apiError("Recording not found.", { status: 404 });
   if (
     body.studioMetadata &&
-    Object.keys(body.studioMetadata).some((k) => k !== "archived" && k !== "category") &&
+    Object.keys(body.studioMetadata).some((k) => k !== "archived") &&
     current.data.approved
   )
     return apiError(

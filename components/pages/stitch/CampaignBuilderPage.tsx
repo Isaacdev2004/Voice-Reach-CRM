@@ -50,10 +50,6 @@ export function CampaignBuilderPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const editId = searchParams.get("edit");
-  const premium = searchParams.get("premium");
-  const newRequest = searchParams.get("new");
-  const stepRequest = searchParams.get("step");
-  const [loadedSourceId, setLoadedSourceId] = useState<string | null>(null);
 
   const [campaign, setCampaign] = useState<CampaignDefinition>(() =>
     createBlankCampaign(),
@@ -115,9 +111,10 @@ export function CampaignBuilderPage() {
   );
 
   useEffect(() => {
+    const premium=searchParams.get("premium");
     const draft=premium?PREMIUM_CAMPAIGN_DRAFTS.find(d=>d.revisionKey===premium):null;
     if(draft && !editId){setCampaign({...structuredClone(draft),id:`review-${crypto.randomUUID()}`,steps:draft.steps.map(s=>({...s,id:crypto.randomUUID()}))});setDbCampaignId(null);setCampaignStatus("editing");router.replace("/dashboard/campaigns#campaign-builder",{scroll:false});return;}
-    if (newRequest === "1") {
+    if (searchParams.get("new") === "1") {
       resetToNewCampaign();
       router.replace("/dashboard/campaigns#campaign-builder", {
         scroll: false,
@@ -185,7 +182,6 @@ export function CampaignBuilderPage() {
         );
       }
       setCampaign(loaded);
-      setLoadedSourceId(editId);
       setDbCampaignId(
         envelope.data.campaign.status === "draft" && !envelope.data.runs?.length
           ? envelope.data.campaign.id
@@ -197,16 +193,7 @@ export function CampaignBuilderPage() {
     return () => {
       cancelled = true;
     };
-  }, [editId, newRequest, premium, resetToNewCampaign, router, voiceLookup]);
-
-  useEffect(() => {
-    if (!stepRequest || loadedSourceId !== editId || loadingCampaign) return;
-    const selectedStep = campaign.steps.find((step) => step.id === stepRequest);
-    if (selectedStep) setEditingStep(selectedStep);
-    const query = new URLSearchParams(searchParams.toString());
-    query.delete("step");
-    router.replace(`/dashboard/campaigns?${query.toString()}#campaign-builder`, { scroll: false });
-  }, [campaign.steps, editId, loadedSourceId, loadingCampaign, router, searchParams, stepRequest]);
+  }, [editId, resetToNewCampaign, router, searchParams, voiceLookup]);
 
   useEffect(() => {
     if (!voiceLookup.size) return;

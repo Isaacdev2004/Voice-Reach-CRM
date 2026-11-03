@@ -19,8 +19,8 @@ export const PRODUCT_CAPTURES = {
   campaigns: {
     src: "/brand/product-captures/campaigns.webp",
     alt: "Actual MyARI Campaign library with synthetic demo records",
-    width: 1440,
-    height: 1086,
+    width: 2880,
+    height: 2172,
     variant: "capture",
   },
   builder: {
@@ -47,8 +47,8 @@ export const PRODUCT_CAPTURES = {
   calendar: {
     src: "/brand/product-captures/calendar.webp",
     alt: "Actual MyARI Seven-day hourly Calendar with synthetic demo records",
-    width: 700,
-    height: 700,
+    width: 2272,
+    height: 2272,
     variant: "capture",
   },
   assistant: {
@@ -68,29 +68,29 @@ export const PRODUCT_CAPTURES = {
   tasks: {
     src: "/brand/product-captures/tasks.webp",
     alt: "Actual MyARI Tasks and follow-up workspace with synthetic demo records",
-    width: 1240,
-    height: 600,
+    width: 2880,
+    height: 1392,
     variant: "capture",
   },
   notes: {
     src: "/brand/product-captures/notes.webp",
     alt: "Actual MyARI Notes and linked planning workspace with synthetic demo records",
-    width: 1155,
-    height: 690,
+    width: 2192,
+    height: 1308,
     variant: "capture",
   },
   properties: {
     src: "/brand/product-captures/properties.webp",
     alt: "Actual MyARI Property Finder and saved buyer searches with synthetic demo records",
-    width: 1240,
-    height: 690,
+    width: 2320,
+    height: 1290,
     variant: "capture",
   },
   financing: {
     src: "/brand/product-captures/financing.webp",
     alt: "Actual MyARI Financing and mortgage estimation workspace with synthetic demo records",
-    width: 1240,
-    height: 700,
+    width: 2880,
+    height: 1624,
     variant: "capture",
   },
 } as const satisfies Record<string, HeroImage>;

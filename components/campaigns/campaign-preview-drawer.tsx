@@ -333,12 +333,6 @@ export function CampaignPreviewDrawer({
                               stepName={`Step ${i + 1} · ${s.title}`}
                             />
                           )}
-                          {!templatePreview && s.type === "email" && (
-                            <Link className="cl-button" onClick={onClose}
-                              href={`/dashboard/campaigns?edit=${campaign.id}&step=${encodeURIComponent(s.id)}#campaign-builder`}>
-                              Edit email
-                            </Link>
-                          )}
                           <details>
                             <summary>Message preview</summary>
                             <div className="cl-message">
@@ -520,7 +514,6 @@ export function CampaignPreviewDrawer({
               </Link>
               <Link
                 className="cl-button"
-                onClick={onClose}
                 href={`/dashboard/campaigns?edit=${campaign.id}#campaign-builder`}
               >
                 Edit

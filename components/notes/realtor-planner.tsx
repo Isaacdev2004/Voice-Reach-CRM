@@ -122,7 +122,7 @@ export function RealtorPlanner({
     <section className="notes-planner">
       <div className="notes-panel-heading">
         <h3>AI Realtor Planner</h3>
-        <button onClick={onTemplate}>
+        <button disabled={readOnly} onClick={onTemplate}>
           Templates
         </button>
       </div>
