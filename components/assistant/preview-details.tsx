@@ -2,13 +2,28 @@
 import { WorkspaceIcon } from "./workspace-icon";
 import { StructuredData } from "./source-results";
 import type { Proposal } from "@/lib/assistant/schema";
+import type { DraftPersonalization } from "@/lib/assistant/sender-personalization";
 const value = (x: unknown) =>
   typeof x === "string" || typeof x === "number" ? String(x) : "";
 export function PreviewDetails({ proposal: p }: { proposal: Proposal }) {
   const a = p.action,
     c = p.preview.contact as { name?: string; href?: string } | undefined;
+  const personalization = p.preview.personalization as DraftPersonalization | undefined;
+  const missing = Array.isArray(personalization?.missingFields) ? personalization.missingFields : [];
+  const notices = Array.isArray(personalization?.notices) ? personalization.notices : [];
   return (
     <div className="assistant-preview-details">
+      {personalization ? (
+        <section className="aw-review-note" aria-label="Agent personalization">
+          <strong>Your agent details</strong>
+          <p>Available sender fields use your saved MyARI settings. Review and edit the draft before saving. Recipient merge fields remain for campaign delivery.</p>
+          {missing.length > 0 && (
+            <p role="status">Complete in Brand Kit or edit this draft: {missing.join(", ")}.</p>
+          )}
+          {notices.map((notice, i) => <p key={i}>{notice}</p>)}
+          <a href="/dashboard/settings?tab=brand">Review Brand Kit</a>
+        </section>
+      ) : null}
       {c?.name && (
         <p>
           <strong>Contact:</strong>{" "}
