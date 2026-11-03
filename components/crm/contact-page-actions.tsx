@@ -2,14 +2,17 @@
 
 import { AddContactModal } from "@/components/crm/add-contact-modal";
 import { ImportCsvModal } from "@/components/crm/import-csv-modal";
+import { ExportContactsModal, type ContactExportContext } from "./export-contacts-modal";
 import { useState } from "react";
 
 type ContactPageActionsProps = {
   onRefresh?: () => void;
+  exportContext?: ContactExportContext;
   variant?: "header" | "compact";
 };
 
-export function ContactPageActions({ onRefresh, variant = "header" }: ContactPageActionsProps) {
+export function ContactPageActions({ onRefresh, exportContext, variant = "header" }: ContactPageActionsProps) {
+  const [exportOpen, setExportOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
 
@@ -34,6 +37,10 @@ export function ContactPageActions({ onRefresh, variant = "header" }: ContactPag
           <span aria-hidden="true" className="material-symbols-outlined text-[20px]">upload</span>
           Import CSV
         </button>
+        <button type="button" className={`${btnSecondary} w-full justify-center sm:w-auto`} onClick={() => setExportOpen(true)}>
+          <span aria-hidden="true" className="material-symbols-outlined text-[20px]">download</span>
+          Export CSV
+        </button>
         <button
           type="button"
           className={`${btnPrimary} order-first w-full justify-center sm:order-none sm:w-auto`}
@@ -44,6 +51,7 @@ export function ContactPageActions({ onRefresh, variant = "header" }: ContactPag
         </button>
       </div>
 
+      <ExportContactsModal open={exportOpen} onClose={() => setExportOpen(false)} context={exportContext} />
       <AddContactModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
