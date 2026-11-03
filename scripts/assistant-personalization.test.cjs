@@ -82,7 +82,7 @@ test("standalone voice, SMS and email use the same sender resolution", async () 
 test("unknown/recipient fields, literal edits, and empty fields are not fabricated", () => {
   const { model } = setup();
   const sender = { values: { agentName: "Avery Agent" }, sources: {}, notices: [] };
-  const source = "{{contact.firstName}} [FirstName] {{first_name}} [Phone Number] {{contact.phone}} [Comp1Address] Manual signature";
+  const source = "{{contact.firstName}} [FirstName] {{first_name}} [Phone Number] {{contact.phone}} [Comp1Address] [constructor] [__proto__] Manual signature";
   assert.equal(model.personalizeSenderText(source, sender).value, source);
   assert.match(model.personalizeSenderText("[Brokerage]", sender).value, /Complete: brokerage name/);
 });

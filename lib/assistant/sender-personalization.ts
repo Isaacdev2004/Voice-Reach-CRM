@@ -78,7 +78,7 @@ export function personalizeSenderText(text: string, sender: SenderDetails) {
     const completed = raw.match(/^Complete:\s*(.+)$/i);
     const field = completed
       ? (Object.keys(SENDER_LABELS) as SenderField[]).find(f => SENDER_LABELS[f] === completed[1])
-      : aliases[key(raw)];
+      : Object.hasOwn(aliases, key(raw)) ? aliases[key(raw)] : undefined;
     if (!field) return match; // Contact and unknown/manual tokens stay byte-for-byte intact.
     used.add(field);
     const value = sender.values[field];
