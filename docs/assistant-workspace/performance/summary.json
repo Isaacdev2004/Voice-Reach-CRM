@@ -1,0 +1,127 @@
+{
+  "scope": "Synthetic local browser profiling of actual UI; production React; 4x CPU slowdown. Not field INP or authenticated hosted acceptance.",
+  "controlledDecisionWaitMs": 1000,
+  "before": [
+    {
+      "width": 1440,
+      "cpuSlowdown": 4,
+      "nativeDialogDecisionDelayMs": 1000,
+      "newChatPaintMs": [
+        1021.0999999996275
+      ],
+      "maxEventMs": 48,
+      "maxLongTaskMs": 1021,
+      "typingMaxAutomationMs": 29
+    },
+    {
+      "width": 768,
+      "cpuSlowdown": 4,
+      "nativeDialogDecisionDelayMs": 1000,
+      "newChatPaintMs": [
+        1023.8000000007451
+      ],
+      "maxEventMs": 40,
+      "maxLongTaskMs": 1021,
+      "typingMaxAutomationMs": 24
+    },
+    {
+      "width": 390,
+      "cpuSlowdown": 4,
+      "nativeDialogDecisionDelayMs": 1000,
+      "newChatPaintMs": [
+        1021.7000000001863
+      ],
+      "maxEventMs": 32,
+      "maxLongTaskMs": 1022,
+      "typingMaxAutomationMs": 22
+    }
+  ],
+  "after": [
+    {
+      "width": 1440,
+      "cpuSlowdown": 4,
+      "nativeDialogDecisionDelayMs": 1000,
+      "newChatPaintMs": [
+        22.399999999441206
+      ],
+      "maxEventMs": 48,
+      "maxLongTaskMs": 161,
+      "typingMaxAutomationMs": 63
+    },
+    {
+      "width": 768,
+      "cpuSlowdown": 4,
+      "nativeDialogDecisionDelayMs": 1000,
+      "newChatPaintMs": [
+        20.399999999441206
+      ],
+      "maxEventMs": 48,
+      "maxLongTaskMs": 151,
+      "typingMaxAutomationMs": 22
+    },
+    {
+      "width": 390,
+      "cpuSlowdown": 4,
+      "nativeDialogDecisionDelayMs": 1000,
+      "newChatPaintMs": [
+        27.799999999813735
+      ],
+      "maxEventMs": 48,
+      "maxLongTaskMs": 177,
+      "typingMaxAutomationMs": 26
+    }
+  ],
+  "afterCampaign": [
+    {
+      "width": 1440,
+      "cpuSlowdown": 4,
+      "nativeDialogDecisionDelayMs": 1000,
+      "newChatPaintMs": [
+        193.69999999925494
+      ],
+      "maxEventMs": 280,
+      "maxLongTaskMs": 303,
+      "typingMaxAutomationMs": 117,
+      "campaignToggleAutomationMs": 123,
+      "proposalTypingAutomationMs": 509,
+      "scroll": {
+        "paintMs": 79.20000000018626,
+        "outerScroll": 0
+      }
+    },
+    {
+      "width": 768,
+      "cpuSlowdown": 4,
+      "nativeDialogDecisionDelayMs": 1000,
+      "newChatPaintMs": [
+        22.899999999441206
+      ],
+      "maxEventMs": 104,
+      "maxLongTaskMs": 255,
+      "typingMaxAutomationMs": 194,
+      "campaignToggleAutomationMs": 35,
+      "proposalTypingAutomationMs": 170,
+      "scroll": {
+        "paintMs": 18.5,
+        "outerScroll": 0
+      }
+    },
+    {
+      "width": 390,
+      "cpuSlowdown": 4,
+      "nativeDialogDecisionDelayMs": 1000,
+      "newChatPaintMs": [
+        28.799999999813735
+      ],
+      "maxEventMs": 48,
+      "maxLongTaskMs": 199,
+      "typingMaxAutomationMs": 36,
+      "campaignToggleAutomationMs": 58,
+      "proposalTypingAutomationMs": 188,
+      "scroll": {
+        "paintMs": 18.09999999962747,
+        "outerScroll": 0
+      }
+    }
+  ]
+}

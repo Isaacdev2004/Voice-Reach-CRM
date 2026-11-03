@@ -59,7 +59,13 @@ const TONES: {
   { id: "concise", label: "Concise" },
 ];
 
-function LegacyAiAssistantSidebar() {
+function LegacyAiAssistantSidebar({
+  embedded = false,
+  onReturn,
+}: {
+  embedded?: boolean;
+  onReturn?: () => void;
+}) {
   const { state, closeAssistant, setBrief, setTask } = useAiAssistant();
   const { user } = useUser();
   const ownerRef = useRef(user?.id);
@@ -71,21 +77,19 @@ function LegacyAiAssistantSidebar() {
     state.context.tone ?? "luxury",
   );
   const [copied, setCopied] = useState(false);
+  const [resultProvider, setResultProvider] = useState("");
 
   useEffect(() => {
     ownerRef.current = user?.id;
     pending.current?.abort();
     setLoading(false);
     setResult(null);
-    if (state.open) {
-      setResult(null);
-      setError(null);
-      setTone(state.context.tone ?? "luxury");
-    }
+    setError(null);
+    setTone(state.context.tone ?? "luxury");
     return () => {
       pending.current?.abort();
     };
-  }, [state.open, state.task, state.context.tone, user?.id]);
+  }, [state.task, state.context.tone, user?.id]);
 
   const run = async () => {
     const owner = user?.id;
@@ -144,6 +148,7 @@ function LegacyAiAssistantSidebar() {
       setError("We couldn't generate a suggestion. Please try again.");
       return;
     }
+    setResultProvider(envelope.data?.provider ?? "Provider not confirmed");
     setResult(out);
   };
 
@@ -160,12 +165,142 @@ function LegacyAiAssistantSidebar() {
     }
   };
 
+  const content = (
+    <div className="space-y-5">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
+          Choose a task
+        </p>
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {TASKS.map((t) => {
+            const active = t.id === state.task;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTask(t.id)}
+                className={cn(
+                  "rounded-xl border px-3 py-3 text-left transition-all",
+                  active
+                    ? "border-rose-gold/60 bg-champagne shadow-sm"
+                    : "border-outline-variant/15 hover:border-rose-gold/30",
+                )}
+              >
+                <p className="text-[13px] font-medium text-ink">{t.label}</p>
+                <p className="mt-0.5 text-[11px] text-taupe">{t.description}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
+          Tone
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {TONES.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTone(t.id)}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors",
+                tone === t.id
+                  ? "border-rose-gold bg-rose-gold/15 text-rose-gold-deep"
+                  : "border-outline-variant/30 text-taupe hover:bg-cream",
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {state.context.contactName ? (
+        <p className="rounded-xl bg-champagne/40 px-3 py-2 text-[12px] text-taupe">
+          Context:{" "}
+          <span className="font-medium text-ink">
+            {state.context.contactName}
+          </span>
+        </p>
+      ) : null}
+
+      <div>
+        <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
+          Brief (optional)
+        </label>
+        <textarea
+          value={state.brief ?? ""}
+          onChange={(e) => setBrief(e.target.value)}
+          rows={3}
+          placeholder="E.g. The client just toured a new listing - follow up gently."
+          className="mt-2 w-full rounded-xl border border-outline-variant/30 bg-ivory px-3 py-2 text-[14px] outline-none focus:border-rose-gold"
+        />
+      </div>
+
+      {error ? (
+        <p className="rounded-xl border border-error/30 bg-error/5 px-3 py-2 text-[13px] text-error">
+          {error}
+        </p>
+      ) : null}
+
+      {result ? (
+        <div className="rounded-2xl border border-outline-variant/15 bg-cream p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-taupe">
+              Draft · {resultProvider}
+            </p>
+            <button
+              type="button"
+              onClick={() => void copyOutput()}
+              className="text-[12px] font-medium text-rose-gold-deep hover:underline"
+            >
+              {copied ? "Copied!" : "Copy"}
+            </button>
+          </div>
+          <AiResultPanel
+            task={state.task}
+            output={result}
+            contactId={state.context.contactId}
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+  if (embedded)
+    return (
+      <section
+        className="assistant-legacy-content"
+        aria-label="Claude draft tools"
+      >
+        <header>
+          <h2>Claude draft tools</h2>
+          <p>
+            Standalone draft generation. These tools do not share chat messages
+            or approve CRM actions.
+          </p>
+          <button className="assistant-primary" onClick={onReturn}>
+            ← Return to Assistant
+          </button>
+        </header>
+        {content}
+        <ModalFooterActions
+          onCancel={onReturn ?? closeAssistant}
+          cancelLabel="Return to Assistant"
+          primaryLabel={loading ? "Generating…" : "Generate draft"}
+          onPrimary={() => void run()}
+          primaryDisabled={loading}
+          primaryLoading={loading}
+        />
+      </section>
+    );
   return (
     <Modal
       open={state.open}
       onClose={closeAssistant}
       title="MyARI AI"
-      description="Relationship copilot - pick a task and generate a draft."
+      description="Relationship copilot — prepare a draft."
       size="lg"
       footer={
         <ModalFooterActions
@@ -178,119 +313,29 @@ function LegacyAiAssistantSidebar() {
         />
       }
     >
-      <div className="space-y-5">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
-            Choose a task
-          </p>
-          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {TASKS.map((t) => {
-              const active = t.id === state.task;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setTask(t.id)}
-                  className={cn(
-                    "rounded-xl border px-3 py-3 text-left transition-all",
-                    active
-                      ? "border-rose-gold/60 bg-champagne shadow-sm"
-                      : "border-outline-variant/15 hover:border-rose-gold/30",
-                  )}
-                >
-                  <p className="text-[13px] font-medium text-ink">{t.label}</p>
-                  <p className="mt-0.5 text-[11px] text-taupe">
-                    {t.description}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
-            Tone
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {TONES.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTone(t.id)}
-                className={cn(
-                  "rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors",
-                  tone === t.id
-                    ? "border-rose-gold bg-rose-gold/15 text-rose-gold-deep"
-                    : "border-outline-variant/30 text-taupe hover:bg-cream",
-                )}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {state.context.contactName ? (
-          <p className="rounded-xl bg-champagne/40 px-3 py-2 text-[12px] text-taupe">
-            Context:{" "}
-            <span className="font-medium text-ink">
-              {state.context.contactName}
-            </span>
-          </p>
-        ) : null}
-
-        <div>
-          <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-taupe">
-            Brief (optional)
-          </label>
-          <textarea
-            value={state.brief ?? ""}
-            onChange={(e) => setBrief(e.target.value)}
-            rows={3}
-            placeholder="E.g. The client just toured a new listing - follow up gently."
-            className="mt-2 w-full rounded-xl border border-outline-variant/30 bg-ivory px-3 py-2 text-[14px] outline-none focus:border-rose-gold"
-          />
-        </div>
-
-        {error ? (
-          <p className="rounded-xl border border-error/30 bg-error/5 px-3 py-2 text-[13px] text-error">
-            {error}
-          </p>
-        ) : null}
-
-        {result ? (
-          <div className="rounded-2xl border border-outline-variant/15 bg-cream p-4">
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-[12px] font-semibold uppercase tracking-wider text-taupe">
-                Suggestion
-              </p>
-              <button
-                type="button"
-                onClick={() => void copyOutput()}
-                className="text-[12px] font-medium text-rose-gold-deep hover:underline"
-              >
-                {copied ? "Copied!" : "Copy"}
-              </button>
-            </div>
-            <AiResultPanel
-              task={state.task}
-              output={result}
-              contactId={state.context.contactId}
-            />
-          </div>
-        ) : null}
-      </div>
+      {content}
     </Modal>
   );
 }
 
 export function AiAssistantSidebar() {
   const { user } = useUser();
-  return <AssistantVersion key={user?.id ?? "signed-out"} owner={user?.id} />;
+  return (
+    <AssistantVersion
+      key={user?.id ?? "signed-out"}
+      owner={user?.id}
+      firstName={user?.firstName ?? undefined}
+    />
+  );
 }
-function AssistantVersion({ owner }: { owner?: string }) {
-  const { state, openAssistant } = useAiAssistant(),
+function AssistantVersion({
+  owner,
+  firstName,
+}: {
+  owner?: string;
+  firstName?: string;
+}) {
+  const { openAssistant } = useAiAssistant(),
     [enabled, setEnabled] = useState(false),
     [legacy, setLegacy] = useState(false);
   useEffect(() => {
@@ -312,16 +357,18 @@ function AssistantVersion({ owner }: { owner?: string }) {
     window.addEventListener("myari-assistant-open", open);
     return () => window.removeEventListener("myari-assistant-open", open);
   }, [openAssistant]);
-  return enabled && owner && !legacy ? (
-    <OperatingAssistant owner={owner} onLegacy={() => setLegacy(true)} />
+  return enabled && owner ? (
+    <OperatingAssistant
+      owner={owner}
+      firstName={firstName}
+      onLegacy={() => setLegacy(true)}
+      legacyOpen={legacy}
+      onReturn={() => setLegacy(false)}
+      legacyContent={
+        <LegacyAiAssistantSidebar embedded onReturn={() => setLegacy(false)} />
+      }
+    />
   ) : (
-    <>
-      <LegacyAiAssistantSidebar />
-      {enabled && legacy && state.open && (
-        <button className="assistant-return" onClick={() => setLegacy(false)}>
-          Return to Assistant 2.0
-        </button>
-      )}
-    </>
+    <LegacyAiAssistantSidebar />
   );
 }

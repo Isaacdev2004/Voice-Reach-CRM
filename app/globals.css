@@ -1,3 +1,4 @@
+@import "../components/assistant/workspace.css";
 @import "tailwindcss";
 @import "./dashboard-luxury.css";
 @import "./contacts-luxury.css";

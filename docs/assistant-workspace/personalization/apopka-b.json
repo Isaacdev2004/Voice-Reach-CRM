@@ -1,0 +1,27 @@
+{
+  "kind": "campaign",
+  "name": "Apopka buyer follow-up",
+  "audience": "Apopka buyers",
+  "description": "Three thoughtful buyer follow-ups for review",
+  "durationDays": 7,
+  "steps": [
+    {
+      "type": "sms",
+      "day": 1,
+      "title": "Apopka introduction",
+      "description": "Hi {{contact.firstName}}, this is Casey Agent with Casey Realty. Call +15555550222 about Apopka homes. Reply STOP to opt out."
+    },
+    {
+      "type": "email",
+      "day": 3,
+      "title": "Apopka options from Casey Agent",
+      "description": "Subject: Your Apopka search\n\nHi {{first_name}}, Casey Agent at Casey Realty here. Reach me at casey@example.test or +15555550222. Visit https://casey.example.test."
+    },
+    {
+      "type": "voicemail",
+      "day": 7,
+      "title": "Apopka check-in",
+      "description": "Hi [FirstName], Casey Agent with Casey Realty. Call +15555550222."
+    }
+  ]
+}

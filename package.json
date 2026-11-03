@@ -50,7 +50,7 @@
     "test:public-polish": "node scripts/public-polish-browser.test.cjs",
     "test:pricing-billing": "node scripts/pricing-billing.test.cjs",
     "test:campaign-premium": "node scripts/campaign-premium.test.cjs",
-    "test:assistant": "node scripts/assistant-operating.test.cjs && node scripts/assistant-production-connectivity-check.test.mjs",
+    "test:assistant": "node scripts/assistant-operating.test.cjs && node scripts/assistant-production-connectivity-check.test.mjs && npm run test:assistant-workspace && npm run test:assistant-personalization",
     "test:ai-pricing": "node scripts/ai-pricing.test.cjs",
     "test:ai-usage-db": "node scripts/ai-usage-database.test.cjs",
     "test:assistant-browser": "node scripts/assistant-browser.test.cjs",
@@ -61,7 +61,11 @@
     "test:concierge-db": "node scripts/concierge-database.test.cjs",
     "test:concierge-browser": "node scripts/concierge-browser.test.cjs",
     "test:mortgage-pdf-browser": "node scripts/mortgage-pdf-browser.test.cjs",
-    "test:contacts-export": "node --import tsx --test scripts/contacts-export.test.ts"
+    "test:contacts-export": "node --import tsx --test scripts/contacts-export.test.ts",
+    "test:assistant-workspace": "node scripts/assistant-workspace.test.cjs",
+    "test:assistant-workspace-browser": "node scripts/assistant-workspace-browser.test.cjs",
+    "test:assistant-personalization": "node scripts/assistant-personalization.test.cjs",
+    "test:assistant-personalization-browser": "node scripts/assistant-personalization-browser.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",

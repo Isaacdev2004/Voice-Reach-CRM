@@ -1,4 +1,2 @@
-import { CommandCenter } from "@/components/assistant/command-center";
-export default function AssistantPage() {
-  return <CommandCenter />;
-}
+import { AssistantWorkspaceEntry } from "@/components/assistant/workspace-entry";
+export default function AssistantPage() { return <AssistantWorkspaceEntry />; }
