@@ -1,3 +1,5 @@
+import { readSubscriptionStatus } from "./read-subscription";
+import { subscriptionMayUseMessaging } from "@/lib/messaging/managed-policy";
 import { verifiedUsageCount } from "./usage-count";
 import {
   overageRatesForPlan,
@@ -41,9 +43,8 @@ export async function resolveOwnerPlan(ownerId: string): Promise<PlanOption> {
 
 /** Free trial or unpaid accounts - apply hard SMS/RVM/email caps. */
 export async function isTrialUsagePeriod(ownerId: string): Promise<boolean> {
-  const saved = await loadSavedSettings(ownerId);
-  const status = saved?.billing.subscriptionStatus ?? "none";
-  return status !== "active";
+  const current = await readSubscriptionStatus(ownerId);
+  return !current.verified || current.status !== "active";
 }
 
 async function countChannelSends(ownerId: string, channel: "sms" | "email" | "voicemail") {
@@ -129,11 +130,11 @@ export async function assertCanSendChannel(
 ) {
   const usage = await getPlanUsage(ownerId);
   const plan = usage.plan;
-  const saved = await loadSavedSettings(ownerId);
-  if (!["active", "trialing"].includes(saved?.billing.subscriptionStatus ?? "none")) {
+  const current = await readSubscriptionStatus(ownerId);
+  if (!subscriptionMayUseMessaging(current)) {
     return { ok: false as const, usage, error: "An active subscription or trial is required to send.", code: "subscription_inactive" };
   }
-  const onTrial = await isTrialUsagePeriod(ownerId);
+  const onTrial = current.status === "trialing";
   const caps = FOUNDING_100.trialUsageCaps;
 
   if (onTrial && channel === "sms" && usage.smsUsed >= caps.sms) {
