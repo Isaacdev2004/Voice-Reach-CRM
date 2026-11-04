@@ -1,4 +1,4 @@
-import { NextRequest as RequestWithHeaders, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import { hasClerkEnv } from "@/lib/clerk-env";
 import { PUBLIC_ROUTE_PATTERNS } from "@/lib/seo/site";
@@ -31,7 +31,6 @@ export default async function proxy(req: NextRequest, event: NextFetchEvent) {
     return res;
   }
   // Strip the private layout marker on every other path; clients cannot opt out of auth/providers.
-  req = new RequestWithHeaders(req, {headers:requestHeaders});
   if (!hasClerkEnv()) {
     return NextResponse.next({request:{headers:requestHeaders}});
   }
@@ -41,8 +40,8 @@ export default async function proxy(req: NextRequest, event: NextFetchEvent) {
   const isApiRoute = createRouteMatcher(["/api/(.*)"]);
 
   const handler = clerkMiddleware(async (auth, request) => {
-    if (isApiRoute(request) || isPublicRoute(request)) return;
-    await auth.protect();
+    if (!isApiRoute(request) && !isPublicRoute(request)) await auth.protect();
+    return NextResponse.next({request:{headers:requestHeaders}});
   });
 
   return handler(req, event);
