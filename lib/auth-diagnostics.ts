@@ -1,0 +1,41 @@
+/** Temporary diagnostics: never pass exception messages or credential material here. */
+export function diagnosticsEnabled(env: Record<string, string | undefined>) {
+  return env.VERCEL_ENV === "preview" &&
+    env.VERCEL_GIT_COMMIT_REF === "test/property-interest-clerk-request-context" &&
+    env.AUTH_DIAGNOSTICS_ENABLED === "true";
+}
+
+export function expectedPreviewHost(host: string, env: Record<string, string | undefined>) {
+  const expected = env.AUTH_DIAGNOSTICS_PREVIEW_HOST;
+  return Boolean(expected && expected === env.VERCEL_URL && host === expected);
+}
+
+export function authorizedDeveloper(userId: string | null, env: Record<string, string | undefined>) {
+  return Boolean(userId && (env.AUTH_DIAGNOSTICS_DEVELOPER_IDS ?? "")
+    .split(",").map(id => id.trim()).filter(Boolean).includes(userId));
+}
+
+export function authenticationCategory(reason: unknown) {
+  // Explicit SDK reason allowlist. Unknown strings, including messages, never escape.
+  switch (reason) {
+    case "token-invalid-issuer": return "issuer";
+    case "token-invalid-signature":
+    case "jwk-failed-to-resolve":
+    case "jwk-remote-failed-to-load":
+    case "jwk-local-missing": return "signature";
+    case "token-expired":
+    case "token-not-active-yet":
+    case "token-iat-in-the-future": return "clock";
+    case "session-token-missing": return "session_missing";
+    default: return "unknown";
+  }
+}
+
+export function developmentKeys(env: Record<string, string | undefined>) {
+  return {
+    publishableKeyIsDevelopment: Boolean(env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith("pk_test_") &&
+      !/paste_full|placeholder|replace_me|\.\.\./.test(env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)),
+    secretKeyIsDevelopment: Boolean(env.CLERK_SECRET_KEY?.startsWith("sk_test_") &&
+      !/paste_full|placeholder|replace_me|\.\.\./.test(env.CLERK_SECRET_KEY)),
+  };
+}

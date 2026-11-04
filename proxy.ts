@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
+import { observeClerkMiddleware } from "@/lib/auth-runtime-diagnostics";
 import { hasClerkEnv } from "@/lib/clerk-env";
 import { PUBLIC_ROUTE_PATTERNS } from "@/lib/seo/site";
 
@@ -14,7 +15,7 @@ import { PUBLIC_ROUTE_PATTERNS } from "@/lib/seo/site";
  *               redirect API requests (clients can't follow 30x for fetch).
  */
 export default async function proxy(req: NextRequest, event: NextFetchEvent) {
-  if (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_GIT_COMMIT_REF === "feat/property-interest-mvp" &&
+  if (process.env.VERCEL_ENV === "preview" && ["feat/property-interest-mvp", "test/property-interest-clerk-request-context"].includes(process.env.VERCEL_GIT_COMMIT_REF ?? "") &&
       ["/api/campaigns/runner","/api/dashboard/briefing/runner"].includes(req.nextUrl.pathname)) {
     return NextResponse.json({success:false,error:"Schedulers are disabled in the isolated Property Interest Preview."},{status:403});
   }
@@ -31,20 +32,25 @@ export default async function proxy(req: NextRequest, event: NextFetchEvent) {
     return res;
   }
   // Strip the private layout marker on every other path; clients cannot opt out of auth/providers.
-  if (!hasClerkEnv()) {
-    return NextResponse.next({request:{headers:requestHeaders}});
-  }
+  return observeClerkMiddleware(
+    process.env,
+    req.nextUrl.hostname,
+    req.nextUrl.pathname,
+    async () => {
+      if (!hasClerkEnv()) return async () => NextResponse.next({request:{headers:requestHeaders}});
+      const { clerkMiddleware, createRouteMatcher } = await import("@clerk/nextjs/server");
+      const isPublicRoute = createRouteMatcher([...PUBLIC_ROUTE_PATTERNS, "/book/(.*)"]);
+      const isApiRoute = createRouteMatcher(["/api/(.*)"]);
 
-  const { clerkMiddleware, createRouteMatcher } = await import("@clerk/nextjs/server");
-  const isPublicRoute = createRouteMatcher([...PUBLIC_ROUTE_PATTERNS, "/book/(.*)"]);
-  const isApiRoute = createRouteMatcher(["/api/(.*)"]);
-
-  const handler = clerkMiddleware(async (auth, request) => {
-    if (!isApiRoute(request) && !isPublicRoute(request)) await auth.protect();
-    return NextResponse.next({request:{headers:requestHeaders}});
-  });
-
-  return handler(req, event);
+      const handler = clerkMiddleware(async (auth, request) => {
+        if (!isApiRoute(request) && !isPublicRoute(request)) await auth.protect();
+        return NextResponse.next({request:{headers:requestHeaders}});
+      }, { debug: false });
+      return async () => handler(req, event);
+    },
+    // Never log a request, header, exception, or arbitrary SDK string.
+    category => console.info(`MYARI_AUTH_DIAGNOSTIC:${category}`),
+  );
 }
 
 export const config = {
