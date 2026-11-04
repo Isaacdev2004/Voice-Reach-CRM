@@ -1,3 +1,4 @@
+import { assertCanSendChannel } from "@/lib/billing/plan-limits";
 import { approvedTransportIssues } from "./assistant-message";
 import { sharedReplyHeld } from "@/lib/communications/safety";
 import { normalizeE164 } from "@/lib/communications/inbound";
@@ -15,6 +16,9 @@ export async function authorizeLiveOutbound(
   if (!request.ownerId || !request.contactId)
     return ["An authorized subscriber and contact are required."];
   try {
+    if (!["sms", "email", "voicemail"].includes(request.channel)) return ["This live channel is not supported."];
+    const quota = await assertCanSendChannel(request.ownerId, request.channel as "sms" | "email" | "voicemail");
+    if (!quota.ok) return [quota.error ?? "Subscription or messaging allowance could not be verified."];
     if (request.approvedMessage) {
       const issues = approvedTransportIssues(
         request,
