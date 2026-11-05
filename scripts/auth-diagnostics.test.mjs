@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { diagnosticsEnabled, expectedPreviewHost, authorizedDeveloper, authenticationCategory, developmentKeys } from '../lib/auth-diagnostics.ts';
 
+const APPROVED_HOST = 'myari-clerk-auth-isolate-git-00383f-magnificent-soless-projects.vercel.app';
+
 test('diagnostics require explicit preview opt in', () => {
   for (const VERCEL_ENV of [undefined, 'production', 'development']) {
     assert.equal(diagnosticsEnabled({ VERCEL_ENV, AUTH_DIAGNOSTICS_ENABLED: 'true' }), false);
@@ -10,11 +12,18 @@ test('diagnostics require explicit preview opt in', () => {
   assert.equal(diagnosticsEnabled({ VERCEL_ENV: 'preview' }), false);
   assert.equal(diagnosticsEnabled({ VERCEL_ENV: 'preview', VERCEL_GIT_COMMIT_REF: 'test/property-interest-clerk-request-context', AUTH_DIAGNOSTICS_ENABLED: 'true' }), true);
 });
-test('host must exactly match configured deployment hostname', () => {
-  const env = { AUTH_DIAGNOSTICS_PREVIEW_HOST: 'example.vercel.app', VERCEL_URL: 'example.vercel.app' };
-  assert.equal(expectedPreviewHost('example.vercel.app', env), true);
-  for (const host of ['evil.example', 'example.vercel.app.evil', '']) assert.equal(expectedPreviewHost(host, env), false);
-  assert.equal(expectedPreviewHost('example.vercel.app', { ...env, VERCEL_URL: 'other.vercel.app' }), false);
+test('host must exactly match approved Vercel branch alias across deployments', () => {
+  const env = { AUTH_DIAGNOSTICS_PREVIEW_HOST: APPROVED_HOST, VERCEL_BRANCH_URL: APPROVED_HOST, VERCEL_URL: 'deployment-one.vercel.app' };
+  assert.equal(expectedPreviewHost(APPROVED_HOST, env), true);
+  for (const host of ['evil.example', `${APPROVED_HOST}.evil`, 'myari-clerk-auth-isolated-qa.vercel.app', 'myari-clerk-auth-isolate-git-other-magnificent-soless-projects.vercel.app', '']) assert.equal(expectedPreviewHost(host, env), false);
+  assert.equal(expectedPreviewHost(APPROVED_HOST, { ...env, VERCEL_URL: 'deployment-two.vercel.app' }), true);
+  assert.equal(expectedPreviewHost(APPROVED_HOST, { ...env, VERCEL_BRANCH_URL: 'other.vercel.app' }), false);
+  assert.equal(expectedPreviewHost(APPROVED_HOST, { ...env, VERCEL_BRANCH_URL: undefined }), false);
+  assert.equal(expectedPreviewHost('deployment-one.vercel.app', env), false);
+  assert.equal(expectedPreviewHost('other-project.vercel.app', { AUTH_DIAGNOSTICS_PREVIEW_HOST: 'other-project.vercel.app', VERCEL_BRANCH_URL: 'other-project.vercel.app' }), false);
+  for (const expected of ['', '*.vercel.app', 'https://example.vercel.app', 'example.vercel.app/path']) {
+    assert.equal(expectedPreviewHost(APPROVED_HOST, { ...env, AUTH_DIAGNOSTICS_PREVIEW_HOST: expected }), false);
+  }
 });
 test('only explicitly authorized authenticated developers qualify', () => {
   const env = { AUTH_DIAGNOSTICS_DEVELOPER_IDS: 'user_one, user_two' };
@@ -43,8 +52,8 @@ test('route denies disabled, wrong-host, anonymous and nondeveloper requests bef
   const helper = await import('../lib/auth-diagnostics.ts');
   const source = fs.readFileSync(new URL('../app/api/internal/auth-diagnostics/route.ts', import.meta.url), 'utf8');
   const js = ts.default.transpileModule(source, { compilerOptions: { module: ts.default.ModuleKind.CommonJS } }).outputText;
-  const base = { VERCEL_ENV: 'preview', VERCEL_GIT_COMMIT_REF: 'test/property-interest-clerk-request-context', AUTH_DIAGNOSTICS_ENABLED: 'true', AUTH_DIAGNOSTICS_PREVIEW_HOST: 'preview.vercel.app', VERCEL_URL: 'preview.vercel.app', AUTH_DIAGNOSTICS_DEVELOPER_IDS: 'developer', NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_' + Buffer.from('test-instance.clerk.accounts.dev$').toString('base64') };
-  async function run(env, userId, hostname = 'preview.vercel.app', throws = false, probeFailure = '', stateOverride = null) {
+  const base = { VERCEL_ENV: 'preview', VERCEL_GIT_COMMIT_REF: 'test/property-interest-clerk-request-context', AUTH_DIAGNOSTICS_ENABLED: 'true', AUTH_DIAGNOSTICS_PREVIEW_HOST: APPROVED_HOST, VERCEL_BRANCH_URL: APPROVED_HOST, VERCEL_URL: 'rotating-deployment.vercel.app', AUTH_DIAGNOSTICS_DEVELOPER_IDS: 'developer', NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_' + Buffer.from('test-instance.clerk.accounts.dev$').toString('base64') };
+  async function run(env, userId, hostname = APPROVED_HOST, throws = false, probeFailure = '', stateOverride = null) {
     let probes = 0;
     const exports = {};
     vm.runInNewContext(js, { exports, Buffer, process: { env }, require(name) {
@@ -62,6 +71,8 @@ test('route denies disabled, wrong-host, anonymous and nondeveloper requests bef
   for (const [env, id, host, status, throws] of [
     [{ ...base, AUTH_DIAGNOSTICS_ENABLED: undefined }, 'developer', undefined, 404],
     [{ ...base, VERCEL_ENV: 'production' }, 'developer', undefined, 404],
+    [{ ...base, VERCEL_GIT_COMMIT_REF: 'main' }, 'developer', undefined, 404],
+    [{ ...base, VERCEL_BRANCH_URL: 'other-project.vercel.app' }, 'developer', undefined, 404],
     [base, 'developer', 'evil.example', 404], [base, null, undefined, 401],
     [base, 'other', undefined, 403], [base, null, undefined, 401, true],
   ]) {
@@ -104,46 +115,46 @@ test('staging safety fails closed for wrong database, live credentials and unset
 
 test('Preview runtime logging records categories for rejected sessions without changing Clerk responses', async () => {
   const { observeClerkMiddleware } = await import('../lib/auth-runtime-diagnostics.ts');
-  const env = { VERCEL_ENV: 'preview', VERCEL_GIT_COMMIT_REF: 'test/property-interest-clerk-request-context', AUTH_DIAGNOSTICS_ENABLED: 'true', AUTH_DIAGNOSTICS_PREVIEW_HOST: 'preview.vercel.app', VERCEL_URL: 'preview.vercel.app', NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_unit', CLERK_SECRET_KEY: 'sk_test_unit' };
+  const env = { VERCEL_ENV: 'preview', VERCEL_GIT_COMMIT_REF: 'test/property-interest-clerk-request-context', AUTH_DIAGNOSTICS_ENABLED: 'true', AUTH_DIAGNOSTICS_PREVIEW_HOST: APPROVED_HOST, VERCEL_BRANCH_URL: APPROVED_HOST, VERCEL_URL: 'rotating-deployment.vercel.app', NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_unit', CLERK_SECRET_KEY: 'sk_test_unit' };
   const logs = [];
   const response = { status: 307, headers: new Headers({ 'x-clerk-auth-status': 'signed-out', 'x-clerk-auth-reason': 'unexpected-error', location: '/sign-in' }) };
   const initialize = async () => async () => response;
-  assert.equal(await observeClerkMiddleware(env, 'preview.vercel.app', '/dashboard', initialize, c => logs.push(c)), response);
+  assert.equal(await observeClerkMiddleware(env, APPROVED_HOST, '/dashboard', initialize, c => logs.push(c)), response);
   assert.deepEqual(logs, ['unexpected_error']);
   assert.equal(response.status, 307); assert.equal(response.headers.get('location'), '/sign-in');
-  for (const patch of [{ VERCEL_ENV: 'production' }, { AUTH_DIAGNOSTICS_ENABLED: undefined }, { VERCEL_GIT_COMMIT_REF: 'main' }, { VERCEL_GIT_COMMIT_REF: 'feat/property-interest-mvp' }]) {
+  for (const patch of [{ VERCEL_BRANCH_URL: 'other-project.vercel.app' }, { VERCEL_BRANCH_URL: undefined }, { VERCEL_ENV: 'production' }, { AUTH_DIAGNOSTICS_ENABLED: undefined }, { VERCEL_GIT_COMMIT_REF: 'main' }, { VERCEL_GIT_COMMIT_REF: 'feat/property-interest-mvp' }]) {
     const silent = [];
-    assert.equal(await observeClerkMiddleware({ ...env, ...patch }, 'preview.vercel.app', '/dashboard', initialize, c => silent.push(c)), response);
+    assert.equal(await observeClerkMiddleware({ ...env, ...patch }, APPROVED_HOST, '/dashboard', initialize, c => silent.push(c)), response);
     assert.deepEqual(silent, []);
   }
-  for (const [host, path] of [['evil.example', '/dashboard'], ['preview.vercel.app', '/api/internal/auth-diagnostics'], ['preview.vercel.app', '/property-interest']]) {
+  for (const [host, path] of [['evil.example', '/dashboard'], ['rotating-deployment.vercel.app', '/dashboard'], [APPROVED_HOST, '/api/internal/auth-diagnostics'], [APPROVED_HOST, '/property-interest']]) {
     const silent = [];
     await observeClerkMiddleware(env, host, path, initialize, c => silent.push(c));
     assert.deepEqual(silent, []);
   }
   for (const [reason, category] of [['token-invalid-signature', 'signature'], ['token-expired', 'clock'], ['private-cookie-jwt-password', 'unknown']]) {
     const recorded = [];
-    await observeClerkMiddleware(env, 'preview.vercel.app', '/dashboard', async () => async () => ({ headers: new Headers({ 'x-clerk-auth-reason': reason }) }), c => recorded.push(c));
+    await observeClerkMiddleware(env, APPROVED_HOST, '/dashboard', async () => async () => ({ headers: new Headers({ 'x-clerk-auth-reason': reason }) }), c => recorded.push(c));
     assert.deepEqual(recorded, [category]);
   }
   for (const stage of ['initialization', 'execution']) {
     const failure = new Error('private-cookie-jwt-password'); const recorded = [];
     const init = async () => { if (stage === 'initialization') throw failure; return async () => { throw failure; }; };
-    await assert.rejects(observeClerkMiddleware(env, 'preview.vercel.app', '/dashboard', init, c => recorded.push(c)), error => error === failure);
+    await assert.rejects(observeClerkMiddleware(env, APPROVED_HOST, '/dashboard', init, c => recorded.push(c)), error => error === failure);
     assert.deepEqual(recorded, [`middleware_${stage}`]);
   }
   // The log sink failing cannot change redirects or make a denied request succeed.
-  assert.equal(await observeClerkMiddleware(env, 'preview.vercel.app', '/dashboard', initialize, () => { throw Error('sink'); }), response);
+  assert.equal(await observeClerkMiddleware(env, APPROVED_HOST, '/dashboard', initialize, () => { throw Error('sink'); }), response);
 });
 
 test('proxy retains dashboard protection, original request context, header sanitization and scheduler isolation', async () => {
   const ts = await import('typescript'); const vm = await import('node:vm');
   const runtime = await import('../lib/auth-runtime-diagnostics.ts');
   const js = ts.default.transpileModule(fs.readFileSync(new URL('../proxy.ts', import.meta.url), 'utf8'), { compilerOptions: { module: ts.default.ModuleKind.CommonJS } }).outputText;
-  const base = { VERCEL_ENV: 'preview', VERCEL_GIT_COMMIT_REF: 'test/property-interest-clerk-request-context', AUTH_DIAGNOSTICS_ENABLED: 'true', AUTH_DIAGNOSTICS_PREVIEW_HOST: 'preview.vercel.app', VERCEL_URL: 'preview.vercel.app', NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_unit', CLERK_SECRET_KEY: 'sk_test_unit' };
+  const base = { VERCEL_ENV: 'preview', VERCEL_GIT_COMMIT_REF: 'test/property-interest-clerk-request-context', AUTH_DIAGNOSTICS_ENABLED: 'true', AUTH_DIAGNOSTICS_PREVIEW_HOST: APPROVED_HOST, VERCEL_BRANCH_URL: APPROVED_HOST, VERCEL_URL: 'rotating-deployment.vercel.app', NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_unit', CLERK_SECRET_KEY: 'sk_test_unit' };
   async function run(path, env = base) {
     const exports = {}; let protectCalls = 0; let sdkCalls = 0; let originalRequest = null; const logs = [];
-    const request = { nextUrl: { hostname: 'preview.vercel.app', pathname: path }, headers: new Headers({ 'x-myari-property-introduction': 'forged', 'x-clerk-auth-reason': 'private-forged' }) };
+    const request = { nextUrl: { hostname: APPROVED_HOST, pathname: path }, headers: new Headers({ 'x-myari-property-introduction': 'forged', 'x-clerk-auth-reason': 'private-forged' }) };
     const denied = { status: 307, headers: new Headers({ location: '/sign-in', 'x-clerk-auth-status': 'signed-out', 'x-clerk-auth-reason': 'unexpected-error' }) };
     vm.runInNewContext(js, { exports, Headers, process: { env }, console: { info: value => logs.push(value) }, require(name) {
       if (name === '@/lib/auth-runtime-diagnostics') return runtime;

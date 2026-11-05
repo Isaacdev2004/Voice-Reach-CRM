@@ -6,8 +6,11 @@ export function diagnosticsEnabled(env: Record<string, string | undefined>) {
 }
 
 export function expectedPreviewHost(host: string, env: Record<string, string | undefined>) {
+  const approved = "myari-clerk-auth-isolate-git-00383f-magnificent-soless-projects.vercel.app";
   const expected = env.AUTH_DIAGNOSTICS_PREVIEW_HOST;
-  return Boolean(expected && expected === env.VERCEL_URL && host === expected);
+  // Pin the approved hostname to Vercel's stable alias for this exact branch.
+  // Deployment URLs rotate; never accept suffix matches or forwarded-host input.
+  return expected === approved && env.VERCEL_BRANCH_URL === approved && host === approved;
 }
 
 export function authorizedDeveloper(userId: string | null, env: Record<string, string | undefined>) {
