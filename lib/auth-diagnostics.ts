@@ -1,3 +1,5 @@
+import { isClerkKeyValue } from "./clerk-env";
+
 /** Temporary diagnostics: never pass exception messages or credential material here. */
 export function diagnosticsEnabled(env: Record<string, string | undefined>) {
   return env.VERCEL_ENV === "preview" &&
@@ -35,10 +37,10 @@ export function authenticationCategory(reason: unknown) {
 }
 
 export function developmentKeys(env: Record<string, string | undefined>) {
+  const publishableKey = env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const secretKey = env.CLERK_SECRET_KEY;
   return {
-    publishableKeyIsDevelopment: Boolean(env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith("pk_test_") &&
-      !/paste_full|placeholder|replace_me|\.\.\./.test(env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)),
-    secretKeyIsDevelopment: Boolean(env.CLERK_SECRET_KEY?.startsWith("sk_test_") &&
-      !/paste_full|placeholder|replace_me|\.\.\./.test(env.CLERK_SECRET_KEY)),
+    publishableKeyIsDevelopment: isClerkKeyValue(publishableKey, "pk_") && publishableKey.startsWith("pk_test_"),
+    secretKeyIsDevelopment: isClerkKeyValue(secretKey, "sk_") && secretKey.startsWith("sk_test_"),
   };
 }

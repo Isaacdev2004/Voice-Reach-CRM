@@ -1,27 +1,20 @@
 export const AUTH_AFTER_URL = "/dashboard";
 
-/** Reject example/placeholder values copied from docs or .env.example */
-function isPlaceholderKey(value: string | undefined): boolean {
-  if (!value) return true;
-  const key = value.trim();
-  if (!key || key.includes("replace_me")) return true;
-  if (key.includes("paste_full") || key.includes("paste_full_publishable")) return true;
-  if (key.includes("...") || key.endsWith("_...")) return true;
-  return false;
+/** Validate without trimming, encoding, or repairing credential material. */
+export function isClerkKeyValue(value: string | undefined, prefix: "pk_" | "sk_"): value is string {
+  return typeof value === "string" && /^[\x21-\x7E]+$/.test(value) &&
+    value.startsWith(prefix) && /^(pk|sk)_(test|live)_/.test(value) &&
+    !/replace_me|paste_full|placeholder|redacted|\.\.\./i.test(value);
 }
 
 export function getClerkPublishableKey(): string | undefined {
-  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim();
-  if (isPlaceholderKey(publishableKey)) return undefined;
-  if (!publishableKey!.startsWith("pk_")) return undefined;
-  return publishableKey;
+  const value = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  return isClerkKeyValue(value, "pk_") ? value : undefined;
 }
 
 export function getClerkSecretKey(): string | undefined {
-  const secretKey = process.env.CLERK_SECRET_KEY?.trim();
-  if (isPlaceholderKey(secretKey)) return undefined;
-  if (!secretKey!.startsWith("sk_")) return undefined;
-  return secretKey;
+  const value = process.env.CLERK_SECRET_KEY;
+  return isClerkKeyValue(value, "sk_") ? value : undefined;
 }
 
 export function hasClerkPublishableKey(): boolean {

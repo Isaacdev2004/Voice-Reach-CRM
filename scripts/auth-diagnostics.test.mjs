@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { isClerkKeyValue, getClerkPublishableKey, getClerkSecretKey } from '../lib/clerk-env.ts';
 import { diagnosticsEnabled, expectedPreviewHost, authorizedDeveloper, authenticationCategory, developmentKeys } from '../lib/auth-diagnostics.ts';
 
 const APPROVED_HOST = 'myari-clerk-auth-isolate-git-00383f-magnificent-soless-projects.vercel.app';
@@ -108,7 +109,7 @@ test('staging safety fails closed for wrong database, live credentials and unset
   const { previewSafety } = await import('./auth-diagnostics-safety.mjs');
   const safe = { VERCEL_ENV: 'preview', VERCEL_GIT_COMMIT_REF: 'test/property-interest-clerk-request-context', NEXT_PUBLIC_SUPABASE_URL: 'https://jojgdfpmaxvbhobjrsbm.supabase.co', ALLOW_LIVE_OUTBOUND: 'false', VOICE_PROVIDER: 'mock', NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_unit', CLERK_SECRET_KEY: 'sk_test_unit', SUPABASE_SERVICE_ROLE_KEY: 'synthetic' };
   assert.ok(Object.values(previewSafety(safe)).every(Boolean));
-  for (const patch of [{ NEXT_PUBLIC_SUPABASE_URL: 'production' }, { STRIPE_SECRET_KEY: 'private' }, { CRON_SECRET: 'private' }, { ALLOW_LIVE_OUTBOUND: undefined }, { CONCIERGE_ENABLED: 'true' }, { CLERK_SECRET_KEY: 'sk_live_unit' }, { SUPABASE_SERVICE_ROLE_KEY: undefined }]) {
+  for (const patch of [{ NEXT_PUBLIC_SUPABASE_URL: 'production' }, { STRIPE_SECRET_KEY: 'private' }, { CRON_SECRET: 'private' }, { ALLOW_LIVE_OUTBOUND: undefined }, { CONCIERGE_ENABLED: 'true' }, { CLERK_SECRET_KEY: 'sk_live_unit' }, { CLERK_SECRET_KEY: 'sk_test_x\u2026' }, { NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_x\u2026' }, { CLERK_SECRET_KEY: 'sk_test_redacted' }, { CLERK_SECRET_KEY: 'sk_test_x\n' }, { SUPABASE_SERVICE_ROLE_KEY: undefined }]) {
     assert.ok(Object.values(previewSafety({ ...safe, ...patch })).some(value => !value));
   }
 });
@@ -153,29 +154,35 @@ test('proxy retains dashboard protection, original request context, header sanit
   const js = ts.default.transpileModule(fs.readFileSync(new URL('../proxy.ts', import.meta.url), 'utf8'), { compilerOptions: { module: ts.default.ModuleKind.CommonJS } }).outputText;
   const base = { VERCEL_ENV: 'preview', VERCEL_GIT_COMMIT_REF: 'test/property-interest-clerk-request-context', AUTH_DIAGNOSTICS_ENABLED: 'true', AUTH_DIAGNOSTICS_PREVIEW_HOST: APPROVED_HOST, VERCEL_BRANCH_URL: APPROVED_HOST, VERCEL_URL: 'rotating-deployment.vercel.app', NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_unit', CLERK_SECRET_KEY: 'sk_test_unit' };
   async function run(path, env = base) {
-    const exports = {}; let protectCalls = 0; let sdkCalls = 0; let originalRequest = null; const logs = [];
+    const exports = {}; let protectCalls = 0; let sdkCalls = 0; let middlewareCreations = 0; let suppliedOptions = null; let originalRequest = null; const logs = [];
     const request = { nextUrl: { hostname: APPROVED_HOST, pathname: path }, headers: new Headers({ 'x-myari-property-introduction': 'forged', 'x-clerk-auth-reason': 'private-forged' }) };
     const denied = { status: 307, headers: new Headers({ location: '/sign-in', 'x-clerk-auth-status': 'signed-out', 'x-clerk-auth-reason': 'unexpected-error' }) };
     vm.runInNewContext(js, { exports, Headers, process: { env }, console: { info: value => logs.push(value) }, require(name) {
       if (name === '@/lib/auth-runtime-diagnostics') return runtime;
-      if (name === '@/lib/clerk-env') return { hasClerkEnv: () => true };
+      if (name === '@/lib/clerk-env') return {
+        getClerkPublishableKey: () => isClerkKeyValue(env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, 'pk_') ? env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY : undefined,
+        getClerkSecretKey: () => isClerkKeyValue(env.CLERK_SECRET_KEY, 'sk_') ? env.CLERK_SECRET_KEY : undefined,
+      };
       if (name === '@/lib/seo/site') return { PUBLIC_ROUTE_PATTERNS: ['/'] };
       if (name === 'next/server') return { NextResponse: {
         next: options => ({ status: 200, headers: new Headers(), forwarded: options?.request?.headers }),
-        json: (body, options) => ({ body, status: options.status, headers: new Headers() }),
+        json: (body, options) => ({ body, status: options.status, headers: new Headers(options.headers) }),
       } };
       if (name === '@clerk/nextjs/server') return {
         createRouteMatcher: patterns => req => patterns.includes('/api/(.*)') ? req.nextUrl.pathname.startsWith('/api/') : req.nextUrl.pathname === '/',
-        clerkMiddleware: callback => async req => { sdkCalls++; originalRequest = req; try { return await callback({ protect: async () => { protectCalls++; throw denied; } }, req); } catch (error) { if (error === denied) return denied; throw error; } },
+        clerkMiddleware: (callback, options) => { middlewareCreations++; suppliedOptions = options; return async req => { sdkCalls++; originalRequest = req; try { return await callback({ protect: async () => { protectCalls++; throw denied; } }, req); } catch (error) { if (error === denied) return denied; throw error; } }; },
       };
       throw Error('Unexpected dependency');
     } });
     const result = await exports.default(request, {});
-    return { result, request, originalRequest, protectCalls, sdkCalls, logs };
+    return { result, request, originalRequest, protectCalls, sdkCalls, middlewareCreations, suppliedOptions, logs };
   }
   const dashboard = await run('/dashboard');
   assert.equal(dashboard.protectCalls, 1); assert.equal(dashboard.result.status, 307);
   assert.equal(dashboard.originalRequest, dashboard.request);
+  assert.equal(dashboard.suppliedOptions.publishableKey, base.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  assert.equal(dashboard.suppliedOptions.secretKey, base.CLERK_SECRET_KEY);
+  assert.equal(dashboard.suppliedOptions.debug, false);
   assert.deepEqual(dashboard.logs, ['MYARI_AUTH_DIAGNOSTIC:unexpected_error']);
   for (const env of [{ ...base, AUTH_DIAGNOSTICS_ENABLED: undefined }, { ...base, VERCEL_ENV: 'production' }]) {
     const protectedRequest = await run('/dashboard', env);
@@ -189,6 +196,69 @@ test('proxy retains dashboard protection, original request context, header sanit
     const blocked = await run(path); assert.equal(blocked.result.status, 403); assert.equal(blocked.sdkCalls, 0);
     const production = await run(path, { ...base, VERCEL_ENV: 'production' }); assert.equal(production.sdkCalls, 1);
   }
+  for (const patch of [
+    { CLERK_SECRET_KEY: 'sk_test_x\u2026' }, { CLERK_SECRET_KEY: 'sk_test_redacted' },
+    { NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_x\u2026' },
+    { CLERK_SECRET_KEY: undefined }, { NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: undefined },
+  ]) {
+    for (const path of ['/dashboard', '/api/contacts', '/api/internal/auth-diagnostics']) {
+      const blocked = await run(path, { ...base, ...patch });
+      assert.equal(blocked.result.status, 503); assert.equal(blocked.sdkCalls, 0); assert.equal(blocked.middlewareCreations, 0);
+      assert.equal(blocked.result.headers.get('location'), null);
+      assert.equal(blocked.result.headers.get('cache-control'), 'no-store');
+      assert.equal(blocked.result.body.code, 'service_unconfigured');
+      assert.deepEqual(blocked.logs, path === '/dashboard' ? ['MYARI_AUTH_DIAGNOSTIC:clerk_configuration'] : []);
+    }
+    const publicRoot = await run('/', { ...base, ...patch });
+    assert.equal(publicRoot.result.status, 200); assert.equal(publicRoot.sdkCalls, 0);
+  }
   const publicPage = await run('/property-interest');
   assert.equal(publicPage.sdkCalls, 0); assert.deepEqual(publicPage.logs, []);
+});
+
+
+test('Clerk credentials reject Unicode, controls and redactions without repairing values', t => {
+  const names = ['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY', 'CLERK_SECRET_KEY'];
+  const previous = names.map(name => process.env[name]);
+  t.after(() => names.forEach((name, i) => { if (previous[i] === undefined) delete process.env[name]; else process.env[name] = previous[i]; }));
+  for (const suffix of ['x\u2026', 'x...', 'paste_full_key_here', 'placeholder', 'redacted', 'x\u00e9', 'x\u200b', 'x\r\n', 'x\u007f', ' x', 'x ']) {
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'pk_test_' + suffix;
+    process.env.CLERK_SECRET_KEY = 'sk_test_' + suffix;
+    assert.equal(getClerkPublishableKey(), undefined);
+    assert.equal(getClerkSecretKey(), undefined);
+    assert.deepEqual(developmentKeys(process.env), { publishableKeyIsDevelopment: false, secretKeyIsDevelopment: false });
+  }
+  for (const mode of ['test', 'live']) {
+    const pk = `pk_${mode}_synthetic`;
+    const sk = `sk_${mode}_synthetic`;
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = pk; process.env.CLERK_SECRET_KEY = sk;
+    assert.equal(getClerkPublishableKey(), pk); assert.equal(getClerkSecretKey(), sk);
+  }
+});
+
+test('installed Clerk handshake client reproduces index-16 ByteString failure before fetch', async t => {
+  const previousMode = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'test';
+  t.after(() => { if (previousMode === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = previousMode; });
+  let requests = 0;
+  const directive = '__session=synthetic-only; Path=/; HttpOnly; Secure; SameSite=Lax';
+  t.mock.method(globalThis, 'fetch', async () => {
+    requests++;
+    return new Response(JSON.stringify({ object: 'handshake_payload', directives: [directive] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  });
+  const { createClerkClient } = await import('@clerk/backend');
+  // Synthetic input only; never use or print a deployed credential in this test.
+  const malformed = 'sk_test_x' + String.fromCodePoint(8230);
+  await assert.rejects(
+    createClerkClient({ secretKey: malformed }).clients.getHandshakePayload({ nonce: 'synthetic-nonce' }),
+    error => error instanceof TypeError && /index 16.*8230/.test(error.message),
+  );
+  assert.equal(requests, 0);
+  assert.equal(isClerkKeyValue(malformed, 'sk_'), false);
+  const safe = 'sk_test_synthetic_ascii';
+  assert.equal(isClerkKeyValue(safe, 'sk_'), true);
+  const payload = await createClerkClient({ secretKey: safe }).clients.getHandshakePayload({ nonce: 'synthetic-nonce' });
+  assert.equal(requests, 1);
+  assert.deepEqual(payload.directives, [directive]);
+  assert.doesNotThrow(() => new Headers({ 'Set-Cookie': payload.directives[0] }));
 });

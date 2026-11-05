@@ -4,7 +4,7 @@ export function previewSafety(env) {
   return {
     expectedPreviewBranch: env.VERCEL_ENV === 'preview' && env.VERCEL_GIT_COMMIT_REF === 'test/property-interest-clerk-request-context',
     stagingSupabase: env.NEXT_PUBLIC_SUPABASE_URL === 'https://jojgdfpmaxvbhobjrsbm.supabase.co',
-    clerkDevelopment: ['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY', 'CLERK_SECRET_KEY'].every((name, i) => (env[name] ?? '').startsWith(i === 0 ? 'pk_test_' : 'sk_test_') && !/paste_full|placeholder|replace_me|\.\.\./.test(env[name])),
+    clerkDevelopment: ['NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY', 'CLERK_SECRET_KEY'].every((name, i) => (env[name] ?? '').startsWith(i === 0 ? 'pk_test_' : 'sk_test_') && /^[\x21-\x7E]+$/.test(env[name]) && !/paste_full|placeholder|replace_me|redacted|\.\.\./i.test(env[name])),
     stagingServiceCredentialPresent: Boolean(env.SUPABASE_SERVICE_ROLE_KEY),
     outboundDisabled: env.ALLOW_LIVE_OUTBOUND === 'false',
     mockProvider: env.VOICE_PROVIDER === 'mock',

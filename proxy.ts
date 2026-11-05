@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import { observeClerkMiddleware } from "@/lib/auth-runtime-diagnostics";
-import { hasClerkEnv } from "@/lib/clerk-env";
+import { getClerkPublishableKey, getClerkSecretKey } from "@/lib/clerk-env";
 import { PUBLIC_ROUTE_PATTERNS } from "@/lib/seo/site";
 
 /**
@@ -37,15 +37,25 @@ export default async function proxy(req: NextRequest, event: NextFetchEvent) {
     req.nextUrl.hostname,
     req.nextUrl.pathname,
     async () => {
-      if (!hasClerkEnv()) return async () => NextResponse.next({request:{headers:requestHeaders}});
+      const publishableKey = getClerkPublishableKey();
+      const secretKey = getClerkSecretKey();
       const { clerkMiddleware, createRouteMatcher } = await import("@clerk/nextjs/server");
       const isPublicRoute = createRouteMatcher([...PUBLIC_ROUTE_PATTERNS, "/book/(.*)"]);
       const isApiRoute = createRouteMatcher(["/api/(.*)"]);
+      if (!publishableKey || !secretKey) {
+        // A malformed/missing credential must never become an authentication bypass.
+        return async () => isPublicRoute(req)
+          ? NextResponse.next({request:{headers:requestHeaders}})
+          : NextResponse.json(
+            { success: false, error: "Authentication is unavailable.", code: "service_unconfigured" },
+            { status: 503, headers: { "Cache-Control": "no-store" } },
+          );
+      }
 
       const handler = clerkMiddleware(async (auth, request) => {
         if (!isApiRoute(request) && !isPublicRoute(request)) await auth.protect();
         return NextResponse.next({request:{headers:requestHeaders}});
-      }, { debug: false });
+      }, { debug: false, publishableKey, secretKey });
       return async () => handler(req, event);
     },
     // Never log a request, header, exception, or arbitrary SDK string.
