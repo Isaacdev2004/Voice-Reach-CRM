@@ -1,0 +1,22 @@
+[
+  {
+    "width": 1440,
+    "spaceInput": true,
+    "incompleteEmail": true,
+    "uploadRetry": true,
+    "asyncDraftPreserved": true,
+    "saveRetry": true,
+    "refresh": true,
+    "syntheticAccountSwitch": true
+  },
+  {
+    "width": 390,
+    "spaceInput": true,
+    "incompleteEmail": true,
+    "uploadRetry": true,
+    "asyncDraftPreserved": true,
+    "saveRetry": true,
+    "refresh": true,
+    "syntheticAccountSwitch": true
+  }
+]

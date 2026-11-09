@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, PDFDict, PDFName, PDFHexString } from "pdf-lib";
 import { mortgagePdfModel } from "../lib/financing/mortgage-pdf-model";
 import { generateMortgagePdf } from "../lib/financing/mortgage-pdf";
 import { sampleInput, pdfAssets } from "./mortgage-pdf-sample";
@@ -162,4 +162,125 @@ test("overflow is blocked explicitly instead of dropping disclosures or extra pr
     termYears: 20,
   });
   assert.throws(() => mortgagePdfModel(input), /up to three/);
+});
+
+test("schema-valid large amounts fit every comparison without changing a cent", async () => {
+  const input = structuredClone(sampleInput);
+  input.calculation.homePrice = 1_000_000_000_000;
+  const expected = calculate(input.calculation);
+  const bytes = await generateMortgagePdf(input, await pdfAssets());
+  assert.equal((await PDFDocument.load(bytes)).getPageCount(), 2);
+  assert.equal(mortgagePdfModel(input).result.total, expected.total);
+  await fs.writeFile("docs/mortgage-pdf-2/test-large-amount.pdf", bytes);
+});
+
+test("long agent/lender details, addresses and sources fit all branding modes, with or without imagery", async () => {
+  const { mortgageOverflowInput } = await import(
+    "./mortgage-pdf-overflow-fixture"
+  );
+  const input = mortgageOverflowInput();
+  const before = structuredClone(input);
+  const assets = await pdfAssets();
+  assets.agentPhoto = assets.logo;
+  assets.agentLogo = assets.logo;
+  assets.lenderPhoto = assets.logo;
+  assets.lenderLogo = assets.logo;
+  for (const template of ["myari", "agent", "cobranded"] as const) {
+    for (const imagery of [true, false]) {
+      let abbreviated = false;
+      const bytes = await generateMortgagePdf(
+        { ...input, preferences: { template, imagery } },
+        assets,
+        {
+          onAbbreviated: () => {
+            abbreviated = true;
+          },
+        },
+      );
+      const pdf = await PDFDocument.load(bytes);
+      assert.equal(pdf.getPageCount(), 2);
+      assert.ok(abbreviated);
+      assert.deepEqual(
+        pdf.getPages().map((p) => p.getSize()),
+        [
+          { width: 612, height: 792 },
+          { width: 612, height: 792 },
+        ],
+      );
+      const annotations = pdf.getPage(1).node.Annots();
+      assert.ok(
+        annotations && annotations.size() >= 4,
+        "Full contact targets/abbreviated details retained",
+      );
+      const targets = annotations!
+        .asArray()
+        .map((ref) => {
+          const annotation = pdf.context.lookup(ref, PDFDict);
+          const action = annotation.lookupMaybe(PDFName.of("A"), PDFDict);
+          return action
+            ?.lookupMaybe(PDFName.of("URI"), PDFHexString)
+            ?.decodeText();
+        })
+        .filter(Boolean);
+      assert.ok(targets.includes(`mailto:${input.branding.email}`));
+      assert.ok(targets.includes(input.branding.website));
+      assert.ok(targets.includes(`mailto:${input.partners[0].email}`));
+      assert.ok(targets.includes(input.partners[0].website));
+
+      await fs.writeFile(
+        `docs/mortgage-pdf-2/test-overflow-${template}-${imagery}.pdf`,
+        bytes,
+      );
+    }
+  }
+  assert.deepEqual(input, before, "Rendering must not change saved inputs");
+});
+
+test("measured text fits its actual column with a readable font and intentional abbreviation", async () => {
+  const { fitPdfText } = await import("../lib/financing/pdf-text-layout");
+  const fontkit = (await import("@pdf-lib/fontkit")).default;
+  const pdf = await PDFDocument.create();
+  pdf.registerFontkit(fontkit);
+  const font = await pdf.embedFont((await pdfAssets()).sans);
+  for (const value of [
+    "María O’Example — Realty & Co.",
+    "name".repeat(100) + "@example.test",
+    "https://example.test/" + "long-path/".repeat(50),
+    "\nMissing\tdata\r\n",
+    "",
+  ]) {
+    const fit = fitPdfText(value, font, {
+      width: 240,
+      size: 10,
+      maxLines: 2,
+      abbreviate: true,
+    });
+    assert.ok(fit.size >= 8);
+    assert.ok(fit.rows.length <= 2);
+    for (const row of fit.rows)
+      assert.ok(font.widthOfTextAtSize(row, fit.size) <= 240.01);
+    if (fit.abbreviated) assert.match(fit.rows.at(-1)!, /…$/);
+  }
+  assert.throws(
+    () =>
+      fitPdfText("Important disclosure. ".repeat(100), font, {
+        width: 240,
+        size: 10,
+        maxLines: 2,
+      }),
+    /no disclosure or amount was discarded/,
+  );
+});
+
+test("long client names retain a safe dated estimate filename", async () => {
+  const { mortgagePdfFilename } = await import(
+    "../lib/financing/mortgage-pdf-browser"
+  );
+  const { mortgageOverflowInput } = await import(
+    "./mortgage-pdf-overflow-fixture"
+  );
+  const name = mortgagePdfFilename(mortgageOverflowInput());
+  assert.ok(name.length <= 144);
+  assert.match(name, /-2026-10-30-estimate\.pdf$/);
+  assert.match(name, /^[a-zA-Z0-9._-]+$/);
 });

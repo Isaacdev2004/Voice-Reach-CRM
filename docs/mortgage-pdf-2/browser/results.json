@@ -1,14 +1,38 @@
 [
   {
     "width": 1440,
+    "scenario": "standard",
+    "pages": 2,
+    "passed": true
+  },
+  {
+    "width": 1440,
+    "scenario": "long-fields",
+    "pages": 2,
     "passed": true
   },
   {
     "width": 768,
+    "scenario": "standard",
+    "pages": 2,
+    "passed": true
+  },
+  {
+    "width": 768,
+    "scenario": "long-fields",
+    "pages": 2,
     "passed": true
   },
   {
     "width": 390,
+    "scenario": "standard",
+    "pages": 2,
+    "passed": true
+  },
+  {
+    "width": 390,
+    "scenario": "long-fields",
+    "pages": 2,
     "passed": true
   }
 ]
