@@ -74,9 +74,17 @@ export async function mortgagePdfBrowser(input: MortgagePdfInput) {
   ]);
   Object.assign(assets, { agentPhoto, agentLogo, lenderPhoto, lenderLogo });
   const { generateMortgagePdf } = await import("./mortgage-pdf");
-  const result = await generateMortgagePdf(input, assets);
+  let abbreviated = false;
+  const result = await generateMortgagePdf(input, assets, {
+    onAbbreviated: () => {
+      abbreviated = true;
+    },
+  });
   return {
     bytes: result,
+    textWarning: abbreviated
+      ? "Some long display fields were abbreviated to preserve the two-page layout. Full details remain in your source records and PDF annotations; email and website links retain their full targets."
+      : "",
     imageWarning:
       (preferences.template !== "myari" &&
         !!input.branding.headshot &&
@@ -104,11 +112,11 @@ export function mortgagePdfFilename(input: MortgagePdfInput) {
     : "mortgage";
   const date =
     input.context.preparedDate || new Date().toISOString().slice(0, 10);
-  return (
-    `myari-${who}-${date}-estimate`
+  const safe = (value: string) =>
+    value
       .normalize("NFKD")
       .replace(/[^a-zA-Z0-9._-]/g, "-")
-      .replace(/-+/g, "-")
-      .slice(0, 140) + ".pdf"
-  );
+      .replace(/-+/g, "-");
+  const suffix = `-${safe(date)}-estimate.pdf`;
+  return safe(`myari-${who}`).slice(0, 144 - suffix.length) + suffix;
 }

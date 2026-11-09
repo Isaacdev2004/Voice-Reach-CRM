@@ -46,7 +46,9 @@ export function MortgagePdfPreview({
           }),
         );
         setUrl(objectUrl);
-        setWarning(result.imageWarning);
+        setWarning(
+          [result.imageWarning, result.textWarning].filter(Boolean).join(" "),
+        );
       })
       .catch((e) => {
         if (active)

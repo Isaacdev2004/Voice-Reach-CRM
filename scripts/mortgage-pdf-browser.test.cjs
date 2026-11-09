@@ -4,6 +4,8 @@ const assert = require("node:assert/strict"),
   path = require("node:path"),
   os = require("node:os"),
   http = require("node:http");
+const { mortgageOverflowInput } = require("./mortgage-pdf-overflow-fixture.ts");
+const { PDFDocument } = require("pdf-lib");
 const { state, handle, reset } = require("./financing-browser/fixtures.cjs")();
 const { chromium } = require("playwright"),
   esbuild = require("esbuild");
@@ -114,85 +116,130 @@ const { chromium } = require("playwright"),
   try {
     const origin = `http://127.0.0.1:${server.address().port}`;
     for (const width of [1440, 768, 390]) {
-      reset();
-      const page = await browser.newPage({
-        viewport: { width, height: 900 },
-        acceptDownloads: true,
-      });
-      page.setDefaultTimeout(20000);
-      const errors = [];
-      page.on("pageerror", (e) => errors.push(e.message));
-      await page.goto(origin + "/dashboard/mortgage");
-      await page
-        .getByRole("heading", { name: "Clarity behind every number." })
-        .waitFor();
-      await page.getByLabel("Home price", { exact: true }).fill("450000");
-      await page.locator("#mortgage-down-payment-input").fill("90000");
-      await page.getByLabel("Interest rate", { exact: true }).fill("6.25");
-      await page
-        .getByLabel("Property tax (annual)", { exact: true })
-        .fill("4800");
-      await page
-        .getByLabel("Home insurance (annual)", { exact: true })
-        .fill("1800");
-      await page.getByLabel("HOA (monthly)", { exact: true }).fill("0");
-      await page
-        .getByLabel("I have reviewed the inputs", { exact: false })
-        .check();
-      await page
-        .getByRole("button", { name: "Preview PDF", exact: true })
-        .click();
-      const dialog = page.getByRole("dialog", {
-        name: "Your mortgage presentation",
-        exact: true,
-      });
-      await dialog.waitFor();
-      await dialog
-        .getByRole("button", { name: "Download PDF", exact: true })
-        .waitFor();
-      assert.equal(await dialog.getByRole("alert").count(), 0);
-      await page.screenshot({
-        path: path.join(output, `preview-${width}.png`),
-        fullPage: false,
-      });
-      const pending = page.waitForEvent("download");
-      await dialog
-        .getByRole("button", { name: "Download PDF", exact: true })
-        .click();
-      const download = await pending;
-      assert.ok(download.suggestedFilename().endsWith("-estimate.pdf"));
-      await download.saveAs(path.join(output, `download-${width}.pdf`));
-      await dialog
-        .getByLabel("PDF branding template", { exact: true })
-        .selectOption("cobranded");
-      await dialog
-        .getByRole("button", { name: "Download PDF", exact: true })
-        .waitFor();
-      await dialog.getByRole("checkbox").uncheck();
-      await dialog
-        .getByRole("button", { name: "Download PDF", exact: true })
-        .waitFor();
-      assert.equal(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth > innerWidth,
-        ),
-        false,
-      );
-      await page.keyboard.press("Escape");
-      await dialog.waitFor({ state: "detached" });
-      await page
-        .getByRole("region", { name: "Estimated monthly payment breakdown" })
-        .waitFor();
-      assert.deepEqual(errors, []);
-      results.push({ width, passed: true });
-      await page.close();
+      for (const scenario of ["standard", "long-fields"]) {
+        reset();
+        const page = await browser.newPage({
+          viewport: { width, height: 900 },
+          acceptDownloads: true,
+        });
+        page.setDefaultTimeout(20000);
+        const errors = [];
+        page.on("pageerror", (e) => errors.push(e.message));
+        const fixture = mortgageOverflowInput();
+        if (scenario === "long-fields") {
+          state.partners.push(...fixture.partners);
+          await page.route("**/api/financing/context", (route) =>
+            route.fulfill({
+              contentType: "application/json",
+              body: JSON.stringify({
+                success: true,
+                data: {
+                  contacts: [fixture.client],
+                  branding: fixture.branding,
+                },
+              }),
+            }),
+          );
+        }
+        await page.goto(origin + "/dashboard/mortgage");
+        await page
+          .getByRole("heading", { name: "Clarity behind every number." })
+          .waitFor();
+        if (scenario === "long-fields") {
+          await page
+            .getByLabel("Selected client", { exact: true })
+            .selectOption(fixture.client.id);
+          await page
+            .getByText("Property, partners & report assumptions", {
+              exact: true,
+            })
+            .click();
+          await page
+            .getByLabel("Property address (editable)", { exact: true })
+            .fill(fixture.context.address);
+          await page
+            .getByRole("combobox", { name: /Preferred lender/ })
+            .selectOption(fixture.partners[0].id);
+        }
+        await page.getByLabel("Home price", { exact: true }).fill("450000");
+        await page.locator("#mortgage-down-payment-input").fill("90000");
+        await page.getByLabel("Interest rate", { exact: true }).fill("6.25");
+        await page
+          .getByLabel("Property tax (annual)", { exact: true })
+          .fill("4800");
+        await page
+          .getByLabel("Home insurance (annual)", { exact: true })
+          .fill("1800");
+        await page.getByLabel("HOA (monthly)", { exact: true }).fill("0");
+        await page
+          .getByLabel("I have reviewed the inputs", { exact: false })
+          .check();
+        await page
+          .getByRole("button", { name: "Preview PDF", exact: true })
+          .click();
+        const dialog = page.getByRole("dialog", {
+          name: "Your mortgage presentation",
+          exact: true,
+        });
+        await dialog.waitFor();
+        await dialog
+          .getByRole("button", { name: "Download PDF", exact: true })
+          .waitFor();
+        assert.equal(await dialog.getByRole("alert").count(), 0);
+        await page.screenshot({
+          path: path.join(output, `preview-${scenario}-${width}.png`),
+          fullPage: false,
+        });
+        const pending = page.waitForEvent("download");
+        await dialog
+          .getByRole("button", { name: "Download PDF", exact: true })
+          .click();
+        const download = await pending;
+        assert.ok(download.suggestedFilename().endsWith("-estimate.pdf"));
+        const downloaded = path.join(
+          output,
+          `download-${scenario}-${width}.pdf`,
+        );
+        await download.saveAs(downloaded);
+        const pdf = await PDFDocument.load(fs.readFileSync(downloaded));
+        assert.equal(pdf.getPageCount(), 2);
+        if (scenario === "long-fields")
+          assert.match(
+            await dialog.innerText(),
+            /long display fields were abbreviated/i,
+          );
+        await dialog
+          .getByLabel("PDF branding template", { exact: true })
+          .selectOption("cobranded");
+        await dialog
+          .getByRole("button", { name: "Download PDF", exact: true })
+          .waitFor();
+        await dialog.getByRole("checkbox").uncheck();
+        await dialog
+          .getByRole("button", { name: "Download PDF", exact: true })
+          .waitFor();
+        assert.equal(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth > innerWidth,
+          ),
+          false,
+        );
+        await page.keyboard.press("Escape");
+        await dialog.waitFor({ state: "detached" });
+        await page
+          .getByRole("region", { name: "Estimated monthly payment breakdown" })
+          .waitFor();
+        assert.deepEqual(errors, []);
+        results.push({ width, scenario, pages: 2, passed: true });
+        await page.close();
+      }
     }
     fs.writeFileSync(
       path.join(output, "results.json"),
       JSON.stringify(results, null, 2),
     );
     console.log(
-      "PASS mortgage PDF preview, template selection, generation and download at desktop, tablet and mobile sizes. All CRM/provider services are synthetic.",
+      "PASS standard and long-field mortgage PDF preview, template selection, generation and download at desktop, tablet and mobile sizes. All CRM/provider services are synthetic.",
     );
   } finally {
     await browser.close();

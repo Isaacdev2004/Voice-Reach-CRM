@@ -47,6 +47,14 @@ export const POST = withApiHandler(async (request) => {
   const uploaded = await supabaseAdmin.storage
     .from(bucket)
     .upload(path, bytes, { contentType: file.type, upsert: false });
+  if (uploaded.error && /bucket.*not found/i.test(uploaded.error.message ?? ""))
+    return apiError(
+      "Private image storage is not ready. Please contact your workspace administrator; your saved branding is unchanged.",
+      {
+        status: 503,
+        code: "brand_storage_unavailable",
+      },
+    );
   if (uploaded.error)
     return apiError(
       "Image upload failed. Your current branding is unchanged.",

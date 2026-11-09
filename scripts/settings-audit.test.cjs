@@ -9,3 +9,43 @@ test('Settings reads only owned records and returns actual provider MFA',async()
 test('brand image upload validates actual decoded image, authentication and private owner path',async()=>{const f=fixture();const writes=[];f.stubs['@/lib/supabaseAdmin'].supabaseAdmin.storage={from:bucket=>({upload:async(path)=>{writes.push({bucket,path});return {error:null}},createSignedUrl:async(path)=>({data:{signedUrl:'https://qa.example.test/signed/'+path},error:null})})};const r=f.load('app/api/settings/brand-kit/assets/route.ts');const request=bytes=>{const form=new FormData();form.append('file',new File([bytes],'image.png',{type:'image/png'}));return new Request('https://qa/settings/brand-kit/assets',{method:'POST',body:form})};assert.equal((await r.POST(request(new Uint8Array([137,80,78,71,13,10,26,10])),{})).status,400);assert.equal(writes.length,0);const bytes=await require('sharp')({create:{width:2,height:2,channels:3,background:'#a77b58'}}).png().toBuffer();assert.equal((await r.POST(request(bytes),{})).status,200);assert.equal(writes[0].bucket,'brand-assets');assert.ok(writes[0].path.startsWith(owner+'/branding/'));f.actor(null);assert.equal((await r.POST(request(bytes),{})).status,401);assert.equal(writes.length,1)});
 test('workspace ownership cannot be reassigned through Settings roster data',async()=>{const f=settingsFixture(),d=f.load('lib/settings/defaults.ts').DEFAULT_SETTINGS;d.profile.fullName='Owned';d.team=[{id:'foreign-owner',name:'Foreign',email:'foreign@example.test',role:'owner',status:'active'}];const r=f.load('app/api/settings/route.ts');const response=await r.POST(new Request('https://qa/settings',{method:'POST',body:JSON.stringify({settings:d})}),{});assert.equal(response.status,403)});
 test('read-only billing verification checks Stripe customer ownership and never modifies a subscription',async()=>{const f=fixture();let listed=0;const customer={id:'cus_synthetic',metadata:{ownerId:owner}};f.tables.audit_logs.push({id:id(90),owner_id:owner,entity_type:'billing',action:'STRIPE_CUSTOMER',created_at:'2026-10-23T12:00:00Z',metadata:{customerId:customer.id}});f.stubs['@/lib/stripe/config']={isStripeConfigured:()=>true,getStripe:()=>({customers:{retrieve:async()=>customer},subscriptions:{list:async()=>{listed++;return {has_more:false,data:[{status:'trialing'}]}}}})};const {readSubscriptionStatus}=f.load('lib/billing/read-subscription.ts');assert.equal((await readSubscriptionStatus(owner)).status,'trialing');customer.metadata.ownerId='foreign';assert.equal((await readSubscriptionStatus(owner)).verified,false);assert.equal(listed,1)});
+
+test('missing settings RPC is identified without a fallback write or billing grant',async()=>{
+ const f=settingsFixture(),settings=f.load('lib/settings/defaults.ts').DEFAULT_SETTINGS;settings.profile.fullName='Synthetic Agent';
+ f.stubs['@/lib/supabaseAdmin'].supabaseAdmin.rpc=async()=>({error:{code:'PGRST202',message:'Function missing'}});
+ const response=await f.load('app/api/settings/route.ts').POST(new Request('https://qa/settings',{method:'POST',body:JSON.stringify({settings})}),{});
+ assert.equal(response.status,503);assert.equal((await response.json()).code,'settings_migration_required');
+ assert.equal(f.tables.audit_logs.length,0);
+});
+
+test('missing private image bucket returns an actionable error without signing a nonexistent asset',async()=>{
+ const f=fixture();let signed=0;
+ f.stubs['@/lib/supabaseAdmin'].supabaseAdmin.storage={from:()=>({upload:async()=>({error:{message:'Bucket not found'}}),createSignedUrl:async()=>{signed++;return {data:{signedUrl:'https://example.test'}}}})};
+ const bytes=await require('sharp')({create:{width:2,height:2,channels:3,background:'#a77b58'}}).png().toBuffer();
+ const form=new FormData();form.append('file',new File([bytes],'headshot.png',{type:'image/png'}));
+ const response=await f.load('app/api/settings/brand-kit/assets/route.ts').POST(new Request('https://qa/assets',{method:'POST',body:form}),{});
+ assert.equal(response.status,503);assert.equal((await response.json()).code,'brand_storage_unavailable');assert.equal(signed,0);
+});
+
+test('saved approved branding reaches mortgage context and private signing remains owner-scoped across two synthetic accounts',async()=>{
+ const f=settingsFixture(),db=f.stubs['@/lib/supabaseAdmin'].supabaseAdmin;
+ let current=owner;
+ f.stubs['@clerk/nextjs/server'].auth=async()=>({userId:current});
+ f.stubs['@/lib/contacts/read-snapshot']={readContactSnapshot:async()=>[]};
+ const signed=[];
+ db.storage={from:()=>({createSignedUrl:async path=>{signed.push(path);return {data:{signedUrl:'https://assets.example.test/'+path},error:null}}})};
+ db.rpc=async(name,p)=>{assert.equal(name,'save_subscriber_settings');f.tables.audit_logs.push({id:id(f.tables.audit_logs.length+500),owner_id:p.p_owner,action:'SETTINGS_SAVED',entity_type:'user_settings',created_at:new Date().toISOString(),metadata:{settings:p.p_settings}});return {data:p.p_settings,error:null}};
+ const settingsRoute=f.load('app/api/settings/route.ts');
+ for(const [actor,label] of [[owner,'Agent A'],['qa-other-owner','Agent B']]){
+  current=actor;f.actor(actor);
+  const settings=structuredClone(f.load('lib/settings/defaults.ts').DEFAULT_SETTINGS);settings.profile.fullName=label;
+  settings.brandKit={...f.load('lib/settings/brand-kit.ts').emptyBrandKit(),agentName:label,businessName:'  Synthetic Coastal Realty  ',phone:'+1 555-010-0123',email:actor===owner?'a@example.test':'b@example.test',website:'https://example.test',licenseNumber:'TEST-LICENSE',headshotPath:actor+'/branding/'+id(40)+'.png',approved:true};
+  assert.equal((await settingsRoute.POST(new Request('https://qa/settings',{method:'POST',body:JSON.stringify({settings})}),{})).status,200);
+  const saved=await (await settingsRoute.GET(new Request('https://qa/settings'),{})).json();
+  assert.equal(saved.settings.brandKit.businessName,'Synthetic Coastal Realty');assert.equal(saved.settings.brandKit.agentName,label);
+  const context=await (await f.load('app/api/financing/context/route.ts').GET(new Request('https://qa/context'),{})).json();
+  assert.equal(context.data.branding.name,label);assert.equal(context.data.branding.email,settings.brandKit.email);assert.equal(context.data.branding.license,'TEST-LICENSE');assert.ok(context.data.branding.headshot.includes(actor+'/branding/'));
+ }
+ assert.equal(signed.length,2);assert.ok(signed[0].startsWith(owner+'/branding/'));assert.ok(signed[1].startsWith('qa-other-owner/branding/'));
+ f.actor(null);assert.equal((await settingsRoute.POST(new Request('https://qa/settings',{method:'POST',body:'{}'}),{})).status,401);
+});

@@ -1,11 +1,14 @@
 import {
   PDFDocument,
+  PDFName,
+  PDFHexString,
   rgb,
   type PDFPage,
   type PDFFont,
   type PDFImage,
 } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
+import { fitPdfText, pdfText } from "./pdf-text-layout";
 import { mortgagePdfModel, type MortgagePdfInput } from "./mortgage-pdf-model";
 import { usd } from "./calculators";
 export type MortgagePdfAssets = {
@@ -38,6 +41,7 @@ const W = 612,
 export async function generateMortgagePdf(
   input: MortgagePdfInput,
   assets: MortgagePdfAssets,
+  options: { onAbbreviated?: () => void } = {},
 ) {
   const m = mortgagePdfModel(input),
     doc = await PDFDocument.create();
@@ -99,6 +103,7 @@ export async function generateMortgagePdf(
       new Set(font.getCharacterSet()),
     ]),
   );
+  let abbreviated = false;
   function text(
     p: PDFPage,
     t: string,
@@ -107,15 +112,22 @@ export async function generateMortgagePdf(
     size = 10,
     font: PDFFont = sans,
     color = C.ink,
+    width = W - 24 - x,
   ) {
-    const value = t.replace(/[\r\n\t]/g, " ").normalize("NFC");
+    const value = pdfText(t);
     if (
       [...value].some((c) => !characterSets.get(font)!.has(c.codePointAt(0)!))
     )
       throw Error(
         "A report character is not supported by the embedded font set. Use a supported spelling for this report; saved records are unchanged.",
       );
-    if (x < 0 || y < 0 || x + font.widthOfTextAtSize(value, size) > W - 24)
+    const fitted = fitPdfText(value, font, { width, size, maxLines: 1 });
+    size = fitted.size;
+    if (
+      x < 0 ||
+      y < 0 ||
+      x + font.widthOfTextAtSize(value, size) > W - 24 + 0.01
+    )
       throw Error(
         "A report field is too wide for the standard two-page layout. Shorten report fields; saved records are unchanged.",
       );
@@ -127,29 +139,6 @@ export async function generateMortgagePdf(
       color,
     });
   }
-  function wrap(t: string, width: number, size: number, font: PDFFont) {
-    let rows: string[] = [],
-      row = "";
-    for (const word of t.replace(/\s+/g, " ").split(" ")) {
-      if (
-        font.widthOfTextAtSize((row ? row + " " : "") + word, size) <= width
-      ) {
-        row += (row ? " " : "") + word;
-        continue;
-      }
-      if (row) rows.push(row);
-      row = "";
-      for (const ch of word) {
-        if (font.widthOfTextAtSize(row + ch, size) > width) {
-          rows.push(row);
-          row = "";
-        }
-        row += ch;
-      }
-    }
-    if (row) rows.push(row);
-    return rows;
-  }
   function para(
     p: PDFPage,
     t: string,
@@ -160,16 +149,113 @@ export async function generateMortgagePdf(
     font: PDFFont = sans,
     color = C.muted,
     max = Infinity,
+    displayOnly = false,
+    height = Infinity,
+    uri?: string,
+    original = t,
   ) {
-    const rows = wrap(t, width, size, font);
-    if (rows.length > max)
-      throw Error(
-        "Text exceeds the two-page layout. Shorten the custom fields before exporting; no content was discarded.",
-      );
-    rows.forEach((r, i) =>
-      text(p, r, x, y + i * size * 1.35, size, font, color),
+    const fitted = fitPdfText(t, font, {
+      width,
+      size,
+      maxLines: max,
+      abbreviate: displayOnly,
+      height,
+    });
+    fitted.rows.forEach((r, i) =>
+      text(
+        p,
+        r,
+        x,
+        y + i * fitted.size * 1.35,
+        fitted.size,
+        font,
+        color,
+        width,
+      ),
     );
-    return rows.length * size * 1.35;
+    if (fitted.abbreviated || uri || original !== t) {
+      // Preserve the original contact target and full abbreviated field in PDF annotations.
+      p.node.addAnnot(
+        doc.context.register(
+          doc.context.obj({
+            Type: "Annot",
+            Subtype: "Link",
+            Rect: [x, H - y - fitted.height, x + width, H - y],
+            Border: [0, 0, 0],
+            Contents: PDFHexString.fromText(pdfText(original)),
+            ...(uri
+              ? { A: { S: PDFName.of("URI"), URI: PDFHexString.fromText(uri) } }
+              : {}),
+          }),
+        ),
+      );
+    }
+    if (fitted.abbreviated || original !== t) {
+      abbreviated = true;
+      options.onAbbreviated?.();
+    }
+    return fitted.height;
+  }
+  // Abbreviate only the user-entered source, never its dates, amounts or disclosures.
+  function sourcePara(
+    p: PDFPage,
+    prefix: string,
+    source: string,
+    suffix: string,
+    y: number,
+    maxLines: number,
+    height = Infinity,
+  ) {
+    const original = prefix + source + suffix;
+    const fits = (value: string) => {
+      try {
+        fitPdfText(value, sans, { width: 540, size: 9, maxLines, height });
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    if (fits(original))
+      return para(
+        p,
+        original,
+        36,
+        y,
+        540,
+        9,
+        sans,
+        C.muted,
+        maxLines,
+        false,
+        height,
+      );
+    const chars = Array.from(pdfText(source));
+    let low = 0,
+      high = chars.length;
+    if (!fits(prefix + "…" + suffix))
+      throw Error(
+        "Source dates and disclosures exceed their PDF area; no content was discarded.",
+      );
+    while (low < high) {
+      const mid = Math.ceil((low + high) / 2);
+      if (fits(prefix + chars.slice(0, mid).join("") + "…" + suffix)) low = mid;
+      else high = mid - 1;
+    }
+    return para(
+      p,
+      prefix + chars.slice(0, low).join("") + "…" + suffix,
+      36,
+      y,
+      540,
+      9,
+      sans,
+      C.muted,
+      maxLines,
+      false,
+      height,
+      undefined,
+      original,
+    );
   }
   function pic(
     p: PDFPage,
@@ -192,6 +278,16 @@ export async function generateMortgagePdf(
     text(p, t, 36, y, 22, serifBold);
   }
   function footer(p: PDFPage, n: number) {
+    if (abbreviated)
+      text(
+        p,
+        "Long display fields abbreviated; full details remain in source records and PDF annotations.",
+        36,
+        749,
+        6.8,
+        sans,
+        C.muted,
+      );
     line(p, 36, 758, 540);
     text(
       p,
@@ -259,6 +355,8 @@ export async function generateMortgagePdf(
     sansBold,
     C.ink,
     2,
+    true,
+    22,
   );
   const addressHeight = para(
     one,
@@ -270,14 +368,16 @@ export async function generateMortgagePdf(
     sans,
     C.muted,
     2,
+    true,
+    22,
   );
-  if (buyerHeight + addressHeight > 42)
+  if (buyerHeight + addressHeight > 44.01)
     throw Error(
       "Buyer and address text exceed the standard two-page header. Shorten report details; saved CRM records are unchanged.",
     );
   rect(one, 36, 246, 340, 88, C.white);
   text(one, "YOUR ESTIMATED MONTHLY PAYMENT", 52, 258, 9, sansBold, C.bronze);
-  text(one, usd(m.result.total), 52, 276, 35, serifBold);
+  text(one, usd(m.result.total), 52, 276, 35, serifBold, C.ink, 308);
   text(
     one,
     "Principal, interest + entered monthly costs",
@@ -289,7 +389,7 @@ export async function generateMortgagePdf(
   );
   rect(one, 386, 246, 190, 88, rgb(0.89, 0.92, 0.87));
   text(one, "LOAN AMOUNT", 400, 260, 9, sansBold, C.green);
-  text(one, usd(m.mortgage.loanAmount), 400, 280, 24, serifBold);
+  text(one, usd(m.mortgage.loanAmount), 400, 280, 24, serifBold, C.ink, 162);
   text(
     one,
     `${m.calculation.termYears}-year amortization`,
@@ -370,7 +470,18 @@ export async function generateMortgagePdf(
   ];
   detail.forEach(([k, v], i) => {
     text(one, k, 36 + i * 139, detailY, 9, sans, C.muted);
-    para(one, v, 36 + i * 139, detailY + 16, 128, 12, serifBold, C.ink, 2);
+    para(
+      one,
+      v,
+      36 + i * 139,
+      detailY + 16,
+      128,
+      12,
+      serifBold,
+      C.ink,
+      2,
+      k === "Loan type",
+    );
   });
   text(one, "YOUR NEXT STEPS", 36, 691, 9, sansBold, C.bronze);
   [
@@ -410,6 +521,8 @@ export async function generateMortgagePdf(
       serifBold,
       C.ink,
       2,
+      true,
+      27,
     );
     if (!c) {
       para(
@@ -425,7 +538,7 @@ export async function generateMortgagePdf(
       );
       continue;
     }
-    text(two, usd(c.pi), x + 12, 142, 25, serifBold);
+    text(two, usd(c.pi), x + 12, 142, 25, serifBold, C.ink, 148);
     text(
       two,
       c.arm ? "Initial monthly P&I" : "Monthly principal & interest",
@@ -435,7 +548,16 @@ export async function generateMortgagePdf(
       sans,
       C.muted,
     );
-    text(two, `${usd(c.total)} total / month`, x + 12, 190, 11, sansBold);
+    text(
+      two,
+      `${usd(c.total)} total / month`,
+      x + 12,
+      190,
+      11,
+      sansBold,
+      C.ink,
+      148,
+    );
     text(
       two,
       `Assumed ${c.rate}% · ${c.termYears} years`,
@@ -448,21 +570,18 @@ export async function generateMortgagePdf(
     para(two, c.benefit, x + 12, 241, 148, 9, sans, C.green, 2);
     para(two, c.consideration, x + 12, 266, 148, 8.9, sans, C.muted, 3);
   }
-  para(
+  sourcePara(
     two,
-    `Entered rate source: ${m.rateSource}. Source date: ${m.rateDate}. Comparisons are illustrative, not eligibility or lender offers.`,
-    36,
+    "Entered rate source: ",
+    m.rateSource,
+    `. Source date: ${m.rateDate}. Comparisons are illustrative, not eligibility or lender offers.`,
     314,
-    540,
-    9,
-    sans,
-    C.muted,
     2,
   );
   heading(two, "What to plan for at closing", 352);
   rect(two, 36, 385, 200, 72, rgb(0.89, 0.92, 0.87));
   text(two, "CASH NEEDED AT CLOSING", 49, 395, 8.5, sansBold, C.green);
-  text(two, m.money(m.cash), 49, 415, 23, serifBold);
+  text(two, m.money(m.cash), 49, 415, 23, serifBold, C.ink, 174);
   text(
     two,
     "Excludes deposits / credits not modeled",
@@ -489,16 +608,14 @@ export async function generateMortgagePdf(
       sansBold,
     );
   });
-  para(
+  sourcePara(
     two,
-    `Common categories: settlement, lender, recording, prepaids and reserves. Fee source: ${m.feeSource}. Date: ${m.feeDate}.${m.itemizedFees !== null ? ` Itemized calculator fees: ${usd(m.itemizedFees)} (classification not provided; not added to cash needed).` : ""}`,
-    36,
+    "Common categories: settlement, lender, recording, prepaids and reserves. Fee source: ",
+    m.feeSource,
+    `. Date: ${m.feeDate}.${m.itemizedFees !== null ? ` Itemized calculator fees: ${usd(m.itemizedFees)} (classification not provided; not added to cash needed).` : ""}`,
     466,
-    540,
-    9,
-    sans,
-    C.muted,
     3,
+    34,
   );
   text(two, "IMPORTANT ASSUMPTIONS", 36, 503, 9, sansBold, C.bronze);
   para(
@@ -519,7 +636,7 @@ export async function generateMortgagePdf(
   ]
     .filter(Boolean)
     .join(" ");
-  if (extras) para(two, extras, 36, 565, 540, 8.6, sans, C.muted, 2);
+  if (extras) para(two, extras, 36, 565, 540, 8.6, sans, C.muted, 3, false, 35);
   const teamY = extras ? 606 : 572;
   heading(two, "Your Home-Buying Team", teamY);
   const cardsTop = teamY + 31;
@@ -536,29 +653,132 @@ export async function generateMortgagePdf(
     rect(two, x, cardsTop, width, 747 - cardsTop, C.white);
     text(two, title.toUpperCase(), x + 10, cardsTop + 8, 8, sansBold, C.bronze);
     let y = cardsTop + 23;
-    const photoW = photo ? 32 : 0;
-    pic(two, photo, x + 10, y, 32, 32);
-    const h = para(
-      two,
-      name,
-      x + 10 + photoW + (photo ? 7 : 0),
-      y,
-      width - 20 - photoW - (photo ? 7 : 0),
-      11,
-      serifBold,
-      C.ink,
-      3,
-    );
-    y += Math.max(h, photo ? 34 : 0) + 2;
-    if (company)
-      y += para(two, company, x + 10, y, width - 20, 9, sans, C.muted, 3) + 2;
-    for (const detail of details.filter(Boolean)) {
-      y += para(two, detail, x + 10, y, width - 20, 8.5, sans, C.ink, 2) + 1;
+    const visible = details.filter(Boolean);
+    const linkFor = (detail: string) =>
+      /^https:\/\//i.test(detail)
+        ? detail
+        : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(detail)
+          ? `mailto:${detail}`
+          : undefined;
+    let regular = false;
+    try {
+      const measure = (
+        value: string,
+        size: number,
+        font: PDFFont,
+        width: number,
+        maxLines: number,
+      ) =>
+        fitPdfText(value, font, { width, size, minSize: size, maxLines })
+          .height;
+      let bottom =
+        y +
+        Math.max(
+          measure(name, 11, serifBold, 240 - (photo ? 39 : 0), 3),
+          photo ? 34 : 0,
+        ) +
+        2;
+      if (company) bottom += measure(company, 9, sans, 240, 3) + 2;
+      for (const detail of visible)
+        bottom += measure(detail, 8.5, sans, 240, 2) + 1;
+      regular = bottom <= 745;
+    } catch {
+      /* Use the bounded layout only when the approved spacing cannot fit. */
     }
-    if (y > 745)
-      throw Error(
-        "Contact details exceed the two-page team area. Shorten report fields before exporting; saved data is unchanged.",
+    if (regular) {
+      pic(two, photo, x + 10, y, 32, 32);
+      const height = para(
+        two,
+        name,
+        x + 10 + (photo ? 39 : 0),
+        y,
+        240 - (photo ? 39 : 0),
+        11,
+        serifBold,
+        C.ink,
+        3,
       );
+      y += Math.max(height, photo ? 34 : 0) + 2;
+      if (company)
+        y += para(two, company, x + 10, y, 240, 9, sans, C.muted, 3) + 2;
+      for (const detail of visible)
+        y +=
+          para(
+            two,
+            detail,
+            x + 10,
+            y,
+            240,
+            8.5,
+            sans,
+            C.ink,
+            2,
+            false,
+            Infinity,
+            linkFor(detail),
+          ) + 1;
+    } else {
+      const photoW = photo
+        ? details.filter(Boolean).length >= 4 && extras
+          ? 24
+          : 32
+        : 0;
+      pic(two, photo, x + 10, y, photoW, photoW);
+      const bottom = 743;
+      // Allocate a bounded share to each field, leaving room for every contact method.
+      const slots = 1 + (company ? 1 : 0) + visible.length;
+      const rowBudget = Math.min(27, (bottom - y - slots) / slots);
+      const h = para(
+        two,
+        name,
+        x + 10 + photoW + (photo ? 7 : 0),
+        y,
+        width - 20 - photoW - (photo ? 7 : 0),
+        11,
+        serifBold,
+        C.ink,
+        2,
+        true,
+        rowBudget,
+      );
+      y += Math.max(h, photoW);
+      if (company)
+        y += para(
+          two,
+          company,
+          x + 10,
+          y,
+          width - 20,
+          9,
+          sans,
+          C.muted,
+          2,
+          true,
+          Math.max(10.8, (bottom - y) / (visible.length + 1)),
+        );
+      for (const [index, detail] of visible.entries()) {
+        const uri = /^https:\/\//i.test(detail)
+          ? detail
+          : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(detail)
+            ? `mailto:${detail}`
+            : undefined;
+        const budget = (bottom - y) / (visible.length - index);
+        y += para(
+          two,
+          detail,
+          x + 10,
+          y,
+          width - 20,
+          8.5,
+          sans,
+          C.ink,
+          Infinity,
+          true,
+          budget,
+          uri,
+        );
+      }
+    }
     if (brandLogo) pic(two, brandLogo, x + 205, cardsTop + 6, 44, 18);
   }
   const agent = input.branding;
