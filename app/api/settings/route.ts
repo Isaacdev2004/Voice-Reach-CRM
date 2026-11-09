@@ -300,9 +300,20 @@ export const POST = withApiHandler(async (request) => {
       "Settings changed in another session. Reload before saving to avoid overwriting changes.",
       { status: 409 },
     );
+  if (
+    savedResult.error &&
+    ["PGRST202", "42883"].includes(savedResult.error.code ?? "")
+  )
+    return apiError(
+      "Settings storage is not ready. Your changes are still in this form; please contact your workspace administrator.",
+      {
+        status: 503,
+        code: "settings_migration_required",
+      },
+    );
   if (savedResult.error)
     return apiError(
-      "Settings could not be saved. Verify that the Settings database migration is installed, then retry.",
+      "Settings could not be saved. Your changes are still in this form; please retry.",
       { status: 503 },
     );
   settings = savedResult.data as UserSettings;

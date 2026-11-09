@@ -1,15 +1,11 @@
 "use client";
 import { AssistantPreferencesFields } from "./assistant-preferences";
 import { AuthorizedVoicePreference } from "./authorized-voice-preference";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { UserSettings } from "@/lib/settings/types";
-import {
-  BrandKitSchema,
-  emptyBrandKit,
-  type BrandKit,
-} from "@/lib/settings/brand-kit";
+import { emptyBrandKit, type BrandKit } from "@/lib/settings/brand-kit";
 export function BrandKitPanel({
   settings,
   onChange,
@@ -17,8 +13,20 @@ export function BrandKitPanel({
   settings: UserSettings;
   onChange: (kit: BrandKit) => void;
 }) {
-  const parsed = BrandKitSchema.safeParse(settings.brandKit);
-  const kit = parsed.success ? parsed.data : emptyBrandKit();
+  // Keep the editable draft verbatim. Validation/normalization belongs at save time;
+  // parsing on every keystroke trims spaces and resets incomplete emails/URLs.
+  const defaults = emptyBrandKit();
+  const kit = {
+    ...defaults,
+    ...settings.brandKit,
+    financingPdf: {
+      ...defaults.financingPdf,
+      ...settings.brandKit?.financingPdf,
+    },
+    socials: { ...defaults.socials, ...settings.brandKit?.socials },
+  };
+  const latestKit = useRef(kit);
+  latestKit.current = kit;
   const [images, setImages] = useState({ headshot: "", logo: "" }),
     [notice, setNotice] = useState(""),
     [uploading, setUploading] = useState(false),
@@ -40,7 +48,7 @@ export function BrandKitPanel({
     [aiDraft, setAiDraft] = useState(""),
     [aiBusy, setAiBusy] = useState(false);
   const edit = (patch: Partial<BrandKit>) =>
-    onChange({ ...kit, ...patch, approved: false });
+    onChange({ ...latestKit.current, ...patch, approved: false });
   useEffect(() => {
     let live = true;
     void fetch("/api/settings/brand-kit")
@@ -87,15 +95,17 @@ export function BrandKitPanel({
         body: form,
       });
       const j = await r.json();
-      if (!r.ok) throw Error();
+      if (!r.ok) throw Error(j.error || "Image upload failed. Please retry.");
       edit({ [kind === "headshot" ? "headshotPath" : "logoPath"]: j.path });
       setImages((old) => ({ ...old, [kind]: j.url }));
       setNotice(
         "Image uploaded privately. Review and save your Brand Kit to use it.",
       );
-    } catch {
+    } catch (error) {
       setNotice(
-        "Image upload failed. Your current saved branding is unchanged.",
+        error instanceof Error
+          ? error.message
+          : "Image upload failed. Your current saved branding is unchanged.",
       );
     } finally {
       setUploading(false);

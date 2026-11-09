@@ -7,7 +7,9 @@
       "feat/premium-auth-refresh": false,
       "release/luxury-mortgage-pdf-2": false,
       "feat/public-feature-workflow": false,
-      "feat/contacts-csv-export": false
+      "feat/contacts-csv-export": false,
+      "fix/mortgage-pdf-field-overflow": false,
+      "fix/settings-brand-pdf-recovery": false
     }
   },
   "crons": [
