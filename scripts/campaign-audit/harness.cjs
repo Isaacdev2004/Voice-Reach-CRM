@@ -189,6 +189,14 @@ function fixture() {
     },
   };
   const stubs = {
+    "@clerk/nextjs/server": {
+      auth: async () => ({ userId: actor }),
+      clerkClient: async () => ({ users: { getUser: async requested => {
+        if (!actor || requested !== actor) throw Error("Synthetic account unavailable");
+        return { id: actor, firstName: actor === owner ? "Avery" : "Casey", lastName: "Agent", banned: false,
+          primaryEmailAddressId: "synthetic-primary", emailAddresses: [{ id: "synthetic-primary", emailAddress: "account@example.test", verification: { status: "verified" } }] };
+      } } }),
+    },
     "@/lib/automations/engine":{evaluateTriggers:async event=>{calls.push({trigger:event});return[];}},
     "@/lib/auth": {
       requireUserId: async () => {

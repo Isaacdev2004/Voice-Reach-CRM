@@ -184,6 +184,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 "/dashboard/activity",
                 "/dashboard/voice-scripts",
                 "/dashboard/settings",
+                "/dashboard/assistant",
                 "/dashboard/concierge",
                 "/dashboard/admin/concierge",
               ].includes(normalizedPath) ? (
@@ -215,6 +216,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           {normalizedPath !== "/dashboard" &&
           normalizedPath !== "/dashboard/contacts" &&
           normalizedPath !== "/dashboard/tasks" &&
+          normalizedPath !== "/dashboard/assistant" &&
           ![
             "/dashboard/settings",
             "/dashboard/activity",

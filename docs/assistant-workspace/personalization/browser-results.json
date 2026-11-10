@@ -1,0 +1,24 @@
+{
+  "evidence": "Local synthetic browser only",
+  "results": [
+    {
+      "width": 1440,
+      "height": 900,
+      "checks": 9,
+      "passed": true
+    },
+    {
+      "width": 820,
+      "height": 1180,
+      "checks": 9,
+      "passed": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "checks": 9,
+      "passed": true
+    }
+  ],
+  "noSendingOrEnrollment": true
+}

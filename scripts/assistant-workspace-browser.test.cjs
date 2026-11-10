@@ -1,0 +1,859 @@
+/* Local acceptance using actual UI components and explicitly mocked providers/CRM. Never uses real credentials. */
+const fs = require("node:fs"),
+  path = require("node:path"),
+  http = require("node:http"),
+  assert = require("node:assert/strict"),
+  esbuild = require("esbuild"),
+  { chromium } = require("playwright");
+(async () => {
+  const root = path.resolve(__dirname, ".."),
+    fixture = path.join(__dirname, "assistant-workspace"),
+    out = path.join(root, "docs/assistant-workspace/previews");
+  fs.mkdirSync(out, { recursive: true });
+  const build = await esbuild.build({
+    entryPoints: [path.join(fixture, "entry.jsx")],
+    bundle: true,
+    write: false,
+    jsx: "automatic",
+    tsconfig: path.join(root, "tsconfig.json"),
+    define: { "process.env.NODE_ENV": '"development"', "process.env": "{}" },
+    alias: {
+      "next/server": path.join(root, "scripts/contacts-browser/server.jsx"),
+      "next/navigation": path.join(fixture, "stubs.jsx"),
+      "@clerk/nextjs": path.join(fixture, "stubs.jsx"),
+      "next/link": path.join(fixture, "link.jsx"),
+      "next/image": path.join(root, "scripts/contacts-browser/image.jsx"),
+    },
+  });
+  const css =
+    fs
+      .readdirSync(path.join(root, ".next/static/css"))
+      .filter((n) => n.endsWith(".css"))
+      .map((n) =>
+        fs.readFileSync(path.join(root, ".next/static/css", n), "utf8"),
+      )
+      .join("\n") +
+    fs.readFileSync(
+      path.join(root, "components/assistant/workspace.css"),
+      "utf8",
+    );
+  const server = http.createServer((req, res) => {
+    if (req.url === "/app.js") {
+      res.setHeader("content-type", "text/javascript");
+      return res.end(build.outputFiles[0].text);
+    }
+    if (req.url.startsWith("/brand/")) {
+      const p = path.join(root, "public", req.url);
+      if (fs.existsSync(p)) {
+        res.setHeader(
+          "content-type",
+          p.endsWith(".png") ? "image/png" : "image/jpeg",
+        );
+        return fs.createReadStream(p).pipe(res);
+      }
+      res.statusCode = 404;
+      return res.end();
+    }
+    res.setHeader("content-type", "text/html");
+    res.end(
+      `<!doctype html><html lang="en"><head><title>MyARI Assistant — local synthetic acceptance</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}\n.fixture-nav{position:fixed;inset:0 auto 0 0;width:256px;background:#faf5ed;padding:30px;display:flex;flex-direction:column;gap:15px;border-right:1px solid #dfd2bf}.fixture-nav h2{font:38px Georgia;color:#92643e}.fixture-nav img{width:90px}.fixture-nav a{font-size:14px;color:#655440}.fixture-header{position:fixed;top:0;left:256px;right:0;height:64px;background:#fffdf9;padding:12px 24px;display:flex;justify-content:space-between;border-bottom:1px solid #dfd2bf}.fixture-main{margin:100px 40px 0 280px}@media(max-width:1023px){.fixture-nav{display:none}.fixture-header{left:0;height:60px}.fixture-main{margin-left:20px}} </style></head><body><div id="root"></div><script src="/app.js"></script></body></html>`,
+    );
+  });
+  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: "/usr/bin/chromium",
+    args: ["--no-sandbox"],
+  });
+  let checks = 0;
+  const results = [];
+  try {
+    for (const {width, height} of [{width:1920,height:900},{width:1600,height:900},{width:1440,height:900},{width:1366,height:768},{width:1280,height:800},{width:1024,height:1000},{width:768,height:1024},{width:390,height:844},{width:1440,height:600}]) {
+      const context = await browser.newContext({
+          viewport: { width, height },
+          reducedMotion: "reduce",
+        }),
+        page = await context.newPage(),
+        errors = [],
+        chats = new Map(),
+        proposals = new Map(),
+        outcomes = new Map();
+      let sessionOwner = "stage_a";
+      let calls = 0,
+        writes = [],
+        fail = false;
+      page.on("pageerror", (e) => {
+        errors.push(e.message);
+        console.error(e.stack);
+      });
+      page.on("dialog", (d) => d.accept());
+      const proposal = (
+        name = "Cold buyer follow-up",
+        id = crypto.randomUUID(),
+      ) => ({
+        id,
+        digest: "a".repeat(64),
+        rootId: id,
+        action: {
+          kind: "campaign",
+          name,
+          audience: "Cold buyer leads",
+          description: "Thoughtful follow-up for review.",
+          durationDays: 21,
+          steps: [
+            {
+              type: "sms",
+              day: 1,
+              title: "Warm introduction",
+              description:
+                "Hi {{first_name}}, how can I help? Reply STOP to opt out.",
+            },
+            {
+              type: "email",
+              day: 7,
+              title: "A little inspiration",
+              description: "A helpful buyer guide, prepared for your review.",
+            },
+            {
+              type: "voicemail",
+              day: 21,
+              title: "Personal check-in",
+              description: "Hi, just checking in. Text script only.",
+            },
+          ],
+        },
+        preview: {},
+        executable: true,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+      });
+      await page.addInitScript(() => {
+        Object.defineProperty(navigator, "mediaDevices", {
+          configurable: true,
+          value: {
+            getUserMedia: async () => ({ getTracks: () => [{ stop() {} }] }),
+          },
+        });
+        window.AudioContext = class {
+          async decodeAudioData() {
+            return {
+              sampleRate: 16000,
+              getChannelData: () => new Float32Array(16000),
+            };
+          }
+          async close() {}
+        };
+        window.MediaRecorder = class {
+          static isTypeSupported() {
+            return true;
+          }
+          constructor() {
+            this.state = "inactive";
+          }
+          start() {
+            this.state = "recording";
+          }
+          stop() {
+            if (this.state !== "recording") return;
+            this.state = "inactive";
+            this.ondataavailable?.({
+              data: new Blob(["synthetic-audio"], { type: "audio/webm" }),
+            });
+            this.onstop?.();
+          }
+        };
+      });
+      await page.route("**/api/**", async (route) => {
+        const request = route.request(),
+          u = new URL(request.url()),
+          method = request.method(),
+          owner = request.headers()["x-myari-owner"] || sessionOwner;
+        const body = request
+          .headers()
+          ["content-type"]?.includes("application/json")
+          ? request.postDataJSON() || {}
+          : {};
+        let data = {},
+          status = 200;
+        if (method !== "GET") writes.push({ path: u.pathname, method, body });
+        if (u.pathname === "/api/concierge/access")
+          data = { success: true, enabled: sessionOwner !== "stage_b" };
+        else if (u.pathname === "/api/assistant/config")
+          data = {
+            enabled: owner !== "denied",
+            safetyLimits: { dailyInteractions: 5, dailyProviderCalls: 10 },
+            provider: "openai",
+            configured: true,
+            externalActionsEnabled: false,
+          };
+        else if (u.pathname === "/api/assistant/history") {
+          if (method === "GET") {
+            const id = u.searchParams.get("conversationId");
+            data = id
+              ? { messages: chats.get(owner + id) || [] }
+              : {
+                  recent: [...chats.entries()]
+                    .filter(([key]) => key.startsWith(owner))
+                    .map(([key, messages]) => ({
+                      conversationId: key.slice(owner.length),
+                      message: messages[0]?.content || "Conversation",
+                      at: new Date().toISOString(),
+                    })),
+                };
+          } else { chats.delete(owner + body.conversationId); data = { deleted: true }; }
+        } else if (u.pathname === "/api/assistant/chat") {
+          calls++;
+          if (fail) {
+            status = 429;
+            data = {
+              error:
+                "Daily interaction limit reached. Your saved work is intact.",
+            };
+          } else {
+            const p = proposal();
+            proposals.set(p.id, p);
+            const messages = chats.get(owner + body.conversationId) || [];
+            messages.push(
+              { role: "user", content: body.message },
+              {
+                role: "assistant",
+                content:
+                  "Here is your reviewable campaign draft. Nothing has been saved, enrolled or sent.",
+                proposalIds: [p.id],
+              },
+            );
+            chats.set(owner + body.conversationId, messages);
+            data = {
+              message: messages.at(-1).content,
+              proposals: [p],
+              results: [
+                {
+                  name: "search_contacts",
+                  data: [
+                    {
+                      id: "hidden-id",
+                      name:
+                        owner === "stage_a" ? "Alex Example" : "Blair Example",
+                      stage: "Buyer",
+                      notes: "Synthetic authorized record",
+                    },
+                  ],
+                },
+              ],
+              usage: { provider: "openai", inputTokens: 12, outputTokens: 45 },
+            };
+          }
+        } else if (u.pathname === "/api/assistant/proposals") {
+          if (method === "GET") {
+            const id = u.searchParams.get("id");
+            data = {
+              proposal: proposals.get(id),
+              outcome: outcomes.get(id) || null,
+            };
+          } else {
+            const p = proposal(body.action.name);
+            p.action = body.action;
+            proposals.set(p.id, p);
+            data = { proposal: p };
+          }
+        } else if (u.pathname === "/api/assistant/approve") {
+          const id = body.proposalId;
+          if (outcomes.has(id)) {
+            status = 409;
+            data = { error: "Already resolved" };
+          } else {
+            const result = {
+              state: method === "DELETE" ? "cancelled" : "completed",
+              result: {
+                message:
+                  method === "DELETE"
+                    ? "Proposal rejected. Nothing saved."
+                    : "Campaign draft saved. No enrollment or sending.",
+                href: "/dashboard/campaigns",
+              },
+            };
+            outcomes.set(id, result);
+            data = { outcome: result };
+          }
+        } else if (u.pathname === "/api/assistant/transcribe")
+          data = { transcript: "Create a task to call Jordan Friday at ten." };
+        else if (u.pathname === "/api/assistant/work") data = { work: [] };
+        else if (u.pathname === "/api/ai/generate")
+          data = {
+            success: true,
+            data: {
+              task: "email_writer",
+              provider: "template",
+              output: {
+                subject: "Synthetic draft",
+                body: "Keep this draft while switching views.",
+              },
+            },
+          };
+        else {
+          status = 404;
+          data = { error: "Unsupported test route" };
+        }
+        await route.fulfill({
+          status,
+          contentType: "application/json",
+          body: JSON.stringify(data),
+        });
+      });
+      const clickTool = async (name) => {
+        await page.getByLabel("More Assistant tools", { exact: true }).click();
+        await page.getByRole("button", { name, exact: true }).click();
+      };
+      await page.goto(origin + "/dashboard/assistant");
+      await page
+        .getByRole("heading", { name: /how can I help you today/ })
+        .waitFor({ timeout: 8000 })
+        .catch(async (e) => {
+          console.error(
+            (await page.locator("body").innerText()).slice(0, 1500),
+          );
+          console.error(errors);
+          await page.screenshot({ path: "/tmp/assistant-debug.png" });
+          throw e;
+        });
+      await page.getByLabel("More Assistant tools", { exact: true }).click();
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Compact Drawer", exact: true })
+          .count(),
+        0,
+      );
+      await page.getByLabel("More Assistant tools", { exact: true }).click();
+      assert.equal(await page.locator(".aw-capability-start").count(), 9);
+      assert.equal(await page.locator(".aw-capability-learn").count(), 9);
+      assert.equal(await page.locator(".aw-history").isVisible(), false);
+      assert.equal(await page.locator(".aw-action-panel").isVisible(), false);
+      const composerBox = await page.locator(".aw-composer").boundingBox();
+      assert(
+        composerBox.y + composerBox.height <= height + 1,
+      );
+      if (width >= 1280 && height >= 768)
+        assert.equal(
+          await page
+            .locator(".aw-scroll")
+            .evaluate((e) => e.scrollHeight > e.clientHeight + 2),
+          false,
+        );
+      checks += 5;
+      await page.screenshot({
+        path: path.join(out, `workspace-welcome-${width}.jpg`),
+        fullPage: true,
+        type: "jpeg",
+        quality: 82,
+      });
+      if(width===390) {
+        for(const [label, top] of [['top',0],['middle',430],['bottom',99999]]) {
+          await page.locator('.aw-scroll').evaluate((node,top)=>{node.scrollTop=top;},top);
+          await page.screenshot({path:path.join(root,`docs/assistant-workspace/compact/mobile-${label}.png`),fullPage:false});
+        }
+        await page.locator('.aw-scroll').evaluate(node=>{node.scrollTop=0;});
+      }
+      const layout = await page.evaluate(() => {
+        const scroll = document.querySelector('.aw-scroll'), grid = document.querySelector('.aw-capability-grid');
+        return {width:innerWidth,height:innerHeight,headerHeight:document.querySelector('.aw-topbar').getBoundingClientRect().height,gridBottom:grid.getBoundingClientRect().bottom,scrollBottom:scroll.getBoundingClientRect().bottom,scrollOverflow:scroll.scrollHeight-scroll.clientHeight,outerScroll:document.documentElement.scrollHeight-innerHeight,columns:getComputedStyle(grid).gridTemplateColumns.split(' ').length,descriptionFont:parseFloat(getComputedStyle(document.querySelector('.aw-capability-start small')).fontSize)};
+      });
+      console.log('COMPACT_LAYOUT',JSON.stringify(layout));
+      assert.ok(layout.descriptionFont >= 14);
+      assert.equal(layout.columns,width>1100?3:width>700?2:1);
+      if(width>=1280 && height>=768){assert.ok(layout.gridBottom<=layout.scrollBottom+1);assert.ok(layout.outerScroll<=1);}
+      if(width>=1280 && height<768){assert.ok(layout.scrollOverflow>0);assert.ok(layout.outerScroll<=1);}
+      await page.locator('.aw-capability-learn').first().focus();
+      await page.keyboard.press('Enter');
+      await page.getByRole('dialog',{name:'About Inbox Briefing',exact:true}).waitFor();
+      await page.keyboard.press('Escape');
+      await page.getByRole('dialog',{name:'About Inbox Briefing',exact:true}).waitFor({state:'detached'});
+      assert.equal(await page.locator('.aw-capability-learn').first().evaluate(node=>node===document.activeElement),true);
+      const openLatency = await page.evaluate(async()=>{
+        const started=performance.now();document.querySelector('.aw-capability-learn').click();
+        for(let i=0;i<120;i++){await new Promise(resolve=>requestAnimationFrame(resolve));if(document.querySelector('.aw-capability-dialog[open]'))return performance.now()-started;}
+        throw new Error('Capability explanation did not open');
+      });
+      console.log('CAPABILITY_OPEN_MS',JSON.stringify({width,height,openLatency}));
+      await page.keyboard.press('Escape');
+      await page.getByRole('dialog',{name:'About Inbox Briefing',exact:true}).waitFor({state:'detached'});
+      for (const learn of await page.locator('.aw-capability-learn').all()) {
+        await learn.click();
+        const details=page.getByRole('dialog',{name:/About /});
+        await details.waitFor();
+        assert.ok((await details.innerText()).length>150);
+        await details.getByRole('button',{name:/^Start /}).click();
+        await details.waitFor({state:'detached'});
+        await page.waitForFunction(() => document.querySelector('[aria-label="Assistant command"]').value.length > 35);
+        assert.ok((await page.getByRole('textbox',{name:'Assistant command'}).inputValue()).length>35);
+        assert.equal(calls,0); checks++;
+      }
+      await page
+        .getByRole("textbox", { name: "Assistant command" })
+        .fill("Unsent context survives Concierge");
+      await page
+        .locator(".aw-header-actions")
+        .getByRole("button", { name: /Concierge/ })
+        .click();
+      await page.waitForURL("**/dashboard/concierge");
+      await page.goBack();
+      await page.waitForURL("**/dashboard/assistant");
+      assert.equal(
+        await page
+          .getByRole("textbox", { name: "Assistant command" })
+          .inputValue(),
+        "Unsent context survives Concierge",
+      );
+      await page
+        .locator(".aw-header-actions")
+        .getByRole("button", { name: /CRM/ })
+        .click();
+      await page.waitForURL("**/dashboard/concierge");
+      await page.goBack();
+      await page.waitForURL("**/dashboard/assistant");
+      checks += 2;
+      await page
+        .getByRole("button", { name: "Create a campaign", exact: false })
+        .first()
+        .click();
+      assert.equal(calls, 0);
+      checks++;
+      const command = page.getByRole("textbox", { name: "Assistant command" });
+      assert.match(await command.inputValue(), /21-day/);
+      await page.locator(".aw-composer-actions summary").click();
+      await page
+        .getByRole("checkbox", { name: /authorize microphone/ })
+        .check();
+      await page
+        .getByRole("button", {
+          name: "Microphone · dictate command",
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("button", { name: "Stop recording", exact: true })
+        .click();
+      await page.waitForFunction(() =>
+        document
+          .querySelector('[aria-label="Assistant command"]')
+          .value.includes("call Jordan Friday"),
+      );
+      assert.equal(calls, 0);
+      assert.equal(
+        writes.some((w) => w.path === "/api/assistant/approve"),
+        false,
+      );
+      checks++;
+      await page.locator(".aw-composer-actions summary").click();
+      await command.fill(
+        "Prepare a reviewable 21-day cold buyer follow-up campaign. Save nothing until I approve the exact draft. Do not enroll or send.",
+      );
+      await command.press("Shift+Enter");
+      assert((await command.inputValue()).endsWith("\n"));
+      assert.equal(calls, 0);
+      await command.press("Enter");
+      checks++;
+
+      await page
+        .getByText("Here is your reviewable campaign draft.", { exact: false })
+        .waitFor();
+      assert.equal(calls, 1);
+      assert.equal(await page.locator(".aw-hero").count(), 0);
+      assert.equal(await page.locator(".aw-scenery").isVisible(), true);
+      const messagesWidth = (await page.locator(".aw-messages").boundingBox())
+        .width;
+      if (width >= 1440) assert(messagesWidth >= 1100 && messagesWidth <= 1241);
+      assert.equal(
+        await page
+          .locator(".aw-message.aw-assistant .assistant-preview")
+          .count(),
+        1,
+      );
+      checks += 4;
+      await page.screenshot({
+        path: path.join(out, `workspace-campaign-${width}.jpg`),
+        fullPage: true,
+        type: "jpeg",
+        quality: 82,
+      });
+      assert.equal(await page.locator(".aw-hero").count(), 0);
+      await page.getByLabel("Close action workspace", { exact: true }).click();
+      await page.screenshot({
+        path: path.join(out, `workspace-conversation-${width}.jpg`),
+        type: "jpeg",
+        quality: 82,
+      });
+      await clickTool("Review proposals");
+      checks++;
+      await command.fill("Make the messages warmer, but keep this unsent.");
+      await clickTool("Expanded Overlay");
+      await page.waitForURL(/\/dashboard(?:\/concierge)?$/);
+      assert.equal(
+        await command.inputValue(),
+        "Make the messages warmer, but keep this unsent.",
+      );
+      checks++;
+      await page.screenshot({
+        path: path.join(out, `drawer-${width}.jpg`),
+        fullPage: true,
+        type: "jpeg",
+        quality: 82,
+      });
+      await page.goBack();
+      await page.waitForURL("**/dashboard/assistant");
+      assert.equal(
+        await command.inputValue(),
+        "Make the messages warmer, but keep this unsent.",
+      );
+      await page.goForward();
+      await page.waitForURL(/\/dashboard(?:\/concierge)?$/);
+      checks++;
+      await clickTool("Expanded Overlay");
+      assert.equal(
+        await page
+          .getByRole("dialog", { name: "MyARI Assistant" })
+          .getAttribute("aria-modal"),
+        "true",
+      );
+      assert.equal(
+        await command.inputValue(),
+        "Make the messages warmer, but keep this unsent.",
+      );
+      checks++;
+      await page.locator(".aw-panel").focus();
+      await page.keyboard.press("Shift+Tab");
+      assert.equal(
+        await page
+          .locator(".aw-panel")
+          .evaluate((e) => e.contains(document.activeElement)),
+        true,
+      );
+      await page.keyboard.press("Escape");
+      if (await page.locator(".aw-host:not([hidden])").count())
+        await page.keyboard.press("Escape");
+      await page
+        .getByRole("button", { name: "Ask MyARI", exact: true })
+        .click();
+      await page.waitForURL("**/dashboard/assistant");
+      assert.equal(await page.locator(".aw-drawer").count(), 0);
+      checks++;
+
+      assert.equal(
+        await command.inputValue(),
+        "Make the messages warmer, but keep this unsent.",
+      );
+      checks++;
+      await page.screenshot({
+        path: path.join(out, `overlay-${width}.jpg`),
+        fullPage: true,
+        type: "jpeg",
+        quality: 82,
+      });
+      await clickTool("Claude draft tools");
+      await page
+        .getByRole("heading", { name: "Claude draft tools", exact: true })
+        .waitFor();
+      const legacy = page.locator(".aw-legacy");
+      if (width === 1440 || width === 390)
+        await page.screenshot({
+          path: path.join(out, `claude-tools-${width}.jpg`),
+          fullPage: true,
+          type: "jpeg",
+          quality: 82,
+        });
+      await legacy
+        .locator("textarea")
+        .fill("Preserve this standalone Claude brief.");
+      await legacy
+        .getByRole("button", { name: "← Return to Assistant", exact: true })
+        .click();
+      assert.equal(
+        await command.inputValue(),
+        "Make the messages warmer, but keep this unsent.",
+      );
+      await clickTool("Claude draft tools");
+      assert.equal(
+        await legacy.locator("textarea").inputValue(),
+        "Preserve this standalone Claude brief.",
+      );
+      await legacy
+        .getByRole("button", { name: "← Return to Assistant", exact: true })
+        .click();
+      checks++;
+      await clickTool("Full Workspace");
+      await page.waitForURL("**/dashboard/assistant");
+      if (!(await page.locator(".aw-action-panel").isVisible()))
+        await clickTool("Review proposals");
+      await page
+        .locator(".assistant-preview")
+        .getByRole("button", { name: "Edit", exact: true })
+        .click();
+      await page
+        .getByRole("textbox", { name: "Step 1 message" })
+        .fill("A warmer synthetic message. Reply STOP to opt out.");
+      await clickTool("Expanded Overlay");
+      await clickTool("Full Workspace");
+      assert.equal(
+        await page
+          .getByRole("textbox", { name: "Step 1 message" })
+          .inputValue(),
+        "A warmer synthetic message. Reply STOP to opt out.",
+      );
+      checks++;
+      await page
+        .getByRole("button", { name: "Prepare edited preview", exact: true })
+        .click();
+      await page
+        .locator(".assistant-preview")
+        .getByText("A warmer synthetic message.", { exact: false })
+        .count();
+      checks++;
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Approve & save", exact: true })
+          .isDisabled(),
+        true,
+      );
+      await page
+        .getByRole("checkbox", { name: /I reviewed the exact target/ })
+        .check();
+      await page
+        .getByRole("button", { name: "Approve & save", exact: true })
+        .click();
+      await page
+        .getByText("Campaign draft saved. No enrollment or sending.", {
+          exact: false,
+        })
+        .waitFor();
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Approve & save", exact: true })
+          .count(),
+        0,
+      );
+      checks++;
+      await page.addInitScript(() => {
+        window.__welcomeFlashed = false;
+        if (sessionStorage.getItem("review:assert-restoration") === "yes")
+          new MutationObserver(() => {
+            if (document.querySelector(".aw-hero"))
+              window.__welcomeFlashed = true;
+          }).observe(document, { subtree: true, childList: true });
+      });
+      await page.evaluate(() =>
+        sessionStorage.setItem("review:assert-restoration", "yes"),
+      );
+      await page.reload();
+      await page
+        .getByText("Here is your reviewable campaign draft.", { exact: false })
+        .waitFor();
+      assert.equal(calls, 1);
+      assert.equal(await page.evaluate(() => window.__welcomeFlashed), false);
+      await page.evaluate(() =>
+        sessionStorage.removeItem("review:assert-restoration"),
+      );
+      checks += 2;
+      if (
+        !(await page
+          .getByRole("button", { name: "＋ New conversation", exact: true })
+          .isVisible())
+      )
+        await page
+          .getByRole("button", { name: "History", exact: true })
+          .click();
+      const olderId = "11111111-1111-4111-8111-111111111111";
+      chats.set(sessionOwner + olderId, [{ role: "user", content: "Older conversation to organize" }]);
+      await page.getByRole("button", { name: "Refresh history", exact: true }).click();
+      const olderOptions = page.getByRole("button", { name: "Conversation options: Older conversation to organize", exact: true });
+      await olderOptions.click();
+      await page.getByRole("button", { name: "Pin to top", exact: true }).click();
+      assert.equal(await page.locator(".aw-history-row").first().getByText("Older conversation to organize", { exact: false }).count(), 1);
+      await olderOptions.click();
+      await page.getByRole("button", { name: "Delete conversation", exact: true }).click();
+      const deleteConfirmation = page.getByRole("dialog", { name: "Confirm Assistant action" });
+      await deleteConfirmation.getByRole("button", { name: "Cancel", exact: true }).click();
+      assert.equal(chats.has(sessionOwner + olderId), true);
+      await page.getByRole("button", { name: "Delete conversation", exact: true }).click();
+      await deleteConfirmation.getByRole("button", { name: "Continue", exact: true }).click();
+      await olderOptions.waitFor({ state: "detached" });
+      assert.equal(chats.has(sessionOwner + olderId), false);
+      assert.equal(await page.locator(".assistant-preview").count() > 0, true);
+      checks += 5;
+      await page
+        .getByRole("button", { name: "＋ New conversation", exact: true })
+        .click();
+      const confirmation = page.getByRole("dialog", { name: "Confirm Assistant action" });
+      await confirmation.waitFor();
+      await confirmation.getByRole("button", { name: "Cancel", exact: true }).click();
+      assert.equal(await page.locator(".assistant-preview").count() > 0, true);
+      await page.getByRole("button", { name: "＋ New conversation", exact: true }).click();
+      await confirmation.getByRole("button", { name: "Continue", exact: true }).click();
+      checks += 2;
+      await page
+        .getByRole("heading", { name: /how can I help you today/ })
+        .waitFor();
+      await page.screenshot({
+        path: path.join(out, `workspace-home-${width}.jpg`),
+        fullPage: true,
+        type: "jpeg",
+        quality: 82,
+      });
+      await command.fill("Synthetic retry text");
+      fail = true;
+      await page
+        .getByRole("button", { name: "Send message", exact: true })
+        .click();
+      await page
+        .getByRole("alert")
+        .getByText(/Daily interaction limit/)
+        .waitFor();
+      assert.equal(await command.inputValue(), "Synthetic retry text");
+      checks++;
+      assert.equal(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth > innerWidth,
+        ),
+        false,
+      );
+      assert.equal(
+        await page.getByRole("button", { name: /Approve & send/ }).count(),
+        0,
+      );
+      assert.equal(
+        writes.some((w) => /billing|send|enroll|launch/.test(w.path)),
+        false,
+      );
+      assert.deepEqual(errors, []);
+      checks++;
+      if (width === 1440 || width === 390) {
+        await page.addScriptTag({ path: require.resolve("axe-core") });
+        const audit = await page.evaluate(
+          async () =>
+            await window.axe.run(document, {
+              runOnly: {
+                type: "tag",
+                values: ["wcag2a", "wcag2aa", "wcag21aa"],
+              },
+            }),
+        );
+        const violations = audit.violations.map((v) => ({
+          id: v.id,
+          impact: v.impact,
+          nodes: v.nodes.map((n) => ({
+            target: n.target,
+            summary: n.failureSummary,
+          })),
+        }));
+        fs.writeFileSync(
+          path.join(root, `docs/assistant-workspace/axe-${width}.json`),
+          JSON.stringify(violations, null, 2),
+        );
+        assert.deepEqual(violations, []);
+        checks++;
+      }
+      await page
+        .getByRole("button", {
+          name: "Reload conversation safely",
+          exact: true,
+        })
+        .click();
+      fail = false;
+      await page
+        .getByRole("button", { name: "Send message", exact: true })
+        .click();
+      await page
+        .locator(".assistant-preview")
+        .getByRole("button", { name: "Cancel proposal", exact: true })
+        .click();
+      await page
+        .getByText("Proposal rejected. Nothing saved.", { exact: false })
+        .waitFor();
+      checks++;
+      sessionOwner = "stage_b";
+      await page.evaluate(() => {
+        window.__owner = "stage_b";
+        window.dispatchEvent(new Event("review:auth"));
+      });
+      await page
+        .getByRole("heading", { name: /how can I help you today/ })
+        .waitFor();
+      assert.equal(
+        await page
+          .getByText("Here is your reviewable campaign draft.", {
+            exact: false,
+          })
+          .count(),
+        0,
+      );
+      const conciergeUrl = page.url();
+      await page
+        .locator(".aw-header-actions")
+        .getByRole("button", { name: /Concierge/ })
+        .click();
+      await page
+        .getByRole("alert")
+        .getByText(/Concierge is not enabled/)
+        .waitFor();
+      assert.equal(page.url(), conciergeUrl);
+      checks++;
+      await page
+        .getByRole("textbox", { name: "Assistant command" })
+        .fill("Find my authorized synthetic contact");
+      await page
+        .getByRole("button", { name: "Send message", exact: true })
+        .click();
+      await page.getByText("search contacts", { exact: true }).waitFor();
+      if (await page.locator(".aw-action-panel").isVisible())
+        await page
+          .getByLabel("Close action workspace", { exact: true })
+          .click();
+      await page.getByText("search contacts", { exact: true }).click();
+      await page.getByText("Blair Example", { exact: true }).waitFor();
+      assert.equal(
+        await page.getByText("Alex Example", { exact: true }).count(),
+        0,
+      );
+      checks++;
+      sessionOwner = "denied";
+      await page.evaluate(() => {
+        window.__owner = "denied";
+        window.dispatchEvent(new Event("review:auth"));
+      });
+      await page.waitForFunction(() => !document.querySelector(".aw-host"));
+      assert.equal(
+        await page.getByRole("textbox", { name: "Assistant command" }).count(),
+        0,
+      );
+      checks++;
+      results.push({
+        width,
+        status: "PASS",
+        chatCalls: calls,
+        mutations: writes.map((w) => ({ path: w.path, method: w.method })),
+      });
+      await context.close();
+    }
+    fs.writeFileSync(
+      path.join(root, "docs/assistant-workspace/browser-results.json"),
+      JSON.stringify(
+        {
+          environment:
+            "local UI with mocked APIs, not hosted Clerk/provider acceptance",
+          checks,
+          results,
+        },
+        null,
+        2,
+      ),
+    );
+    console.log(
+      `PASS ${checks} Assistant workspace checks across ${results.length} viewports: navigation, persistent modes/Claude, restore, campaign revision/approval, error recovery and no outbound/billing requests. All remote APIs mocked.`,
+    );
+  } finally {
+    await browser.close();
+    await new Promise((r) => server.close(r));
+  }
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

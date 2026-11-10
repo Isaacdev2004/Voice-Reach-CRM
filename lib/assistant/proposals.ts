@@ -17,11 +17,20 @@ import { assertCanSendChannel } from "@/lib/billing/plan-limits";
 import { authorizeLiveOutbound } from "@/lib/providers/send-authorization";
 import { pickAdapterForChannel } from "@/lib/providers/registry";
 import { readCalendar } from "@/lib/calendar/read-model";
+import { senderDetails } from "./sender-profile";
+import { personalizeDraft, type SenderDetails } from "./sender-personalization";
 export async function actionPreview(
   owner: string,
   action: AssistantAction,
+  verifiedSender?: SenderDetails,
 ): Promise<Record<string, unknown>> {
   requireOptionalAction(action);
+  const sender = ["campaign", "voice_script", "sms", "email"].includes(action.kind)
+    ? verifiedSender ?? await senderDetails(owner) : null;
+  const personalization = sender ? {
+    ...personalizeDraft(action, sender).personalization,
+    senderFingerprint: digest(sender),
+  } : undefined;
   const contact =
     "contactId" in action && action.contactId
       ? await ownedContact(owner, action.contactId)
@@ -94,6 +103,7 @@ export async function actionPreview(
       );
     return {
       contact: identity,
+      personalization,
       sender,
       recipient,
       subject: render.subject,
@@ -253,6 +263,7 @@ export async function actionPreview(
   if (action.kind === "campaign")
     return {
       ...action,
+      personalization,
       activationSupported: false,
       consentVerified: false,
       attachmentStatus:
@@ -264,6 +275,7 @@ export async function actionPreview(
   return {
     contact: identity,
     ...action,
+    ...(personalization ? { personalization } : {}),
     scope:
       action.kind === "voice_script"
         ? "New text draft only; no synthesis or approved audio replacement."
@@ -275,8 +287,13 @@ export async function prepareAction(
   raw: unknown,
   options: { revisionOf?: string; meterDraft?: boolean } = {},
 ): Promise<Proposal> {
-  const action = ActionSchema.parse(raw),
-    preview = await actionPreview(owner, action);
+  const parsed = ActionSchema.parse(raw);
+  const sender = ["campaign", "voice_script", "sms", "email"].includes(parsed.kind)
+    ? await senderDetails(owner) : undefined;
+  const action = sender
+    ? ActionSchema.parse(personalizeDraft(parsed, sender).action)
+    : parsed;
+  const preview = await actionPreview(owner, action, sender);
   const id = crypto.randomUUID(),
     createdAt = new Date().toISOString(),
     expiresAt = new Date(Date.now() + 30 * 60000).toISOString();
