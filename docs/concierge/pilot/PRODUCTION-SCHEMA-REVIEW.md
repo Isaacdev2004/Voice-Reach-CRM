@@ -76,3 +76,13 @@ from the case owner; the staff review route explicitly rejects `actor === owner`
 Do not add an owner to the manager allowlist or treat an unnamed reviewer as verified.
 Owner activation remains blocked by the permission mismatch, manager verification,
 and the applicable authenticated subscriber/staff acceptance requirements.
+
+## Rebased validation
+
+Local security, TypeScript, lint (zero errors/seven existing warnings), and the
+optimized build passed. The regression chain passed through the Concierge
+application tests, including staff self-review rejection. Five private-auth
+guard tests were unable to spawn Node in this execution sandbox (`EPERM`), so
+the complete local unit command is not reported as passing. Keep those tests
+unchanged and use exact-head GitHub CI to establish their result in its runner.
+GitHub independently reports the rebased PR as mergeable; it remains draft.
