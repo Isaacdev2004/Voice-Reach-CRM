@@ -8,6 +8,7 @@ import {
 } from "@/lib/integrations/dotloop";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { DotloopError } from "@/lib/integrations/dotloop-lifecycle";
 
 function errorRedirect(base: string, reason: string) {
   return NextResponse.redirect(
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
     const state = url.searchParams.get("state");
     const oauthError = url.searchParams.get("error");
 
-    if (oauthError) return errorRedirect(base, oauthError);
+    if (oauthError) return errorRedirect(base, oauthError === "access_denied" ? "access_denied" : "dotloop_authorization_failed");
 
     const cookieStore = await cookies();
     const stored = cookieStore.get("dotloop_oauth_state")?.value;
@@ -39,20 +40,14 @@ export async function GET(request: Request) {
 
     const tokens = await exchangeDotloopCode(code);
     const accountLabel = await fetchDotloopAccountLabel(tokens.access_token);
-    const { error } = await upsertDotloopConnection({
+    await upsertDotloopConnection({
       ownerId,
       accessToken: tokens.access_token,
       refreshToken: tokens.refresh_token ?? null,
       expiresIn: tokens.expires_in,
       accountLabel,
+      scopes: tokens.scope,
     });
-
-    if (error) {
-      const reason = error.message.includes("integration_connections")
-        ? "database_table_missing"
-        : error.message;
-      return errorRedirect(base, reason);
-    }
 
     await writeAuditLog({
       ownerId,
@@ -64,7 +59,7 @@ export async function GET(request: Request) {
 
     return NextResponse.redirect(`${base}/dashboard/settings?tab=workspace&dotloop=connected`);
   } catch (err) {
-    const reason = err instanceof Error ? err.message : "unknown";
+    const reason = err instanceof DotloopError ? err.code : "dotloop_connection_failed";
     return errorRedirect(base, reason);
   }
 }

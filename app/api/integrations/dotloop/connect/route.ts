@@ -10,14 +10,14 @@ import { NextResponse } from "next/server";
  * Register redirect: {APP_BASE_URL}/api/integrations/dotloop/callback
  */
 export const GET = withApiHandler(async () => {
+  const ownerId = await requireUserId();
   if (!isDotloopConfigured()) {
     return apiError(
-      "Dotloop is not configured yet. Add DOTLOOP_CLIENT_ID and DOTLOOP_CLIENT_SECRET in Vercel, then try again.",
+      "Dotloop authorization and encrypted storage are not ready. Contact your workspace administrator.",
       { status: 503, code: "dotloop_not_configured" },
     );
   }
 
-  const ownerId = await requireUserId();
   const state = crypto.randomUUID();
   const cookieStore = await cookies();
   cookieStore.set("dotloop_oauth_state", `${ownerId}:${state}`, {
