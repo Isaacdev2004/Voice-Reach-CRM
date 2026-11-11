@@ -5,7 +5,7 @@ import {
   probeClerkBackend,
   probeOpenAiConnectivity,
 } from "@/lib/integrations/connectivity-probes";
-import { getDotloopConnection, isDotloopConfigured } from "@/lib/integrations/dotloop";
+import { getDotloopStatus } from "@/lib/integrations/dotloop";
 
 export const GET = withApiHandler(async (request) => {
   const ownerId = await requireUserId();
@@ -24,7 +24,7 @@ export const GET = withApiHandler(async (request) => {
     }
   }
 
-  const dotloop = await getDotloopConnection(ownerId).catch(() => null);
+  const dotloop = await getDotloopStatus(ownerId);
   const openaiConfigured = Boolean(process.env.OPENAI_API_KEY?.trim());
 
   const payload: Record<string, unknown> = {
@@ -39,11 +39,7 @@ export const GET = withApiHandler(async (request) => {
       configured: hasClerkEnv(),
       mode: getClerkKeyMode(),
     },
-    dotloop: {
-      configured: isDotloopConfigured(),
-      connected: Boolean(dotloop),
-      accountLabel: dotloop?.account_label ?? null,
-    },
+    dotloop,
   };
 
   if (probe) {

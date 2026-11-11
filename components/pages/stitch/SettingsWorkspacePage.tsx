@@ -16,7 +16,7 @@ import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import { DASHBOARD_PAGE_BODY } from "@/lib/dashboard/layout";
 import { connectDotloop } from "@/lib/connect-dotloop";
-import { DOTLOOP_APP_URL } from "@/lib/integrations/dotloop";
+import { DOTLOOP_APP_URL } from "@/lib/integrations/dotloop-public";
 import { connectGoogleCalendar } from "@/lib/connect-google-calendar";
 import { formatRelativeTime } from "@/lib/activity/format";
 import { TIMEZONE_OPTIONS } from "@/lib/settings/defaults";
@@ -194,7 +194,7 @@ function SettingsSession() {
               return {
                 ...item,
                 connected: Boolean(data.dotloop?.connected),
-                accountLabel: data.dotloop?.accountLabel ?? undefined,
+                accountLabel: data.dotloop?.connected ? data.dotloop?.accountLabel ?? undefined : `Dotloop: ${String(data.dotloop?.state ?? "disconnected").replaceAll("_", " ")}`,
               };
             }
             return item;
@@ -889,7 +889,7 @@ function SettingsSession() {
                     .map((integration) => (
                       <div
                         key={integration.id}
-                        className="flex items-center justify-between rounded-xl border border-outline-variant/15 bg-champagne/30 p-4"
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline-variant/15 bg-champagne/30 p-4"
                       >
                         <div className="flex items-center gap-4">
                           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-ivory text-rose-gold-deep">
@@ -913,16 +913,19 @@ function SettingsSession() {
                                   integration.id === "dotloop"
                                   ? "Authorization saved — verify sync"
                                   : "Configured — provider verification pending"
-                                : "Not connected"}
+                                : integration.id === "dotloop" ? integration.accountLabel ?? "Not connected" : "Not connected"}
                               {integration.lastSync
                                 ? ` · ${formatRelativeTime(integration.lastSync)}`
                                 : ""}
                             </p>
                           </div>
                         </div>
-                        {integration.id === "dotloop" &&
-                        integration.connected ? (
-                          <div className="flex shrink-0 items-center gap-2">
+                        {integration.id === "dotloop" ? (
+                          <div className="flex flex-wrap items-center justify-end gap-2">
+                            {!integration.connected && <button type="button" className="rounded-full border px-4 py-2 text-[13px]" onClick={() => {
+                              const result = connectDotloop();
+                              if (result.blocked) showToast("Open MyARI in Safari or Chrome, then connect Dotloop.");
+                            }}>Connect / reconnect</button>}
                             <a
                               href={DOTLOOP_APP_URL}
                               target="_blank"
@@ -931,6 +934,16 @@ function SettingsSession() {
                             >
                               Open Dotloop
                             </a>
+                            <button type="button" className="rounded-full border px-4 py-2 text-[13px]" onClick={() => {
+                              void (async () => {
+                                try {
+                                  const response = await fetch("/api/integrations/dotloop/status", { method: "POST" });
+                                  const result = await response.json();
+                                  if (response.ok) setSettings(previous => previous ? { ...previous, integrations: previous.integrations.map(item => item.id === "dotloop" ? { ...item, connected: Boolean(result.connected), accountLabel: result.accountLabel ?? undefined } : item) } : previous);
+                                  showToast(response.ok && result.verified ? "Dotloop authorization verified. Transaction sync is not enabled." : "Dotloop needs attention. Retry or reconnect.");
+                                } catch { showToast("Could not verify Dotloop. Please retry."); }
+                              })();
+                            }}>Verify authorization</button>
                             <button
                               type="button"
                               onClick={() => {
@@ -942,6 +955,7 @@ function SettingsSession() {
                                     },
                                   );
                                   if (res.ok) {
+                                    const result = await res.json();
                                     setSettings((prev) =>
                                       prev
                                         ? {
@@ -952,7 +966,7 @@ function SettingsSession() {
                                                   ? {
                                                       ...item,
                                                       connected: false,
-                                                      accountLabel: undefined,
+                                                      accountLabel: result.pending ? "Dotloop: revocation pending" : undefined,
                                                       lastSync: undefined,
                                                     }
                                                   : item,
@@ -960,7 +974,7 @@ function SettingsSession() {
                                           }
                                         : prev,
                                     );
-                                    showToast("Dotloop disconnected.");
+                                    showToast(result.pending ? "Local access disabled. Dotloop revocation is pending; remove MyARI authorization in Dotloop or retry Disconnect." : "Dotloop authorization revoked and disconnected.");
                                   } else {
                                     showToast(
                                       "Could not disconnect Dotloop.",

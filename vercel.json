@@ -10,7 +10,8 @@
       "feat/contacts-csv-export": false,
       "fix/mortgage-pdf-field-overflow": false,
       "fix/settings-brand-pdf-recovery": false,
-      "feat/premium-assistant-workspace": false
+      "feat/premium-assistant-workspace": false,
+      "fix/dotloop-connection-security": false
     }
   },
   "crons": [

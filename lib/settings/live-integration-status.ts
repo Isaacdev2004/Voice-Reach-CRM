@@ -1,5 +1,5 @@
 import { getGoogleConnection } from "@/lib/calendar/google";
-import { getDotloopConnection } from "@/lib/integrations/dotloop";
+import { getDotloopStatus } from "@/lib/integrations/dotloop";
 import { isLiveProvidersConfigured } from "@/lib/providers/registry";
 import type { IntegrationConfig } from "./types";
 export async function applyLiveIntegrationStatus(
@@ -8,7 +8,7 @@ export async function applyLiveIntegrationStatus(
 ): Promise<IntegrationConfig[]> {
   const [google, dotloop] = await Promise.all([
     getGoogleConnection(ownerId).catch(() => null),
-    getDotloopConnection(ownerId).catch(() => null),
+    getDotloopStatus(ownerId),
   ]);
   const claudeReady = Boolean(process.env.ANTHROPIC_API_KEY?.trim());
   const providers = isLiveProvidersConfigured();
@@ -77,18 +77,18 @@ export async function applyLiveIntegrationStatus(
       };
     }
     if (id === "dotloop") {
-      if (!dotloop) {
+      if (!dotloop.connected) {
         return {
           ...item,
           connected: false,
-          accountLabel: undefined,
+          accountLabel: `Dotloop: ${dotloop.state.replaceAll("_", " ")}`,
           lastSync: undefined,
         };
       }
       return {
         ...item,
         connected: true,
-        accountLabel: dotloop.account_label ?? "Dotloop account",
+        accountLabel: dotloop.accountLabel ?? "Dotloop account",
         lastSync: undefined,
       };
     }
