@@ -487,3 +487,15 @@
  .concierge-subscriber:not([data-step="discovery"]) .concierge-hero-photo { height:120px;min-height:120px; }
  .concierge-subscriber .concierge-hero-copy { padding:20px; }
 }
+/* Focused hierarchy refinement; approved hero remains untouched. */
+.concierge-status-bar{display:grid;grid-template-columns:1fr 1fr auto;gap:22px;align-items:center;padding:18px 22px;margin-bottom:12px;background:#fffdf9;border:1px solid #e9e2d9;border-radius:18px}
+.concierge-status-bar progress{display:block;margin:8px 0;height:6px;max-width:300px}
+.concierge-status-bar small{display:block;font-size:12px;line-height:1.5;color:#6f675f}
+.concierge-status-bar p{margin:6px 0}
+.concierge-subscriber .concierge-journey{margin:12px 0!important}
+.concierge .concierge-form-group{background:#fffdf9;border:1px solid #e9e2d9;padding:22px 24px;margin:18px 0}
+.concierge .concierge-form-group legend{padding:0 8px;margin:0;float:none;color:#342d28}
+.concierge .concierge-form-group legend span{display:inline-block;padding:8px 0;line-height:1.4}
+.concierge-form-group label{font-size:15px}
+.concierge-form-group input,.concierge-form-group select{min-height:46px}
+@media(max-width:700px){.concierge-status-bar{grid-template-columns:1fr;gap:12px;padding:18px}.concierge .concierge-form-group{padding:16px}.concierge .concierge-form-group legend{max-width:100%}}

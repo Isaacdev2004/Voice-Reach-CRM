@@ -251,30 +251,10 @@ function SubscriberWorkspace() {
         </div>
         <ConciergePhoto className="concierge-hero-photo" src="/brand/marketing/public-architectural-hero.webp" alt="Sunlit coastal architecture with stone, greenery and a water view" priority/>
       </header>
-      <div className="concierge-progress-strip">
-        <div><span className="concierge-eyebrow">Thoughtful progress, at your pace</span><p><strong>{data.readiness.completed} of {data.readiness.total}</strong> milestones reviewed</p></div>
-        <progress aria-label="Onboarding completion" value={data.readiness.completed} max={data.readiness.total}/>
-        <span>No rush. Your work is saved as you confirm each step.</span>
-      </div>
-      <section className="concierge-next">
-        <div>
-          <span>YOUR NEXT STEP</span>
-          <h2>
-            {data.readiness.next?.label ?? "Your setup review is complete"}
-          </h2>
-          <p>
-            {data.readiness.ready
-              ? "Readiness review does not activate campaigns. Review every recipient and permission in the campaign workspace."
-              : "Your Concierge keeps progress here, so you can return whenever you’re ready."}
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            setTab(nextJourneyStep(data.readiness.next?.key).label);
-          }}
-        >
-          Continue →
-        </button>
+      <section className="concierge-status-bar" aria-label="Onboarding status">
+        <div><strong>{data.readiness.completed} of {data.readiness.total} milestones reviewed</strong><progress aria-label="Onboarding completion" value={data.readiness.completed} max={data.readiness.total}/><small>Six journey steps group eight saved milestones. Independent manager signoff is separate.</small></div>
+        <div><span className="concierge-eyebrow">Current step · {journey.find(step=>step.label===tab)?.title}</span><p>Next: {data.readiness.next?.label ?? "Awaiting independent review"}</p></div>
+        <button onClick={()=>setTab(nextJourneyStep(data.readiness.next?.key).label)}>Continue →</button>
       </section>
       <nav id="concierge-journey" className="concierge-tabs concierge-journey" aria-label="Concierge sections">
         {journey.map((step, index) => {
@@ -309,7 +289,7 @@ function SubscriberWorkspace() {
               void run(() => save());
             }}
           >
-            <fieldset className="concierge-form-group"><legend>Your business, in a few thoughtful details</legend>
+            <fieldset className="concierge-form-group"><legend><span>Your business, in a few thoughtful details</span></legend>
             <p>Start with your name, primary market and goals. Everything else can wait.</p>
             <div className="concierge-grid">
               {(
@@ -491,10 +471,10 @@ function SubscriberWorkspace() {
                 authorize marketing to imported contacts.
               </label>
             </details>
-            <button className="concierge-primary" disabled={busy}>
-              {busy ? "Saving…" : "Save and Return Later"}
+            <button disabled={busy}>
+              {busy ? "Saving…" : "Save for Later"}
             </button>
-            <button type="button" disabled={busy} onClick={()=>void run(async()=>{await save();setTab("Contact migration");})}>Save &amp; Continue →</button>
+            <button className="concierge-primary" type="button" disabled={busy} onClick={()=>void run(async()=>{if(!discovery.agentName.trim()||!discovery.market.trim()||!discovery.goals.trim())throw new Error("Complete your name, primary market and goals before continuing. Your entries remain here.");await save();setTab(nextJourneyStep("migration").label);})}>Save &amp; Continue →</button>
           </form>
           <div className="concierge-preview">
             <h3>Your suggested setup</h3>

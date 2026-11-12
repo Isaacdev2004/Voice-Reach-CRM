@@ -206,7 +206,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
         .getByLabel("Agent or team name", { exact: true })
         .fill("Alex Morgan");
       await page
-        .getByRole("button", { name: "Save and Return Later", exact: true })
+        .getByRole("button", { name: "Save for Later", exact: true })
         .click();
       await page
         .getByRole("status")
