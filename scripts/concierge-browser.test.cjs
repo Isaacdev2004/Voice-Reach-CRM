@@ -59,6 +59,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
     alias: {
       "@clerk/nextjs": path.join(adapters, "stubs.jsx"),
       "next/link": path.join(adapters, "link.jsx"),
+      "next/image": path.join(adapters, "image.jsx"),
       "next/server": path.join(adapters, "server.jsx"),
       "next/navigation":path.join(adapters,"stubs.jsx"),
       "@/components/billing/upgrade-plan-provider":path.join(__dirname,"concierge-browser/billing-stub.jsx"),
@@ -294,6 +295,12 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       );
       for(const section of ["Your business","Contact migration","Campaign concierge","Connections","Walkthroughs","Launch review"]){
         await page.getByRole("button",{name:section,exact:true}).click();
+        const photos=page.locator(".concierge-photo img");
+        for(let i=0;i<await photos.count();i++){await photos.nth(i).scrollIntoViewIfNeeded();await photos.nth(i).evaluate(img=>img.decode());assert.ok(await photos.nth(i).evaluate(img=>img.naturalWidth>=1000));}
+        await page.evaluate(()=>window.scrollTo(0,0));
+        if(section === "Contact migration")assert.equal(await page.locator(".concierge-section-image").count(),0);
+        if(section === "Campaign concierge")assert.equal(await page.locator(".concierge-campaign-cover img").count(),6);
+        if(section === "Walkthroughs")assert.equal(await page.locator(".concierge-orientation-photo img").count(),7);
         await page.screenshot({path:`docs/concierge/previews/journey-${section.replaceAll(" ","-").toLowerCase()}-${width}.png`,fullPage:true,animations:"disabled"});
       }
       await page.getByRole("button",{name:"Walkthroughs",exact:true}).click();

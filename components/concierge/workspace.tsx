@@ -15,7 +15,7 @@ import {
 import { readiness } from "@/lib/concierge/readiness";
 import { readApiResponse } from "@/lib/api-response";
 import type { CampaignStep } from "@/lib/crm/types";
-import { CampaignCover } from "@/components/campaigns/campaign-library-card";
+import { ConciergePhoto } from "./photo";
 import { orientationGuides } from "@/lib/concierge/orientation";
 import "./concierge.css";
 export async function conciergeRequest<T>(
@@ -62,6 +62,7 @@ type Preview = {
   message?: string;
 };
 const campaignPhotographs = ["campaign-library-interior.png","property-dining-room.png","dashboard-interior.jpg","notes-botanical-office.png","calendar-coastal-office.png","tasks-home-office.png","settings-office.png","financing-interior.png","activity-workspace.png","contacts.jpg","analytics.jpg","mortgage.jpg","tasks-coastal-office.png","calendar-home-office.png","voice-scripts-hero.png","campaigns.jpg","dashboard.jpg","notes.jpg"];
+const orientationPhotographs = {dashboard:"tasks-home-office.png",contacts:"dashboard-interior.jpg",campaigns:"campaign-library-interior.png",calendar:"calendar-home-office.png",tasks:"tasks-coastal-office.png",notes:"notes-botanical-office.png",reporting:"activity-workspace.png"};
 const initial = () => Discovery.parse({});
 const tabs = journey.map(step => step.label);
 export function ConciergeWorkspace() {
@@ -248,7 +249,7 @@ function SubscriberWorkspace() {
           <span className="concierge-hero-note">Personalize your business, bring your relationships over, and prepare your first follow-up. We’ll keep your place.</span>
           <a href="#concierge-journey" className="concierge-hero-link">Your personal setup journey ↓</a>
         </div>
-        <div className="concierge-hero-photo" role="img" aria-label="Sunlit coastal architecture with stone, greenery and a water view"/>
+        <ConciergePhoto className="concierge-hero-photo" src="/brand/marketing/public-architectural-hero.webp" alt="Sunlit coastal architecture with stone, greenery and a water view" priority/>
       </header>
       <div className="concierge-progress-strip">
         <div><span className="concierge-eyebrow">Thoughtful progress, at your pace</span><p><strong>{data.readiness.completed} of {data.readiness.total}</strong> milestones reviewed</p></div>
@@ -526,7 +527,7 @@ function SubscriberWorkspace() {
         </section>
       )}
       {tab === "Contact migration" && (
-        <section id="migration" className="concierge-card"><div className="concierge-section-image" role="img" aria-label="A welcoming coastal interior"/>
+        <section id="migration" className="concierge-card">
           <span className="concierge-eyebrow">02 · Contact migration</span>
           <h2>Your relationships, carefully transferred.</h2>
           <p>
@@ -760,7 +761,7 @@ function SubscriberWorkspace() {
           </p>
           <div className="concierge-curated-grid" aria-label="Curated campaign recommendations">
             {data.templates.map((template, index) => <article className={campaign === template.key ? "concierge-recommendation selected" : "concierge-recommendation"} key={template.key}>
-              <CampaignCover cover={{url:`/_next/image?url=${encodeURIComponent(`/brand/heroes/${campaignPhotographs[index % campaignPhotographs.length]}`)}&w=1080&q=85`}} className="concierge-campaign-cover"/><div className="concierge-recommendation-copy">
+              <ConciergePhoto src={`/brand/heroes/${campaignPhotographs[index % campaignPhotographs.length]}`} alt={`${template.name} — approved MyARI architectural photography`} className="concierge-campaign-cover"/><div className="concierge-recommendation-copy">
               <h3>{template.name}</h3><p>{template.description}</p><span>{template.steps.length} thoughtful steps · Draft only</span>
               <button aria-label={`Preview Campaign: ${template.name}`} aria-pressed={campaign === template.key} onClick={() => {setCampaign(template.key); setCampaignApproval(false);}}>Preview Campaign<span className="sr-only">: {template.name}</span></button></div>
             </article>)}
@@ -887,7 +888,7 @@ function SubscriberWorkspace() {
           <div className="concierge-grid concierge-integration-grid">
             {["Messaging", "Calendar", "Assistant"].map((name) => (
               <article key={name} className="concierge-integration-card">
-                <div className={`concierge-connection-photo concierge-connection-${name.toLowerCase()}`} role="img" aria-label={name === "Calendar" ? "A naturally lit planning desk" : name === "Assistant" ? "A refined architectural workspace" : "A coastal office for thoughtful communication"}/><div className="concierge-integration-copy">
+                <ConciergePhoto className="concierge-connection-photo" src={name === "Calendar" ? "/brand/marketing/financing-desk.webp" : name === "Assistant" ? "/brand/heroes/notes-botanical-office.png" : "/brand/marketing/pricing-olive-office.webp"} alt={name === "Calendar" ? "A naturally lit planning desk" : name === "Assistant" ? "A refined architectural workspace" : "A coastal office for thoughtful communication"}/><div className="concierge-integration-copy">
                 <span className="concierge-eyebrow">{name === "Calendar" ? "Google Calendar" : name === "Assistant" ? "MyARI Assistant" : "Messaging providers"}</span>
                 <h3>{name}</h3>
                 <p>{integrationStatus[name] ?? "Verification pending"}</p>
@@ -925,9 +926,9 @@ function SubscriberWorkspace() {
           <p>Choose an orientation before opening a workspace. These written guides explain supported actions, preserve your place, and distinguish saved evidence from your own confirmation.</p>
           <div className="concierge-grid concierge-orientation">
             {training.map((t) => <article key={t.key} className="concierge-orientation-card">
-              <h3>{t.name}</h3><p>{t.hint}</p>
+              <ConciergePhoto className="concierge-orientation-photo" src={`/brand/heroes/${orientationPhotographs[t.key]}`} alt={`${t.name} — approved MyARI workspace photography`}/><div className="concierge-orientation-copy"><h3>{t.name}</h3><p>{t.hint}</p>
               <p className="concierge-orientation-status">{milestones.training?.includes(t.key) ? "Orientation acknowledged" : "Not started"}</p>
-              <button aria-label={`Begin Orientation: ${t.name}`} onClick={() => {setGuide(t.key); void conciergeRequest<Record<string,boolean|null>>("/api/concierge/orientation").then(setEvidence).catch(()=>setEvidence({}));}}>Begin Orientation<span className="sr-only">: {t.name}</span></button>
+              <button aria-label={`Begin Orientation: ${t.name}`} onClick={() => {setGuide(t.key); void conciergeRequest<Record<string,boolean|null>>("/api/concierge/orientation").then(setEvidence).catch(()=>setEvidence({}));}}>Begin Orientation<span className="sr-only">: {t.name}</span></button></div>
             </article>)}
           </div>
           {guide && (() => {

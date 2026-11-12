@@ -462,3 +462,28 @@
 .concierge-subscriber:not([data-step="discovery"]) .concierge-next { padding:14px 20px;margin-bottom:14px; }
 .concierge-subscriber:not([data-step="discovery"]) .concierge-journey { margin:14px 0; }
 @media(max-width:600px) { .concierge-subscriber:not([data-step="discovery"]) .concierge-hero-photo{min-height:110px}.concierge-subscriber:not([data-step="discovery"]) .concierge-hero-copy{padding:20px}.concierge-subscriber:not([data-step="discovery"]) .concierge-hero-copy h1{font-size:29px} }
+/* One image system; fixed slots reserve space while optimized photos load. */
+.concierge-photo { position:relative;overflow:hidden;background:#f5efe5;isolation:isolate; }
+.concierge-photo img { object-fit:cover; }
+.concierge-photo-error { padding:20px;position:relative;font-size:14px; }
+.concierge-subscriber .concierge-hero { grid-template-columns:1fr 1fr;max-height:300px;align-items:stretch; }
+.concierge-subscriber .concierge-hero-copy { padding:24px 28px; }
+.concierge-subscriber .concierge-hero-copy h1 { font-size:36px;margin:8px 0; }
+.concierge-subscriber .concierge-hero-copy > p { font-size:23px;margin:8px 0; }
+.concierge-subscriber .concierge-hero-note { font-size:14px;line-height:1.6; }
+.concierge-subscriber .concierge-hero-link { margin-top:12px; }
+.concierge-subscriber .concierge-hero-photo { background:none;min-height:0;height:100%; }
+.concierge-subscriber:not([data-step="discovery"]) .concierge-hero { height:180px;max-height:180px; }
+.concierge .concierge-orientation-card { padding:0!important;overflow:hidden;background:#fffdf9!important;display:flex;flex-direction:column; }
+.concierge-orientation-photo { height:155px;flex:none; }
+.concierge-orientation-copy { padding:20px;display:flex;flex-direction:column;gap:8px;flex:1; }
+.concierge-orientation-copy h3 { margin:0; }
+.concierge-orientation-copy button { margin-top:auto;align-self:flex-start; }
+.concierge-connection-photo { background:none; }
+@media(max-width:700px) {
+ .concierge-subscriber .concierge-hero { grid-template-columns:1fr;max-height:none; }
+ .concierge-subscriber .concierge-hero-photo { height:150px;min-height:150px;grid-row:1; }
+ .concierge-subscriber:not([data-step="discovery"]) .concierge-hero { height:auto;max-height:none; }
+ .concierge-subscriber:not([data-step="discovery"]) .concierge-hero-photo { height:120px;min-height:120px; }
+ .concierge-subscriber .concierge-hero-copy { padding:20px; }
+}
