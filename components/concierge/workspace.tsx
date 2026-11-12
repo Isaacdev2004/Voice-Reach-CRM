@@ -79,6 +79,7 @@ function SubscriberWorkspace() {
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
     [csv, setCsv] = useState(""),
+    [csvFilename, setCsvFilename] = useState(""),
     [columns, setColumns] = useState<string[]>([]),
     [mapping, setMapping] = useState<Record<string, string>>({}),
     [privacy, setPrivacy] = useState(false),
@@ -141,6 +142,7 @@ function SubscriberWorkspace() {
   }
   async function chooseFile(file: File | undefined) {
     if (!file) return;
+    setCsv(""); setColumns([]); setCsvFilename(""); setPreview(null); setImportApproval(false); setPrivacy(false);
     if (!/\.csv$/i.test(file.name) || file.size > 1048576) {
       setError("Choose a UTF-8 .csv file no larger than 1 MB.");
       return;
@@ -152,6 +154,7 @@ function SubscriberWorkspace() {
         { action: "columns", csv: text },
       );
       setCsv(text);
+      setCsvFilename(file.name);
       setColumns(d.columns);
       setPreview(null);
       setImportApproval(false);
@@ -555,6 +558,7 @@ function SubscriberWorkspace() {
               onChange={(e) => { setPreview(null); setImportApproval(false); const file = e.target.files?.[0]; e.target.value = ""; void chooseFile(file); }}
             />
           </label>
+          {csvFilename && <p>Selected CSV: {csvFilename}</p>}
           {columns.length > 0 && (
             <>
               <div className="concierge-grid">
@@ -643,7 +647,7 @@ function SubscriberWorkspace() {
                         <td>{r.firstName}</td>
                         <td>{r.phone}</td>
                         <td>{r.email}</td>
-                        <td>{preview.review?.errors.some(e => e.row === Number(r._sourceRow)) ? "Possible duplicate — skipped" : "Valid new contact"}</td>
+                        <td>{preview.review?.errors.some(e => e.row === (Number(r._sourceRow) || i + 2)) ? "Possible duplicate — skipped" : "Valid new contact"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -686,6 +690,7 @@ function SubscriberWorkspace() {
                       });
                       setPreview(null);
                       setCsv("");
+                      setCsvFilename("");
                       setColumns([]);
                       await refresh();
                       setNotice(

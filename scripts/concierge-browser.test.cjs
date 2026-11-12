@@ -209,6 +209,9 @@ const { fixture } = require("./campaign-audit/harness.cjs");
             "firstName,phone,email\nJordan,5555550123,jordan@example.test\nJordan,5555550123,jordan@example.test\nNeeds correction,1,invalid",
           ),
         });
+      await page.getByLabel("Choose CSV").setInputFiles({name:"not-a-csv.txt", mimeType:"text/plain",buffer:Buffer.from("invalid")});
+      assert.equal(await page.getByRole("button",{name:"Prepare import preview",exact:true}).count(),0);
+      await page.getByLabel("Choose CSV").setInputFiles({name:"synthetic.csv",mimeType:"text/csv",buffer:Buffer.from("firstName,phone,email\nJordan,5555550123,jordan@example.test\nJordan,5555550123,jordan@example.test\nNeeds correction,1,invalid")});
       const downloaded = page.waitForEvent("download");
       await page.getByRole("button", {name:"Download Sample CSV",exact:true}).click();
       const sampleDownload = await downloaded;
