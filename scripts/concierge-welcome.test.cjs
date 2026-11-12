@@ -34,3 +34,16 @@ test('resume destination maps every actual incomplete milestone to its journey s
  const {journeyHref}=fixture().load('lib/concierge/journey');
  assert.match(journeyHref('discovery'),/step=discovery/);assert.match(journeyHref('campaign'),/step=campaigns/);assert.match(journeyHref('training'),/step=training/);assert.match(journeyHref('stages'),/step=review/);
 });
+test('orientation evidence is owner scoped and reveals existence only; unrelated accounts denied',async()=>{
+ const f=setup();f.tables.contacts=[{id:'own-contact',owner_id:owner},{id:'other-contact',owner_id:'other'}];f.tables.contact_notes=[{id:'other-note',owner_id:'other'}];f.tables.tasks=[{id:'own-task',owner_id:owner}];
+ const route=f.load('app/api/concierge/orientation/route'),request=new Request('http://localhost/api/concierge/orientation');
+ const data=await (await route.GET(request)).json();assert.equal(data.contacts,true);assert.equal(data.contact_notes,false);assert.equal(data.tasks,true);assert.equal(JSON.stringify(data).includes('own-contact'),false);
+ f.actor('other');const other=await(await route.GET(request)).json();assert.equal(other.contact_notes,true);assert.equal(other.tasks,false);
+ f.actor('unauthorized');assert.equal((await route.GET(request)).status,404);
+});
+test('journey status never calls skipped integrations verified',()=>{
+ const {journeyStatus}=fixture().load('lib/concierge/journey');const checks=[{key:'integrations',done:true}];
+ assert.equal(journeyStatus('integrations',checks,{integrationsNotApplicable:true},{imported:false,integrationsVerified:false}),'Intentionally skipped');
+ assert.equal(journeyStatus('integrations',checks,{}, {imported:false,integrationsVerified:true}),'Verified');
+ assert.equal(journeyStatus('integrations',[],{connectionReview:{calendar:false,sms:false}},{imported:false,integrationsVerified:false}),'Needs attention');
+});

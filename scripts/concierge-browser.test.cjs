@@ -40,22 +40,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
     record,
     facts,
     readiness: readiness(record, facts),
-    templates: [
-      {
-        key: "synthetic-buyer",
-        name: "New buyer welcome",
-        description: "Synthetic campaign draft",
-        steps: [
-          {
-            id: "one",
-            dayLabel: "Day 1",
-            type: "email",
-            title: "A personal introduction",
-            description: "Hello {{first_name}}, what would you like to find?",
-          },
-        ],
-      },
-    ],
+    templates: f.load("lib/campaigns/premium-drafts").PREMIUM_CAMPAIGN_DRAFTS.slice(0,6).map(t=>({key:t.revisionKey,name:t.name,description:t.description,steps:t.steps})),
     assistantEnabled: false,
     campaigns,
     subscription: { plan: "Growth", status: "trialing" },
@@ -88,8 +73,10 @@ const { fixture } = require("./campaign-audit/harness.cjs");
     fs.readFileSync("components/concierge/concierge.css", "utf8") + (process.env.MYARI_ICON_FONT ? "@font-face{font-family:\"Material Symbols Outlined\";src:url(/__test/material.ttf) format(\"truetype\");font-style:normal;font-weight:400}" : "");
   const server = http.createServer(async (req, res) => {
     if(req.url === "/__test/material.ttf" && process.env.MYARI_ICON_FONT){res.setHeader("content-type","font/ttf");return res.end(fs.readFileSync(process.env.MYARI_ICON_FONT));}
-    if (req.url.startsWith("/brand/")) {
-      const filename = path.join(root,"public",new URL(req.url,"http://localhost").pathname);
+    const imageUrl=new URL(req.url,"http://localhost");
+    const assetPath=imageUrl.pathname === "/_next/image" ? imageUrl.searchParams.get("url") : imageUrl.pathname;
+    if (assetPath?.startsWith("/brand/")) {
+      const filename = path.join(root,"public",assetPath);
       if (!filename.startsWith(path.join(root,"public","brand")+path.sep) || !fs.existsSync(filename)) {res.statusCode=404;return res.end();}
       res.setHeader("content-type",req.url.includes(".svg")?"image/svg+xml":req.url.includes(".webp")?"image/webp":"image/png");return res.end(fs.readFileSync(filename));
     }
@@ -106,6 +93,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
         body = JSON.parse(s);
       }
       const ok = (x) => res.end(JSON.stringify({ success: true, ...x }));
+      if(req.url === "/api/concierge/orientation") return ok({contacts:true,contact_notes:true,tasks:true});
       if(req.url === "/api/concierge/access") return ok({enabled:true,staff:false});
       if(req.url === "/api/concierge/welcome") {
         if(body){if(body.action === "dismissCard")cardDismissed=true;else welcomeDismissed=true;return ok({saved:true});}
@@ -194,12 +182,12 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       const dashboard=await browser.newPage({viewport:{width,height:1000}});
       await dashboard.goto(`http://127.0.0.1:${server.address().port}/dashboard`);
       await dashboard.getByRole("dialog").waitFor();
-      await dashboard.screenshot({path:`docs/concierge/previews/welcome-${width}.png`,fullPage:true});
+      await dashboard.screenshot({path:`docs/concierge/previews/welcome-${width}.png`,fullPage:true,animations:"disabled"});
       await dashboard.getByRole("button",{name:"Explore MyARI First",exact:true}).click();
       await dashboard.getByRole("dialog").waitFor({state:"hidden"});
       await dashboard.getByRole("link",{name:"Resume Setup"}).waitFor();
-      await dashboard.screenshot({path:`docs/concierge/previews/dashboard-card-${width}.png`,fullPage:true});
-      if(width<1024){await dashboard.getByRole("button",{name:"Open navigation",exact:true}).click();await dashboard.getByRole("link",{name:/White-Glove Setup/}).waitFor();await dashboard.screenshot({path:`docs/concierge/previews/navigation-${width}.png`,fullPage:true});await dashboard.getByRole("button",{name:"Close menu",exact:true}).click();}
+      await dashboard.screenshot({path:`docs/concierge/previews/dashboard-card-${width}.png`,fullPage:true,animations:"disabled"});
+      if(width<1024){await dashboard.getByRole("button",{name:"Open navigation",exact:true}).click();await dashboard.getByRole("link",{name:/White-Glove Setup/}).waitFor();await dashboard.screenshot({path:`docs/concierge/previews/navigation-${width}.png`,fullPage:true,animations:"disabled"});await dashboard.getByRole("button",{name:"Close menu",exact:true}).click();}
 
       await dashboard.reload();await dashboard.getByRole("link",{name:"Resume Setup"}).waitFor();assert.equal(await dashboard.getByRole("dialog").isVisible(),false);
       await dashboard.getByRole("button",{name:"Dismiss reminder"}).click();await dashboard.getByRole("link",{name:"Resume Setup"}).waitFor({state:"hidden"});
@@ -217,7 +205,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
         .getByLabel("Agent or team name", { exact: true })
         .fill("Alex Morgan");
       await page
-        .getByRole("button", { name: "Save my discovery", exact: true })
+        .getByRole("button", { name: "Save and Return Later", exact: true })
         .click();
       await page
         .getByRole("status")
@@ -226,7 +214,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       assert.ok(await page.locator("progress").count());
       await page.screenshot({
         path: `docs/concierge/previews/subscriber-${width}.png`,
-        fullPage: true,
+        fullPage: true, animations:"disabled",
       });
       await page
         .getByRole("button", { name: "Contact migration", exact: true })
@@ -254,7 +242,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       await page
         .getByRole("heading", { name: "Review before importing" })
         .waitFor();
-      await page.screenshot({path:`docs/concierge/previews/import-review-${width}.png`,fullPage:true});
+      await page.screenshot({path:`docs/concierge/previews/import-review-${width}.png`,fullPage:true,animations:"disabled"});
       assert.equal(
         await page
           .getByRole("button", { name: "Confirm import", exact: true })
@@ -284,7 +272,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
         .click();
       await page
         .getByLabel("Campaign template", { exact: false })
-        .selectOption("synthetic-buyer");
+        .selectOption(snapshot().templates[0].key);
       assert.equal(
         await page
           .getByRole("button", { name: "Save approved draft" })
@@ -306,8 +294,27 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       );
       for(const section of ["Your business","Contact migration","Campaign concierge","Connections","Walkthroughs","Launch review"]){
         await page.getByRole("button",{name:section,exact:true}).click();
-        await page.screenshot({path:`docs/concierge/previews/journey-${section.replaceAll(" ","-").toLowerCase()}-${width}.png`,fullPage:true});
+        await page.screenshot({path:`docs/concierge/previews/journey-${section.replaceAll(" ","-").toLowerCase()}-${width}.png`,fullPage:true,animations:"disabled"});
       }
+      await page.getByRole("button",{name:"Walkthroughs",exact:true}).click();
+      await page.getByRole("button",{name:"Begin Orientation: Your working notes",exact:true}).click();
+      const guide=page.getByRole("region",{name:"Your working notes orientation"});
+      await guide.getByRole("status").filter({hasText:"Saved workspace evidence"}).waitFor();
+      assert.match(await guide.innerText(),/Link a contact/);
+      if(!await guide.getByLabel(/I completed this orientation/).isChecked())await guide.getByLabel(/I completed this orientation/).click();
+      await page.waitForFunction(()=>document.querySelector(".concierge-guided-panel input[type=checkbox]")?.checked===true);
+      await page.screenshot({path:`docs/concierge/previews/notes-orientation-${width}.png`,fullPage:true,animations:"disabled"});
+      await page.getByRole("button",{name:"Close orientation",exact:true}).click();
+      assert.match(await page.locator(".concierge-orientation").innerText(),/Orientation acknowledged/);
+      await page.getByRole("button",{name:"Begin Orientation: Your calendar",exact:true}).click();
+      assert.equal(await page.getByLabel(/I completed this orientation/).isDisabled(),true,"unverified Calendar cannot be marked complete through guided UI");
+      await page.screenshot({path:`docs/concierge/previews/guided-orientation-${width}.png`,fullPage:true,animations:"disabled"});
+      await page.getByRole("button",{name:"Close orientation",exact:true}).click();
+      await page.getByRole("button",{name:"Campaign concierge",exact:true}).click();
+      assert.equal(await page.locator(".concierge-campaign-cover").count(),6);
+      assert.equal(await page.getByText(/MyARI collection/).count(),0);
+      const green=await page.locator(".concierge").evaluate(root=>[root,...root.querySelectorAll("*")].filter(el=>{const c=getComputedStyle(el);return [c.color,c.backgroundColor,c.borderTopColor].some(v=>{const n=v.match(/rgba?\((\d+), (\d+), (\d+)/);return n&&+n[2]>+n[1]+4&&+n[2]>+n[3]+4;});}).length);
+      assert.equal(green,0,"Concierge controls must use the approved warm palette");
       assert.equal(sends, 0);
       assert.equal(
         await page.evaluate(
@@ -330,7 +337,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       .waitFor();
     await staff.screenshot({
       path: "docs/concierge/previews/staff-1440.png",
-      fullPage: true,
+      fullPage: true, animations:"disabled",
     });
     await staff.close();
     fail = true;
