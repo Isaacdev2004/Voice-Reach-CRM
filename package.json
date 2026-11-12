@@ -25,7 +25,7 @@
     "test:delivery-browser": "node scripts/delivery-browser.test.cjs",
     "test:calendar": "node scripts/calendar-workspace.test.cjs",
     "test:calendar-browser": "node scripts/calendar-browser.test.cjs",
-    "test:notes": "node scripts/notes-workspace.test.cjs",
+    "test:notes": "node scripts/notes-workspace.test.cjs && node scripts/notes-studio.test.cjs",
     "test:notes-db": "node scripts/notes-database.test.cjs",
     "test:notes-browser": "node scripts/notes-browser.test.cjs",
     "test:financing": "node --import tsx scripts/financing.test.ts && node scripts/financing-routes.test.cjs && node --import tsx scripts/mortgage-pdf.test.ts",

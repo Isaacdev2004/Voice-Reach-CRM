@@ -19,12 +19,14 @@ export function RealtorPlanner({
   onTemplate,
   refreshKey,
   readOnly = false,
+  templatesAvailable = !readOnly,
 }: {
   priorities: string[];
   onPriorities: (ids: string[]) => void;
   onTemplate: () => void;
   refreshKey?: number;
   readOnly?: boolean;
+  templatesAvailable?: boolean;
 }) {
   const [view, setView] = useState<"day" | "week" | "month">("day"),
     [day, setDay] = useState(() => new Date().toLocaleDateString("en-CA")),
@@ -121,8 +123,8 @@ export function RealtorPlanner({
   return (
     <section className="notes-planner">
       <div className="notes-panel-heading">
-        <h3>AI Realtor Planner</h3>
-        <button disabled={readOnly} onClick={onTemplate}>
+        <h3>Your planning horizon</h3>
+        <button disabled={!templatesAvailable} onClick={onTemplate}>
           Templates
         </button>
       </div>

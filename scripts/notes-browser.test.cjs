@@ -113,20 +113,42 @@ const { chromium } = require("playwright"),
   fs.mkdirSync(output, { recursive: true });
   try {
     const origin = `http://127.0.0.1:${server.address().port}`;
+    async function library(page){const toggle=page.locator('#notes-toggle-library');if(await toggle.getAttribute('aria-expanded')==='false')await toggle.click();}
+    async function planner(page){const toggle=page.locator('#notes-toggle-planner');if(await toggle.getAttribute('aria-expanded')==='false')await toggle.click();}
+    async function closeDrawers(page){for(const which of ['library','planner']){const b=page.locator('#notes-close-'+which);if(await b.isVisible())await b.click();}}
     for (const width of [1440, 1920, 768, 390]) {
       reset();
       const page = await browser.newPage({ viewport: { width, height: 1050 } }),
         errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
       await page.goto(origin + "/dashboard/notes");
-      await page
-        .getByRole("heading", { name: "Great outcomes begin with a plan." })
-        .waitFor();
-      if (width <= 900)
-        await page
-          .getByRole("button", { name: "Notes library", exact: true })
-          .click();
-      await page.locator(".notes-note-preview").first().click();
+      await page.getByRole('heading',{name:'Notes & Strategy',exact:true}).waitFor();
+      await page.getByRole('button',{name:'Open Recent Note',exact:true}).waitFor();
+      const writes=state.requests.filter(r=>r.method==='POST');
+      assert.equal(writes.length,0,'opening Notes must not create a record');
+      assert.equal(await page.locator('#notes-toggle-library').getAttribute('aria-expanded'),'false');
+      assert.equal(await page.locator('#notes-toggle-planner').getAttribute('aria-expanded'),'false');
+      await page.screenshot({path:path.join(output,`studio-empty-${width}.png`),fullPage:false});
+      await page.getByRole('button',{name:'Open Recent Note',exact:true}).click();
+      await page.getByLabel('Note content',{exact:true}).waitFor();
+      await page.screenshot({path:path.join(output,`studio-default-${width}.png`),fullPage:false});
+      const widths=await page.evaluate(()=>({editor:document.querySelector('.notes-editor').getBoundingClientRect().width,workspace:document.querySelector('.notes-columns').getBoundingClientRect().width}));
+      assert.ok(widths.editor/widths.workspace>=.65,'editor must dominate the closed-drawer layout');
+      await page.getByLabel('Note content',{exact:true}).fill((await page.getByLabel('Note content',{exact:true}).inputValue())+'\n'+Array.from({length:70},(_,i)=>'Writing continuity line '+i).join('\n'));
+      await page.evaluate(()=>{window.__studioEditor=document.querySelector('textarea.notes-canvas');window.__studioEditor.setSelectionRange(4,12);window.__studioEditor.scrollTop=120;});
+      await library(page);await page.screenshot({path:path.join(output,`studio-library-${width}.png`),fullPage:false});
+      assert.equal(await page.evaluate(()=>window.__studioEditor===document.querySelector('textarea.notes-canvas')),true);
+      assert.equal(await page.getByLabel('Note content',{exact:true}).evaluate(el=>el.selectionStart),4);
+      assert.equal(await page.getByLabel('Note content',{exact:true}).evaluate(el=>el.scrollTop),120);
+      await closeDrawers(page);await planner(page);await page.screenshot({path:path.join(output,`studio-planner-${width}.png`),fullPage:false});
+      if(width===1920){await library(page);await page.waitForFunction(()=>document.querySelector('#notes-library-panel').getBoundingClientRect().width>=269);await page.waitForTimeout(220);const l=await page.locator('#notes-library-panel').boundingBox(),e=await page.locator('.notes-editor').boundingBox(),r=await page.locator('#notes-planner-panel').boundingBox();assert.ok(l.x+l.width<=e.x&&e.x+e.width<=r.x,'inline drawers must not overlap editor');await page.screenshot({path:path.join(output,'studio-both-1920.png'),fullPage:false});assert.equal(await page.locator('#notes-library-panel').isVisible(),true);assert.equal(await page.locator('#notes-planner-panel').isVisible(),true);await page.getByRole('button',{name:'Focus Mode',exact:true}).click();assert.equal(await page.locator('#notes-library-panel').isVisible(),false);await page.getByRole('button',{name:'Exit Focus Mode',exact:true}).click();assert.equal(await page.locator('#notes-library-panel').isVisible(),true);assert.equal(await page.locator('#notes-planner-panel').isVisible(),true);}
+      await closeDrawers(page);
+      await page.getByRole('button',{name:'Focus Mode',exact:true}).click();
+      await page.screenshot({path:path.join(output,`studio-focus-${width}.png`),fullPage:false});
+      await page.getByRole('button',{name:'Exit Focus Mode',exact:true}).click();
+      await library(page);await page.reload();await page.locator('.notes-note-preview').first().waitFor();
+      assert.equal(await page.locator('#notes-toggle-library').getAttribute('aria-expanded'),'true');
+      await page.locator('.notes-note-preview').first().click();
       await page.getByLabel("Note title", { exact: true }).waitFor();
       await page
         .getByRole("button", { name: "Formatted preview", exact: true })
@@ -142,7 +164,7 @@ const { chromium } = require("playwright"),
         false,
       );
       if (width <= 900) {
-        await page.getByRole("button", { name: "Planner & context" }).click();
+        await planner(page);
         await page
           .getByRole("heading", { name: "AI Realtor Planner" })
           .waitFor();
@@ -156,7 +178,7 @@ const { chromium } = require("playwright"),
           path: path.join(output, `notes-context-${width}.png`),
           fullPage: false,
         });
-        await page.getByRole("button", { name: "Editor", exact: true }).click();
+        await closeDrawers(page);
       }
       await page
         .getByRole("button", { name: "Edit text", exact: true })
@@ -215,11 +237,12 @@ const { chromium } = require("playwright"),
           .length,
         1,
       );
-      if (width > 900)
+      if (width > 900) { await planner(page);
         await page
           .locator(".notes-related-task")
           .filter({ hasText: "Synthetic follow-up " + width })
           .waitFor();
+        await closeDrawers(page); }
       await page
         .getByRole("button", { name: "AI Assist", exact: true })
         .last()
@@ -246,10 +269,7 @@ const { chromium } = require("playwright"),
       await page.keyboard.press("Escape");
       await page.getByLabel("AI summary draft").waitFor();
       await page.keyboard.press("Escape");
-      if (width <= 900)
-        await page
-          .getByRole("button", { name: "Notes library", exact: true })
-          .click();
+      await library(page);
       await page
         .getByLabel("Search notes", { exact: true })
         .fill("nothing-matches-synthetic");
@@ -283,6 +303,7 @@ const { chromium } = require("playwright"),
     });
     edit.on("dialog", (d) => d.accept());
     await edit.goto(origin + "/dashboard/notes");
+    await library(edit);
     await edit.locator(".notes-note-preview").first().click();
     await edit.getByLabel("Note content", { exact: true }).waitFor();
     await edit
@@ -317,6 +338,7 @@ const { chromium } = require("playwright"),
       .getByLabel("Note category", { exact: true })
       .selectOption("Clients");
     await edit.getByRole("button", { name: "Save now", exact: true }).click();
+    await library(edit);
     await edit.locator(".notes-library-controls summary").click();
     await edit
       .getByLabel("Filter by tag", { exact: true })
@@ -329,6 +351,7 @@ const { chromium } = require("playwright"),
     await edit
       .getByRole("button", { name: "Clear filters", exact: true })
       .click();
+    await closeDrawers(edit);
     await edit.getByRole("button", { name: "History", exact: true }).click();
     let historyDialog = edit.getByRole("dialog");
     await historyDialog.locator("details").first().waitFor();
@@ -340,7 +363,7 @@ const { chromium } = require("playwright"),
       .click();
     await edit.getByRole("button", { name: "Save now", exact: true }).click();
     await edit
-      .getByRole("button", { name: "Use Template", exact: true })
+      .getByRole("button", { name: "Choose Template", exact: true })
       .click();
     await edit
       .getByRole("button", { name: "Daily Agent Planner", exact: false })
@@ -353,7 +376,7 @@ const { chromium } = require("playwright"),
     await edit.getByRole("button", { name: "Pin note", exact: true }).click();
     await edit.getByRole("button", { name: "Save now", exact: true }).click();
     await edit
-      .getByRole("button", { name: "Use Template", exact: true })
+      .getByRole("button", { name: "Choose Template", exact: true })
       .click();
     await edit
       .getByRole("button", {
@@ -373,6 +396,7 @@ const { chromium } = require("playwright"),
         { exact: true },
       )
       .waitFor();
+    await planner(edit);
     for (const label of ["Weekly", "Monthly", "Daily"]) {
       await edit.getByRole("button", { name: label, exact: true }).click();
       await edit.waitForTimeout(60);
@@ -395,6 +419,7 @@ const { chromium } = require("playwright"),
       viewport: { width: 1440, height: 1050 },
     });
     await page.goto(origin + "/dashboard/notes");
+    await library(page);
     await page.locator(".notes-note-preview").first().click();
     state.failSave = true;
     await page
@@ -484,6 +509,7 @@ const { chromium } = require("playwright"),
       viewport: { width: 1440, height: 1050 },
     });
     await legacy.goto(origin + "/dashboard/notes");
+    await library(legacy);
     await legacy.locator(".notes-note-preview").first().click();
     await legacy
       .getByText("Your notes are available.", { exact: false })
@@ -545,6 +571,7 @@ const { chromium } = require("playwright"),
     await propertyPicker.getByRole("checkbox").first().check();
     await legacy.getByRole("button", { name: "Save now", exact: true }).click();
     await legacy.reload();
+    await library(legacy);
     await legacy
       .locator(".notes-note-preview")
       .filter({ hasText: "Basic property association" })
@@ -567,6 +594,10 @@ const { chromium } = require("playwright"),
       path: path.join(output, "compatibility-1440.png"),
       fullPage: false,
     });
+    await legacy.getByRole('button',{name:'Choose Template',exact:true}).click();
+    await legacy.getByRole('dialog').getByRole('button',{name:'Buyer Consultation',exact:false}).click();
+    await legacy.getByRole('button',{name:'Save now',exact:true}).click();await legacy.getByText('Saved',{exact:true}).waitFor();
+    assert.ok(state.notes.some(n=>n.title==='Buyer Consultation'&&n.body.includes('Client goals')));
     await legacy.close();
     state.tasks.push({
       id: "00000000-0000-4000-8000-000000000777",
@@ -580,7 +611,7 @@ const { chromium } = require("playwright"),
       viewport: { width: 390, height: 1050 },
     });
     await mobile.goto(origin + "/dashboard/notes");
-    await mobile.getByRole("button", { name: "Planner & context" }).click();
+    await planner(mobile);
     await mobile
       .locator(".notes-planner-row")
       .filter({ hasText: "Existing task stays visible" })
@@ -608,6 +639,7 @@ const { chromium } = require("playwright"),
     state.failLoad = true;
     const failed = await browser.newPage();
     await failed.goto(origin + "/dashboard/notes");
+    await library(failed);
     await failed.getByText("Notes unavailable", { exact: true }).waitFor();
     assert.equal(
       await failed
