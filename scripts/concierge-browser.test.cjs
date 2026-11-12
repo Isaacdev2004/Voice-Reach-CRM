@@ -130,25 +130,12 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       }
       if (req.url === "/api/concierge/import") {
         if (!body) return ok({ imports });
-        if (body.action === "columns")
-          return ok({ columns: ["firstName", "phone", "email"] });
-        if (body.action === "preview")
-          return ok({
-            preview: {
-              id: "00000000-0000-4000-8000-000000000010",
-              state: "preview",
-              expires_at: new Date(Date.now() + 86400000).toISOString(),
-            },
-            rows: [
-              {
-                firstName: "Jordan",
-                phone: "+15555550123",
-                email: "jordan@example.test",
-              },
-            ],
-            errors: [],
-            existingDuplicates: 0,
-          });
+        if (body.action === "columns") return ok({columns: f.load("lib/concierge/import").csvColumns(body.csv).columns});
+        if (body.action === "preview") {
+          const prepared = f.load("lib/concierge/import").prepareCsv(body.csv, body.mapping);
+          return ok({preview: {id:"00000000-0000-4000-8000-000000000010",state:"preview", expires_at:new Date(Date.now()+86400000).toISOString()}, rows:prepared.rows, errors:prepared.errors,
+            review:f.load("lib/concierge/import-review").summarizeImport(prepared.rows,prepared.errors,[])});
+        }
         if (body.action === "confirm") {
           facts.imported = true;
           imports = [
@@ -219,9 +206,13 @@ const { fixture } = require("./campaign-audit/harness.cjs");
           name: "synthetic.csv",
           mimeType: "text/csv",
           buffer: Buffer.from(
-            "firstName,phone,email\nJordan,5555550123,jordan@example.test",
+            "firstName,phone,email\nJordan,5555550123,jordan@example.test\nJordan,5555550123,jordan@example.test\nNeeds correction,1,invalid",
           ),
         });
+      const downloaded = page.waitForEvent("download");
+      await page.getByRole("button", {name:"Download Sample CSV",exact:true}).click();
+      const sampleDownload = await downloaded;
+      assert.match(fs.readFileSync(await sampleDownload.path(),"utf8"), /Jordan,Harbor/);
       await page.getByLabel(/I am authorized to process/).check();
       await page
         .getByRole("button", { name: "Prepare import preview", exact: true })
@@ -229,12 +220,23 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       await page
         .getByRole("heading", { name: "Review before importing" })
         .waitFor();
+      await page.screenshot({path:`docs/concierge/previews/import-review-${width}.png`,fullPage:true});
       assert.equal(
         await page
           .getByRole("button", { name: "Confirm import", exact: true })
           .isDisabled(),
         true,
       );
+      const errorDownloadPromise = page.waitForEvent("download");
+      await page.getByRole("button",{name:"Download error report",exact:true}).click();
+      const errorCsv = fs.readFileSync(await (await errorDownloadPromise).path(),"utf8");
+      assert.match(errorCsv, /CSV Row,Reason/);
+      assert.match(errorCsv, /4,.*Email is invalid/);
+      const importedBeforeCancel = facts.imported;
+      await page.getByRole("button",{name:"Cancel preview",exact:true}).click();
+      assert.equal(facts.imported, importedBeforeCancel);
+      await page.getByRole("button",{name:"Prepare import preview",exact:true}).click();
+      await page.getByRole("heading",{name:"Review before importing"}).waitFor();
       await page.getByLabel(/Approve adding these valid contacts only/).check();
       await page
         .getByRole("button", { name: "Confirm import", exact: true })

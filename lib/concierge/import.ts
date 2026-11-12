@@ -24,12 +24,24 @@ export function csvColumns(csv: string) {
     );
   if (raw.data.length > 501)
     throw new ConciergeError("Import up to 500 contacts at a time.");
-  if (raw.data.slice(1).some((r) => r.length !== columns.length))
-    throw new ConciergeError("Every CSV row must match its headers.");
-  return { columns, values: raw.data.slice(1) };
+  // Papa cursor offsets preserve physical CSV line numbers, including quoted multiline cells.
+  const rowNumbers: number[] = [];
+  let previous = 0, previousLine = 1;
+  const input = csv.replace(/^\uFEFF/, "");
+  Papa.parse<string[]>(input, {
+    skipEmptyLines: true,
+    step(result) {
+      const start = input.slice(previous).search(/[^\r\n]/);
+      const offset = previous + Math.max(0, start);
+      rowNumbers.push(previousLine + (input.slice(previous, offset).match(/\r\n|\r|\n/g) ?? []).length);
+      previousLine += (input.slice(previous, result.meta.cursor).match(/\r\n|\r|\n/g) ?? []).length;
+      previous = result.meta.cursor;
+    },
+  });
+  return { columns, values: raw.data.slice(1), rowNumbers: rowNumbers.slice(1) };
 }
 export function prepareCsv(csv: string, mapping: unknown) {
-  const { columns, values } = csvColumns(csv),
+  const { columns, values, rowNumbers } = csvColumns(csv),
     map = Mapping.parse(mapping);
   const chosen = Object.values(map);
   if (
@@ -39,25 +51,29 @@ export function prepareCsv(csv: string, mapping: unknown) {
     throw new ConciergeError(
       "Map each source column once, using the detected headers.",
     );
+  const widthErrors = values.flatMap((row, i) => row.length === columns.length ? [] : [{row: rowNumbers[i], error: "Column count does not match the CSV headers."}]);
+  const validIndexes = values.flatMap((row,i) => row.length === columns.length ? [i] : []);
   const canonical = Papa.unparse(
-    values.map((row) =>
-      Object.fromEntries(
+    validIndexes.map((index) => {
+      const row = values[index];
+      return Object.fromEntries(
         Object.entries(map).map(([field, column]) => [
           field,
           row[columns.indexOf(column)],
         ]),
-      ),
-    ),
+      );
+    }),
   );
   const { rows, parseErrors } = parseContactCsv(canonical);
   if (parseErrors.length)
     throw new ConciergeError("CSV mapping could not be read.");
   const accepted: Record<string, string>[] = [],
-    errors: { row: number; error: string }[] = [];
+    errors: { row: number; error: string }[] = [...widthErrors];
   const phones = new Set(),
     emails = new Set();
   for (const [i, row] of rows.entries()) {
-    const source = values[i],
+    const sourceIndex = validIndexes[i];
+    const source = values[sourceIndex],
       firstName = String(row.firstName ?? "").trim(),
       phone = String(row.phone ?? "").trim(),
       email = String(row.email ?? "")
@@ -70,19 +86,17 @@ export function prepareCsv(csv: string, mapping: unknown) {
       phone.replace(/\D/g, "").length > 15 ||
       (email && !z.string().email().safeParse(email).success)
     ) {
-      errors.push({ row: i + 2, error: "Check first name, phone and email." });
+      errors.push({ row: rowNumbers[sourceIndex], error: [!firstName ? "First name is required." : firstName.length > 200 ? "First name exceeds 200 characters." : "", !isValidImportPhone(phone) || phone.replace(/\D/g, "").length > 15 ? "Phone must contain 10–15 valid digits." : "", email && !z.string().email().safeParse(email).success ? "Email is invalid." : ""].filter(Boolean).join(" ") });
       continue;
     }
     const normalized = normalizePhone(phone);
     if (phones.has(normalized) || (email && emails.has(email))) {
       errors.push({
-        row: i + 2,
+        row: rowNumbers[sourceIndex],
         error: "Duplicate within this file; skipped.",
       });
       continue;
     }
-    phones.add(normalized);
-    if (email) emails.add(email);
     const extra = [
       map.category
         ? `Imported category: ${source[columns.indexOf(map.category)]}`
@@ -99,12 +113,15 @@ export function prepareCsv(csv: string, mapping: unknown) {
       String(row.type ?? "").length > 100
     ) {
       errors.push({
-        row: i + 2,
+        row: rowNumbers[sourceIndex],
         error: "Notes, source or stage exceeds the supported length.",
       });
       continue;
     }
+    phones.add(normalized);
+    if (email) emails.add(email);
     accepted.push({
+      _sourceRow: String(rowNumbers[sourceIndex]),
       firstName,
       lastName: String(row.lastName ?? "").slice(0, 200),
       phone: normalized,

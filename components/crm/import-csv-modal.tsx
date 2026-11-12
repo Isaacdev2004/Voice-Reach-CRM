@@ -1,5 +1,6 @@
 "use client";
 
+import { contactImportTemplate } from "@/lib/contacts/import-template";
 import { notifyContactsChanged } from "@/lib/contacts/change-events";
 
 import {
@@ -21,9 +22,7 @@ type ImportResult = {
   errors: { row: number; error: string }[];
 };
 
-const SAMPLE_CSV = `firstName,lastName,phone,email,consent,source
-Jane,Doe,+15551234567,jane@example.com,Yes,Website
-John,Smith,+15559876543,,Unknown,Referral`;
+const SAMPLE_CSV = contactImportTemplate(true);
 
 export function ImportCsvModal({ open, onClose, onSuccess }: ImportCsvModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);

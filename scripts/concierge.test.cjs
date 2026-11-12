@@ -385,3 +385,37 @@ test("health separates provider presence from the outbound kill switch", async()
   const data=r.data??r;
   assert.equal(data.providers.sms,true);assert.equal(data.liveOutboundAllowed,false);assert.equal(data.liveSending,false);
 });
+
+test("shared blank/sample templates round-trip, actual review separates invalid and possible duplicates", () => {
+ const f = fixture();
+ const {contactImportTemplate, CONTACT_IMPORT_HEADERS, importErrorReport} = f.load("lib/contacts/import-template");
+ const {prepareCsv, csvColumns} = f.load("lib/concierge/import");
+ const {summarizeImport} = f.load("lib/concierge/import-review");
+ assert.deepEqual(Array.from(csvColumns(contactImportTemplate()).columns), Array.from(CONTACT_IMPORT_HEADERS));
+ const mapping = {firstName:"firstName", lastName:"lastName", phone:"phone", email:"email", source:"source"};
+ const sample = prepareCsv(contactImportTemplate(true), mapping);
+ assert.equal(sample.rows.length,2); assert.equal(sample.errors.length,0);
+ const csv = contactImportTemplate(true).trimEnd() + '\r\nBad,,1,invalid,Unknown,Website';
+ const prepared = prepareCsv(csv,mapping);
+ const review = summarizeImport(prepared.rows,prepared.errors,[{phone:sample.rows[0].phone,email:sample.rows[0].email}]);
+ assert.equal(review.totalRows,3); assert.equal(review.validNew,1);
+ assert.equal(review.possibleDuplicates,1); assert.equal(review.invalidRows,1);
+ assert.equal(review.existingContactsUnchanged,1);
+ assert.match(importErrorReport(review.errors), /4,/);
+ assert.match(importErrorReport(review.errors), /Email is invalid/);
+ assert.equal(prepared.rows.some(r => 'consent' in r),false);
+});
+test("review reports physical source lines across blanks and quoted multiline fields", () => {
+ const f = fixture();
+ const {prepareCsv} = f.load("lib/concierge/import");
+ const p = prepareCsv('firstName,phone,email,notes\r\n"Jean\nMarie",2025550101,,"A\nB"\r\n\r\nInvalid,1,bad,\r\nWrong,columns', {firstName:"firstName",phone:"phone",email:"email",notes:"notes"});
+ assert.equal(p.rows.length,1);
+ assert.equal(p.rows[0]._sourceRow,"2");
+ assert.deepEqual(p.errors.map(e=>e.row).sort(),[6,7]);
+});
+test("all-invalid files remain reviewable and never reserve duplicate keys", () => {
+ const f=fixture(), {prepareCsv}=f.load("lib/concierge/import"), {summarizeImport}=f.load("lib/concierge/import-review");
+ const p=prepareCsv('firstName,phone,email\nBad,1,invalid\nWrong,columns',{firstName:"firstName",phone:"phone",email:"email"});
+ const review=summarizeImport(p.rows,p.errors,[]);
+ assert.equal(review.totalRows,2); assert.equal(review.invalidRows,2); assert.equal(review.validNew,0);
+});

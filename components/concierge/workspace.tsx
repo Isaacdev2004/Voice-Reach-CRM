@@ -1,4 +1,6 @@
 "use client";
+import { contactImportTemplate, downloadImportCsv, importErrorReport } from "@/lib/contacts/import-template";
+import type { summarizeImport } from "@/lib/concierge/import-review";
 import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -50,8 +52,9 @@ type Snapshot = {
 };
 type Preview = {
   preview: { id: string; state: string; expires_at: string };
-  rows: { firstName: string; phone: string; email: string }[];
+  rows: { firstName: string; phone: string; email: string; _sourceRow?: string }[];
   errors: { row: number; error: string }[];
+  review?: ReturnType<typeof summarizeImport>;
   existingDuplicates?: number;
   message?: string;
 };
@@ -538,13 +541,18 @@ function SubscriberWorkspace() {
             never overwritten. Imported contacts are marked consent Unknown and
             sending suppressed until you independently review their permissions.
           </p>
+          <div className="concierge-actions">
+            <button onClick={() => downloadImportCsv("myari-contacts-template.csv", contactImportTemplate())}>Download Blank CSV Template</button>
+            <button onClick={() => downloadImportCsv("myari-contacts-sample.csv", contactImportTemplate(true))}>Download Sample CSV</button>
+          </div>
+          <p>Required: firstName, phone. Optional: lastName, email, consent, source. Consent always imports as Unknown, regardless of the CSV value. The sample contains fictional contacts only.</p>
           <label>
             Choose CSV
             <input
               type="file"
               accept=".csv,text/csv"
               disabled={busy}
-              onChange={(e) => void chooseFile(e.target.files?.[0])}
+              onChange={(e) => { setPreview(null); setImportApproval(false); const file = e.target.files?.[0]; e.target.value = ""; void chooseFile(file); }}
             />
           </label>
           {columns.length > 0 && (
@@ -611,12 +619,14 @@ function SubscriberWorkspace() {
           {preview && (
             <div className="concierge-preview">
               <h3>Review before importing</h3>
-              <p>
-                {preview.rows.length} valid rows · {preview.errors.length}{" "}
-                skipped ·{" "}
-                {preview.existingDuplicates ?? "Rechecked at confirmation"}{" "}
-                existing duplicates. Duplicates are skipped.
-              </p>
+              {preview.review ? <div role="status">
+                <h4>{preview.review.validNew} contacts ready to import</h4>
+                <p>{preview.review.totalRows} rows uploaded · {preview.review.possibleDuplicates} possible duplicates · {preview.review.invalidRows} rows need correction.</p>
+                <p>{preview.review.existingContactsUnchanged} existing contacts remain unchanged. Shared phone/email matches are possible duplicates, not confirmed identities; all are skipped. No merging or overwriting.</p>
+              </div> : <p>Duplicate checks are repeated at confirmation.</p>}
+              <p>Consent status: Unknown — sending suppressed. No campaign enrollment.</p>
+              <button onClick={() => downloadImportCsv("myari-import-errors.csv", importErrorReport(preview.review?.errors ?? preview.errors))}>Download error report</button>
+              <p>Correct any reported rows and choose the CSV again. Cancel leaves contacts unchanged.</p>
               <div className="concierge-table">
                 <table>
                   <thead>
@@ -624,14 +634,16 @@ function SubscriberWorkspace() {
                       <th>Name</th>
                       <th>Phone</th>
                       <th>Email</th>
+                      <th>Review</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {preview.rows.slice(0, 10).map((r, i) => (
+                    {preview.rows.map((r, i) => (
                       <tr key={i}>
                         <td>{r.firstName}</td>
                         <td>{r.phone}</td>
                         <td>{r.email}</td>
+                        <td>{preview.review?.errors.some(e => e.row === Number(r._sourceRow)) ? "Possible duplicate — skipped" : "Valid new contact"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -639,7 +651,7 @@ function SubscriberWorkspace() {
               </div>
               <details>
                 <summary>Row error report</summary>
-                {preview.errors.map((e) => (
+                {(preview.review?.errors ?? preview.errors).map((e) => (
                   <p key={e.row}>
                     Row {e.row}: {e.error}
                   </p>
@@ -660,6 +672,7 @@ function SubscriberWorkspace() {
                   disabled={
                     busy ||
                     !importApproval ||
+                    preview.review?.validNew === 0 ||
                     preview.preview.state !== "preview"
                   }
                   onClick={() =>
