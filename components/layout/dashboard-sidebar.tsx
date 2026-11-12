@@ -66,8 +66,8 @@ export function DashboardSidebar({
           {dashboardNav.map((item) => {
             const active = isActiveNav(pathname, item.href);
             return (
+              <div key={item.href}>
               <Link
-                key={item.href}
                 href={item.href}
                 onClick={onMobileClose}
                 aria-current={active ? "page" : undefined}
@@ -81,10 +81,12 @@ export function DashboardSidebar({
                 <Icon name={item.icon} className="text-[20px] opacity-90" />
                 <span>{item.label}</span>
               </Link>
+              {item.href === "/dashboard" && <ConciergeEntry onNavigate={onMobileClose} />}
+              </div>
             );
           })}
         </nav>
-        <ConciergeEntry />
+        <ConciergeEntry staffOnly onNavigate={onMobileClose} />
 
         <div className="dashboard-upgrade mt-auto space-y-2.5 border-t border-outline-variant/10 px-4 pb-1 pt-4">
           <div className="flex justify-center text-rose-gold-deep">

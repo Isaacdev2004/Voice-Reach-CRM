@@ -1,8 +1,11 @@
 "use client";
+import "./concierge.css";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-export function ConciergeEntry() {
+export function ConciergeEntry({ staffOnly = false, onNavigate }: {staffOnly?: boolean; onNavigate?: () => void}) {
+  const pathname = usePathname();
   const { user } = useUser(),
     [access, setAccess] = useState({ enabled: false, staff: false });
   useEffect(() => {
@@ -19,13 +22,13 @@ export function ConciergeEntry() {
       live = false;
     };
   }, [user?.id]);
-  return access.enabled || access.staff ? (
+  return (staffOnly ? access.staff : access.enabled) ? (
     <div className="px-4 py-2 text-[13px] text-rose-gold-deep">
-      {access.enabled && (
-        <Link href="/dashboard/concierge">✧ MyARI Concierge</Link>
+      {!staffOnly && access.enabled && (
+        <Link aria-current={pathname?.startsWith("/dashboard/concierge") ? "page" : undefined} className="concierge-nav-entry" href="/dashboard/concierge" onClick={onNavigate}><span aria-hidden="true">✧</span><span>White-Glove Setup<small>Your personalized onboarding.</small></span></Link>
       )}
-      {access.staff && (
-        <Link className="block mt-2" href="/dashboard/admin/concierge">
+      {staffOnly && access.staff && (
+        <Link className="block mt-2" onClick={onNavigate} href="/dashboard/admin/concierge">
           Concierge Command Center
         </Link>
       )}

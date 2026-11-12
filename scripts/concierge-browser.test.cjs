@@ -31,6 +31,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
     campaignDraft: false,
     integrationsVerified: false,
   };
+  let welcomeDismissed=false, cardDismissed=false;
   let imports = [],
     campaigns = [],
     fail = false;
@@ -39,22 +40,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
     record,
     facts,
     readiness: readiness(record, facts),
-    templates: [
-      {
-        key: "synthetic-buyer",
-        name: "New buyer welcome",
-        description: "Synthetic campaign draft",
-        steps: [
-          {
-            id: "one",
-            dayLabel: "Day 1",
-            type: "email",
-            title: "A personal introduction",
-            description: "Hello {{first_name}}, what would you like to find?",
-          },
-        ],
-      },
-    ],
+    templates: f.load("lib/campaigns/premium-drafts").PREMIUM_CAMPAIGN_DRAFTS.slice(0,6).map(t=>({key:t.revisionKey,name:t.name,description:t.description,steps:t.steps})),
     assistantEnabled: false,
     campaigns,
     subscription: { plan: "Growth", status: "trialing" },
@@ -73,7 +59,10 @@ const { fixture } = require("./campaign-audit/harness.cjs");
     alias: {
       "@clerk/nextjs": path.join(adapters, "stubs.jsx"),
       "next/link": path.join(adapters, "link.jsx"),
+      "next/image": path.join(adapters, "image.jsx"),
       "next/server": path.join(adapters, "server.jsx"),
+      "next/navigation":path.join(adapters,"stubs.jsx"),
+      "@/components/billing/upgrade-plan-provider":path.join(__dirname,"concierge-browser/billing-stub.jsx"),
     },
   });
   const css =
@@ -82,8 +71,16 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       .filter((x) => x.endsWith(".css"))
       .map((x) => fs.readFileSync(".next/static/css/" + x, "utf8"))
       .join("\n") +
-    fs.readFileSync("components/concierge/concierge.css", "utf8");
+    fs.readFileSync("components/concierge/concierge.css", "utf8") + (process.env.MYARI_ICON_FONT ? "@font-face{font-family:\"Material Symbols Outlined\";src:url(/__test/material.ttf) format(\"truetype\");font-style:normal;font-weight:400}" : "");
   const server = http.createServer(async (req, res) => {
+    if(req.url === "/__test/material.ttf" && process.env.MYARI_ICON_FONT){res.setHeader("content-type","font/ttf");return res.end(fs.readFileSync(process.env.MYARI_ICON_FONT));}
+    const imageUrl=new URL(req.url,"http://localhost");
+    const assetPath=imageUrl.pathname === "/_next/image" ? imageUrl.searchParams.get("url") : imageUrl.pathname;
+    if (assetPath?.startsWith("/brand/")) {
+      const filename = path.join(root,"public",assetPath);
+      if (!filename.startsWith(path.join(root,"public","brand")+path.sep) || !fs.existsSync(filename)) {res.statusCode=404;return res.end();}
+      res.setHeader("content-type",req.url.includes(".svg")?"image/svg+xml":req.url.includes(".webp")?"image/webp":"image/png");return res.end(fs.readFileSync(filename));
+    }
     if (req.url === "/app.js") {
       res.setHeader("content-type", "text/javascript");
       return res.end(bundle.outputFiles[0].text);
@@ -97,6 +94,12 @@ const { fixture } = require("./campaign-audit/harness.cjs");
         body = JSON.parse(s);
       }
       const ok = (x) => res.end(JSON.stringify({ success: true, ...x }));
+      if(req.url === "/api/concierge/orientation") return ok({contacts:true,contact_notes:true,tasks:true});
+      if(req.url === "/api/concierge/access") return ok({enabled:true,staff:false});
+      if(req.url === "/api/concierge/welcome") {
+        if(body){if(body.action === "dismissCard")cardDismissed=true;else welcomeDismissed=true;return ok({saved:true});}
+        return ok({showWelcome:!welcomeDismissed,showCard:!cardDismissed,complete:false,checklistReady:false,progress:{completed:snapshot().readiness.completed,total:8},next:snapshot().readiness.next?.label,href:"/dashboard/concierge?step=migration"});
+      }
       if (fail) {
         res.statusCode = 503;
         return res.end(
@@ -176,6 +179,23 @@ const { fixture } = require("./campaign-audit/harness.cjs");
   fs.mkdirSync("docs/concierge/previews", { recursive: true });
   try {
     for (const width of [1440, 768, 390]) {
+      welcomeDismissed=false;cardDismissed=false;
+      const dashboard=await browser.newPage({viewport:{width,height:1000}});
+      await dashboard.goto(`http://127.0.0.1:${server.address().port}/dashboard`);
+      await dashboard.getByRole("dialog").waitFor();
+      await dashboard.screenshot({path:`docs/concierge/previews/welcome-${width}.png`,fullPage:true,animations:"disabled"});
+      await dashboard.getByRole("button",{name:"Explore MyARI First",exact:true}).click();
+      await dashboard.getByRole("dialog").waitFor({state:"hidden"});
+      await dashboard.getByRole("link",{name:"Resume Setup"}).waitFor();
+      await dashboard.screenshot({path:`docs/concierge/previews/dashboard-card-${width}.png`,fullPage:true,animations:"disabled"});
+      if(width<1024){await dashboard.getByRole("button",{name:"Open navigation",exact:true}).click();await dashboard.getByRole("link",{name:/White-Glove Setup/}).waitFor();await dashboard.screenshot({path:`docs/concierge/previews/navigation-${width}.png`,fullPage:true,animations:"disabled"});await dashboard.getByRole("button",{name:"Close menu",exact:true}).click();}
+
+      await dashboard.reload();await dashboard.getByRole("link",{name:"Resume Setup"}).waitFor();assert.equal(await dashboard.getByRole("dialog").isVisible(),false);
+      await dashboard.getByRole("button",{name:"Dismiss reminder"}).click();await dashboard.getByRole("link",{name:"Resume Setup"}).waitFor({state:"hidden"});
+      await dashboard.reload();await dashboard.waitForLoadState("networkidle");assert.equal(await dashboard.getByRole("link",{name:"Resume Setup"}).count(),0);
+      welcomeDismissed=false;cardDismissed=false;await dashboard.reload();await dashboard.getByRole("dialog").waitFor();
+      await dashboard.keyboard.press("Tab");assert.equal(await dashboard.evaluate(()=>!!document.activeElement.closest("dialog")),true);
+      await dashboard.getByRole("button",{name:"Begin My Setup",exact:true}).click();await dashboard.waitForURL(/step=migration/);await dashboard.close();
       const page = await browser.newPage({ viewport: { width, height: 1050 } }),
         errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
@@ -186,7 +206,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
         .getByLabel("Agent or team name", { exact: true })
         .fill("Alex Morgan");
       await page
-        .getByRole("button", { name: "Save my discovery", exact: true })
+        .getByRole("button", { name: "Save for Later", exact: true })
         .click();
       await page
         .getByRole("status")
@@ -195,7 +215,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       assert.ok(await page.locator("progress").count());
       await page.screenshot({
         path: `docs/concierge/previews/subscriber-${width}.png`,
-        fullPage: true,
+        fullPage: true, animations:"disabled",
       });
       await page
         .getByRole("button", { name: "Contact migration", exact: true })
@@ -223,7 +243,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       await page
         .getByRole("heading", { name: "Review before importing" })
         .waitFor();
-      await page.screenshot({path:`docs/concierge/previews/import-review-${width}.png`,fullPage:true});
+      await page.screenshot({path:`docs/concierge/previews/import-review-${width}.png`,fullPage:true,animations:"disabled"});
       assert.equal(
         await page
           .getByRole("button", { name: "Confirm import", exact: true })
@@ -253,7 +273,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
         .click();
       await page
         .getByLabel("Campaign template", { exact: false })
-        .selectOption("synthetic-buyer");
+        .selectOption(snapshot().templates[0].key);
       assert.equal(
         await page
           .getByRole("button", { name: "Save approved draft" })
@@ -273,6 +293,35 @@ const { fixture } = require("./campaign-audit/harness.cjs");
         await page.locator("body").innerText(),
         /Concierge never changes your billing/,
       );
+      for(const section of ["Your business","Contact migration","Campaign concierge","Connections","Walkthroughs","Launch review"]){
+        await page.getByRole("button",{name:section,exact:true}).click();
+        const photos=page.locator(".concierge-photo img");
+        for(let i=0;i<await photos.count();i++){await photos.nth(i).scrollIntoViewIfNeeded();await photos.nth(i).evaluate(img=>img.decode());assert.ok(await photos.nth(i).evaluate(img=>img.naturalWidth>=1000));}
+        await page.evaluate(()=>window.scrollTo(0,0));
+        if(section === "Contact migration")assert.equal(await page.locator(".concierge-section-image").count(),0);
+        if(section === "Campaign concierge")assert.equal(await page.locator(".concierge-campaign-cover img").count(),6);
+        if(section === "Walkthroughs")assert.equal(await page.locator(".concierge-orientation-photo img").count(),7);
+        await page.screenshot({path:`docs/concierge/previews/journey-${section.replaceAll(" ","-").toLowerCase()}-${width}.png`,fullPage:true,animations:"disabled"});
+      }
+      await page.getByRole("button",{name:"Walkthroughs",exact:true}).click();
+      await page.getByRole("button",{name:"Begin Orientation: Your working notes",exact:true}).click();
+      const guide=page.getByRole("region",{name:"Your working notes orientation"});
+      await guide.getByRole("status").filter({hasText:"Saved workspace evidence"}).waitFor();
+      assert.match(await guide.innerText(),/Link a contact/);
+      if(!await guide.getByLabel(/I completed this orientation/).isChecked())await guide.getByLabel(/I completed this orientation/).click();
+      await page.waitForFunction(()=>document.querySelector(".concierge-guided-panel input[type=checkbox]")?.checked===true);
+      await page.screenshot({path:`docs/concierge/previews/notes-orientation-${width}.png`,fullPage:true,animations:"disabled"});
+      await page.getByRole("button",{name:"Close orientation",exact:true}).click();
+      assert.match(await page.locator(".concierge-orientation").innerText(),/Orientation acknowledged/);
+      await page.getByRole("button",{name:"Begin Orientation: Your calendar",exact:true}).click();
+      assert.equal(await page.getByLabel(/I completed this orientation/).isDisabled(),true,"unverified Calendar cannot be marked complete through guided UI");
+      await page.screenshot({path:`docs/concierge/previews/guided-orientation-${width}.png`,fullPage:true,animations:"disabled"});
+      await page.getByRole("button",{name:"Close orientation",exact:true}).click();
+      await page.getByRole("button",{name:"Campaign concierge",exact:true}).click();
+      assert.equal(await page.locator(".concierge-campaign-cover").count(),6);
+      assert.equal(await page.getByText(/MyARI collection/).count(),0);
+      const green=await page.locator(".concierge").evaluate(root=>[root,...root.querySelectorAll("*")].filter(el=>{const c=getComputedStyle(el);return [c.color,c.backgroundColor,c.borderTopColor].some(v=>{const n=v.match(/rgba?\((\d+), (\d+), (\d+)/);return n&&+n[2]>+n[1]+4&&+n[2]>+n[3]+4;});}).length);
+      assert.equal(green,0,"Concierge controls must use the approved warm palette");
       assert.equal(sends, 0);
       assert.equal(
         await page.evaluate(
@@ -295,7 +344,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       .waitFor();
     await staff.screenshot({
       path: "docs/concierge/previews/staff-1440.png",
-      fullPage: true,
+      fullPage: true, animations:"disabled",
     });
     await staff.close();
     fail = true;
@@ -307,7 +356,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
     assert.match(await outage.getByRole("alert").innerText(), /saved work/);
     await outage.close();
     console.log(
-      "PASS Concierge browser: discovery save, CSV mapping, explicit import/campaign approval, immediate summaries, billing safety, outage handling, no sends, desktop/tablet/mobile overflow and staff preview. Synthetic APIs only.",
+      "PASS Concierge browser: welcome, persisted preferences, dashboard discovery, journey screenshots, discovery save, CSV mapping, explicit import/campaign approval, immediate summaries, billing safety, outage handling, no sends, desktop/tablet/mobile overflow and staff preview. Synthetic APIs only.",
     );
   } finally {
     await browser.close();

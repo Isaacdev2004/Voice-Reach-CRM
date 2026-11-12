@@ -11,7 +11,8 @@
       "fix/mortgage-pdf-field-overflow": false,
       "fix/settings-brand-pdf-recovery": false,
       "feat/premium-assistant-workspace": false,
-      "feat/concierge-pilot-readiness": false
+      "feat/concierge-pilot-readiness": false,
+      "feat/concierge-white-glove-ux": false
     }
   },
   "crons": [
