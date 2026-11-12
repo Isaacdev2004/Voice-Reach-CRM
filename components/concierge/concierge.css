@@ -329,3 +329,6 @@
   }
 }
 .concierge progress::-webkit-progress-bar{background:#e8ddd1;border-radius:8px}.concierge progress::-webkit-progress-value{background:#946643;border-radius:8px}.concierge progress::-moz-progress-bar{background:#946643;border-radius:8px}
+
+/* Preserve readable columns on phones; scrolling stays inside the review. */
+.concierge-preview table { min-width: 560px; }

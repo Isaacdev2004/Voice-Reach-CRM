@@ -1,4 +1,6 @@
 "use client";
+import { contactImportTemplate, downloadImportCsv, importErrorReport } from "@/lib/contacts/import-template";
+import type { summarizeImport } from "@/lib/concierge/import-review";
 import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -36,6 +38,7 @@ type Snapshot = {
     integrationsVerified: boolean;
   };
   readiness: ReturnType<typeof readiness>;
+  staffSignoff?: { approved: boolean; reviewedAt: string | null };
   templates: {
     key: string;
     name: string;
@@ -49,8 +52,9 @@ type Snapshot = {
 };
 type Preview = {
   preview: { id: string; state: string; expires_at: string };
-  rows: { firstName: string; phone: string; email: string }[];
+  rows: { firstName: string; phone: string; email: string; _sourceRow?: string }[];
   errors: { row: number; error: string }[];
+  review?: ReturnType<typeof summarizeImport>;
   existingDuplicates?: number;
   message?: string;
 };
@@ -75,6 +79,7 @@ function SubscriberWorkspace() {
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
     [csv, setCsv] = useState(""),
+    [csvFilename, setCsvFilename] = useState(""),
     [columns, setColumns] = useState<string[]>([]),
     [mapping, setMapping] = useState<Record<string, string>>({}),
     [privacy, setPrivacy] = useState(false),
@@ -137,6 +142,7 @@ function SubscriberWorkspace() {
   }
   async function chooseFile(file: File | undefined) {
     if (!file) return;
+    setCsv(""); setColumns([]); setCsvFilename(""); setPreview(null); setImportApproval(false); setPrivacy(false);
     if (!/\.csv$/i.test(file.name) || file.size > 1048576) {
       setError("Choose a UTF-8 .csv file no larger than 1 MB.");
       return;
@@ -148,6 +154,7 @@ function SubscriberWorkspace() {
         { action: "columns", csv: text },
       );
       setCsv(text);
+      setCsvFilename(file.name);
       setColumns(d.columns);
       setPreview(null);
       setImportApproval(false);
@@ -537,15 +544,21 @@ function SubscriberWorkspace() {
             never overwritten. Imported contacts are marked consent Unknown and
             sending suppressed until you independently review their permissions.
           </p>
+          <div className="concierge-actions">
+            <button onClick={() => downloadImportCsv("myari-contacts-template.csv", contactImportTemplate())}>Download Blank CSV Template</button>
+            <button onClick={() => downloadImportCsv("myari-contacts-sample.csv", contactImportTemplate(true))}>Download Sample CSV</button>
+          </div>
+          <p>Required: firstName, phone. Optional: lastName, email, consent, source. Consent always imports as Unknown, regardless of the CSV value. The sample contains fictional contacts only.</p>
           <label>
             Choose CSV
             <input
               type="file"
               accept=".csv,text/csv"
               disabled={busy}
-              onChange={(e) => void chooseFile(e.target.files?.[0])}
+              onChange={(e) => { setPreview(null); setImportApproval(false); const file = e.target.files?.[0]; e.target.value = ""; void chooseFile(file); }}
             />
           </label>
+          {csvFilename && <p>Selected CSV: {csvFilename}</p>}
           {columns.length > 0 && (
             <>
               <div className="concierge-grid">
@@ -610,12 +623,14 @@ function SubscriberWorkspace() {
           {preview && (
             <div className="concierge-preview">
               <h3>Review before importing</h3>
-              <p>
-                {preview.rows.length} valid rows · {preview.errors.length}{" "}
-                skipped ·{" "}
-                {preview.existingDuplicates ?? "Rechecked at confirmation"}{" "}
-                existing duplicates. Duplicates are skipped.
-              </p>
+              {preview.review ? <div role="status">
+                <h4>{preview.review.validNew} contacts ready to import</h4>
+                <p>{preview.review.totalRows} rows uploaded · {preview.review.possibleDuplicates} possible duplicates · {preview.review.invalidRows} rows need correction.</p>
+                <p>{preview.review.existingContactsUnchanged} existing contacts remain unchanged. Shared phone/email matches are possible duplicates, not confirmed identities; all are skipped. No merging or overwriting.</p>
+              </div> : <p>Duplicate checks are repeated at confirmation.</p>}
+              <p>Consent status: Unknown — sending suppressed. No campaign enrollment.</p>
+              <button onClick={() => downloadImportCsv("myari-import-errors.csv", importErrorReport(preview.review?.errors ?? preview.errors))}>Download error report</button>
+              <p>Correct any reported rows and choose the CSV again. Cancel leaves contacts unchanged.</p>
               <div className="concierge-table">
                 <table>
                   <thead>
@@ -623,14 +638,16 @@ function SubscriberWorkspace() {
                       <th>Name</th>
                       <th>Phone</th>
                       <th>Email</th>
+                      <th>Review</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {preview.rows.slice(0, 10).map((r, i) => (
+                    {preview.rows.map((r, i) => (
                       <tr key={i}>
                         <td>{r.firstName}</td>
                         <td>{r.phone}</td>
                         <td>{r.email}</td>
+                        <td>{preview.review?.errors.some(e => e.row === (Number(r._sourceRow) || i + 2)) ? "Possible duplicate — skipped" : "Valid new contact"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -638,7 +655,7 @@ function SubscriberWorkspace() {
               </div>
               <details>
                 <summary>Row error report</summary>
-                {preview.errors.map((e) => (
+                {(preview.review?.errors ?? preview.errors).map((e) => (
                   <p key={e.row}>
                     Row {e.row}: {e.error}
                   </p>
@@ -659,6 +676,7 @@ function SubscriberWorkspace() {
                   disabled={
                     busy ||
                     !importApproval ||
+                    preview.review?.validNew === 0 ||
                     preview.preview.state !== "preview"
                   }
                   onClick={() =>
@@ -672,6 +690,7 @@ function SubscriberWorkspace() {
                       });
                       setPreview(null);
                       setCsv("");
+                      setCsvFilename("");
                       setColumns([]);
                       await refresh();
                       setNotice(
@@ -858,6 +877,7 @@ function SubscriberWorkspace() {
                   Calendar: result.calendar,
                   Assistant: result.assistant,
                 });
+                await refresh();
                 setNotice(
                   "Connection checks completed. No messages or invitations were sent.",
                 );
@@ -940,6 +960,10 @@ function SubscriberWorkspace() {
       {tab === "Launch review" && (
         <section id="review" className="concierge-card">
           <h2>Your next chapter, reviewed.</h2>
+          <p><strong>Subscriber checklist:</strong> your confirmations below are self-attestations.</p>
+          <p><strong>Human Concierge approval:</strong> {data.staffSignoff?.approved ? "Recorded for this case version" : "Pending manager review; checklist completion does not grant approval"}.</p>
+          <p>Voice Studio: {discovery.channels.includes("voicemail") ? "Manual review required: confirm owned, approved recording, script and provider. Script text alone is not a verified recording." : "Not selected in discovery; no voice readiness claimed."}</p>
+          {data.record?.milestones.connectionReview && <p>Last saved connection check: {new Date(data.record.milestones.connectionReview.checkedAt).toLocaleString()} · SMS {data.record.milestones.connectionReview.sms ? "ownership verified" : "unverified"} · Calendar {data.record.milestones.connectionReview.calendar ? "calendar retrieval verified" : "unverified"}. These checks are point-in-time evidence, not sending permission.</p>}
           <p>
             Current saved subscription: {data.subscription.plan} ·{" "}
             {data.subscription.status}. Concierge never changes your billing.

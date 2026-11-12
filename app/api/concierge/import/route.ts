@@ -1,3 +1,5 @@
+import { readContactSnapshot } from "@/lib/contacts/read-snapshot";
+import { summarizeImport } from "@/lib/concierge/import-review";
 import { z } from "zod";
 import { apiOk } from "@/lib/api-response";
 import { conciergeHandler, ConciergeError } from "@/lib/concierge/access";
@@ -67,6 +69,7 @@ export const GET = conciergeHandler(async (request, owner) => {
         state: saved.data.state,
         expires_at: saved.data.expires_at,
       },
+      review: summarizeImport(saved.data.rows, saved.data.row_errors, await readContactSnapshot(supabaseAdmin, owner)),
       rows: saved.data.rows,
       errors: saved.data.row_errors,
     });
@@ -104,12 +107,11 @@ export const POST = conciergeHandler(async (request, owner) => {
         "Save your business discovery before importing.",
       );
     const prepared = prepareCsv(input.csv, input.mapping);
-    if (!prepared.rows.length)
-      throw new ConciergeError(
-        "No valid contacts found. Review the mapping and row errors.",
-      );
-    const capacity = await assertCanAddContacts(owner, prepared.rows.length);
-    if (!capacity.ok) throw new ConciergeError(capacity.error, 403);
+    const review = summarizeImport(prepared.rows as {firstName: string; phone: string; email: string}[], prepared.errors, await readContactSnapshot(supabaseAdmin, owner));
+    if (review.validNew) {
+      const capacity = await assertCanAddContacts(owner, review.validNew);
+      if (!capacity.ok) throw new ConciergeError(capacity.error, 403);
+    }
     const existing = await supabaseAdmin
       .from("concierge_imports")
       .select("id,state,result,expires_at")
@@ -119,6 +121,7 @@ export const POST = conciergeHandler(async (request, owner) => {
     if (existing.error) throw existing.error;
     if (existing.data)
       return apiOk({
+        review,
         preview: existing.data,
         rows: prepared.rows,
         errors: prepared.errors,
@@ -139,24 +142,12 @@ export const POST = conciergeHandler(async (request, owner) => {
       .select("id,state,expires_at")
       .single();
     if (r.error) throw r.error;
-    // Duplicates against current CRM are identified now and rechecked atomically at execution.
-    const contacts = await supabaseAdmin
-      .from("contacts")
-      .select("phone,email")
-      .eq("owner_id", owner);
-    if (contacts.error) throw contacts.error;
-    const duplicates = prepared.rows.filter((row) =>
-      contacts.data.some(
-        (c) =>
-          c.phone?.replace(/\D/g, "") === row.phone.replace(/\D/g, "") ||
-          (row.email && c.email?.toLowerCase() === row.email),
-      ),
-    ).length;
     return apiOk({
       preview: r.data,
       rows: prepared.rows,
       errors: prepared.errors,
-      existingDuplicates: duplicates,
+      review,
+      existingDuplicates: review.possibleDuplicates,
     });
   }
   const confirm = Confirm.parse(b);
