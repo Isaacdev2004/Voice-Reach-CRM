@@ -239,7 +239,7 @@ function SubscriberWorkspace() {
   const selected = data.templates.find((t) => t.key === campaign),
     milestones = data.record?.milestones ?? {};
   return (
-    <div className="concierge concierge-subscriber">
+    <div className="concierge concierge-subscriber" data-step={journey.find(step=>step.label===tab)?.key}>
       <header className="concierge-welcome concierge-hero">
         <div className="concierge-hero-copy">
           <span className="concierge-eyebrow">Your business. Beautifully welcomed.</span>

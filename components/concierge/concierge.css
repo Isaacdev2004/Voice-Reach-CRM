@@ -452,3 +452,13 @@
 @media(max-width:600px) { .concierge-hero-copy{padding:24px}.concierge-campaign-cover{height:170px}.concierge-guided-panel{padding:18px}.concierge-guide-heading{align-items:flex-start} }
 .concierge-campaign-cover > .cl-cover-tile { top:50%;bottom:auto;height:auto;transform:translateY(-50%); }
 .concierge-campaign-cover > .cl-cover-upload { transform:none; }
+/* Keep the invitation generous once, then give each working step the screen. */
+.concierge-subscriber:not([data-step="discovery"]) .concierge-hero-copy { padding:22px 28px; }
+.concierge-subscriber:not([data-step="discovery"]) .concierge-hero-copy h1 { font-size:32px;margin:8px 0; }
+.concierge-subscriber:not([data-step="discovery"]) .concierge-hero-copy > p { font-size:21px;margin:8px 0; }
+.concierge-subscriber:not([data-step="discovery"]) .concierge-hero-note,.concierge-subscriber:not([data-step="discovery"]) .concierge-hero-link { display:none; }
+.concierge-subscriber:not([data-step="discovery"]) .concierge-hero-photo { min-height:170px; }
+.concierge-subscriber:not([data-step="discovery"]) .concierge-progress-strip { padding-bottom:14px; }
+.concierge-subscriber:not([data-step="discovery"]) .concierge-next { padding:14px 20px;margin-bottom:14px; }
+.concierge-subscriber:not([data-step="discovery"]) .concierge-journey { margin:14px 0; }
+@media(max-width:600px) { .concierge-subscriber:not([data-step="discovery"]) .concierge-hero-photo{min-height:110px}.concierge-subscriber:not([data-step="discovery"]) .concierge-hero-copy{padding:20px}.concierge-subscriber:not([data-step="discovery"]) .concierge-hero-copy h1{font-size:29px} }
