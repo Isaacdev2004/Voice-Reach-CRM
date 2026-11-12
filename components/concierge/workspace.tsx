@@ -1,6 +1,7 @@
 "use client";
 import { contactImportTemplate, downloadImportCsv, importErrorReport } from "@/lib/contacts/import-template";
 import type { summarizeImport } from "@/lib/concierge/import-review";
+import { journey, nextJourneyStep } from "@/lib/concierge/journey";
 import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -59,14 +60,7 @@ type Preview = {
   message?: string;
 };
 const initial = () => Discovery.parse({});
-const tabs = [
-  "Your business",
-  "Contact migration",
-  "Campaign concierge",
-  "Connections",
-  "Walkthroughs",
-  "Launch review",
-] as const;
+const tabs = journey.map(step => step.label);
 export function ConciergeWorkspace() {
   const {user,isLoaded}=useUser();
   return isLoaded&&user ? <SubscriberWorkspace key={user.id}/> : <div className="concierge"><p role="status">Sign in to your Concierge workspace.</p></div>;
@@ -102,8 +96,11 @@ function SubscriberWorkspace() {
   const refresh = useCallback(async (loadDiscovery = false) => {
     const next = await conciergeRequest<Snapshot>("/api/concierge");
     setData(next);
-    if (loadDiscovery && next.record)
-      setDiscovery(Discovery.parse(next.record.discovery));
+    if (loadDiscovery) {
+      if (next.record) setDiscovery(Discovery.parse(next.record.discovery));
+      const requested = new URLSearchParams(window.location.search).get("step");
+      if (requested) setTab((journey.find(step => step.key === requested) ?? nextJourneyStep(next.readiness.next?.key)).label);
+    }
     const jobs = await conciergeRequest<{ imports: typeof imports }>(
       "/api/concierge/import",
     );
@@ -235,29 +232,22 @@ function SubscriberWorkspace() {
   const selected = data.templates.find((t) => t.key === campaign),
     milestones = data.record?.milestones ?? {};
   return (
-    <div className="concierge">
-      <header className="concierge-welcome">
-        <div>
-          <span className="concierge-eyebrow">A thoughtful beginning</span>
+    <div className="concierge concierge-subscriber">
+      <header className="concierge-welcome concierge-hero">
+        <div className="concierge-hero-copy">
+          <span className="concierge-eyebrow">Your business. Beautifully welcomed.</span>
           <h1>MyARI Concierge</h1>
-          <p>
-            Welcome to MyARI. Your business is unique. Your workspace should be,
-            too. Let’s make your follow-up effortless.
-          </p>
+          <p>A thoughtful beginning,<br/>a workspace that feels like you.</p>
+          <span className="concierge-hero-note">Personalize your business, bring your relationships over, and prepare your first follow-up. We’ll keep your place.</span>
+          <a href="#concierge-journey" className="concierge-hero-link">Your personal setup journey ↓</a>
         </div>
-        <div className="concierge-score">
-          <strong>{data.readiness.percent}%</strong>
-          <span>
-            {data.readiness.completed} of {data.readiness.total} milestones
-            reviewed
-          </span>
-          <progress
-            aria-label="Onboarding completion"
-            value={data.readiness.completed}
-            max={data.readiness.total}
-          />
-        </div>
+        <div className="concierge-hero-photo" role="img" aria-label="Sunlit coastal architecture with stone, greenery and a water view"/>
       </header>
+      <div className="concierge-progress-strip">
+        <div><span className="concierge-eyebrow">Thoughtful progress, at your pace</span><p><strong>{data.readiness.completed} of {data.readiness.total}</strong> milestones reviewed</p></div>
+        <progress aria-label="Onboarding completion" value={data.readiness.completed} max={data.readiness.total}/>
+        <span>No rush. Your work is saved as you confirm each step.</span>
+      </div>
       <section className="concierge-next">
         <div>
           <span>YOUR NEXT STEP</span>
@@ -272,35 +262,20 @@ function SubscriberWorkspace() {
         </div>
         <button
           onClick={() => {
-            const key = data.readiness.next?.key;
-            setTab(
-              key === "discovery"
-                ? "Your business"
-                : key === "migration"
-                  ? "Contact migration"
-                  : key === "campaign" || key === "review"
-                    ? "Campaign concierge"
-                    : key === "integrations"
-                      ? "Connections"
-                      : key === "training"
-                        ? "Walkthroughs"
-                        : "Launch review",
-            );
+            setTab(nextJourneyStep(data.readiness.next?.key).label);
           }}
         >
           Continue →
         </button>
       </section>
-      <nav className="concierge-tabs" aria-label="Concierge sections">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            aria-current={t === tab ? "page" : undefined}
-            onClick={() => setTab(t)}
-          >
-            {t}
-          </button>
-        ))}
+      <nav id="concierge-journey" className="concierge-tabs concierge-journey" aria-label="Concierge sections">
+        {journey.map((step, index) => {
+          const done = step.checks.every(key => data.readiness.checks.find(check => check.key === key)?.done);
+          return <button key={step.key} aria-label={step.label} aria-current={step.label === tab ? "step" : undefined} onClick={() => setTab(step.label)}>
+            <span className="concierge-step-number" aria-hidden="true">{done ? "✓" : String(index + 1).padStart(2,"0")}</span>
+            <span><strong>{step.title}</strong><small>{done ? "Reviewed" : step.detail}</small></span>
+          </button>;
+        })}
       </nav>
       {error && (
         <p className="concierge-error" role="alert">
@@ -314,6 +289,7 @@ function SubscriberWorkspace() {
       )}
       {tab === "Your business" && (
         <section id="discovery" className="concierge-card">
+          <span className="concierge-eyebrow">01 · Business profile</span>
           <h2>Let’s get to know your business.</h2>
           <p>
             Answer a little now, or save and return later. These answers guide
@@ -325,6 +301,8 @@ function SubscriberWorkspace() {
               void run(() => save());
             }}
           >
+            <fieldset className="concierge-form-group"><legend>Your business, in a few thoughtful details</legend>
+            <p>Start with your name, primary market and goals. Everything else can wait.</p>
             <div className="concierge-grid">
               {(
                 [
@@ -417,6 +395,8 @@ function SubscriberWorkspace() {
                 </select>
               </label>
             </div>
+            </fieldset>
+            <fieldset className="concierge-form-group"><legend>What would a wonderful first month look like?</legend>
             <label>
               Your priority goals
               <textarea
@@ -426,6 +406,7 @@ function SubscriberWorkspace() {
                 }
               />
             </label>
+            </fieldset>
             <details>
               <summary>Personalize further — optional</summary>
               <div className="concierge-grid">
@@ -538,6 +519,7 @@ function SubscriberWorkspace() {
       )}
       {tab === "Contact migration" && (
         <section id="migration" className="concierge-card">
+          <span className="concierge-eyebrow">02 · Contact migration</span>
           <h2>Your relationships, carefully transferred.</h2>
           <p>
             CSV first. Up to 500 rows / 1 MB per import. Existing contacts are
@@ -549,7 +531,8 @@ function SubscriberWorkspace() {
             <button onClick={() => downloadImportCsv("myari-contacts-sample.csv", contactImportTemplate(true))}>Download Sample CSV</button>
           </div>
           <p>Required: firstName, phone. Optional: lastName, email, consent, source. Consent always imports as Unknown, regardless of the CSV value. The sample contains fictional contacts only.</p>
-          <label>
+          <label className="concierge-upload">
+            <span className="concierge-upload-symbol" aria-hidden="true">↥</span>
             Choose CSV
             <input
               type="file"
@@ -767,7 +750,14 @@ function SubscriberWorkspace() {
             Review every message and personalization value. Saving creates a
             draft only.
           </p>
-          <label>
+          <div className="concierge-curated-grid" aria-label="Curated campaign recommendations">
+            {data.templates.map((template, index) => <article className={campaign === template.key ? "concierge-recommendation selected" : "concierge-recommendation"} key={template.key}>
+              <span className="concierge-eyebrow">MyARI collection · {String(index + 1).padStart(2,"0")}</span>
+              <h3>{template.name}</h3><p>{template.description}</p><span>{template.steps.length} thoughtful steps · Draft only</span>
+              <button aria-pressed={campaign === template.key} onClick={() => {setCampaign(template.key); setCampaignApproval(false);}}>Preview {template.name}</button>
+            </article>)}
+          </div>
+          <label className="concierge-template-select">
             Campaign template
             <select
               value={campaign}
@@ -886,9 +876,11 @@ function SubscriberWorkspace() {
           >
             Verify supported connections
           </button>
-          <div className="concierge-grid">
+          <div className="concierge-grid concierge-integration-grid">
             {["Messaging", "Calendar", "Assistant"].map((name) => (
-              <article key={name}>
+              <article key={name} className="concierge-integration-card">
+                <span className="concierge-integration-mark" aria-hidden="true">{name === "Calendar" ? "G" : name === "Assistant" ? "✧" : "✉"}</span>
+                <span className="concierge-eyebrow">{name === "Calendar" ? "Google Calendar" : name === "Assistant" ? "MyARI Assistant" : "Messaging providers"}</span>
                 <h3>{name}</h3>
                 <p>{integrationStatus[name] ?? "Verification pending"}</p>
                 <Link
@@ -922,9 +914,9 @@ function SubscriberWorkspace() {
       {tab === "Walkthroughs" && (
         <section id="training" className="concierge-card">
           <h2>A little guidance, at your pace.</h2>
-          <div className="concierge-grid">
+          <div className="concierge-grid concierge-orientation">
             {training.map((t) => (
-              <article key={t.key}>
+              <article key={t.key} className="concierge-orientation-card">
                 <h3>{t.name}</h3>
                 <p>{t.hint}</p>
                 <Link href={t.href}>Open workspace →</Link>
@@ -969,9 +961,7 @@ function SubscriberWorkspace() {
             {data.subscription.status}. Concierge never changes your billing.
           </p>
           {data.readiness.checks.map((c) => (
-            <p key={c.key}>
-              {c.done ? "✓" : "○"} {c.label}
-            </p>
+            <div className="concierge-readiness-row" key={c.key}><span aria-hidden="true">{c.done ? "✓" : "○"}</span><span>{c.label}</span><strong>{c.done ? "Reviewed" : "To review"}</strong></div>
           ))}
           {(
             ["stagesReviewed", "campaignReviewed", "launchReview"] as const

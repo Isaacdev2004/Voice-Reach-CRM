@@ -31,6 +31,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
     campaignDraft: false,
     integrationsVerified: false,
   };
+  let welcomeDismissed=false, cardDismissed=false;
   let imports = [],
     campaigns = [],
     fail = false;
@@ -74,6 +75,8 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       "@clerk/nextjs": path.join(adapters, "stubs.jsx"),
       "next/link": path.join(adapters, "link.jsx"),
       "next/server": path.join(adapters, "server.jsx"),
+      "next/navigation":path.join(adapters,"stubs.jsx"),
+      "@/components/billing/upgrade-plan-provider":path.join(__dirname,"concierge-browser/billing-stub.jsx"),
     },
   });
   const css =
@@ -82,8 +85,14 @@ const { fixture } = require("./campaign-audit/harness.cjs");
       .filter((x) => x.endsWith(".css"))
       .map((x) => fs.readFileSync(".next/static/css/" + x, "utf8"))
       .join("\n") +
-    fs.readFileSync("components/concierge/concierge.css", "utf8");
+    fs.readFileSync("components/concierge/concierge.css", "utf8") + (process.env.MYARI_ICON_FONT ? "@font-face{font-family:\"Material Symbols Outlined\";src:url(/__test/material.ttf) format(\"truetype\");font-style:normal;font-weight:400}" : "");
   const server = http.createServer(async (req, res) => {
+    if(req.url === "/__test/material.ttf" && process.env.MYARI_ICON_FONT){res.setHeader("content-type","font/ttf");return res.end(fs.readFileSync(process.env.MYARI_ICON_FONT));}
+    if (req.url.startsWith("/brand/")) {
+      const filename = path.join(root,"public",new URL(req.url,"http://localhost").pathname);
+      if (!filename.startsWith(path.join(root,"public","brand")+path.sep) || !fs.existsSync(filename)) {res.statusCode=404;return res.end();}
+      res.setHeader("content-type",req.url.includes(".svg")?"image/svg+xml":req.url.includes(".webp")?"image/webp":"image/png");return res.end(fs.readFileSync(filename));
+    }
     if (req.url === "/app.js") {
       res.setHeader("content-type", "text/javascript");
       return res.end(bundle.outputFiles[0].text);
@@ -97,6 +106,11 @@ const { fixture } = require("./campaign-audit/harness.cjs");
         body = JSON.parse(s);
       }
       const ok = (x) => res.end(JSON.stringify({ success: true, ...x }));
+      if(req.url === "/api/concierge/access") return ok({enabled:true,staff:false});
+      if(req.url === "/api/concierge/welcome") {
+        if(body){if(body.action === "dismissCard")cardDismissed=true;else welcomeDismissed=true;return ok({saved:true});}
+        return ok({showWelcome:!welcomeDismissed,showCard:!cardDismissed,complete:false,checklistReady:false,progress:{completed:snapshot().readiness.completed,total:8},next:snapshot().readiness.next?.label,href:"/dashboard/concierge?step=migration"});
+      }
       if (fail) {
         res.statusCode = 503;
         return res.end(
@@ -176,6 +190,23 @@ const { fixture } = require("./campaign-audit/harness.cjs");
   fs.mkdirSync("docs/concierge/previews", { recursive: true });
   try {
     for (const width of [1440, 768, 390]) {
+      welcomeDismissed=false;cardDismissed=false;
+      const dashboard=await browser.newPage({viewport:{width,height:1000}});
+      await dashboard.goto(`http://127.0.0.1:${server.address().port}/dashboard`);
+      await dashboard.getByRole("dialog").waitFor();
+      await dashboard.screenshot({path:`docs/concierge/previews/welcome-${width}.png`,fullPage:true});
+      await dashboard.getByRole("button",{name:"Explore MyARI First",exact:true}).click();
+      await dashboard.getByRole("dialog").waitFor({state:"hidden"});
+      await dashboard.getByRole("link",{name:"Resume Setup"}).waitFor();
+      await dashboard.screenshot({path:`docs/concierge/previews/dashboard-card-${width}.png`,fullPage:true});
+      if(width<1024){await dashboard.getByRole("button",{name:"Open navigation",exact:true}).click();await dashboard.getByRole("link",{name:/White-Glove Setup/}).waitFor();await dashboard.screenshot({path:`docs/concierge/previews/navigation-${width}.png`,fullPage:true});await dashboard.getByRole("button",{name:"Close menu",exact:true}).click();}
+
+      await dashboard.reload();await dashboard.getByRole("link",{name:"Resume Setup"}).waitFor();assert.equal(await dashboard.getByRole("dialog").isVisible(),false);
+      await dashboard.getByRole("button",{name:"Dismiss reminder"}).click();await dashboard.getByRole("link",{name:"Resume Setup"}).waitFor({state:"hidden"});
+      await dashboard.reload();await dashboard.waitForLoadState("networkidle");assert.equal(await dashboard.getByRole("link",{name:"Resume Setup"}).count(),0);
+      welcomeDismissed=false;cardDismissed=false;await dashboard.reload();await dashboard.getByRole("dialog").waitFor();
+      await dashboard.keyboard.press("Tab");assert.equal(await dashboard.evaluate(()=>!!document.activeElement.closest("dialog")),true);
+      await dashboard.getByRole("button",{name:"Begin My Setup",exact:true}).click();await dashboard.waitForURL(/step=migration/);await dashboard.close();
       const page = await browser.newPage({ viewport: { width, height: 1050 } }),
         errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
@@ -273,6 +304,10 @@ const { fixture } = require("./campaign-audit/harness.cjs");
         await page.locator("body").innerText(),
         /Concierge never changes your billing/,
       );
+      for(const section of ["Your business","Contact migration","Campaign concierge","Connections","Walkthroughs","Launch review"]){
+        await page.getByRole("button",{name:section,exact:true}).click();
+        await page.screenshot({path:`docs/concierge/previews/journey-${section.replaceAll(" ","-").toLowerCase()}-${width}.png`,fullPage:true});
+      }
       assert.equal(sends, 0);
       assert.equal(
         await page.evaluate(
@@ -307,7 +342,7 @@ const { fixture } = require("./campaign-audit/harness.cjs");
     assert.match(await outage.getByRole("alert").innerText(), /saved work/);
     await outage.close();
     console.log(
-      "PASS Concierge browser: discovery save, CSV mapping, explicit import/campaign approval, immediate summaries, billing safety, outage handling, no sends, desktop/tablet/mobile overflow and staff preview. Synthetic APIs only.",
+      "PASS Concierge browser: welcome, persisted preferences, dashboard discovery, journey screenshots, discovery save, CSV mapping, explicit import/campaign approval, immediate summaries, billing safety, outage handling, no sends, desktop/tablet/mobile overflow and staff preview. Synthetic APIs only.",
     );
   } finally {
     await browser.close();
