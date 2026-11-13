@@ -52,7 +52,7 @@ function sql(input) {
     fs.readFileSync(
       path.join(
         __dirname,
-        "../../supabase/migrations/20261113210902_contact_allowance_override.sql",
+        "../../supabase/migrations/20261113214613_contact_allowance_override.sql",
       ),
       "utf8",
     ),

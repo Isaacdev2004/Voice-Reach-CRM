@@ -24,11 +24,11 @@ Other existing features using the legacy full-contact feed are unchanged; this b
 
 ## Migration review
 
-`supabase/migrations/20261113210902_contact_allowance_override.sql` was created with Supabase CLI. Checksum and test evidence are in `VERIFICATION.json`.
+`supabase/migrations/20261113214613_contact_allowance_override.sql` was created with Supabase CLI. Checksum and test evidence are in `VERIFICATION.json`.
 
 Dependencies: existing `contacts` UUID key and owner/standard contact columns, service-role ownership boundaries. This adds three tables, two triggers (Contacts enforcement and configuration audit), administrative/import functions and a non-unique Contacts import index. It does not replace existing RLS/policies, change plan records, create a subscription, or rewrite any contact.
 
-Index creation is transactional and briefly locks Contacts writes while building. Review duration against staging size before Production approval. No hosted migration has been applied. Use a verified completed backup/PITR point before the separately approved Production migration. Do not blindly reapply an existing or partial migration.
+Index creation is transactional and briefly locks Contacts writes while building. Review duration against staging size before Production approval. The reviewed migration is installed only on isolated staging project `jojgdfpmaxvbhobjrsbm`, under migration version `20261113214613`. The source filename is aligned with that recorded staging version; its SHA-256 is unchanged. All three new tables remain empty. Do not reapply it to staging. No Production migration has been applied. Use a verified completed backup/PITR point before the separately approved Production migration. Do not blindly reapply an existing or partial migration.
 
 ## Safe release order — not executed
 

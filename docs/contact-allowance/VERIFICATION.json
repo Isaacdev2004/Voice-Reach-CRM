@@ -1,5 +1,5 @@
 {
-  "migration": "supabase/migrations/20261113210902_contact_allowance_override.sql",
+  "migration": "supabase/migrations/20261113214613_contact_allowance_override.sql",
   "sha256": "7f0fc4348fefcb5d1f4534a4d7f0e915808cbc986c2e354c56ebdf7f7b677087",
   "productionChanged": false,
   "targetOverrideActivated": false,
@@ -41,6 +41,17 @@
       "result": "PASS on 3433dc93",
       "runId": 43511868911,
       "finalHead": "Pending rerun after duplicate-only UI and batch rollback assertions"
+    },
+    "implementationCI": {
+      "commit": "8999ef940a8db7c5c3480cc929d05e8211997edc",
+      "CI": "PASS",
+      "quotaIsolation": "PASS",
+      "publicLuxuryBaseline": "PASS",
+      "runs": [
+        43512493455,
+        43512493640,
+        43512493460
+      ]
     }
   },
   "hostedPreview": "BLOCKED: no branch-specific Preview binding; available runner combines Development Clerk with Production Supabase and was not used for hosted tests/deployment",
@@ -49,5 +60,18 @@
     "Server still reads a full owned snapshot in 500-row database batches to preserve existing JS filtering and counting semantics.",
     "Legacy consumers outside the Contacts workspace retain their existing contact-feed behavior.",
     "Hosted load testing with realistic staging field sizes remains required."
-  ]
+  ],
+  "staging": {
+    "project": "jojgdfpmaxvbhobjrsbm",
+    "migrationVersion": "20261113214613",
+    "applied": true,
+    "rlsEnabledOnAllThreeTables": true,
+    "clientTableAndRpcAccess": false,
+    "serviceRoleAdministrativeRpc": true,
+    "allFunctionsSecurityInvoker": true,
+    "overrideRows": 0,
+    "receiptRows": 0,
+    "auditRows": 0,
+    "productionMigrationApplied": false
+  }
 }
