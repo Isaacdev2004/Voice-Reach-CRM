@@ -1,3 +1,4 @@
+import { resolveCredential } from "@/lib/messaging/isv/service";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { insertDeliveryEvent, readDelivery } from "./store";
 import { normalizeDisposition } from "./webhook";
@@ -46,8 +47,28 @@ export async function reconcileChannel(
     try {
       let response: Response;
       if (channel === "sms") {
-        const sid = process.env.TWILIO_ACCOUNT_SID,
+        let sid: string | undefined, token: string | undefined;
+        if (process.env.MANAGED_SMS_PILOT_ENABLED === "true") {
+          const dispatch = await supabaseAdmin
+            .from("isv_sms_dispatches")
+            .select("assignment_id")
+            .eq("owner_id", owner)
+            .eq("provider_sid", reference)
+            .maybeSingle();
+          if (dispatch.error || !dispatch.data) throw Error();
+          const assignment = await supabaseAdmin
+            .from("isv_sms_assignments")
+            .select("account_sid")
+            .eq("owner_id", owner)
+            .eq("id", dispatch.data.assignment_id)
+            .maybeSingle();
+          if (assignment.error || !assignment.data) throw Error();
+          sid = assignment.data.account_sid;
+          token = await resolveCredential(owner, sid!);
+        } else {
+          sid = process.env.TWILIO_ACCOUNT_SID;
           token = process.env.TWILIO_AUTH_TOKEN;
+        }
         if (!sid || !token) throw Error();
         response = await fetch(
           `https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(sid)}/Messages/${encodeURIComponent(reference)}.json`,

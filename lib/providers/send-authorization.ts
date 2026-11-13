@@ -1,3 +1,5 @@
+import { assignmentForOwner } from "@/lib/messaging/isv/service";
+import { assertCanSendChannel } from "@/lib/billing/plan-limits";
 import { approvedTransportIssues } from "./assistant-message";
 import { sharedReplyHeld } from "@/lib/communications/safety";
 import { normalizeE164 } from "@/lib/communications/inbound";
@@ -15,6 +17,17 @@ export async function authorizeLiveOutbound(
   if (!request.ownerId || !request.contactId)
     return ["An authorized subscriber and contact are required."];
   try {
+    if (!["sms", "email", "voicemail"].includes(request.channel))
+      return ["This live channel is not supported."];
+    const quota = await assertCanSendChannel(
+      request.ownerId,
+      request.channel as "sms" | "email" | "voicemail",
+    );
+    if (!quota.ok)
+      return [
+        quota.error ??
+          "Subscription or messaging allowance could not be verified.",
+      ];
     if (request.approvedMessage) {
       const issues = approvedTransportIssues(
         request,
@@ -25,7 +38,11 @@ export async function authorizeLiveOutbound(
     if (request.channel === "sms") {
       const phone = normalizeE164(request.to);
       if (!phone) return ["The SMS destination could not be verified."];
-      const sender = request.from || process.env.TWILIO_FROM_NUMBER;
+      const sender =
+        request.from ||
+        (process.env.MANAGED_SMS_PILOT_ENABLED === "true"
+          ? (await assignmentForOwner(request.ownerId))?.from_number
+          : process.env.TWILIO_FROM_NUMBER);
       if (sender && (await sharedReplyHeld(sender, phone)))
         return [
           "SMS is paused for this number while an inbound reply awaits authorized routing review.",

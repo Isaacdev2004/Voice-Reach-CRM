@@ -11,7 +11,9 @@
       "fix/mortgage-pdf-field-overflow": false,
       "fix/settings-brand-pdf-recovery": false,
       "feat/premium-assistant-workspace": false,
-      "feat/notes-writing-studio": false
+      "feat/notes-writing-studio": false,
+      "feat/managed-trial-messaging": false,
+      "feat/twilio-isv-pilot": false
     }
   },
   "crons": [

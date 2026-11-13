@@ -184,7 +184,7 @@ for (const mode of ["timeout", "outage"])
         assert.equal(s.transmissions.length, 1);
         assert.equal(
           s.f.tables.outbound_messages[0].submission_status,
-          mode === "timeout" ? "unknown" : "failed",
+          mode === "timeout" || channel === "sms" ? "unknown" : "failed",
         );
         assert.equal(
           s.f.tables.audit_logs.filter(
@@ -327,9 +327,9 @@ test("SMS signed undelivered/delivered callbacks correlate by provider ID, rejec
     const request = (status, valid = true) => {
       const url = "https://myari.example.test/api/webhooks/delivery/twilio",
         fields = {
-          MessageSid: "SM_SYNTHETIC",
+          MessageSid: "SMbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           MessageStatus: status,
-          AccountSid: "AC_SYNTHETIC_NEVER_LIVE",
+          AccountSid: "ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         };
       const signed =
         url +

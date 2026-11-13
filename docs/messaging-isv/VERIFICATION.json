@@ -1,0 +1,47 @@
+{
+  "main": "ce416dd3ef1a8b7c0585bbd5348ab8f605bcb4bd",
+  "reusedPR58": "1a5280e83f86a1740aa7620e93d61ef3196e4238",
+  "migration": "supabase/migrations/20261113201305_isv_sms_infrastructure.sql",
+  "migrationSha256": "4b58e874a86e28f13d58f121c599b417cc15767534b89248055ec53ca85b11e5",
+  "hostedMigrationApplied": false,
+  "productionChanged": false,
+  "providerRequests": "Mocked only; no real SMS or registration operations",
+  "tests": {
+    "unitSuite": "PASS; full npm run test:unit before final additive provider-verification assertions; final CI required",
+    "managedMessaging": {
+      "result": "PASS",
+      "checks": 78
+    },
+    "isvServiceWebhookTransport": {
+      "result": "PASS",
+      "checks": 49
+    },
+    "pgliteDatabase": {
+      "result": "PASS",
+      "checks": 34
+    },
+    "browser": {
+      "result": "PASS",
+      "checks": 17,
+      "viewports": [
+        1440,
+        768,
+        390
+      ],
+      "externalRequests": 0,
+      "scope": "actual component, synthetic API"
+    },
+    "typeScript": "PASS",
+    "lint": "PASS; full lint has 0 errors, 7 existing warnings",
+    "security": "PASS",
+    "regressions": "PASS",
+    "build": "PASS; local webpack cache disabled and NODE_PATH supplied for temporary output directory; no tracked build config change",
+    "postgresMultiBackend": "PENDING dedicated GitHub Actions job"
+  },
+  "preview": {
+    "result": "BLOCKED",
+    "reason": "No branch-specific configuration returned; isolated database binding and keyring not established",
+    "deployed": false
+  },
+  "productionRecommendation": "NO-GO"
+}

@@ -7,6 +7,8 @@ export async function readSubscriptionStatus(owner: string): Promise<{
   checkedAt?: string;
   billingPeriod?: "monthly" | "yearly";
   billedAmount?: number;
+  /** Provider-authoritative trial deadline; never inferred from signup or browser settings. */
+  trialEndsAt?: string;
 }> {
   if (!isStripeConfigured()) return { verified: false, status: "none" };
   try {
@@ -64,6 +66,8 @@ export async function readSubscriptionStatus(owner: string): Promise<{
         : undefined;
     return {
       verified: true,
+      ...(active?.status === "trialing" && Number.isSafeInteger(active.trial_end) && active.trial_end! > 0
+        ? { trialEndsAt: new Date(active.trial_end! * 1000).toISOString() } : {}),
       ...(billingPeriod && billedAmount !== undefined
         ? { billingPeriod, billedAmount }
         : {}),
