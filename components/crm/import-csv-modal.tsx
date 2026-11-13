@@ -18,6 +18,7 @@ type ImportCsvModalProps = {
 
 type ImportResult = {
   imported: number;
+  duplicates: number;
   errors: { row: number; error: string }[];
 };
 
@@ -92,14 +93,15 @@ export function ImportCsvModal({ open, onClose, onSuccess }: ImportCsvModalProps
 
       const imported = data.imported ?? 0;
       const rowErrors = data.errors ?? [];
+      const duplicates = data.duplicates ?? 0;
 
-      setResult({ imported, errors: rowErrors });
+      setResult({ imported, duplicates, errors: rowErrors });
 
       if (imported === 0 && rowErrors.length > 0) {
         setError(
           `No contacts imported. ${rowErrors.length} row${rowErrors.length === 1 ? "" : "s"} skipped - see details below.`,
         );
-      } else if (imported === 0) {
+      } else if (imported === 0 && duplicates === 0) {
         setError("No contacts were imported. Check that your CSV has firstName and phone columns.");
       }
 
@@ -211,6 +213,7 @@ export function ImportCsvModal({ open, onClose, onSuccess }: ImportCsvModalProps
               <Icon name="check_circle" className="text-[20px]" />
               Imported {result.imported} contact{result.imported === 1 ? "" : "s"}
             </p>
+            {result.duplicates > 0 ? <p className="mt-2 text-sm text-taupe">{result.duplicates} duplicate contacts skipped; existing contacts remain unchanged.</p> : null}
             {result.errors.length > 0 ? (
               <ul className="mt-3 max-h-28 space-y-1 overflow-y-auto text-[13px] text-taupe">
                 {result.errors.slice(0, 5).map((err, i) => (

@@ -71,6 +71,10 @@ const { PGlite } = require(
     (await q("select count(*)::int as n from contacts where owner_id='A'"))[0]
       .n === 29999,
   );
+  await denied("insert into contacts(owner_id,first_name,phone) values('A','Bulk must roll back 1','+17775550111'),('A','Bulk must roll back 2','+17775550112')");
+  ok((await q("select count(*)::int as n from contacts where owner_id='A'"))[0].n===29999);
+  await denied("select import_contact_batch('A',$1,5000)",[JSON.stringify([{row:2,first_name:'Batch must roll back 1',phone:'+17775550113'},{row:3,first_name:'Batch must roll back 2',phone:'+17775550114'}])]);
+  ok((await q("select count(*)::int as n from contacts where owner_id='A'"))[0].n===29999);
   const before = performance.now();
   await q(
     "insert into contacts(owner_id,first_name,phone) values('A','Boundary','+17775550000')",

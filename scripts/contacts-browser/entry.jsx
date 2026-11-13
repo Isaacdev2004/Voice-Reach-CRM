@@ -44,6 +44,7 @@ w.fetch=async(input,init={})=>{
   return response({success:true,categories:w.__categories});
  }
  if(url.pathname==='/api/contacts/import'&&method==='POST'){
+  if(w.__duplicateOnly)return response({success:true,imported:0,duplicates:2,errors:[]});
   const file=init.body.get('file');const text=await file.text();if(!text.includes('CSV Fixture'))return response({success:false,error:'Invalid fixture'},400);
   w.__records.push({id:id(101),owner_id:w.__owner,first_name:'CSV Fixture',phone:'+15555550101',type:'Cold Lead',category:'Residential',consent_records:[]});return response({success:true,imported:1,errors:[]});
  }

@@ -47,6 +47,15 @@ const esbuild=require('esbuild'),{chromium}=require('playwright'),{fixture}=requ
    ok((await page.locator(selector).innerText()).includes('Synthetic 30000'));
    await page.getByRole('button',{name:'Clear all',exact:true}).click();await page.getByText('Page 1 of 1200',{exact:false}).waitFor();
    ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));ok(errors.length===0);
+   if(width===1440){
+    await page.evaluate(()=>window.__duplicateOnly=true);
+    await page.getByRole('button',{name:/Import CSV/}).click();
+    await page.getByRole('dialog').locator('input[type=file]').setInputFiles({name:'duplicates.csv',mimeType:'text/csv',buffer:Buffer.from('firstName,phone\nCSV Fixture,+15555550100')});
+    await page.getByRole('dialog').getByRole('button',{name:'Import CSV',exact:true}).click();
+    await page.getByText('2 duplicate contacts skipped; existing contacts remain unchanged.',{exact:true}).waitFor();ok(true);
+    ok(await page.getByText('No contacts were imported. Check that your CSV has firstName and phone columns.',{exact:true}).count()===0);
+    await page.getByRole('dialog').getByRole('button',{name:'Done',exact:true}).click();
+   }
    await page.evaluate(()=>window.scrollTo(0,0));await page.evaluate(()=>document.fonts.ready);
    await page.screenshot({path:path.join(artifact,'contacts-30000-'+width+'.png'),fullPage:true});await page.close();
   }

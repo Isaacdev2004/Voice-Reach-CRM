@@ -6,8 +6,8 @@
   "tests": {
     "isolatedDatabase": {
       "result": "PASS",
-      "checks": 24,
-      "boundaryInsertMs": 3.412884999999733
+      "checks": 28,
+      "boundaryInsertMs": 2.9051870000002964
     },
     "policyPaginationExport": {
       "result": "PASS",
@@ -21,7 +21,7 @@
     },
     "browser30000": {
       "result": "PASS",
-      "checks": 20,
+      "checks": 22,
       "viewports": [
         1440,
         768,
@@ -37,9 +37,13 @@
     "build": "PASS; local webpack cache disabled and NODE_PATH set for temporary build output; no tracked build configuration changes",
     "security": "PASS",
     "regressions": "PASS",
-    "multiConnectionPostgres": "Pending exact-head GitHub Actions"
+    "multiConnectionPostgres": {
+      "result": "PASS on 3433dc93",
+      "runId": 43511868911,
+      "finalHead": "Pending rerun after duplicate-only UI and batch rollback assertions"
+    }
   },
-  "hostedPreview": "BLOCKED pending independently verified secure staging bindings",
+  "hostedPreview": "BLOCKED: no branch-specific Preview binding; available runner combines Development Clerk with Production Supabase and was not used for hosted tests/deployment",
   "identity": "Live Clerk primary email/workspace memberships pending; no Production override seeded",
   "scaleLimitations": [
     "Server still reads a full owned snapshot in 500-row database batches to preserve existing JS filtering and counting semantics.",

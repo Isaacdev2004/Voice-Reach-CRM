@@ -1,6 +1,6 @@
 {
   "result": "PASS",
-  "checks": 20,
+  "checks": 22,
   "totalRecords": 30000,
   "maxPagePayload": 25,
   "pageRequests": 15,
