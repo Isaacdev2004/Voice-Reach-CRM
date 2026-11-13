@@ -236,6 +236,13 @@ const { PGlite } = require(
       ])
     )[0].ok,
   );
+  // A signed callback can precede the provider response and CRM reference persistence.
+  ok((await q("select isv_record_delivery('A',$1,'SMearly','delivered','early') as ok",[id(5)]))[0].ok);
+  await q("update isv_sms_dispatches set provider_sid='SMearly' where owner_id='A' and operation_key='first'");
+  await db.exec('reset role');await q("insert into outbound_messages values($1,'A','twilio','SMearly')",[id(21)]);await db.exec('set role service_role');
+  ok((await q("select isv_project_delivery('A',$1) as n",[id(21)]))[0].n===1);
+  ok((await q("select isv_project_delivery('A',$1) as n",[id(21)]))[0].n===0);
+  ok((await q("select isv_project_delivery('B',$1) as n",[id(21)]))[0].n===0);
   const submitted = await q(
     "select isv_save_registration('A','Updated Synthetic','https://example.test','brokerage','synthetic authorization','version2') as id",
   );

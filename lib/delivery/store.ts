@@ -146,6 +146,10 @@ export async function finishMessage(
     throw new Error(
       "Submission may have occurred; reconcile before any retry.",
     );
+  if(provider === "twilio" && request.channel === "sms" && reference && process.env.MANAGED_SMS_PILOT_ENABLED === "true") {
+    const projected=await supabaseAdmin.rpc("isv_project_delivery",{p_owner:request.ownerId!,p_message:id});
+    if(projected.error)throw Error("Delivery receipt projection is pending. Do not retry the submission.");
+  }
   let eventType: DeliveryEventType =
     status === "failed"
       ? "failed"

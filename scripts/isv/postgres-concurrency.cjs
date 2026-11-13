@@ -82,9 +82,9 @@ function sql(input) {
  insert into isv_sms_assignments(id,owner_id,business_id,account_sid,brand_sid,campaign_sid,messaging_service_sid,from_number,approved_purpose,registration_status,number_associated,verified_at,provider_evidence_reference,messaging_enabled,verification_source) values('${assignment}','A','${business}','${account}','BNsynthetic','CMsynthetic','MGsynthetic','+14075550199','followup','approved',true,now(),'synthetic',true,'twilio_api');
  insert into isv_sms_consent(owner_id,business_id,contact_id,campaign_sid,phone,purpose,status,source,disclosure_version,proof_reference,captured_at) values('A','${business}','${contact}','CMsynthetic','${phone}','followup','granted','synthetic','v1','synthetic',now());`);
   const claim = (key) =>
-    `select isv_claim_sms('A','${assignment}','${contact}','${phone}','${key}','hash');`;
+    `set role service_role;select isv_claim_sms('A','${assignment}','${contact}','${phone}','${key}','hash');`;
   const stop = (sid) =>
-    `select isv_receive_sms('A','${assignment}','${sid}','hash','${phone}','STOP','stop','${contact}');`;
+    `set role service_role;select isv_receive_sms('A','${assignment}','${sid}','hash','${phone}','STOP','stop','${contact}');`;
   const lock = `select pg_advisory_xact_lock(hashtextextended('A:${business}:${phone}',0));`;
   // Both connections contend for the exact same operation; only one is authorized.
   const duplicate = await Promise.all([
@@ -127,6 +127,12 @@ function sql(input) {
     ),
     "dispatching",
   );
+  assert.equal(await sql(`set role service_role;select isv_record_delivery('A','${assignment}','SMearly','delivered','hash');`),'t');
+  const message='00000000-0000-4000-8000-000000000009';
+  await sql(`update isv_sms_dispatches set provider_sid='SMearly' where owner_id='A' and operation_key='concurrent';insert into outbound_messages(id,owner_id,provider,provider_message_id) values('${message}','A','twilio','SMearly');`);
+  assert.equal(await sql(`set role service_role;select isv_project_delivery('A','${message}');`),'1');
+  assert.equal(await sql(`set role service_role;select isv_project_delivery('A','${message}');`),'0');
+  assert.equal(await sql(`set role service_role;select isv_project_delivery('B','${message}');`),'0');
   for (const role of ["anon", "authenticated"]) {
     let denied = false;
     try {
@@ -150,6 +156,7 @@ function sql(input) {
         "webhook replay",
         "in-flight boundary",
         "client role denial",
+        "early callback projection",
       ],
     }),
   );

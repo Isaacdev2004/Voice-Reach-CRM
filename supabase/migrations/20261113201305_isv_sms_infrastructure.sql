@@ -130,12 +130,12 @@ returns boolean language plpgsql security invoker set search_path=public,pg_temp
 declare a public.isv_sms_assignments;
 begin
  select * into strict a from public.isv_sms_assignments where owner_id=p_owner and id=p_assignment;
- if not exists(select 1 from public.isv_sms_dispatches where owner_id=p_owner and assignment_id=p_assignment and provider_sid=p_sid) then raise exception 'Unknown delivery'; end if;
+ -- A signed status may arrive before the send response; retain it without guessing a CRM message.
  insert into public.isv_webhook_receipts(account_sid,event_sid,event_kind,owner_id,payload_hash) values(a.account_sid,p_sid,'delivery:'||p_status,p_owner,p_hash) on conflict do nothing;
  if not found then return false; end if;
  insert into public.outbound_delivery_events(owner_id,message_id,provider,event_key,event_type,occurred_at,source,error_code)
  select p_owner,m.id,'twilio','isv:'||p_sid||':'||p_status,case when p_status='sending' then 'submitted' when p_status='canceled' then 'failed' else p_status end,null,'webhook',null
- from public.outbound_messages m where m.owner_id=p_owner and m.provider='twilio' and m.provider_message_id=p_sid
+ from public.outbound_messages m where m.owner_id=p_owner and m.provider='twilio' and m.provider_message_id=p_sid and exists(select 1 from public.isv_sms_dispatches d where d.owner_id=p_owner and d.assignment_id=p_assignment and d.provider_sid=p_sid)
  on conflict do nothing;
  insert into public.isv_sms_audit(owner_id,assignment_id,event,reference) values(p_owner,a.id,'DELIVERY_'||upper(p_status),p_sid);
  return true;
@@ -172,6 +172,22 @@ end $$;
 create trigger isv_credential_audit after insert or update on public.isv_provider_credentials for each row execute function public.isv_audit_credential_change();
 revoke all on function public.isv_audit_credential_change() from public,anon,authenticated;
 grant execute on function public.isv_audit_credential_change() to service_role;
+create function public.isv_project_delivery(p_owner text,p_message uuid)
+returns integer language plpgsql security invoker set search_path=public,pg_temp as $$
+declare inserted_count integer;
+begin
+ insert into public.outbound_delivery_events(owner_id,message_id,provider,event_key,event_type,occurred_at,source,error_code)
+ select m.owner_id,m.id,'twilio','isv:'||m.provider_message_id||':'||substring(r.event_kind from 10),case substring(r.event_kind from 10) when 'sending' then 'submitted' when 'canceled' then 'failed' else substring(r.event_kind from 10) end,null,'webhook',null
+ from public.outbound_messages m join public.isv_sms_dispatches d on d.owner_id=m.owner_id and d.provider_sid=m.provider_message_id
+ join public.isv_sms_assignments a on a.owner_id=d.owner_id and a.id=d.assignment_id
+ join public.isv_webhook_receipts r on r.owner_id=a.owner_id and r.account_sid=a.account_sid and r.event_sid=m.provider_message_id
+ where m.owner_id=p_owner and m.id=p_message and m.provider='twilio' and r.event_kind in ('delivery:accepted','delivery:queued','delivery:sending','delivery:sent','delivery:delivered','delivery:undelivered','delivery:failed','delivery:canceled')
+ on conflict do nothing;
+ get diagnostics inserted_count=row_count;
+ return inserted_count;
+end $$;
+revoke all on function public.isv_project_delivery(text,uuid) from public,anon,authenticated;
+grant execute on function public.isv_project_delivery(text,uuid) to service_role;
 -- Defense in depth: clients have no grants and there are no client RLS policies.
 do $$ declare t text; begin
  foreach t in array array['isv_sending_businesses','isv_provider_credentials','isv_sms_assignments','isv_sms_consent','isv_sms_suppressions','isv_webhook_receipts','isv_inbound_messages','isv_sms_dispatches','isv_sms_audit'] loop

@@ -48,7 +48,7 @@ function setup() {
   f.tables.isv_provider_credentials=[{owner_id:owner,account_sid:VALUES.TWILIO_ACCOUNT_SID,envelope:crypto.sealCredential(VALUES.TWILIO_AUTH_TOKEN,{owner,accountSid:VALUES.TWILIO_ACCOUNT_SID},"test",syntheticIsvKey)}];
   f.tables.isv_sms_dispatches=[];
   const db=f.stubs["@/lib/supabaseAdmin"].supabaseAdmin,originalRpc=db.rpc.bind(db),claimed=new Set();
-  db.rpc=async(name,p)=>{if(name!=="isv_claim_sms")return originalRpc(name,p);if(claimed.has(p.p_key))return {data:false};claimed.add(p.p_key);f.tables.isv_sms_dispatches.push({owner_id:p.p_owner,operation_key:p.p_key,state:"dispatching"});return {data:true};};
+  db.rpc=async(name,p)=>{if(name==="isv_project_delivery")return {data:0,error:null};if(name!=="isv_claim_sms")return originalRpc(name,p);if(claimed.has(p.p_key))return {data:false};claimed.add(p.p_key);f.tables.isv_sms_dispatches.push({owner_id:p.p_owner,operation_key:p.p_key,state:"dispatching"});return {data:true};};
   f.tables.audit_logs.push({
     id: id(500),
     owner_id: owner,

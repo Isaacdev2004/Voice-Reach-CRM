@@ -14,7 +14,7 @@ This branch incorporates PR #58 (`1a5280e83f86a1740aa7620e93d61ef3196e4238`) ont
 - HELP is recorded; application-generated outbound replies remain disabled. Configure and independently verify Twilio Advanced Opt-Out STOP/HELP responses for the actual sending business before the pilot.
 - The only SMS POST transport resolves an encrypted subaccount credential, uses the assigned number/service, and obtains a fresh database dispatch authorization. The existing global outbound, subscription, contact, campaign/recipient, quiet-hours, and Assistant approval gates remain. Unknown provider outcomes cannot automatically retry the same operation.
 - Registration Center adds responsible-business type, brokerage affiliation/authority, opt-in URL, representative samples, dedicated number and server-derived registration states. Subscriber POST cannot set a brand, sender, approval or credential. Submission is for MyARI review, not a claim of submission to Twilio.
-- Managed delivery callbacks record audit and existing delivery evidence. Managed reconciliation uses the original owner-scoped dispatch assignment/account, not a global Twilio credential.
+- Managed delivery callbacks record audit and existing delivery evidence. Early signed callbacks are retained before provider-response persistence, then projected idempotently onto the owned CRM message; both arrival orders are covered by regression tests. Managed reconciliation uses the original owner-scoped dispatch assignment/account, not a global Twilio credential.
 
 ## Entry-point coverage
 
