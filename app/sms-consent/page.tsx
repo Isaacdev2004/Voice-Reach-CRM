@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPageShell } from "@/components/legal/legal-page-shell";
+import { SmsOptInForm } from "@/components/legal/sms-opt-in-form";
 import { LEGAL_CONTACT_EMAIL, LEGAL_ENTITY_DBA } from "@/lib/legal/company";
 import { LEGAL_POLICY_META } from "@/lib/legal/policy-meta";
 import { LEGAL_RELATED } from "@/lib/legal/links";
@@ -27,13 +28,15 @@ export default function SmsConsentPage() {
           consent. We do not buy SMS lists or message people who have not opted in.
         </p>
 
+        <SmsOptInForm />
+
         <h2 className="pt-2 font-serif text-[22px] font-semibold text-ink">How consent is collected</h2>
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            <strong>Web / CRM form:</strong> contacts check a clearly labeled box such as
-            &ldquo;I agree to receive SMS appointment reminders and follow-ups from this agent.
-            Message frequency varies. Message &amp; data rates may apply. Reply STOP to opt out,
-            HELP for help.&rdquo; The form cannot be submitted without that affirmative checkbox.
+            <strong>Web form on this page:</strong> the SMS opt-in above is unchecked until the
+            person checks it. The disclosure names Kikzeny Cartagena LLC, states that message
+            frequency varies, and includes STOP, HELP, the privacy policy, and the terms of
+            service. The form cannot be saved without that checkbox.
           </li>
           <li>
             <strong>Verbal consent:</strong> an agent may collect verbal opt-in on a recorded or
