@@ -59,10 +59,11 @@ export function useContacts(
   query?: string,
   segment: ContactSegment = "all",
   category: string = "all",
+  pagination?: string,
 ) {
   const { user, isLoaded, isSignedIn } = useUser();
   const ownerId = user?.id;
-  const requestKey = JSON.stringify([ownerId, query ?? "", segment, category]);
+  const requestKey = JSON.stringify([ownerId, query ?? "", segment, category, pagination]);
   const [state, setState] = useState<{ key: string; data: ContactSnapshot | null; loading: boolean; error: string | null }>({ key: "", data: null, loading: true, error: null });
   const sequence = useRef(0);
   const pending = useRef<AbortController | null>(null);
@@ -82,14 +83,14 @@ export function useContacts(
       if (query?.trim()) params.set("q", query.trim());
       if (segment !== "all") params.set("segment", segment);
       if (category !== "all") params.set("category", category);
-      const res = await fetch(`/api/contacts${params.size ? `?${params}` : ""}`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]) });
+      const res = await fetch(pagination !== undefined ? `/api/contacts/page?${pagination}` : `/api/contacts${params.size ? `?${params}` : ""}`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]) });
       if (!res.ok) throw new Error("Contact totals unavailable");
       const data = validateContactSnapshot(await res.json(), { ownerId, requireAll: !query?.trim() && segment === "all" && category === "all" });
       if (attempt === sequence.current) setState({ key: requestKey, data, loading: false, error: null });
     } catch {
       if (attempt === sequence.current) setState({ key: requestKey, data: null, loading: false, error: "Unable to load accurate contact totals. Please retry." });
     }
-  }, [ownerId, isLoaded, isSignedIn, query, segment, category, requestKey]);
+  }, [ownerId, isLoaded, isSignedIn, query, segment, category, pagination, requestKey]);
 
   useEffect(() => {
     void refresh();

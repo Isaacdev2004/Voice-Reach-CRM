@@ -11,7 +11,7 @@
     "smoke": "node scripts/smoke-test.mjs",
     "test:contacts-metrics": "node --import tsx scripts/contacts-metrics.test.ts",
     "test:security": "node scripts/verify-audit-fixes.mjs",
-    "test:unit": "node --import tsx scripts/verify-unit.ts && npm run test:contacts-metrics && npm run test:contacts-workspace && npm run test:property-finder && npm run test:campaign-library && npm run test:campaign-audit && npm run test:delivery && npm run test:calendar && npm run test:notes && npm run test:financing && npm run test:tasks && npm run test:studio-audit && npm run test:settings-audit && npm run test:dashboard && npm run test:communications && npm run test:public-marketing && node scripts/pricing-billing.test.cjs && npm run test:campaign-premium && npm run test:assistant && npm run test:ai-pricing && npm run test:assistant-messaging && npm run test:concierge && npm run test:contacts-export",
+    "test:unit": "node --import tsx scripts/verify-unit.ts && npm run test:contacts-metrics && npm run test:contacts-workspace && npm run test:property-finder && npm run test:campaign-library && npm run test:campaign-audit && npm run test:delivery && npm run test:calendar && npm run test:notes && npm run test:financing && npm run test:tasks && npm run test:studio-audit && npm run test:settings-audit && npm run test:dashboard && npm run test:communications && npm run test:public-marketing && node scripts/pricing-billing.test.cjs && npm run test:campaign-premium && npm run test:assistant && npm run test:ai-pricing && npm run test:assistant-messaging && npm run test:concierge && npm run test:contacts-export && npm run test:contact-allowance",
     "test:regressions": "node --import tsx scripts/verify-regressions.ts",
     "test:contacts-workspace": "node --import tsx scripts/contacts-workspace.test.ts && node scripts/contacts-routes.test.cjs",
     "test:contacts-browser": "node scripts/contacts-browser.test.cjs",
@@ -65,7 +65,8 @@
     "test:assistant-workspace": "node scripts/assistant-workspace.test.cjs",
     "test:assistant-workspace-browser": "node scripts/assistant-workspace-browser.test.cjs",
     "test:assistant-personalization": "node scripts/assistant-personalization.test.cjs",
-    "test:assistant-personalization-browser": "node scripts/assistant-personalization-browser.cjs"
+    "test:assistant-personalization-browser": "node scripts/assistant-personalization-browser.cjs",
+    "test:contact-allowance": "node scripts/contact-allowance.test.cjs && node scripts/contact-allowance/import.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",

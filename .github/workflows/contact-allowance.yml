@@ -1,0 +1,49 @@
+name: Contact allowance isolation
+on:
+  pull_request:
+    paths:
+      - "lib/contacts/**"
+      - "lib/billing/plan-limits.ts"
+      - "app/api/contacts/**"
+      - "lib/hooks/use-contacts.ts"
+      - "components/pages/stitch/ContactManagementPage.tsx"
+      - "scripts/contact-allowance*"
+      - "scripts/contact-allowance/**"
+      - "supabase/migrations/*contact_allowance*"
+      - ".github/workflows/contact-allowance.yml"
+permissions:
+  contents: read
+jobs:
+  quota-concurrency:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: synthetic_ci_only
+          POSTGRES_DB: myari_contact_quota_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: node scripts/contact-allowance/concurrency.cjs
+        env:
+          MYARI_CONTACT_QUOTA_TEST: "1"
+          PGHOST: 127.0.0.1
+          PGDATABASE: myari_contact_quota_test
+          PGPASSWORD: synthetic_ci_only
+      - run: npm run test:contact-allowance
+      - run: npm install --prefix /tmp/myari-contact-test-tools --no-audit --no-fund @electric-sql/pglite@0.5.16
+      - run: node scripts/contact-allowance/database.test.cjs
+        env:
+          MYARI_PGLITE_MODULE: /tmp/myari-contact-test-tools/node_modules/@electric-sql/pglite

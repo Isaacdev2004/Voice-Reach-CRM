@@ -1,3 +1,4 @@
+import { importContactBatches } from "@/lib/contacts/import-batches";
 import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
 import { writeAuditLog } from "@/lib/audit";
@@ -40,6 +41,11 @@ export const POST = withApiHandler(async (request) => {
     );
   }
 
+  if(process.env.CONTACT_IMPORT_BATCH_ENABLED === "true") {
+    const result=await importContactBatches(ownerId,rows,file.name,headerIndex>=0?headerIndex+2:2);
+    await writeAuditLog({ownerId,action:"CSV_IMPORTED",entityType:"contacts",metadata:{fileName:file.name,imported:result.imported,duplicates:result.duplicates,errors:result.errors.length}});
+    return apiOk(result);
+  }
   const { assertCanAddContacts } = await import("@/lib/billing/plan-limits");
   const limitCheck = await assertCanAddContacts(ownerId, rows.length);
   if (!limitCheck.ok) {

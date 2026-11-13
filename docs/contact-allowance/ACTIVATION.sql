@@ -1,0 +1,19 @@
+-- REVIEW TEMPLATE ONLY. Do not execute before separate Production approval.
+-- Supply identity/workspace evidence from Live Clerk; never fabricate verified_at.
+-- Confirm project qlochlyyimulyzzrzyac and unchanged owner contact count first.
+-- The application Contacts namespace is owner_id. Multiple Clerk organizations
+-- require explicit scope reconciliation, not an invented organization mapping.
+--
+-- select public.set_contact_allowance_override(
+--   p_owner => 'user_3LbCsPoH76YvWJhXwzhHPzltnoR',
+--   p_limit => 30000,
+--   p_enabled => true,
+--   p_workspace => :verified_workspace_reference,
+--   p_clerk_environment => 'live',
+--   p_verified_at => :verified_identity_timestamp,
+--   p_approved_by => :authorized_operator,
+--   p_reason => 'Approved isolated Production test-workspace contact allowance; billing unchanged',
+--   p_expected_revision => null -- creation only; fails if a row already exists
+-- );
+-- Read back only this owner row and compare contact count/billing before/after.
+-- Rollback: same function, p_limit=5000, enabled=true, current expected revision.
