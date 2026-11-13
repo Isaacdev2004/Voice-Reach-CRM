@@ -236,6 +236,13 @@ const { PGlite } = require(
       ])
     )[0].ok,
   );
+  // Normalized numbers associate correctly, but duplicate owned contacts remain unassociated.
+  await q("update contacts set phone='(407) 555-0100' where id=$1",[id(1)]);
+  await q("select isv_receive_sms('A',$1,'SMformatted','format',$2,'hello','reply',null)",[id(5),phone]);
+  ok((await q("select contact_id from isv_inbound_messages where message_sid='SMformatted'"))[0].contact_id===id(1));
+  await db.exec('reset role');await q("insert into contacts(id,owner_id,phone) values($1,'A',$2)",[id(22),phone]);await db.exec('set role service_role');
+  await q("select isv_receive_sms('A',$1,'SMambiguous','ambiguous',$2,'hello','reply',null)",[id(5),phone]);
+  ok((await q("select contact_id from isv_inbound_messages where message_sid='SMambiguous'"))[0].contact_id===null);
   // A signed callback can precede the provider response and CRM reference persistence.
   ok((await q("select isv_record_delivery('A',$1,'SMearly','delivered','early') as ok",[id(5)]))[0].ok);
   await q("update isv_sms_dispatches set provider_sid='SMearly' where owner_id='A' and operation_key='first'");

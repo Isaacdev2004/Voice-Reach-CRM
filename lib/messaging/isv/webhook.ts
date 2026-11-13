@@ -67,22 +67,7 @@ export async function managedSmsWebhook(request: Request) {
         : keyword === "HELP" || /^HELP$/i.test(body)
           ? "help"
           : "reply";
-    // Match only in this workspace. Ambiguous phone matches remain unassociated, never guessed.
-    const matches = await db
-      .from("contacts")
-      .select("id,phone")
-      .eq("owner_id", a.owner_id)
-      .ilike("phone", `%${from.slice(-10)}`)
-      .limit(100);
-    if (matches.error)
-      return new Response("Contact routing unavailable", { status: 503 });
-    const normalized = (matches.data || []).filter(
-      (c) => normalizeE164(c.phone || "") === from,
-    );
-    const contact =
-      matches.data?.length !== 100 && normalized.length === 1
-        ? normalized[0].id
-        : null;
+    // The receipt RPC resolves a unique normalized contact within this owner, atomically.
     const hash = digest(
       JSON.stringify(
         Object.keys(raw)
@@ -98,7 +83,7 @@ export async function managedSmsWebhook(request: Request) {
       p_phone: from,
       p_body: raw.Body || "",
       p_kind: kind,
-      p_contact: contact,
+      p_contact: null,
     });
     if (saved.error)
       return new Response("Event could not be committed; retry", {

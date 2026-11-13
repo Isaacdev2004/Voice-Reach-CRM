@@ -214,7 +214,7 @@ export async function finishSms(
       "Delivery outcome could not be persisted. Do not retry automatically.",
     );
 }
-export async function registrationSnapshot(owner: string) {
+export async function registrationSnapshot(owner: string, eligible = false) {
   const a = await assignmentForOwner(owner);
   if (!a) {
     const business = await db
@@ -242,15 +242,14 @@ export async function registrationSnapshot(owner: string) {
     a.number_associated &&
     !!a.provider_evidence_reference;
   const enabled =
+    eligible &&
     approved &&
     a.messaging_enabled &&
     process.env.MANAGED_SMS_PILOT_ENABLED === "true" &&
     process.env.ALLOW_LIVE_OUTBOUND === "true";
   const state = enabled
     ? "enabled"
-    : a.registration_status === "approved" &&
-        a.verification_source === "twilio_api" &&
-        !approved
+    : a.registration_status === "approved" && !approved
       ? "pending"
       : a.registration_status;
   const labels: Record<string, string> = {

@@ -2,7 +2,7 @@
   "main": "ce416dd3ef1a8b7c0585bbd5348ab8f605bcb4bd",
   "reusedPR58": "1a5280e83f86a1740aa7620e93d61ef3196e4238",
   "migration": "supabase/migrations/20261113201305_isv_sms_infrastructure.sql",
-  "migrationSha256": "8877926b3e175e9240e285572b7f0be8bdf14151df513c0a3c59c4485903c19c",
+  "migrationSha256": "e07661415fa2fe6c0c057ee4bb33240c0d8ff07c111daf9c685cc9f9768d15a3",
   "hostedMigrationApplied": false,
   "productionChanged": false,
   "providerRequests": "Mocked only; no real SMS or registration operations",
@@ -14,11 +14,11 @@
     },
     "isvServiceWebhookTransport": {
       "result": "PASS",
-      "checks": 49
+      "checks": 52
     },
     "pgliteDatabase": {
       "result": "PASS",
-      "checks": 38
+      "checks": 40
     },
     "browser": {
       "result": "PASS",
@@ -37,10 +37,10 @@
     "regressions": "PASS",
     "build": "PASS; local webpack cache disabled and NODE_PATH supplied for temporary output directory; no tracked build config change",
     "postgresMultiBackend": {
-      "result": "PASS on c920c97",
-      "runId": 43503043698,
-      "jobId": 132153483861,
-      "finalHead": "Pending rerun including early-callback projection regression"
+      "result": "PASS on dfc5b13",
+      "runId": 43503634643,
+      "jobId": 132155537720,
+      "includes": "Early callback projection and cross-owner rejection; final head rerun pending"
     }
   },
   "preview": {

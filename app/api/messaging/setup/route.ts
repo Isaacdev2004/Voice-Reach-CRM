@@ -11,7 +11,7 @@ import {
   saveMessagingSetup,
 } from "@/lib/messaging/setup-store";
 import { readSubscriptionStatus } from "@/lib/billing/read-subscription";
-import { senderReadiness } from "@/lib/messaging/managed-policy";
+import { senderReadiness, subscriptionMayUseMessaging } from "@/lib/messaging/managed-policy";
 export const GET = withApiHandler(async () => {
   const owner = await requireUserId();
   if (!managedSetupAllowed(owner))
@@ -24,7 +24,7 @@ export const GET = withApiHandler(async () => {
     // No provisioning worker or provider review is approved in this phase. Never promote self-attestation to Ready.
     let registration;
     try {
-      registration = await registrationSnapshot(owner);
+      registration = await registrationSnapshot(owner, subscriptionMayUseMessaging(subscription));
     } catch {
       registration = {
         state: "unavailable",

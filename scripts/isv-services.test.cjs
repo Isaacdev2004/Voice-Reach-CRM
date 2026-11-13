@@ -231,6 +231,11 @@ const { fixture } = require("./campaign-audit/harness.cjs");
   } finally {
     global.fetch = priorFetch;
   }
+  Object.assign(assignment,{registration_status:"approved",verification_source:"unverified",verified_at:new Date().toISOString(),number_associated:true,provider_evidence_reference:"synthetic",messaging_enabled:true});
+  ok((await service.registrationSnapshot(owner,true)).state==="pending");
+  assignment.verification_source="twilio_api";
+  ok((await service.registrationSnapshot(owner,false)).state!=="enabled");
+  ok((await service.registrationSnapshot(owner,true)).state==="enabled");
   // Actual adapter; gate/service boundaries mocked, real provider fetch replaced, never network.
   const t = fixture();
   t.stubs["./send-authorization"] = { authorizeLiveOutbound: async () => [] };

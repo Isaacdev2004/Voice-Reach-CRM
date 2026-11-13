@@ -88,7 +88,7 @@ begin
 end $$;
 create function public.isv_receive_sms(p_owner text,p_assignment uuid,p_sid text,p_hash text,p_phone text,p_body text,p_kind text,p_contact uuid default null)
 returns boolean language plpgsql security invoker set search_path=public,pg_temp as $$
-declare a public.isv_sms_assignments;
+declare a public.isv_sms_assignments; matched_count integer; matched_contact uuid;
 begin
  select * into strict a from public.isv_sms_assignments where owner_id=p_owner and id=p_assignment and active;
  perform pg_advisory_xact_lock(hashtextextended(p_owner||':'||a.business_id||':'||p_phone,0));
@@ -100,6 +100,10 @@ begin
  if p_kind='stop' then
   insert into public.isv_sms_suppressions(owner_id,business_id,phone,source_message_sid) values(p_owner,a.business_id,p_phone,p_sid) on conflict do nothing;
   update public.isv_sms_dispatches set state='canceled',updated_at=now() where owner_id=p_owner and assignment_id=a.id and phone=p_phone and state='reserved';
+ end if;
+ if p_contact is null then
+  select count(*),(array_agg(id))[1] into matched_count,matched_contact from public.contacts where owner_id=p_owner and (case when length(regexp_replace(phone,'[^0-9]','','g'))=10 then '1'||regexp_replace(phone,'[^0-9]','','g') else regexp_replace(phone,'[^0-9]','','g') end)=substring(p_phone from 2);
+  if matched_count=1 then p_contact=matched_contact; end if;
  end if;
  if p_contact is not null and not exists(select 1 from public.contacts where id=p_contact and owner_id=p_owner and (case when length(regexp_replace(phone,'[^0-9]','','g'))=10 then '1'||regexp_replace(phone,'[^0-9]','','g') else regexp_replace(phone,'[^0-9]','','g') end)=substring(p_phone from 2)) then raise exception 'Contact ownership mismatch'; end if;
  insert into public.isv_inbound_messages(account_sid,message_sid,owner_id,assignment_id,contact_id,phone,body,kind) values(a.account_sid,p_sid,p_owner,a.id,p_contact,p_phone,p_body,p_kind);
