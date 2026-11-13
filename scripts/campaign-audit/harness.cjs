@@ -254,7 +254,7 @@ function fixture() {
     }).outputText;
     new Function("require", "module", "exports", code)(
       (name) =>
-        stubs[name] ??
+        (name === "server-only" ? {} : stubs[name]) ??
         (name.startsWith("@/")
           ? load(name.slice(2))
           : name.startsWith(".")

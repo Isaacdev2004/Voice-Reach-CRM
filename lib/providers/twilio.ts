@@ -1,3 +1,5 @@
+import { prepareSms, finishSms } from "@/lib/messaging/isv/service";
+import { authorizeLiveOutbound } from "./send-authorization";
 import { approvedTransportIssues } from "./assistant-message";
 import type {
   ProviderAdapter,
@@ -8,7 +10,7 @@ import type {
 
 /**
  * Twilio adapter - SMS now, voice/voicemail with TwiML when configured.
- * Required env: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER.
+ * SMS uses only owner-scoped encrypted ISV credentials and a verified dedicated assignment.
  */
 export const twilioProvider: ProviderAdapter = {
   id: "twilio",
@@ -19,25 +21,30 @@ export const twilioProvider: ProviderAdapter = {
     const approvalIssues = approvedTransportIssues(request, "twilio");
     if (approvalIssues.length)
       return { ok: false, status: "blocked", error: approvalIssues.join(" ") };
-    const sid = process.env.TWILIO_ACCOUNT_SID;
-    const token = process.env.TWILIO_AUTH_TOKEN;
-    const from = request.from || process.env.TWILIO_FROM_NUMBER;
-
-    if (!sid || !token || !from) {
-      return {
-        ok: false,
-        status: "failed",
-        error:
-          "Twilio credentials missing (TWILIO_ACCOUNT_SID/AUTH_TOKEN/FROM_NUMBER).",
-      };
-    }
-
-    const auth = Buffer.from(`${sid}:${token}`).toString("base64");
-
     if (request.channel === "sms") {
+      const issues = await authorizeLiveOutbound(request);
+      if (issues.length)
+        return { ok: false, status: "blocked", error: issues.join(" ") };
+      let prepared: Awaited<ReturnType<typeof prepareSms>>;
+      try {
+        prepared = await prepareSms(request);
+      } catch (error) {
+        return {
+          ok: false,
+          status: "blocked",
+          error:
+            error instanceof Error
+              ? error.message
+              : "Managed SMS authorization unavailable.",
+        };
+      }
+      const { assignment, token, to, operation } = prepared;
+      const sid = assignment.account_sid;
+      const auth = Buffer.from(`${sid}:${token}`).toString("base64");
       const params = new URLSearchParams({
-        To: request.to,
-        From: from,
+        To: to,
+        From: assignment.from_number,
+        MessagingServiceSid: assignment.messaging_service_sid!,
         Body: request.body ?? "",
       });
       if (
@@ -46,7 +53,7 @@ export const twilioProvider: ProviderAdapter = {
       ) {
         params.set(
           "StatusCallback",
-          `${process.env.APP_BASE_URL.replace(/\/$/, "")}/api/webhooks/delivery/twilio`,
+          `${process.env.APP_BASE_URL.replace(/\/$/, "")}/api/messaging/isv/delivery`,
         );
       }
       for (const mediaUrl of request.mediaUrls ?? []) {
@@ -57,6 +64,7 @@ export const twilioProvider: ProviderAdapter = {
           `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`,
           {
             method: "POST",
+            redirect: "error",
             signal: AbortSignal.timeout(15000),
             headers: {
               Authorization: `Basic ${auth}`,
@@ -66,28 +74,40 @@ export const twilioProvider: ProviderAdapter = {
           },
         );
         const raw = await res.json().catch(() => ({}));
-        const twilioError =
-          typeof raw?.message === "string"
-            ? raw.message.includes("not a Twilio phone number") ||
-              raw.message.includes("country mismatch")
-              ? `${raw.message} Fix: in Vercel set TWILIO_FROM_NUMBER to a number you own in Twilio Console that matches the recipient’s country (US → US Twilio number).`
-              : raw.message
+        const providerMessageId =
+          typeof raw?.sid === "string" && /^SM[0-9a-f]{32}$/i.test(raw.sid)
+            ? raw.sid
             : undefined;
+        // Treat ambiguous outcomes conservatively; no automatic retry of a possible provider submission.
+        const state =
+          res.ok && providerMessageId
+            ? "sent"
+            : res.status >= 400 && res.status < 500
+              ? "failed"
+              : "unknown";
+        await finishSms(request.ownerId!, operation, state, providerMessageId);
         return {
-          ok: res.ok && typeof raw?.sid === "string" && !!raw.sid.trim(),
-          uncertain:
-            res.ok && !(typeof raw?.sid === "string" && !!raw.sid.trim()),
-          providerMessageId:
-            typeof raw?.sid === "string" ? raw.sid.trim() : undefined,
-          status: res.ok ? "sent" : "failed",
-          rawResponse: raw,
-          error: res.ok ? undefined : twilioError,
+          ok: state === "sent",
+          uncertain: state === "unknown",
+          providerMessageId,
+          status: state === "sent" ? "sent" : "failed",
+          error:
+            state === "sent"
+              ? undefined
+              : "Managed SMS provider rejected or could not confirm the request. Review delivery evidence before retrying.",
         };
-      } catch (err) {
+      } catch {
+        try {
+          await finishSms(request.ownerId!, operation, "unknown");
+        } catch {
+          /* Remains dispatching, blocking replay. */
+        }
         return {
           ok: false,
+          uncertain: true,
           status: "failed",
-          error: err instanceof Error ? err.message : "Twilio SMS failed",
+          error:
+            "Managed SMS delivery outcome is uncertain. Do not retry automatically.",
         };
       }
     }

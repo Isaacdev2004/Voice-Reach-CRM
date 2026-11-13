@@ -104,7 +104,7 @@ export async function sendToContact(params: {
     to: address,
     from:
       params.channel === "sms"
-        ? process.env.TWILIO_FROM_NUMBER
+        ? undefined
         : params.channel === "voicemail"
           ? (process.env.SLYBROADCAST_CALLER_ID ??
             process.env.VOICE_PROVIDER_FROM_NUMBER)

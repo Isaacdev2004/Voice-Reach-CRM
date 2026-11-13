@@ -1,0 +1,65 @@
+name: ISV isolation
+on:
+  pull_request:
+    paths:
+      - 'lib/messaging/**'
+      - 'components/messaging/**'
+      - 'lib/providers/**'
+      - 'app/api/messaging/**'
+      - 'app/api/webhooks/twilio/**'
+      - 'scripts/isv*'
+      - 'scripts/isv/**'
+      - 'supabase/migrations/*isv*'
+      - '.github/workflows/isv-isolation.yml'
+permissions:
+  contents: read
+jobs:
+  postgres-isolation:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: synthetic_ci_only
+          POSTGRES_DB: myari_isv_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node scripts/isv/postgres-concurrency.cjs
+        env:
+          MYARI_ISV_POSTGRES_TEST: '1'
+          PGHOST: 127.0.0.1
+          PGPORT: '5432'
+          PGDATABASE: myari_isv_test
+          PGPASSWORD: synthetic_ci_only
+      - run: npm run test:isv
+      - name: Install isolated test tools
+        run: npm install --prefix /tmp/myari-isv-test-tools --no-audit --no-fund @electric-sql/pglite@0.5.16 playwright@1.56.1
+      - name: Full migration and authorization regression
+        run: npm run test:isv-db
+        env:
+          MYARI_PGLITE_MODULE: /tmp/myari-isv-test-tools/node_modules/@electric-sql/pglite
+      - name: Install test browser
+        run: /tmp/myari-isv-test-tools/node_modules/.bin/playwright install --with-deps chromium
+      - name: Build actual component styles
+        run: node scripts/isv/build-browser-css.cjs
+      - name: Registration Center responsive browser acceptance
+        run: npm run test:isv-browser
+        env:
+          NODE_PATH: /tmp/myari-isv-test-tools/node_modules
+          MYARI_ISV_BROWSER_CSS: /tmp/isv-registration.css
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: isv-registration-screenshots
+          path: docs/messaging-isv/screenshots

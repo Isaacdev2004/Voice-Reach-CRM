@@ -1,6 +1,11 @@
 /* Synthetic subscribers and real local validation/dispatch code. Every provider fetch is intercepted. */
 const { fixture, id, owner } = require("../campaign-audit/harness.cjs");
+const {randomBytes}=require("node:crypto");
+const syntheticIsvKey=randomBytes(32);
 const VALUES = {
+  MANAGED_SMS_PILOT_ENABLED:"true",
+  TWILIO_ISV_TOKEN_KEYRING:JSON.stringify({test:syntheticIsvKey.toString("base64")}),
+  TWILIO_ISV_TOKEN_ACTIVE_KEY_ID:"test",
   ASSISTANT_V2_ENABLED: "true",
   ASSISTANT_V2_OWNER_IDS: owner,
   ASSISTANT_REASONING_PROVIDER: "openai",
@@ -10,7 +15,7 @@ const VALUES = {
   ALLOW_LIVE_OUTBOUND: "true",
   MYARI_AI_ENTITLEMENTS_ENABLED: "false",
   DELIVERY_EVIDENCE_ENABLED: "true",
-  TWILIO_ACCOUNT_SID: "AC_SYNTHETIC_NEVER_LIVE",
+  TWILIO_ACCOUNT_SID: "ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   TWILIO_AUTH_TOKEN: "SYNTHETIC_NEVER_LIVE",
   TWILIO_FROM_NUMBER: "+15555550001",
   RESEND_API_KEY: "re_synthetic_never_live",
@@ -37,6 +42,13 @@ function setup() {
     "provider_sync_runs",
   ])
     f.tables[t] = [];
+  // Approved synthetic subaccount, never a real provider identity. DB authorization is tested separately with PostgreSQL.
+  const crypto=f.load("lib/messaging/isv/credentials.ts");
+  f.tables.isv_sms_assignments=[{id:id(800),owner_id:owner,business_id:id(801),account_sid:VALUES.TWILIO_ACCOUNT_SID,from_number:VALUES.TWILIO_FROM_NUMBER,messaging_service_sid:"MG"+"c".repeat(32),active:true}];
+  f.tables.isv_provider_credentials=[{owner_id:owner,account_sid:VALUES.TWILIO_ACCOUNT_SID,envelope:crypto.sealCredential(VALUES.TWILIO_AUTH_TOKEN,{owner,accountSid:VALUES.TWILIO_ACCOUNT_SID},"test",syntheticIsvKey)}];
+  f.tables.isv_sms_dispatches=[];
+  const db=f.stubs["@/lib/supabaseAdmin"].supabaseAdmin,originalRpc=db.rpc.bind(db),claimed=new Set();
+  db.rpc=async(name,p)=>{if(name==="isv_project_delivery")return {data:0,error:null};if(name!=="isv_claim_sms")return originalRpc(name,p);if(claimed.has(p.p_key))return {data:false};claimed.add(p.p_key);f.tables.isv_sms_dispatches.push({owner_id:p.p_owner,operation_key:p.p_key,state:"dispatching"});return {data:true};};
   f.tables.audit_logs.push({
     id: id(500),
     owner_id: owner,
@@ -127,7 +139,7 @@ function setup() {
     return new Response(
       JSON.stringify(
         href.includes("twilio")
-          ? { sid: "SM_SYNTHETIC", status: "queued" }
+          ? { sid: "SMbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", status: "queued" }
           : { id: "EMAIL_SYNTHETIC" },
       ),
       { status: 201, headers: { "content-type": "application/json" } },
