@@ -124,28 +124,42 @@ const { chromium } = require("playwright"),
       await page.goto(origin + "/dashboard/notes");
       await page.getByRole('heading',{name:'Notes & Strategy',exact:true}).waitFor();
       await page.getByRole('button',{name:'Open Recent Note',exact:true}).waitFor();
+      const hero=await page.locator('.notes-studio-hero').boundingBox();
+      if(width>=1440)assert.ok(hero.height>=160&&hero.height<=220,'compact architectural hero height');
+      await page.locator('.notes-studio-hero img').evaluate(img=>img.decode());
       const writes=state.requests.filter(r=>r.method==='POST');
       assert.equal(writes.length,0,'opening Notes must not create a record');
       assert.equal(await page.locator('#notes-toggle-library').getAttribute('aria-expanded'),'false');
       assert.equal(await page.locator('#notes-toggle-planner').getAttribute('aria-expanded'),'false');
-      await page.screenshot({path:path.join(output,`studio-empty-${width}.png`),fullPage:false});
+      await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`studio-empty-${width}.png`),fullPage:false,animations:"disabled"});
       await page.getByRole('button',{name:'Open Recent Note',exact:true}).click();
       await page.getByLabel('Note content',{exact:true}).waitFor();
-      await page.screenshot({path:path.join(output,`studio-default-${width}.png`),fullPage:false});
+      await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`studio-default-${width}.png`),fullPage:false,animations:"disabled"});
+      const title=page.getByLabel('Note title',{exact:true});const originalTitle=await title.inputValue();
+      for(const value of ['',originalTitle,'Long buyer consultation and property strategy — '+('thoughtful planning '.repeat(7)).slice(0,145)]){
+        await title.fill(value);await title.focus();
+        const geometry=await page.evaluate(()=>({title:document.querySelector('.notes-title').getBoundingClientRect().toJSON(),links:document.querySelector('.notes-associations').getBoundingClientRect().toJSON(),outline:getComputedStyle(document.querySelector('.notes-title')).outlineWidth}));
+        assert.ok(geometry.title.bottom<=geometry.links.top,'title must never overlap contact/property controls');assert.equal(geometry.outline,'2px');
+      }
+      await title.fill(originalTitle);await title.focus();
+      await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`studio-title-focused-${width}.png`),fullPage:false,animations:"disabled"});
       const widths=await page.evaluate(()=>({editor:document.querySelector('.notes-editor').getBoundingClientRect().width,workspace:document.querySelector('.notes-columns').getBoundingClientRect().width}));
       assert.ok(widths.editor/widths.workspace>=.65,'editor must dominate the closed-drawer layout');
       await page.getByLabel('Note content',{exact:true}).fill((await page.getByLabel('Note content',{exact:true}).inputValue())+'\n'+Array.from({length:70},(_,i)=>'Writing continuity line '+i).join('\n'));
       await page.evaluate(()=>{window.__studioEditor=document.querySelector('textarea.notes-canvas');window.__studioEditor.setSelectionRange(4,12);window.__studioEditor.scrollTop=120;});
-      await library(page);await page.screenshot({path:path.join(output,`studio-library-${width}.png`),fullPage:false});
+      await library(page);await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`studio-library-${width}.png`),fullPage:false,animations:"disabled"});
       assert.equal(await page.evaluate(()=>window.__studioEditor===document.querySelector('textarea.notes-canvas')),true);
       assert.equal(await page.getByLabel('Note content',{exact:true}).evaluate(el=>el.selectionStart),4);
       assert.equal(await page.getByLabel('Note content',{exact:true}).evaluate(el=>el.scrollTop),120);
-      await closeDrawers(page);await planner(page);await page.screenshot({path:path.join(output,`studio-planner-${width}.png`),fullPage:false});
-      if(width===1920){await library(page);await page.waitForFunction(()=>document.querySelector('#notes-library-panel').getBoundingClientRect().width>=269);await page.waitForTimeout(220);const l=await page.locator('#notes-library-panel').boundingBox(),e=await page.locator('.notes-editor').boundingBox(),r=await page.locator('#notes-planner-panel').boundingBox();assert.ok(l.x+l.width<=e.x&&e.x+e.width<=r.x,'inline drawers must not overlap editor');await page.screenshot({path:path.join(output,'studio-both-1920.png'),fullPage:false});assert.equal(await page.locator('#notes-library-panel').isVisible(),true);assert.equal(await page.locator('#notes-planner-panel').isVisible(),true);await page.getByRole('button',{name:'Focus Mode',exact:true}).click();assert.equal(await page.locator('#notes-library-panel').isVisible(),false);await page.getByRole('button',{name:'Exit Focus Mode',exact:true}).click();assert.equal(await page.locator('#notes-library-panel').isVisible(),true);assert.equal(await page.locator('#notes-planner-panel').isVisible(),true);}
+      await closeDrawers(page);await planner(page);await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`studio-planner-${width}.png`),fullPage:false,animations:"disabled"});
+      await page.getByRole('button',{name:'Expand planning view',exact:true}).click();await page.locator('.notes-columns[data-planner-expanded=true]').waitFor();await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`studio-expanded-planner-${width}.png`),fullPage:false,animations:'disabled'});await page.getByRole('button',{name:'Return to drawer',exact:true}).click();
+      if(width===1920){await library(page);await page.waitForFunction(()=>document.querySelector('#notes-library-panel').getBoundingClientRect().width>=259);await page.waitForTimeout(220);const l=await page.locator('#notes-library-panel').boundingBox(),e=await page.locator('.notes-editor').boundingBox(),r=await page.locator('#notes-planner-panel').boundingBox();assert.ok(l.x+l.width<=e.x&&e.x+e.width<=r.x,'inline drawers must not overlap editor');const tb=await page.locator('.notes-title').boundingBox(),ab=await page.locator('.notes-associations').boundingBox();assert.ok(tb.y+tb.height<=ab.y,'title remains separate with both drawers open');await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,'studio-both-1920.png'),fullPage:false,animations:"disabled"});assert.equal(await page.locator('#notes-library-panel').isVisible(),true);assert.equal(await page.locator('#notes-planner-panel').isVisible(),true);await page.getByRole('button',{name:'Focus Mode',exact:true}).click();assert.equal(await page.locator('#notes-library-panel').isVisible(),false);await page.getByRole('button',{name:'Exit Focus Mode',exact:true}).click();assert.equal(await page.locator('#notes-library-panel').isVisible(),true);assert.equal(await page.locator('#notes-planner-panel').isVisible(),true);}
       await closeDrawers(page);
       await page.getByRole('button',{name:'Focus Mode',exact:true}).click();
-      await page.screenshot({path:path.join(output,`studio-focus-${width}.png`),fullPage:false});
+      await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(output,`studio-focus-${width}.png`),fullPage:false,animations:"disabled"});
       await page.getByRole('button',{name:'Exit Focus Mode',exact:true}).click();
+      const green=await page.locator('.notes-writing-studio').evaluate(root=>[root,...root.querySelectorAll('*')].filter(el=>[getComputedStyle(el).color,getComputedStyle(el).backgroundColor].some(v=>{const c=v.match(/rgba?\((\d+), (\d+), (\d+)/);return c&&+c[2]>+c[1]+4&&+c[2]>+c[3]+4;})).length);
+      assert.equal(green,0,'Notes controls must match warm Campaigns palette');
       await library(page);await page.reload();await page.locator('.notes-note-preview').first().waitFor();
       assert.equal(await page.locator('#notes-toggle-library').getAttribute('aria-expanded'),'true');
       await page.locator('.notes-note-preview').first().click();
@@ -153,9 +167,9 @@ const { chromium } = require("playwright"),
       await page
         .getByRole("button", { name: "Formatted preview", exact: true })
         .click();
-      await page.screenshot({
+      await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({
         path: path.join(output, `notes-${width}.png`),
-        fullPage: false,
+        fullPage: false, animations:"disabled",
       });
       assert.equal(
         await page.evaluate(
@@ -174,9 +188,9 @@ const { chromium } = require("playwright"),
           ),
           false,
         );
-        await page.screenshot({
+        await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({
           path: path.join(output, `notes-context-${width}.png`),
-          fullPage: false,
+          fullPage: false, animations:"disabled",
         });
         await closeDrawers(page);
       }
@@ -592,7 +606,7 @@ const { chromium } = require("playwright"),
     );
     await legacy.screenshot({
       path: path.join(output, "compatibility-1440.png"),
-      fullPage: false,
+      fullPage: false, animations:"disabled",
     });
     await legacy.getByRole('button',{name:'Choose Template',exact:true}).click();
     await legacy.getByRole('dialog').getByRole('button',{name:'Buyer Consultation',exact:false}).click();
@@ -633,7 +647,7 @@ const { chromium } = require("playwright"),
     );
     await mobile.screenshot({
       path: path.join(output, "compatibility-390.png"),
-      fullPage: false,
+      fullPage: false, animations:"disabled",
     });
     await mobile.close();
     state.failLoad = true;
