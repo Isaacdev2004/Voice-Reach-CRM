@@ -239,7 +239,7 @@ function QuickNoteEditor({
         </ModalField>
         <ModalField label="Link to contact (optional)">
           <input type="search" aria-label="Search contacts" className={modalInputClass} value={contactQuery} onChange={event=>setContactQuery(event.target.value)} placeholder="Search contacts by name, email or phone" />
-          <select
+          <select aria-label="Linked contact"
             className={modalInputClass}
             value={contactId}
             onChange={(e) => setContactId(e.target.value)}

@@ -61,10 +61,10 @@ export function CalendarLinksPanel({ prefs }: { prefs: CalendarPreferences }) {
       <h3>Private sharing</h3>
       {enabled ? (
         <>
-          <label className="block text-[11px]">
+          <div className="block text-[11px]">
             Associate requests with a contact (optional)
             <input type="search" aria-label="Search booking contacts" value={contactQuery} onChange={e=>setContactQuery(e.target.value)} placeholder="Search all contacts" className="mt-2 w-full rounded-xl border p-2"/>
-            <select
+            <select aria-label="Associate requests with a contact (optional)"
               className="my-2 w-full rounded-lg border border-[#e8dfd3] p-2"
               value={contactId}
               onChange={(e) => setContactId(e.target.value)}
@@ -76,7 +76,7 @@ export function CalendarLinksPanel({ prefs }: { prefs: CalendarPreferences }) {
                 </option>
               ))}
             </select>
-          </label>
+          </div>
           <label className="block text-[11px]">
             Booking appointment type
             <input

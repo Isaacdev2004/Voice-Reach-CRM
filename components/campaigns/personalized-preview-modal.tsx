@@ -57,10 +57,10 @@ export function PersonalizedPreviewModal({
       description="Review the same subject and body renderer used for delivery. No messages, consent or schedules are changed."
       size="lg"
     >
-      <label className="block text-sm text-taupe">
+      <div className="block text-sm text-taupe">
         Preview for contact
         <input type="search" aria-label="Search preview contacts" value={contactQuery} onChange={e=>setContactQuery(e.target.value)} placeholder="Search all contacts" className="mt-2 w-full rounded-xl border p-2"/>
-        <select
+        <select aria-label="Preview for contact"
           className="mt-2 w-full rounded-xl border-outline-variant/30"
           value={contactId}
           onChange={(e) => {
@@ -77,7 +77,7 @@ export function PersonalizedPreviewModal({
             </option>
           ))}
         </select>
-      </label>
+      </div>
       <button
         type="button"
         className="cl-button cl-primary mt-3"

@@ -101,6 +101,27 @@
         768,
         390
       ]
+    },
+    "campaignLibraryBrowser": {
+      "result": "PASS",
+      "viewports": [
+        1440,
+        1920,
+        768,
+        390
+      ],
+      "personalizedMessagePreview": true,
+      "tenantIsolation": true
+    },
+    "reviewReferralBrowser": {
+      "result": "PASS",
+      "viewports": [
+        1440,
+        1280,
+        768,
+        390
+      ],
+      "noProviderCalls": true
     }
   },
   "hostedPreview": "BLOCKED: no branch-specific Preview binding; available runner combines Development Clerk with Production Supabase and was not used for hosted tests/deployment",
@@ -143,7 +164,7 @@
       "rollbackMechanism": "Deliberate final exception rolled back the entire synthetic test transaction"
     }
   },
-  "verifiedAt": "2026-11-14T01:58:25.725613+00:00",
+  "verifiedAt": "2026-11-14T02:02:24.723624+00:00",
   "baseMain": "ce416dd3ef1a8b7c0585bbd5348ab8f605bcb4bd",
   "startingReviewedCommit": "276ed1d6cfc68188638421a60aee4471a464dbeb",
   "configurationAudit": {
