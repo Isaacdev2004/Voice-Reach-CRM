@@ -1,3 +1,6 @@
+import { contactsAddedThisMonth,sumActiveLeadBudgets } from "@/lib/dashboard/home-kpis";
+import { savedPropertyCriteria } from "@/lib/property-finder/criteria";
+import { contactIdentityMatches } from "./workspace";
 import { apiOk, apiError } from "@/lib/api-response";
 import type { OwnedContact } from "./read-snapshot";
 import {
@@ -10,6 +13,11 @@ import { categoriesUsedOnContacts, mergeCategoryLists } from "./categories";
 import { z } from "zod";
 const requestSchema = z
   .object({
+    picker:z.literal("true").optional(),
+    criteriaOnly:z.literal("true").optional(),
+    includeIds:z.string().max(1900).optional(),
+    summary:z.literal("true").optional(),
+    monthStart:z.iso.datetime().optional(),
     q: z.string().max(512).optional(),
     search: z.string().max(512).optional(),
     segment: z
@@ -45,6 +53,8 @@ export function createContactPageHandler(deps: {
       );
     const state = readWorkspaceState(params),
       size = parsed.data.pageSize || 25;
+    const included=parsed.data.includeIds?.split(',').filter(Boolean)??[];
+    if(included.length>50||included.some(id=>!z.string().uuid().safeParse(id).success))return apiError("Invalid contact lookup.",{status:400});
     let ids: Set<string> | null = null;
     if (parsed.data.viewIds) {
       const list = parsed.data.viewIds.split(",");
@@ -63,7 +73,9 @@ export function createContactPageHandler(deps: {
       ]);
       if (rows.some((row) => row.owner_id !== owner))
         throw Error("Ownership mismatch");
-      const view = filterWorkspaceContacts(rows, state).filter(
+      const inputRows=parsed.data.criteriaOnly ? rows.filter(row=>savedPropertyCriteria(row).hasCriteria) : rows;
+      const searchState=parsed.data.picker ? {...state,search:"",q:""} : state;
+      const view = filterWorkspaceContacts(inputRows, searchState).filter(row=>!parsed.data.picker||contactIdentityMatches(row,state.search||state.q)).filter(
         (row) => !ids || ids.has(row.id),
       );
       const filtered = sortWorkspaceContacts(view, state.segment, state.sort);
@@ -73,6 +85,8 @@ export function createContactPageHandler(deps: {
         complete: true,
         paginated: true,
         ...(allowance !== undefined ? { contactsLimit: allowance } : {}),
+        relatedContacts:rows.filter(row=>included.includes(row.id)),
+        ...(parsed.data.summary?{summary:{addedThisMonth:parsed.data.monthStart?rows.filter(row=>row.created_at&&Date.parse(row.created_at)>=Date.parse(parsed.data.monthStart!)).length:contactsAddedThisMonth(rows),pipelineBudgets:sumActiveLeadBudgets(rows)}}:{}),
         contacts: filtered.slice((page - 1) * size, page * size),
         total: rows.length,
         filtered: filtered.length,

@@ -32,7 +32,7 @@ const { chromium } = require("playwright"),
     { from: path.join(root, "app/globals.css") },
   );
   const fonts = "/tmp/myari-review-fonts",
-    icons = "/workspace/work/contacts-metrics/ui-review/material-icons.ttf";
+    icons = process.env.CONTACTS_ICON_FONT || "/workspace/work/contacts-metrics/ui-review/material-icons.ttf";
   const extra =
     (fs.existsSync(path.join(fonts, "faces.css"))
       ? fs.readFileSync(path.join(fonts, "faces.css"), "utf8")
@@ -249,7 +249,7 @@ const { chromium } = require("playwright"),
                   created_at: new Date().toISOString(),
                 },
               ];
-        if (u.pathname === "/api/contacts") {
+        if (u.pathname === "/api/contacts" || u.pathname === "/api/contacts/page") {
           if (mode === "error")
             return route.fulfill({
               status: 503,

@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useContacts } from "@/lib/hooks/use-contacts";
+import { useContactDirectory } from "@/lib/hooks/use-contacts";
 import type { CalendarPreferences } from "@/lib/calendar/preferences";
 export function CalendarLinksPanel({ prefs }: { prefs: CalendarPreferences }) {
-  const { contacts } = useContacts();
-  const [contactId, setContactId] = useState("");
+  const [contactId,setContactId]=useState("");
+  const [contactQuery,setContactQuery]=useState("");
+  const {contacts}=useContactDirectory(contactQuery,contactId);
   const [enabled, setEnabled] = useState(false),
     [links, setLinks] = useState<
       {
@@ -62,6 +63,7 @@ export function CalendarLinksPanel({ prefs }: { prefs: CalendarPreferences }) {
         <>
           <label className="block text-[11px]">
             Associate requests with a contact (optional)
+            <input type="search" aria-label="Search booking contacts" value={contactQuery} onChange={e=>setContactQuery(e.target.value)} placeholder="Search all contacts" className="mt-2 w-full rounded-xl border p-2"/>
             <select
               className="my-2 w-full rounded-lg border border-[#e8dfd3] p-2"
               value={contactId}

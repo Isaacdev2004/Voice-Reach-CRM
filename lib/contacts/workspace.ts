@@ -54,3 +54,10 @@ export function sortWorkspaceContacts(rows: ApiContact[], segment: ContactSegmen
     return result || a.id.localeCompare(b.id);
   });
 }
+
+/** Identity search shared by bounded pickers; never searches private notes. */
+export function contactIdentityMatches(contact:ApiContact,raw:string) {
+ const q=raw.trim().toLowerCase();if(!q)return true;
+ const digits=q.replace(/\D/g,'');
+ return `${contact.first_name} ${contact.last_name??''}`.trim().toLowerCase().includes(q)||(contact.email??'').toLowerCase().includes(q)||(digits.length>=3&&(contact.phone??'').replace(/\D/g,'').includes(digits));
+}

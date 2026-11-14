@@ -1,5 +1,7 @@
 "use client";
 
+import { useContactDirectory } from "@/lib/hooks/use-contacts";
+
 import { LuxuryCard } from "@/components/crm/luxury-card";
 import {
   Modal,
@@ -163,9 +165,8 @@ function QuickNoteEditor({
 }) {
   const [body, setBody] = useState("");
   const [contactId, setContactId] = useState("");
-  const [contacts, setContacts] = useState<{ id: string; first_name: string; last_name?: string | null }[]>(
-    [],
-  );
+  const [contactQuery,setContactQuery]=useState("");
+  const {contacts}=useContactDirectory(contactQuery,contactId,[],open);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -174,10 +175,7 @@ function QuickNoteEditor({
     setBody("");
     setContactId("");
     setError(null);
-    void fetch("/api/contacts")
-      .then((r) => r.json())
-      .then((data) => setContacts(data.contacts ?? []))
-      .catch(() => setContacts([]));
+    setContactQuery("");
   }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -240,6 +238,7 @@ function QuickNoteEditor({
           />
         </ModalField>
         <ModalField label="Link to contact (optional)">
+          <input type="search" aria-label="Search contacts" className={modalInputClass} value={contactQuery} onChange={event=>setContactQuery(event.target.value)} placeholder="Search contacts by name, email or phone" />
           <select
             className={modalInputClass}
             value={contactId}

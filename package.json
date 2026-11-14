@@ -66,7 +66,7 @@
     "test:assistant-workspace-browser": "node scripts/assistant-workspace-browser.test.cjs",
     "test:assistant-personalization": "node scripts/assistant-personalization.test.cjs",
     "test:assistant-personalization-browser": "node scripts/assistant-personalization-browser.cjs",
-    "test:contact-allowance": "node scripts/contact-allowance.test.cjs && node scripts/contact-allowance/import.test.cjs"
+    "test:contact-allowance": "node scripts/contact-allowance.test.cjs && node scripts/contact-allowance/import.test.cjs && node scripts/contact-allowance/identity.test.cjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.5",

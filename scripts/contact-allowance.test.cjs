@@ -106,6 +106,31 @@ const assert = require("node:assert/strict"),
       loadCategories: async () => [],
     });
   ok((await foreign(request(""))).status === 503);
+  rows[29999].preferred_area="Apopka";
+  data=await(await handler(request(`picker=true&search=Synthetic+29999&includeIds=${rows[0].id}`))).json();
+  ok(data.filtered===1&&data.contacts[0].id===rows[29999].id&&data.relatedContacts[0].id===rows[0].id);
+  data=await(await handler(request(`picker=true&includeIds=${f.id(90001)}`))).json();
+  ok(data.contacts.length===25&&data.relatedContacts.length===0);
+  ok((await handler(request("includeIds=not-a-uuid"))).status===400);
+  data=await(await handler(request("criteriaOnly=true"))).json();
+  ok(data.filtered===1&&data.contacts[0].id===rows[29999].id);
+  data=await(await handler(request("summary=true&pageSize=1&monthStart=2000-01-01T00%3A00%3A00.000Z"))).json();
+  ok(data.contacts.length===1&&data.summary.addedThisMonth===30000&&data.summary.pipelineBudgets.activeLeadCount===15000);
+  ok(validate(data,{ownerId:f.owner}).summary.addedThisMonth===30000);
+  let rejected=false;try{validate({...data,relatedContacts:[{...rows[0],owner_id:"foreign"}]},{ownerId:f.owner});}catch{rejected=true;}ok(rejected);
+  rows[0].consent_records=[{status:"Yes",consent_date:"2026-11-01",source:"Synthetic",proof_reference:"Fixture"}];
+  const recipients=f.load("lib/contacts/recipient-page-handler.ts").createRecipientPageHandler({requireOwnerId:async()=>f.owner,readContacts:async()=>rows,loadCategories:async()=>["Residential","Commercial"]});
+  const recipientRequest=body=>new Request("https://preview.example.test/api/contacts/recipients",{method:"POST",body:JSON.stringify(body)});
+  data=await(await recipients(recipientRequest({page:600}))).json();
+  ok(data.contacts.length===50&&data.total===30000&&data.pages===600&&data.eligibleCount===1&&data.eligibleByCategory.Residential===1);
+  ok(data.contacts.every(row=>!("notes" in row)&&row.owner_id===f.owner));
+  data=await(await recipients(recipientRequest({excludeIds:[rows[0].id],search:"Synthetic 29999"}))).json();
+  ok(data.filtered===1&&data.eligibleCount===0);
+  data=await(await recipients(recipientRequest({onlyIds:[f.id(90001),rows[0].id]}))).json();
+  ok(data.total===1&&data.contacts[0].id===rows[0].id);
+  ok((await recipients(recipientRequest({ownerId:"foreign"}))).status===400);
+  const foreignRecipients=f.load("lib/contacts/recipient-page-handler.ts").createRecipientPageHandler({requireOwnerId:async()=>f.owner,readContacts:async()=>[{...rows[0],owner_id:"foreign"}],loadCategories:async()=>[]});
+  ok((await foreignRecipients(recipientRequest({}))).status===503);
   const exports = f.load("lib/contacts/export.ts");
   ok(
     exports.selectExportContacts(rows, {

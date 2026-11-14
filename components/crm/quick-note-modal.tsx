@@ -1,5 +1,7 @@
 "use client";
 
+import { useContactDirectory } from "@/lib/hooks/use-contacts";
+
 import {
   Modal,
   ModalField,
@@ -8,11 +10,7 @@ import {
 } from "@/components/crm/modal";
 import { useEffect, useState } from "react";
 
-type ContactOption = {
-  id: string;
-  first_name: string;
-  last_name?: string | null;
-};
+
 
 type QuickNoteModalProps = {
   open: boolean;
@@ -24,7 +22,9 @@ export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [contactId, setContactId] = useState("");
-  const [contacts, setContacts] = useState<ContactOption[]>([]);
+  const [contactQuery,setContactQuery]=useState("");
+  const {contacts}=useContactDirectory(contactQuery,contactId,[],open);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,12 +35,7 @@ export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) 
     setContactId("");
     setError(null);
 
-    void fetch("/api/contacts")
-      .then((r) => r.json())
-      .then((data) => {
-        setContacts((data.contacts ?? []) as ContactOption[]);
-      })
-      .catch(() => setContacts([]));
+    setContactQuery("");
   }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,6 +116,7 @@ export function QuickNoteModal({ open, onClose, onSaved }: QuickNoteModalProps) 
         </ModalField>
 
         <ModalField label="Link to contact (optional)">
+          <input type="search" aria-label="Search contacts" className={modalInputClass} value={contactQuery} onChange={event=>setContactQuery(event.target.value)} placeholder="Search contacts by name, email or phone" />
           <select
             className={modalInputClass}
             value={contactId}

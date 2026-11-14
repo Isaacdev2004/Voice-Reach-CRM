@@ -8,6 +8,8 @@ export type ContactSnapshot = {
   counts: ContactCounts;
   categories: string[];
   contactsLimit?: number | null;
+  relatedContacts?:ApiContact[];
+  summary?:{addedThisMonth:number;pipelineBudgets:{total:number;withBudget:number;activeLeadCount:number}};
   paginated?: boolean;
   page?: number;
   pageSize?: number;
@@ -127,7 +129,15 @@ export function validateContactSnapshot(
     )
       return fail();
   }
+  const related=(data.relatedContacts??[]) as ApiContact[];
+  if(!Array.isArray(related)||related.length>50||related.some(c=>!c?.id||options.ownerId&&(c as ApiContact & {owner_id?:string}).owner_id!==options.ownerId))return fail();
+  if(data.summary){
+    const summary=data.summary as NonNullable<ContactSnapshot["summary"]>;
+    if(!summary.pipelineBudgets||![summary.addedThisMonth,summary.pipelineBudgets.total,summary.pipelineBudgets.withBudget,summary.pipelineBudgets.activeLeadCount].every(n=>typeof n==="number"&&Number.isFinite(n)&&n>=0))return fail();
+  }
   return {
+    relatedContacts:related,
+    ...(data.summary?{summary:data.summary as ContactSnapshot["summary"]}:{}),
     contacts,
     ...(data.contactsLimit === null ||
     (Number.isSafeInteger(data.contactsLimit) && Number(data.contactsLimit) > 0)

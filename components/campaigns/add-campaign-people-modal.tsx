@@ -1,22 +1,14 @@
 "use client";
+import {useRecipientPage} from "@/lib/hooks/use-recipient-page";
+import {ContactPageControls} from "@/components/crm/contact-page-controls";
 
 import { Modal, ModalFooterActions } from "@/components/crm/modal";
 import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
-import { contactMatchesCategory } from "@/lib/contacts/categories";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-type ContactRow = {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone: string | null;
-  email: string | null;
-  category?: string | null;
-  type?: string | null;
-  eligibility: { eligible: boolean; issues: string[] };
-};
+
 
 type EnrollMode = "all" | "category" | "selected";
 
@@ -29,13 +21,6 @@ type AddCampaignPeopleModalProps = {
   onAdded: (message: string) => void;
 };
 
-function contactCategoryLabel(contact: ContactRow) {
-  if (contact.category?.trim()) return contact.category.trim();
-  const type = (contact.type ?? "").toLowerCase();
-  if (type.includes("commercial")) return "Commercial";
-  if (type.includes("residential")) return "Residential";
-  return "";
-}
 
 export function AddCampaignPeopleModal({
   open,
@@ -45,10 +30,6 @@ export function AddCampaignPeopleModal({
   existingContactIds = [],
   onAdded,
 }: AddCampaignPeopleModalProps) {
-  const [contacts, setContacts] = useState<ContactRow[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [loadingContacts, setLoadingContacts] = useState(false);
-  const [contactError, setContactError] = useState<string | null>(null);
   const [enrollMode, setEnrollMode] = useState<EnrollMode>("category");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -56,7 +37,6 @@ export function AddCampaignPeopleModal({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const alreadyOnCampaign = useMemo(() => new Set(existingContactIds), [existingContactIds]);
 
   useEffect(() => {
     if (!open) return;
@@ -65,60 +45,17 @@ export function AddCampaignPeopleModal({
     setSelectedIds(new Set());
     setSearch("");
     setSaveError(null);
-    (async () => {
-      setLoadingContacts(true);
-      setContactError(null);
-      const envelope = await safeFetch<{
-        contacts: ContactRow[];
-        eligibleCount: number;
-        categories?: string[];
-      }>("/api/contacts");
-      setLoadingContacts(false);
-      if (envelope.success) {
-        setContacts(envelope.data.contacts ?? []);
-        setCategories(envelope.data.categories ?? ["Residential", "Commercial"]);
-      } else {
-        setContactError(envelope.error);
-      }
-    })();
+
   }, [open]);
 
-  const eligibleContacts = useMemo(
-    () =>
-      contacts.filter((c) => c.eligibility.eligible && !alreadyOnCampaign.has(c.id)),
-    [contacts, alreadyOnCampaign],
-  );
-
-  const eligibleByCategory = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const name of categories) {
-      const count = eligibleContacts.filter((c) => contactMatchesCategory(c, name)).length;
-      if (count > 0) counts.set(name, count);
-    }
-    return counts;
-  }, [eligibleContacts, categories]);
-
-  const filteredContacts = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const base = contacts.filter((c) => !alreadyOnCampaign.has(c.id));
-    if (!q) return base;
-    return base.filter((c) => {
-      const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim().toLowerCase();
-      const category = contactCategoryLabel(c).toLowerCase();
-      return (
-        name.includes(q) ||
-        category.includes(q) ||
-        (c.phone ?? "").toLowerCase().includes(q) ||
-        (c.email ?? "").toLowerCase().includes(q)
-      );
-    });
-  }, [contacts, search, alreadyOnCampaign]);
-
-  const selectedEligibleCount = useMemo(() => {
-    const eligibleIds = new Set(eligibleContacts.map((c) => c.id));
-    return [...selectedIds].filter((id) => eligibleIds.has(id)).length;
-  }, [eligibleContacts, selectedIds]);
-
+  const recipientPage=useRecipientPage(open,search,existingContactIds);
+  const contacts=recipientPage.data?.contacts??[];
+  const categories=recipientPage.data?.categories??[];
+  const loadingContacts=recipientPage.loading,contactError=recipientPage.error;
+  const eligibleCount=recipientPage.data?.eligibleCount??0;
+  const eligibleByCategory=new Map(Object.entries(recipientPage.data?.eligibleByCategory??{}).filter(([,count])=>count>0));
+  const filteredContacts=contacts;
+  const selectedEligibleCount=selectedIds.size;
   const categoryEligibleCount = selectedCategory
     ? (eligibleByCategory.get(selectedCategory) ?? 0)
     : 0;
@@ -133,13 +70,7 @@ export function AddCampaignPeopleModal({
     });
   };
 
-  const selectAllInCategory = (category: string) => {
-    const ids = eligibleContacts
-      .filter((c) => contactMatchesCategory(c, category))
-      .map((c) => c.id);
-    setSelectedIds(new Set(ids));
-    setEnrollMode("selected");
-  };
+  const selectAllInCategory=(category:string)=>{setSelectedCategory(category);setEnrollMode("category");};
 
   const handleConfirm = async () => {
     setSaving(true);
@@ -151,9 +82,7 @@ export function AddCampaignPeopleModal({
           ? { category: selectedCategory }
           : {
               enrollAllEligible: false,
-              contactIds: [...selectedIds].filter((id) =>
-                eligibleContacts.some((c) => c.id === id),
-              ),
+              contactIds: [...selectedIds],
             };
 
     const envelope = await safeFetch<{ message: string }>(
@@ -177,8 +106,9 @@ export function AddCampaignPeopleModal({
 
   const primaryDisabled =
     saving ||
+    Boolean(contactError) ||
     loadingContacts ||
-    (enrollMode === "all" && eligibleContacts.length === 0) ||
+    (enrollMode === "all" && eligibleCount === 0) ||
     (enrollMode === "category" && categoryEligibleCount === 0) ||
     (enrollMode === "selected" && selectedEligibleCount === 0);
 
@@ -212,15 +142,15 @@ export function AddCampaignPeopleModal({
         ) : (
           <>
             <p className="text-[14px] text-slate-text">
-              <strong>{eligibleContacts.length}</strong> eligible contact
-              {eligibleContacts.length === 1 ? "" : "s"} available to add
-              {alreadyOnCampaign.size > 0
-                ? ` · ${alreadyOnCampaign.size} already on this campaign`
+              <strong>{eligibleCount}</strong> eligible contact
+              {eligibleCount === 1 ? "" : "s"} available to add
+              {new Set(existingContactIds).size > 0
+                ? ` · ${new Set(existingContactIds).size} already on this campaign`
                 : ""}
               .
             </p>
 
-            {eligibleContacts.length === 0 ? (
+            {eligibleCount === 0 ? (
               <div className="rounded-xl border border-rose-gold/25 bg-champagne px-4 py-3 text-[14px] text-slate-text">
                 <p className="font-medium text-ink">No new eligible contacts</p>
                 <p className="mt-1">
@@ -268,7 +198,7 @@ export function AddCampaignPeopleModal({
                       onChange={() => setEnrollMode("all")}
                       className="accent-rose-gold-deep"
                     />
-                    All eligible ({eligibleContacts.length})
+                    All eligible ({eligibleCount})
                   </label>
                   <label
                     className={cn(
@@ -367,7 +297,8 @@ export function AddCampaignPeopleModal({
                       placeholder="Search by name, category, phone, or email"
                       className="w-full rounded-xl border border-outline-variant/20 bg-cream/60 px-4 py-2.5 text-[14px] text-ink outline-none focus:border-rose-gold/50"
                     />
-                    <ul className="mt-3 max-h-56 space-y-1 overflow-y-auto">
+                    <ContactPageControls page={recipientPage.page} pages={recipientPage.pages} onPage={recipientPage.setPage} loading={loadingContacts}/>
+                  <ul className="mt-3 max-h-56 space-y-1 overflow-y-auto">
                       {filteredContacts.length === 0 ? (
                         <li className="py-4 text-center text-[13px] text-taupe">No contacts found</li>
                       ) : (
@@ -376,13 +307,14 @@ export function AddCampaignPeopleModal({
                             `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "Contact";
                           const eligible = c.eligibility.eligible;
                           const checked = selectedIds.has(c.id);
-                          const category = contactCategoryLabel(c);
+                          const category = c.category?.trim() || ((c.type??"").toLowerCase().includes("commercial")?"Commercial":(c.type??"").toLowerCase().includes("residential")?"Residential":"");
                           return (
                             <li key={c.id}>
                               <button
                                 type="button"
                                 disabled={!eligible}
                                 onClick={() => toggleContact(c.id, eligible)}
+                                aria-pressed={checked}
                                 className={cn(
                                   "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[14px]",
                                   eligible ? "hover:bg-champagne/60" : "opacity-50",
