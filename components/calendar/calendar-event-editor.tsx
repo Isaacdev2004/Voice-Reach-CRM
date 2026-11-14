@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { Modal } from "@/components/crm/modal";
-import { useContacts } from "@/lib/hooks/use-contacts";
+import { useContactDirectory } from "@/lib/hooks/use-contacts";
 import {
   wallTimeToInstant,
   zonedParts,
@@ -36,7 +36,9 @@ export function CalendarEventEditor({
   onClose: () => void;
   onSaved: (message?: string) => void;
 }) {
-  const { contacts, loading, error: contactError } = useContacts();
+  const [selected, setSelected] = useState(item?.contact_id ?? contactId);
+  const [query, setQuery] = useState("");
+  const {contacts,loading,error:contactError}=useContactDirectory(query,selected);
   const start = item
     ? zonedParts(item.starts_at, prefs.timezone)
     : { date, time };
@@ -54,8 +56,6 @@ export function CalendarEventEditor({
       ? (Date.parse(item.ends_at) - Date.parse(item.starts_at)) / 60000
       : prefs.duration,
   );
-  const [selected, setSelected] = useState(item?.contact_id ?? contactId);
-  const [query, setQuery] = useState("");
   const [notes, setNotes] = useState(item?.description ?? "");
   const [link, setLink] = useState(item?.meetingLink ?? "");
   const [recurrence, setRecurrence] = useState("none");

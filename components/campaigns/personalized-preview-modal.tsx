@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Modal } from "@/components/crm/modal";
-import { useContacts } from "@/lib/hooks/use-contacts";
+import { useContactDirectory } from "@/lib/hooks/use-contacts";
 import { safeFetch } from "@/lib/api-response";
 import type { CampaignStep } from "@/lib/crm/types";
 type Preview = {
@@ -24,8 +24,9 @@ export function PersonalizedPreviewModal({
   onClose: () => void;
   steps: CampaignStep[];
 }) {
-  const { contacts, loading } = useContacts();
-  const [contactId, setContactId] = useState("");
+  const [contactId,setContactId]=useState("");
+  const [contactQuery,setContactQuery]=useState("");
+  const {contacts,loading}=useContactDirectory(contactQuery,contactId,[],open);
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -56,9 +57,10 @@ export function PersonalizedPreviewModal({
       description="Review the same subject and body renderer used for delivery. No messages, consent or schedules are changed."
       size="lg"
     >
-      <label className="block text-sm text-taupe">
+      <div className="block text-sm text-taupe">
         Preview for contact
-        <select
+        <input type="search" aria-label="Search preview contacts" value={contactQuery} onChange={e=>setContactQuery(e.target.value)} placeholder="Search all contacts" className="mt-2 w-full rounded-xl border p-2"/>
+        <select aria-label="Preview for contact"
           className="mt-2 w-full rounded-xl border-outline-variant/30"
           value={contactId}
           onChange={(e) => {
@@ -75,7 +77,7 @@ export function PersonalizedPreviewModal({
             </option>
           ))}
         </select>
-      </label>
+      </div>
       <button
         type="button"
         className="cl-button cl-primary mt-3"

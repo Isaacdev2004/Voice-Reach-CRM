@@ -5,6 +5,7 @@ import {DashboardShell} from '../../components/layout/dashboard-shell';
 import {RelationshipProfilePage} from '../../components/pages/stitch/RelationshipProfilePage';
 import {PropertyFinderPage} from '../../components/pages/stitch/PropertyFinderPage';
 import {DEFAULT_SETTINGS} from '../../lib/settings/defaults';
+import {createContactPageHandler} from '../../lib/contacts/page-handler';
 import {contactMetricCounts} from '../../lib/contacts/metrics';
 const w=window;
 w.__owner='owner_a';w.__setOwner=owner=>{w.__owner=owner;window.dispatchEvent(new Event('review:auth'));};
@@ -19,6 +20,7 @@ const response=(data,status=200)=>new Response(JSON.stringify(data),{status,head
 w.fetch=async(input,init={})=>{
  const url=new URL(String(input),location.origin);const method=init.method||'GET';w.__requests.push({path:url.pathname,method});
  const owned=w.__records.filter(record=>record.owner_id===w.__owner);
+ if(url.pathname==='/api/contacts/page'){if(w.__failContacts)return response({success:false},503);return createContactPageHandler({requireOwnerId:async()=>w.__owner,readContacts:async()=>structuredClone(owned),loadCategories:async()=>['Residential','Commercial']})(new Request(url));}
  if(url.pathname==='/api/contacts'&&method==='GET'){
   if(w.__failContacts)return response({success:false,error:'private service detail'},503);
   return response({success:true,complete:true,contacts:structuredClone(owned),total:owned.length,filtered:owned.length,counts:contactMetricCounts(owned),categories:['Residential','Commercial']});

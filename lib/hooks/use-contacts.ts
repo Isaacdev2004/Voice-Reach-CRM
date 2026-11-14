@@ -5,7 +5,7 @@ import type { ContactSegment } from "@/lib/contacts/lifecycle";
 import { useUser } from "@clerk/nextjs";
 import { validateContactSnapshot, type ContactSnapshot } from "@/lib/contacts/validate-snapshot";
 import { CONTACTS_CHANGED } from "@/lib/contacts/change-events";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type ApiContact = {
   id: string;
@@ -59,10 +59,12 @@ export function useContacts(
   query?: string,
   segment: ContactSegment = "all",
   category: string = "all",
+  pagination?: string,
+  enabled=true,
 ) {
   const { user, isLoaded, isSignedIn } = useUser();
   const ownerId = user?.id;
-  const requestKey = JSON.stringify([ownerId, query ?? "", segment, category]);
+  const requestKey = JSON.stringify([ownerId, query ?? "", segment, category, pagination,enabled]);
   const [state, setState] = useState<{ key: string; data: ContactSnapshot | null; loading: boolean; error: string | null }>({ key: "", data: null, loading: true, error: null });
   const sequence = useRef(0);
   const pending = useRef<AbortController | null>(null);
@@ -70,6 +72,7 @@ export function useContacts(
   const refresh = useCallback(async () => {
     const attempt = ++sequence.current;
     pending.current?.abort();
+    if(!enabled){setState({key:requestKey,data:null,loading:false,error:null});return;}
     if (!isLoaded || !isSignedIn || !ownerId) {
       setState({ key: requestKey, data: null, loading: !isLoaded, error: isLoaded ? "Sign in to view your contacts." : null });
       return;
@@ -82,14 +85,14 @@ export function useContacts(
       if (query?.trim()) params.set("q", query.trim());
       if (segment !== "all") params.set("segment", segment);
       if (category !== "all") params.set("category", category);
-      const res = await fetch(`/api/contacts${params.size ? `?${params}` : ""}`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]) });
+      const res = await fetch(pagination !== undefined ? `/api/contacts/page?${pagination}` : `/api/contacts${params.size ? `?${params}` : ""}`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]) });
       if (!res.ok) throw new Error("Contact totals unavailable");
       const data = validateContactSnapshot(await res.json(), { ownerId, requireAll: !query?.trim() && segment === "all" && category === "all" });
       if (attempt === sequence.current) setState({ key: requestKey, data, loading: false, error: null });
     } catch {
       if (attempt === sequence.current) setState({ key: requestKey, data: null, loading: false, error: "Unable to load accurate contact totals. Please retry." });
     }
-  }, [ownerId, isLoaded, isSignedIn, query, segment, category, requestKey]);
+  }, [ownerId, isLoaded, isSignedIn, query, segment, category, pagination, requestKey,enabled]);
 
   useEffect(() => {
     void refresh();
@@ -154,4 +157,16 @@ export function useContact(id: string | undefined) {
   }, [refresh, cancel]);
   const current = state.key === key && isLoaded;
   return { contact: current ? state.contact : null, loading: current ? state.loading : true, error: current ? state.error : null, refresh };
+}
+
+/** Bounded, searchable contact options. Selected/recent records are owner-checked by the server. */
+export function useContactDirectory(query:string,selectedId="",relatedIds:string[]=[],enabled=true) {
+ const [search,setSearch]=useState(query);
+ useEffect(()=>{const timer=setTimeout(()=>setSearch(query),250);return()=>clearTimeout(timer);},[query]);
+ const ids=[...new Set([selectedId,...relatedIds].filter(id=>isUuid(id)))].slice(0,50);
+ const params=new URLSearchParams({picker:"true",search,pageSize:"50"});
+ if(ids.length)params.set("includeIds",ids.join(","));
+ const feed=useContacts(undefined,"all","all",params.toString(),enabled);
+ const contacts=useMemo(()=>[...new Map([...feed.contacts,...(feed.meta?.relatedContacts??[])].map(row=>[row.id,row])).values()],[feed.contacts,feed.meta?.relatedContacts]);
+ return {...feed,contacts};
 }

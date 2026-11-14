@@ -206,7 +206,7 @@ w.fetch = async (input, init = {}) => {
     );
     return response({ deleted: true });
   }
-  if (path === "/api/contacts") {
+  if (path === "/api/contacts" || path === "/api/contacts/page") {
     const contacts =
       owner === "owner_a"
         ? [

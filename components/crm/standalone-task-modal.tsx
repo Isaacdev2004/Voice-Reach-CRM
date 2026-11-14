@@ -1,5 +1,7 @@
 "use client";
 
+import { useContactDirectory } from "@/lib/hooks/use-contacts";
+
 import {
   Modal,
   ModalField,
@@ -9,11 +11,7 @@ import {
 import type { Recurrence } from "@/lib/calendar/google";
 import { useEffect, useState } from "react";
 
-type ContactOption = {
-  id: string;
-  first_name: string;
-  last_name?: string | null;
-};
+
 
 type StandaloneTaskModalProps = {
   open: boolean;
@@ -40,7 +38,9 @@ export function StandaloneTaskModal({ open, onClose, onSaved }: StandaloneTaskMo
   const [notes, setNotes] = useState("");
   const [recurrence, setRecurrence] = useState<Recurrence>("none");
   const [contactId, setContactId] = useState<string>("");
-  const [contacts, setContacts] = useState<ContactOption[]>([]);
+  const [contactQuery,setContactQuery]=useState("");
+  const {contacts}=useContactDirectory(contactQuery,contactId,[],open);
+
   const [addToCalendar, setAddToCalendar] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,14 +55,7 @@ export function StandaloneTaskModal({ open, onClose, onSaved }: StandaloneTaskMo
     setAddToCalendar(true);
     setError(null);
 
-    void fetch("/api/contacts")
-      .then((r) => r.json())
-      .then((data) => {
-        const list = (data.contacts ?? []) as ContactOption[];
-        setContacts(list);
-        // Personal tasks stay unassociated unless the subscriber selects a contact.
-      })
-      .catch(() => setContacts([]));
+    setContactQuery("");
   }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -135,7 +128,8 @@ export function StandaloneTaskModal({ open, onClose, onSaved }: StandaloneTaskMo
         </ModalField>
 
         <ModalField label="Contact">
-          <select
+          <input type="search" aria-label="Search contacts" className={modalInputClass} value={contactQuery} onChange={event=>setContactQuery(event.target.value)} placeholder="Search contacts by name, email or phone" />
+          <select aria-label="Linked contact"
             className={modalInputClass}
             value={contactId}
             onChange={(e) => setContactId(e.target.value)}

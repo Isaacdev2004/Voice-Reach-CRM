@@ -15,6 +15,7 @@ type PropertyFinderClientBarProps = {
   loading?: boolean;
   value: string;
   onChange: (contactId: string) => void;
+  onSearch?: (query:string)=>void;
 };
 
 export function PropertyFinderClientBar({
@@ -22,6 +23,7 @@ export function PropertyFinderClientBar({
   loading = false,
   value,
   onChange,
+  onSearch,
 }: PropertyFinderClientBarProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -68,7 +70,7 @@ export function PropertyFinderClientBar({
   const pick = (id: string) => {
     onChange(id);
     setOpen(false);
-    setQuery("");
+    setQuery("");onSearch?.("");
   };
 
   return (
@@ -152,7 +154,7 @@ export function PropertyFinderClientBar({
             }}
             value={query}
             onChange={(e) => {
-              setQuery(e.target.value);
+              setQuery(e.target.value);onSearch?.(e.target.value);
               setActiveIndex(0);
               if (!open) setOpen(true);
             }}

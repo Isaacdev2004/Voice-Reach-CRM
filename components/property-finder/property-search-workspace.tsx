@@ -13,6 +13,7 @@ export function PropertySearchWorkspace(props: {
   budgetNumber: number | null; budgetError: string | null; searchUrl: string;
   preferencesEditor?: ReactNode; preferenceError?: string | null;
   onSearch?: () => void;
+  onContactSearch?: (query:string)=>void;
   saving: boolean; saveError: string | null; saved: boolean; onSave: () => void;
 }) {
   const { mode, onModeChange } = props;
@@ -27,7 +28,7 @@ export function PropertySearchWorkspace(props: {
       }}><span aria-hidden="true"><Icon name={tab==="properties" ? "search" : "person_outline"} /></span>{tab==="properties" ? "Find Properties" : "Search by Client"}</button>)}
     </div>
     <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-${mode}`}>
-      {mode === "client" ? <div className="pf-client-selector"><PropertyFinderClientBar contacts={props.contacts} loading={props.loading} value={props.selectedId} onChange={props.onSelectContact} /></div> : null}
+      {mode === "client" ? <div className="pf-client-selector"><PropertyFinderClientBar contacts={props.contacts} loading={props.loading} value={props.selectedId} onChange={props.onSelectContact} onSearch={props.onContactSearch} /></div> : null}
       <form className="pf-location-search" onSubmit={event => {event.preventDefault();if (!props.budgetError) {window.open(props.searchUrl,"_blank","noopener,noreferrer");props.onSearch?.();}}}>
         <label className="pf-location-field"><span aria-hidden="true"><Icon name="search" /></span><input id="property-location" type="search" maxLength={200} aria-label="Location, address or ZIP" placeholder="Enter a city, neighborhood, address, or ZIP code…" value={props.area} onChange={event => props.onAreaChange(event.target.value)} /></label>
         <button type="submit" className="pf-primary-button" disabled={Boolean(props.budgetError)}>Search Properties <span aria-hidden="true"><Icon name="arrow_forward" /></span></button>

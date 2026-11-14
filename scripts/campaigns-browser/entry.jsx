@@ -295,7 +295,7 @@ w.fetch = async (input, init = {}) => {
     });
   if (url.pathname === "/api/health")
     return response({ status: "ok", supabase: true, clerk: true });
-  if (url.pathname === "/api/contacts") {
+  if (["/api/contacts","/api/contacts/page","/api/contacts/recipients"].includes(url.pathname)) {
     const contacts =
       w.__owner === "owner_a"
         ? [
@@ -314,6 +314,7 @@ w.fetch = async (input, init = {}) => {
       success: true,
       complete: true,
       contacts,
+      page:1,pages:1,eligibleCount:0,eligibleByCategory:{},
       total: contacts.length,
       filtered: contacts.length,
       counts: {
