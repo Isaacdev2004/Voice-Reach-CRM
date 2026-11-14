@@ -129,6 +129,8 @@ const assert = require("node:assert/strict"),
   data=await(await recipients(recipientRequest({onlyIds:[f.id(90001),rows[0].id]}))).json();
   ok(data.total===1&&data.contacts[0].id===rows[0].id);
   ok((await recipients(recipientRequest({ownerId:"foreign"}))).status===400);
+  data=await(await recipients(recipientRequest({search:"synthetic29999@example.test",nameOnly:true}))).json();ok(data.filtered===0);
+  data=await(await recipients(recipientRequest({search:"Synthetic 29999",nameOnly:true}))).json();ok(data.filtered===1);
   const foreignRecipients=f.load("lib/contacts/recipient-page-handler.ts").createRecipientPageHandler({requireOwnerId:async()=>f.owner,readContacts:async()=>[{...rows[0],owner_id:"foreign"}],loadCategories:async()=>[]});
   ok((await foreignRecipients(recipientRequest({}))).status===503);
   const exports = f.load("lib/contacts/export.ts");

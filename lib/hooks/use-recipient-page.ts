@@ -32,11 +32,11 @@ type Result = {
     eligibleCount: number;
     eligibleByCategory: Record<string, number>;
 };
-export function useRecipientPage(open: boolean, search: string, excludeIds: string[] = [], onlyIds?: string[]) {
+export function useRecipientPage(open: boolean, search: string, excludeIds: string[] = [], onlyIds?: string[], nameOnly=false) {
     const { user, isLoaded, isSignedIn } = useUser();
     const [page, setPage] = useState(1), [version, setVersion] = useState(0), [query, setQuery] = useState(search);
     useEffect(() => { const timer = setTimeout(() => { setQuery(search); setPage(1); }, 250); return () => clearTimeout(timer); }, [search]);
-    const body = JSON.stringify({ search: query, page, excludeIds, ...(onlyIds ? { onlyIds } : {}) });
+    const body = JSON.stringify({ search: query, page, excludeIds, nameOnly, ...(onlyIds ? { onlyIds } : {}) });
     const key = JSON.stringify([open, user?.id, body, version]);
     const [state, setState] = useState<{
         key: string;

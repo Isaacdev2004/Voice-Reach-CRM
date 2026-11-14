@@ -11,7 +11,7 @@
     },
     "policyPaginationExport": {
       "result": "PASS",
-      "checks": 29,
+      "checks": 31,
       "records": 30000,
       "pageRecords": 25
     },
@@ -69,7 +69,8 @@
       ],
       "crossPageSelection": true,
       "allAndCategoryUseFullSetTotals": true,
-      "sendingOrEnrollment": false
+      "sendingOrEnrollment": false,
+      "reviewStatusAcrossFullDataset": true
     },
     "propertyFinderBrowser": {
       "result": "PASS",
@@ -142,7 +143,7 @@
       "rollbackMechanism": "Deliberate final exception rolled back the entire synthetic test transaction"
     }
   },
-  "verifiedAt": "2026-11-14T01:51:17.002344+00:00",
+  "verifiedAt": "2026-11-14T01:58:25.725613+00:00",
   "baseMain": "ce416dd3ef1a8b7c0585bbd5348ab8f605bcb4bd",
   "startingReviewedCommit": "276ed1d6cfc68188638421a60aee4471a464dbeb",
   "configurationAudit": {
