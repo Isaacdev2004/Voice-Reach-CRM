@@ -1,3 +1,4 @@
+import { effectiveContactAllowance } from "@/lib/contacts/allowance";
 import { verifiedUsageCount } from "./usage-count";
 import {
   overageRatesForPlan,
@@ -61,7 +62,7 @@ async function countChannelSends(ownerId: string, channel: "sms" | "email" | "vo
 
 export async function getPlanUsage(ownerId: string): Promise<PlanUsage> {
   const plan = await resolveOwnerPlan(ownerId);
-  const [{ count: contactsUsed }, smsUsed, emailUsed, rvmUsed] = await Promise.all([
+  const [{ count: contactsUsed, error: contactsError }, smsUsed, emailUsed, rvmUsed] = await Promise.all([
     supabaseAdmin
       .from("contacts")
       .select("id", { count: "exact", head: true })
@@ -71,6 +72,7 @@ export async function getPlanUsage(ownerId: string): Promise<PlanUsage> {
     countChannelSends(ownerId, "voicemail"),
   ]);
 
+  if(contactsError||contactsUsed===null||!Number.isSafeInteger(contactsUsed)||contactsUsed<0)throw Error("Contact totals could not be verified. Please retry before adding contacts.");
   const overage = overageRatesForPlan(plan.id);
   const paygSmsCents =
     plan.smsIncluded <= 0
@@ -88,8 +90,8 @@ export async function getPlanUsage(ownerId: string): Promise<PlanUsage> {
   return {
     plan,
     planId: plan.id,
-    contactsUsed: contactsUsed ?? 0,
-    contactsLimit: plan.contactLimit,
+    contactsUsed,
+    contactsLimit: await effectiveContactAllowance(ownerId, plan.contactLimit),
     smsUsed,
     smsIncluded: plan.smsIncluded,
     rvmUsed,
@@ -111,7 +113,7 @@ export async function assertCanAddContacts(ownerId: string, adding = 1) {
     return {
       ok: false as const,
       usage,
-      error: `${usage.plan.name} allows up to ${usage.contactsLimit.toLocaleString()} contacts. You have ${usage.contactsUsed.toLocaleString()}. Upgrade to add more.`,
+      error: `Your workspace allows up to ${usage.contactsLimit.toLocaleString()} contacts. You have ${usage.contactsUsed.toLocaleString()}. Review your contact allowance before adding more.`,
       code: "plan_contact_limit",
     };
   }

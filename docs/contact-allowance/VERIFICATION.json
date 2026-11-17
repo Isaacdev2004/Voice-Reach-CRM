@@ -1,0 +1,189 @@
+{
+  "migration": "supabase/migrations/20261113214613_contact_allowance_override.sql",
+  "sha256": "7f0fc4348fefcb5d1f4534a4d7f0e915808cbc986c2e354c56ebdf7f7b677087",
+  "productionChanged": false,
+  "targetOverrideActivated": false,
+  "tests": {
+    "isolatedDatabase": {
+      "result": "PASS",
+      "checks": 28,
+      "boundaryInsertMs": 4.951782
+    },
+    "policyPaginationExport": {
+      "result": "PASS",
+      "checks": 31,
+      "records": 30000,
+      "pageRecords": 25
+    },
+    "batchImport": {
+      "result": "PASS",
+      "checks": 14
+    },
+    "browser30000": {
+      "result": "PASS",
+      "checks": 22,
+      "viewports": [
+        1440,
+        768,
+        390
+      ],
+      "maxReturned": 25,
+      "serverPageRequests": 15
+    },
+    "existingContactsBrowser": "PASS at 1440/1920/768/390, profile edits/navigation/account switching",
+    "typeScript": "PASS",
+    "unit": "PASS",
+    "lint": "PASS; zero errors, seven existing warnings",
+    "build": "PASS; local webpack cache disabled and NODE_PATH set for temporary build output; no tracked build configuration changes",
+    "security": "PASS",
+    "regressions": "PASS",
+    "multiConnectionPostgres": {
+      "result": "PASS on 3433dc93",
+      "runId": 43511868911,
+      "finalHead": "Required final-head GitHub quota-concurrency run; historical run retained above"
+    },
+    "implementationCI": {
+      "commit": "8999ef940a8db7c5c3480cc929d05e8211997edc",
+      "CI": "PASS",
+      "quotaIsolation": "PASS",
+      "publicLuxuryBaseline": "PASS",
+      "runs": [
+        43512493455,
+        43512493640,
+        43512493460
+      ],
+      "note": "Historical implementation evidence; exact new-head CI is recorded on PR #65."
+    },
+    "identityScript": {
+      "result": "PASS",
+      "checks": 7,
+      "realLiveIdentityVerified": false
+    },
+    "recipientBrowser": {
+      "result": "PASS",
+      "records": 30000,
+      "maxReturned": 50,
+      "viewports": [
+        1440,
+        390
+      ],
+      "crossPageSelection": true,
+      "allAndCategoryUseFullSetTotals": true,
+      "sendingOrEnrollment": false,
+      "reviewStatusAcrossFullDataset": true
+    },
+    "propertyFinderBrowser": {
+      "result": "PASS",
+      "viewports": [
+        1440,
+        1536,
+        1920,
+        768,
+        390
+      ],
+      "restorationAndOwnerSwitching": true
+    },
+    "calendarBrowser": {
+      "result": "PASS",
+      "viewports": [
+        1440,
+        1920,
+        768,
+        390
+      ]
+    },
+    "dashboardBrowser": {
+      "result": "PASS",
+      "viewports": [
+        1440,
+        1920,
+        1280,
+        768,
+        390
+      ]
+    },
+    "campaignLibraryBrowser": {
+      "result": "PASS",
+      "viewports": [
+        1440,
+        1920,
+        768,
+        390
+      ],
+      "personalizedMessagePreview": true,
+      "tenantIsolation": true
+    },
+    "reviewReferralBrowser": {
+      "result": "PASS",
+      "viewports": [
+        1440,
+        1280,
+        768,
+        390
+      ],
+      "noProviderCalls": true
+    }
+  },
+  "hostedPreview": "BLOCKED: no branch-specific Preview binding; available runner combines Development Clerk with Production Supabase and was not used for hosted tests/deployment",
+  "identity": "Live Clerk primary email/workspace memberships pending; no Production override seeded",
+  "scaleLimitations": [
+    "All audited browser contact consumers now use bounded pages/search; legacy GET /api/contacts remains for compatibility but is not called by the audited browser components.",
+    "Server still materializes full owned snapshots in 500-row database batches for accurate existing JS search/consent/filter/count behavior.",
+    "Staging SQL-only realistic-note snapshot was 59,147,394 bytes and took 18,063ms to serialize; authenticated hosted API/export latency remains unverified.",
+    "Large import/export and cross-account hosted acceptance remain BLOCKED pending an isolated credential binding."
+  ],
+  "staging": {
+    "project": "jojgdfpmaxvbhobjrsbm",
+    "migrationVersion": "20261113214613",
+    "applied": true,
+    "rlsEnabledOnAllThreeTables": true,
+    "clientTableAndRpcAccess": false,
+    "serviceRoleAdministrativeRpc": true,
+    "allFunctionsSecurityInvoker": true,
+    "overrideRows": 0,
+    "receiptRows": 0,
+    "auditRows": 0,
+    "productionMigrationApplied": false,
+    "rollbackOnlyScaleTest": {
+      "records": 30000,
+      "seed29900Ms": 4698,
+      "import100Ms": 2632,
+      "duplicates100Ms": 22,
+      "searchMs": 70,
+      "searchMatches": 1,
+      "row30001": "denied",
+      "fullSnapshotJsonMs": 18063,
+      "fullSnapshotBytes": 59147394,
+      "scope": "Actual isolated staging PostgreSQL; not authenticated HTTP, browser or PostgREST timing",
+      "cleanupVerified": {
+        "contacts": 0,
+        "overrides": 0,
+        "audits": 0,
+        "receipts": 0
+      },
+      "rollbackMechanism": "Deliberate final exception rolled back the entire synthetic test transaction"
+    }
+  },
+  "verifiedAt": "2026-11-14T02:02:24.723624+00:00",
+  "baseMain": "ce416dd3ef1a8b7c0585bbd5348ab8f605bcb4bd",
+  "startingReviewedCommit": "276ed1d6cfc68188638421a60aee4471a464dbeb",
+  "configurationAudit": {
+    "branchOverrides": 0,
+    "inheritedProductionAndPreviewCredentialsObserved": [
+      "CLERK_SECRET_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "STRIPE_SECRET_KEY",
+      "TWILIO_AUTH_TOKEN",
+      "RESEND_API_KEY",
+      "SLYBROADCAST_PASSWORD",
+      "CAMPAIGN_RUNNER_SECRET"
+    ],
+    "metadataTruncated": true,
+    "metadataItemsReturned": 100,
+    "metadataItemsOmitted": 940,
+    "secretValuesDecrypted": false,
+    "deploymentCreated": false,
+    "branchAutoDeployDisabled": true
+  },
+  "releaseDecision": "NO-GO: authenticated hosted acceptance, Live identity/membership verification, and hosted large-context latency acceptance remain outstanding."
+}

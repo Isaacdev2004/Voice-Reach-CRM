@@ -17,7 +17,9 @@ export function PropertyFinderSavedSearches({
   loading,
   error,
   onRetry,
+  page=1,pages=1,total,onPage,
 }: {
+  page?:number;pages?:number;total?:number;onPage?:(page:number)=>void;
   contacts: ApiContact[];
   selectedId: string;
   onSelect: (id: string) => void;
@@ -50,7 +52,7 @@ export function PropertyFinderSavedSearches({
             onClick={() => setExpanded((value) => !value)}
             aria-expanded={expanded}
           >
-            {expanded ? "Show fewer" : `View all (${saved.length})`}{" "}
+            {expanded ? "Show fewer" : pages>1 ? `View page (${total??saved.length} total)` : `View all (${saved.length})`}{" "}
             <span aria-hidden="true">→</span>
           </button>
         ) : null}
@@ -121,6 +123,7 @@ export function PropertyFinderSavedSearches({
           })}
         </div>
       )}
+      {pages>1 ? <nav aria-label="Saved search pages"><button type="button" disabled={loading||page<=1} onClick={()=>onPage?.(page-1)}>Previous searches</button><span> Page {page} of {pages} </span><button type="button" disabled={loading||page>=pages} onClick={()=>{setExpanded(true);onPage?.(page+1);}}>Next searches</button></nav>:null}
     </section>
   );
 }

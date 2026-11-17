@@ -1,4 +1,6 @@
 "use client";
+import {useRecipientPage} from "@/lib/hooks/use-recipient-page";
+import {ContactPageControls} from "@/components/crm/contact-page-controls";
 
 import { CompleteConsentInline } from "@/components/crm/complete-consent-inline";
 import {
@@ -7,11 +9,9 @@ import {
 } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
-import { safeFetch } from "@/lib/api-response";
-import { contactMatchesCategory } from "@/lib/contacts/categories";
 import type { ActivateCampaignOptions, CampaignDefinition } from "@/lib/crm/types";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type ContactRow = {
   id: string;
@@ -49,10 +49,6 @@ export function ActivateCampaignModal({
   onConfirm,
   loading,
 }: ActivateCampaignModalProps) {
-  const [contacts, setContacts] = useState<ContactRow[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [loadingContacts, setLoadingContacts] = useState(false);
-  const [contactError, setContactError] = useState<string | null>(null);
   const [enrollMode, setEnrollMode] = useState<"all" | "category" | "selected">("category");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -64,59 +60,21 @@ export function ActivateCampaignModal({
     setSelectedCategory(null);
     setSelectedIds(new Set());
     setSearch("");
-    (async () => {
-      setLoadingContacts(true);
-      setContactError(null);
-      const envelope = await safeFetch<{
-        contacts: ContactRow[];
-        eligibleCount: number;
-        categories?: string[];
-      }>("/api/contacts");
-      setLoadingContacts(false);
-      if (envelope.success) {
-        setContacts(envelope.data.contacts);
-        setCategories(envelope.data.categories ?? ["Residential", "Commercial"]);
-      } else {
-        setContactError(envelope.error);
-      }
-    })();
+
   }, [open]);
 
-  const eligibleContacts = useMemo(
-    () => contacts.filter((c) => c.eligibility.eligible),
-    [contacts],
-  );
-
-  const eligibleByCategory = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const name of categories) {
-      const count = eligibleContacts.filter((c) => contactMatchesCategory(c, name)).length;
-      if (count > 0) counts.set(name, count);
-    }
-    return counts;
-  }, [eligibleContacts, categories]);
-
+  const recipientPage=useRecipientPage(open,search,[]);
+  const contacts=recipientPage.data?.contacts??[];
+  const categories=recipientPage.data?.categories??[];
+  const loadingContacts=recipientPage.loading,contactError=recipientPage.error;
+  const eligibleCount=recipientPage.data?.eligibleCount??0;
+  const totalContacts=recipientPage.data?.total??0;
+  const eligibleByCategory=new Map(Object.entries(recipientPage.data?.eligibleByCategory??{}).filter(([,count])=>count>0));
+  const filteredContacts=contacts;
+  const selectedEligibleCount=selectedIds.size;
   const categoryEligibleCount = selectedCategory
     ? (eligibleByCategory.get(selectedCategory) ?? 0)
     : 0;
-
-  const filteredContacts = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return contacts;
-    return contacts.filter((c) => {
-      const name = `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim().toLowerCase();
-      return (
-        name.includes(q) ||
-        (c.phone ?? "").toLowerCase().includes(q) ||
-        (c.email ?? "").toLowerCase().includes(q)
-      );
-    });
-  }, [contacts, search]);
-
-  const selectedEligibleCount = useMemo(() => {
-    const eligibleIds = new Set(eligibleContacts.map((c) => c.id));
-    return [...selectedIds].filter((id) => eligibleIds.has(id)).length;
-  }, [eligibleContacts, selectedIds]);
 
   const draftSteps = campaign.steps.filter((s) => s.status === "draft").length;
 
@@ -131,7 +89,7 @@ export function ActivateCampaignModal({
   };
 
   const handleContactUpdated = (updated: ContactRow) => {
-    setContacts((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
+    recipientPage.refresh();
     if (updated.eligibility.eligible) {
       setSelectedIds((prev) => new Set(prev).add(updated.id));
       setEnrollMode("selected");
@@ -150,17 +108,16 @@ export function ActivateCampaignModal({
     if (selectedEligibleCount === 0) return;
     onConfirm({
       enrollAllEligible: false,
-      contactIds: [...selectedIds].filter((id) =>
-        eligibleContacts.some((c) => c.id === id),
-      ),
+      contactIds: [...selectedIds],
     });
   };
 
   const primaryDisabled =
     loading ||
+    Boolean(contactError) ||
     campaign.steps.length === 0 ||
     loadingContacts ||
-    (enrollMode === "all" && eligibleContacts.length === 0) ||
+    (enrollMode === "all" && eligibleCount === 0) ||
     (enrollMode === "category" && categoryEligibleCount === 0) ||
     (enrollMode === "selected" && selectedEligibleCount === 0);
 
@@ -232,8 +189,8 @@ export function ActivateCampaignModal({
           ) : (
             <>
               <p className="mt-2 text-[13px] text-slate-text">
-                <strong>{eligibleContacts.length}</strong> eligible of{" "}
-                <strong>{contacts.length}</strong> total contacts. Contacts marked Consent = Yes also
+                <strong>{eligibleCount}</strong> eligible of{" "}
+                <strong>{totalContacts}</strong> total contacts. Contacts marked Consent = Yes also
                 need date, source, and proof.
               </p>
 
@@ -270,7 +227,7 @@ export function ActivateCampaignModal({
                     onChange={() => setEnrollMode("all")}
                     className="accent-rose-gold-deep"
                   />
-                  All eligible ({eligibleContacts.length})
+                  All eligible ({eligibleCount})
                 </label>
                 <label
                   className={cn(
@@ -336,6 +293,7 @@ export function ActivateCampaignModal({
                     placeholder="Search by name, phone, or email"
                     className="w-full rounded-xl border border-outline-variant/20 bg-cream/60 px-4 py-2.5 text-[14px] text-ink outline-none focus:border-rose-gold/50"
                   />
+                  <ContactPageControls page={recipientPage.page} pages={recipientPage.pages} onPage={recipientPage.setPage} loading={loadingContacts}/>
                   <ul className="mt-3 max-h-64 space-y-1 overflow-y-auto">
                     {filteredContacts.length === 0 ? (
                       <li className="py-4 text-center text-[13px] text-taupe">No contacts found</li>
@@ -393,7 +351,7 @@ export function ActivateCampaignModal({
                 </div>
               ) : null}
 
-              {contacts.length === 0 ? (
+              {totalContacts === 0 ? (
                 <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-950">
                   <p className="font-medium">No contacts yet</p>
                   <p className="mt-1 leading-relaxed">
@@ -410,7 +368,7 @@ export function ActivateCampaignModal({
                     <span className="text-taupe">→ Import CSV or + Add contact</span>
                   </div>
                 </div>
-              ) : eligibleContacts.length === 0 ? (
+              ) : eligibleCount === 0 ? (
                 <div className="mt-3 rounded-lg border border-error/20 bg-error/5 px-4 py-3 text-[13px] text-error">
                   <p className="font-medium text-ink">Contacts need full consent before sending</p>
                   <p className="mt-1 leading-relaxed text-slate-text">

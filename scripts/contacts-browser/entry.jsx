@@ -1,3 +1,4 @@
+import {createContactPageHandler} from "../../lib/contacts/page-handler";
 // Isolated, in-memory UI fixtures. No real API requests or database writes are possible here.
 import React from 'react';
 import {createRoot} from 'react-dom/client';
@@ -20,6 +21,10 @@ w.fetch=async(input,init={})=>{
  const url=new URL(String(input),location.origin);const method=init.method||'GET';
  w.__requests.push({path:url.pathname,query:url.search,method});
  const own=w.__records.filter(record=>record.owner_id===w.__owner);
+ if(url.pathname==='/api/contacts/page'&&method==='GET'){
+  if(w.__delay)await new Promise(resolve=>setTimeout(resolve,200));
+  return createContactPageHandler({requireOwnerId:async()=>w.__owner,readContacts:async()=>structuredClone(own),loadCategories:async()=>w.__categories})(new Request(url.href));
+ }
  if(url.pathname==='/api/contacts' && method==='GET'){
   const records=structuredClone(own);if(w.__delay)await new Promise(resolve=>setTimeout(resolve,200));
   return response({success:true,complete:true,contacts:records,total:records.length,filtered:records.length,counts:contactMetricCounts(records),categories:mergeCategoryLists(w.__categories,categoriesUsedOnContacts(records))});
@@ -39,6 +44,7 @@ w.fetch=async(input,init={})=>{
   return response({success:true,categories:w.__categories});
  }
  if(url.pathname==='/api/contacts/import'&&method==='POST'){
+  if(w.__duplicateOnly)return response({success:true,imported:0,duplicates:2,errors:[]});
   const file=init.body.get('file');const text=await file.text();if(!text.includes('CSV Fixture'))return response({success:false,error:'Invalid fixture'},400);
   w.__records.push({id:id(101),owner_id:w.__owner,first_name:'CSV Fixture',phone:'+15555550101',type:'Cold Lead',category:'Residential',consent_records:[]});return response({success:true,imported:1,errors:[]});
  }

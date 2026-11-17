@@ -24,7 +24,7 @@ export function OperationalDashboardPage() {
   return <OwnerDashboard key={user?.id ?? "signed-out"} />;
 }
 function OwnerDashboard() {
-  const { contacts, loading, meta, error } = useContacts();
+  const { contacts, loading, meta, error } = useContacts(undefined,"all","all",new URLSearchParams({pageSize:"1",summary:"true",monthStart:new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString()}).toString());
   const [verifiedSent, setVerifiedSent] = useState<number | null>(null);
   const [campaigns, setCampaigns] = useState<CampaignRow[] | null>(null);
   const [campaignError, setCampaignError] = useState(false);
@@ -84,12 +84,12 @@ function OwnerDashboard() {
 
   const total = meta?.total;
   const activeLeads = meta?.counts?.activeLead ?? 0;
-  const addedThisMonth = contactsAddedThisMonth(contacts);
+  const addedThisMonth = meta?.summary?.addedThisMonth ?? contactsAddedThisMonth(contacts);
   const sentCount = verifiedSent;
   const activeCount = campaigns ? countActiveCampaigns(campaigns) : null;
   const pipelineBudgets = useMemo(
-    () => (loading || error ? null : sumActiveLeadBudgets(contacts)),
-    [loading, contacts, error],
+    () => (loading || error ? null : (meta?.summary?.pipelineBudgets ?? sumActiveLeadBudgets(contacts))),
+    [loading, contacts, error, meta?.summary],
   );
 
   const kpis: DashboardKpi[] = useMemo(() => {

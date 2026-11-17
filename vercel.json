@@ -11,7 +11,8 @@
       "fix/mortgage-pdf-field-overflow": false,
       "fix/settings-brand-pdf-recovery": false,
       "feat/premium-assistant-workspace": false,
-      "feat/notes-writing-studio": false
+      "feat/notes-writing-studio": false,
+      "fix/workspace-contact-allowance": false
     }
   },
   "crons": [

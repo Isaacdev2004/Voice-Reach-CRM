@@ -1,4 +1,6 @@
 "use client";
+import {useRecipientPage,type RecipientOption} from "@/lib/hooks/use-recipient-page";
+import {ContactPageControls} from "@/components/crm/contact-page-controls";
 
 import { Modal, ModalFooterActions } from "@/components/crm/modal";
 import { Icon } from "@/components/ui/icon";
@@ -6,13 +8,9 @@ import { safeFetch } from "@/lib/api-response";
 import { cn } from "@/lib/cn";
 import { useEffect, useMemo, useState } from "react";
 
-type ContactRow = {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone: string | null;
-  email: string | null;
-};
+
+
+const EMPTY_CONTACTS:RecipientOption[]=[];
 
 type ProviderStatus = {
   configured: { voicemail: boolean; sms: boolean; email: boolean };
@@ -43,7 +41,6 @@ export function TestCampaignRunModal({
   enrolledContactIds = [],
   onDone,
 }: TestCampaignRunModalProps) {
-  const [contacts, setContacts] = useState<ContactRow[]>([]);
   const [providers, setProviders] = useState<ProviderStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [running, setRunning] = useState(false);
@@ -81,17 +78,14 @@ export function TestCampaignRunModal({
     setShowEnrolledOnly(enrolledContactIds.length > 0);
     (async () => {
       setLoading(true);
-      const [contactsEnv, providersEnv] = await Promise.all([
-        safeFetch<{ contacts: ContactRow[] }>("/api/contacts"),
-        safeFetch<ProviderStatus>("/api/providers/status"),
-      ]);
+      const providersEnv=await safeFetch<ProviderStatus>("/api/providers/status");
       setLoading(false);
-      if (contactsEnv.success) setContacts(contactsEnv.data.contacts);
-      else setError(contactsEnv.error);
       if (providersEnv.success) setProviders(providersEnv.data);
     })();
   }, [open, enrolledContactIds]);
 
+  const recipientPage=useRecipientPage(open,search,[],showEnrolledOnly?enrolledContactIds:undefined);
+  const contacts=recipientPage.data?.contacts??EMPTY_CONTACTS;
   const listPool = useMemo(() => {
     if (!showEnrolledOnly || enrolledSet.size === 0) return contacts;
     return contacts.filter((c) => enrolledSet.has(c.id));
@@ -306,7 +300,7 @@ export function TestCampaignRunModal({
           </div>
         ) : null}
 
-        {loading ? (
+        {loading||recipientPage.loading ? (
           <p className="text-[13px] text-taupe">Loading contacts…</p>
         ) : (
           <>
@@ -318,6 +312,8 @@ export function TestCampaignRunModal({
                 campaign — pre-selected. You can send without searching again.
               </p>
             ) : null}
+            {recipientPage.error?<p role="alert">{recipientPage.error}</p>:null}
+            <ContactPageControls page={recipientPage.page} pages={recipientPage.pages} onPage={recipientPage.setPage} loading={recipientPage.loading}/>
             <div className="flex flex-wrap gap-2">
               {enrolledContactIds.length > 0 ? (
                 <button

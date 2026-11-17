@@ -15,7 +15,7 @@ import { PropertyPreferencesEditor } from "@/components/property-finder/property
 import { changedPropertyPreferences, parsePropertyPreferences, propertyPreferenceDraft, savedPropertyPreferenceLabels } from "@/lib/property-finder/preferences";
 import { PropertySearchWorkspace } from "@/components/property-finder/property-search-workspace";
 import { Icon } from "@/components/ui/icon";
-import { useContacts } from "@/lib/hooks/use-contacts";
+import { useContacts, useContactDirectory } from "@/lib/hooks/use-contacts";
 import { notifyContactsChanged } from "@/lib/contacts/change-events";
 import { formatUsd } from "@/lib/mortgage/calculate";
 import { RECENT_CONTACTS_STORAGE_KEY } from "@/lib/property-finder/home-ui";
@@ -39,7 +39,6 @@ export function PropertyFinderPage() {
 }
 
 function PropertyFinderWorkspace({ownerId}: {ownerId?:string}) {
-  const {contacts, loading, error, refresh} = useContacts();
   const [mode, setMode] = useState<"properties" | "client">("properties");
   const [selectedId, setSelectedId] = useState("");
   const [recentIds, setRecentIds] = useState<string[]>([]);
@@ -61,6 +60,23 @@ function PropertyFinderWorkspace({ownerId}: {ownerId?:string}) {
   const draftVersion = useRef(0);
   const [historyRevision, setHistoryRevision] = useState(0);
   const [historyError, setHistoryError] = useState(false);
+
+  const [clientQuery,setClientQuery]=useState("");
+  const [initialIds,setInitialIds]=useState<string[]>([]);
+  const [initialReady,setInitialReady]=useState(false);
+  const [savedPage,setSavedPage]=useState(1);
+  const directory=useContactDirectory(clientQuery,selectedId,[...initialIds,...recentIds,...tasks.filter(t=>!t.completed).slice(0,5).flatMap(t=>t.contact_id?[t.contact_id]:[])]);
+  const savedFeed=useContacts(undefined,"all","all",new URLSearchParams({criteriaOnly:"true",pageSize:"24",page:String(savedPage),sort:"name-asc"}).toString());
+  const contacts=useMemo(()=>[...new Map([...directory.contacts,...savedFeed.contacts].map(row=>[row.id,row])).values()],[directory.contacts,savedFeed.contacts]);
+  const {loading,error}=directory;
+  const refresh=async()=>{await Promise.all([directory.refresh(),savedFeed.refresh()]);};
+
+  useEffect(()=>{
+    if(!ownerId)return;
+    try {setInitialIds([new URLSearchParams(window.location.search).get("contactId"),sessionStorage.getItem(`myari:property-client:v1:${ownerId}`)].filter((id):id is string=>Boolean(id)));}
+    catch { /* Client memory is optional when storage is unavailable. */ }
+    finally {setInitialReady(true);}
+  },[ownerId]);
 
   useEffect(() => {
     if (!ownerId) return;
@@ -111,14 +127,14 @@ function PropertyFinderWorkspace({ownerId}: {ownerId?:string}) {
   },[contacts,ownerId]);
 
   useEffect(() => {
-    if (!ownerId || loading || error || restored.current) return;
+    if (!ownerId || !initialReady || loading || error || restored.current) return;
     restored.current = true;
     try {
       const requested = new URLSearchParams(window.location.search).get("contactId");
       const previous = contacts.find(c => c.id === requested) ?? restoredPropertyClient(sessionStorage,ownerId,contacts);
       if (previous) pickContact(previous.id);
     } catch { /* Optional client memory. */ }
-  },[ownerId,loading,error,contacts,pickContact]);
+  },[ownerId,initialReady,loading,error,contacts,pickContact]);
 
   const pickContactAndOpenWorkspace = (id:string) => {
     pickContact(id);
@@ -166,7 +182,7 @@ function PropertyFinderWorkspace({ownerId}: {ownerId?:string}) {
 
   return <div className="property-finder-page property-finder-premium">
     <PropertyFinderHero />
-    <PropertySearchWorkspace mode={mode} onModeChange={setMode} contacts={contacts} loading={loading} selectedId={mode === "client" ? contact?.id ?? "" : ""} onSelectContact={pickContact} area={area} onAreaChange={changeArea} budget={budget} onBudgetChange={changeBudget} budgetNumber={budgetNumber} budgetError={parsedBudget.error} preferenceError={parsedPreferences.error} preferencesEditor={mode === "client" && contact ? <PropertyPreferencesEditor value={preferences} onChange={next => {draftVersion.current += 1;setPreferences(next);setSaved(false);}} error={parsedPreferences.error} /> : null} searchUrl={searchUrl} onSearch={() => void recordAction("search_requested")} saving={saving} saveError={saveError} saved={saved} onSave={() => void saveCriteria()} />
+    <PropertySearchWorkspace mode={mode} onModeChange={setMode} contacts={contacts} loading={loading} selectedId={mode === "client" ? contact?.id ?? "" : ""} onSelectContact={pickContact} onContactSearch={setClientQuery} area={area} onAreaChange={changeArea} budget={budget} onBudgetChange={changeBudget} budgetNumber={budgetNumber} budgetError={parsedBudget.error} preferenceError={parsedPreferences.error} preferencesEditor={mode === "client" && contact ? <PropertyPreferencesEditor value={preferences} onChange={next => {draftVersion.current += 1;setPreferences(next);setSaved(false);}} error={parsedPreferences.error} /> : null} searchUrl={searchUrl} onSearch={() => void recordAction("search_requested")} saving={saving} saveError={saveError} saved={saved} onSave={() => void saveCriteria()} />
     {mode === "client" ? <div className="pf-client-tools">
       {contact ? <section className="pf-client-share" aria-label="Selected client and Zillow sharing"><PropertyLifestyleArt tile={6} className="pf-client-hero-art"/>
         <div><p className="pf-eyebrow">TAILORED TO YOUR CLIENT</p><h2>{contact.first_name} {contact.last_name ?? ""}</h2><p>{area.trim() || "Any area"}{budgetNumber ? ` · up to ${formatUsd(budgetNumber)}` : ""}</p><p className="pf-client-contact">{contact.email || contact.phone || "No contact details on file"}{contact.lead_type || contact.type ? ` · ${contact.lead_type || contact.type}` : ""}</p>{savedPropertyPreferenceLabels(contact).length ? <div className="pf-client-preference-tags">{savedPropertyPreferenceLabels(contact).map(value => <span key={value}>{value}</span>)}</div> : null}<Link href={`/dashboard/contacts/${contact.id}`} className="pf-text-action">Open client profile →</Link></div>
@@ -191,7 +207,7 @@ function PropertyFinderWorkspace({ownerId}: {ownerId?:string}) {
       <details className="pf-recent-disclosure"><summary>Quick pick clients</summary><PropertyFinderRecentContacts contacts={contacts} recentIds={recentIds} selectedId={selectedId} onSelect={pickContact} /></details>
     </div> : null}
     <PropertyFinderActionCards onSearch={()=>{setMode("properties");requestAnimationFrame(()=>{document.getElementById("client-workspace")?.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});document.getElementById("property-location")?.focus({preventScroll:true});});}} />
-    <PropertyFinderSavedSearches contacts={contacts} selectedId={selectedId} onSelect={pickContactAndOpenWorkspace} loading={loading} error={error} onRetry={() => void refresh()} />
+    <PropertyFinderSavedSearches contacts={savedFeed.contacts} selectedId={selectedId} onSelect={pickContactAndOpenWorkspace} loading={savedFeed.loading} error={savedFeed.error} onRetry={() => void savedFeed.refresh()} page={savedFeed.meta?.page??savedPage} pages={savedFeed.meta?.pages??1} total={savedFeed.meta?.filtered} onPage={setSavedPage} />
     <section className="pf-suggestions" aria-labelledby="suggested-properties-heading">
       <div className="pf-section-heading"><div><h2 id="suggested-properties-heading">Suggested properties</h2><p>Your clients&apos; next chapter starts with the right search.</p></div></div>
       <div className="pf-listings-empty"><span className="pf-empty-icon" aria-hidden="true"><Icon name="home_work" /></span><div><h3>Find a home worth a closer look.</h3><p>Explore current listings on Zillow using your area and budget, then share a tailored search with your client.</p></div><a href={searchUrl} aria-disabled={Boolean(parsedBudget.error)} onClick={event => {if (parsedBudget.error) event.preventDefault();else void recordAction("search_requested");}} target="_blank" rel="noopener noreferrer" className="pf-save-button">Search listings <span aria-hidden="true"><Icon name="open_in_new" className="text-[16px]" /></span></a></div>

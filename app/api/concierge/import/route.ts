@@ -1,3 +1,4 @@
+import { effectiveContactAllowance } from "@/lib/contacts/allowance";
 import { z } from "zod";
 import { apiOk } from "@/lib/api-response";
 import { conciergeHandler, ConciergeError } from "@/lib/concierge/access";
@@ -177,7 +178,7 @@ export const POST = conciergeHandler(async (request, owner) => {
   const result = await supabaseAdmin.rpc("execute_concierge_import", {
     p_owner: owner,
     p_import: confirm.id,
-    p_limit: plan.contactLimit,
+    p_limit: await effectiveContactAllowance(owner, plan.contactLimit),
   });
   if (result.error) {
     if (result.error.message.includes("CONTACT_PLAN_LIMIT"))

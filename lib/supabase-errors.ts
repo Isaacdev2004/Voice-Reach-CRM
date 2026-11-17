@@ -21,6 +21,7 @@ export function isDatabaseUnreachableMessage(message: string): boolean {
 export function apiErrorFromSupabase(error: { message: string } | null) {
   if (!error) return null;
   const message = humanizeDatabaseError(error.message);
+  if(message.includes("contact_allowance_exceeded"))return apiError("Your workspace contact allowance has been reached. No additional contacts were added.",{status:403,code:"contact_allowance_exceeded"});
   if (isDatabaseUnreachableMessage(message)) {
     return apiError(message, { status: 503, code: "database_unreachable" });
   }

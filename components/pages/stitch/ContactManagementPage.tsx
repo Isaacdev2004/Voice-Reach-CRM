@@ -65,7 +65,7 @@ function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
     else params.set(key, value);
     if (key === "category") params.delete("market");
     if (key !== "page") params.delete("page");
-    setSelected({});
+    if(key!=="page")setSelected({});
     const url = `/dashboard/contacts${params.size ? `?${params}` : ""}`;
     if (replace) window.history.replaceState(null, "", url); else router.push(url, { scroll: false });
   };
@@ -76,8 +76,6 @@ function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
     ...DEFAULT_CONTACT_CATEGORIES,
   ]);
   const [manageCatsOpen, setManageCatsOpen] = useState(false);
-  const { contacts, loading, error, refresh, meta } = useContacts();
-  const rows: ApiContact[] = contacts;
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [pulse, setPulse] = useState<RelationshipPulseResult | null>(null);
   const [pulseLoading, setPulseLoading] = useState(true);
@@ -107,13 +105,18 @@ function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
     return new Set(lane.contacts.map((c) => c.contactId));
   }, [activePulseLane, pulse]);
 
-  const viewRows = filterWorkspaceContacts(rows, state).filter(contact => !pulseFilterIds || pulseFilterIds.has(contact.id));
-  const viewCounts = contactMetricCounts(viewRows);
-  const sortedRows = sortWorkspaceContacts(viewRows, segment, sort);
-  const pageSize = 25;
-  const pages = Math.max(1, Math.ceil(sortedRows.length / pageSize));
-  const page = Math.min(state.page, pages);
-  const pageRows = sortedRows.slice((page - 1) * pageSize, page * pageSize);
+  const pageParams=new URLSearchParams(Object.entries(state).map(([key,value])=>[key,String(value)]));
+  pageParams.set("pageSize","25");
+  if(pulseFilterIds)pageParams.set("viewIds",[...pulseFilterIds].join(","));
+  const {contacts,loading,error,refresh,meta}=useContacts(undefined,"all","all",pageParams.toString());
+  const rows: ApiContact[]=contacts;
+  const viewCounts=meta?.viewCounts??{all:0,coldLead:0,activeLead:0,pastClient:0};
+  const sortedRows=rows;
+  const matching=meta?.filtered??0;
+  const pageSize=meta?.pageSize??25;
+  const pages=meta?.pages??1;
+  const page=meta?.page??1;
+  const pageRows=rows;
   const previewContact = pageRows.find(c => c.id === previewId) ?? pageRows[0];
   const total = meta?.total;
 
@@ -132,8 +135,8 @@ function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
   });
 
   const selectedIds = useMemo(
-    () => sortedRows.filter(contact => selected[contact.id]).map(contact => contact.id),
-    [selected, sortedRows],
+    () => Object.keys(selected).filter(id=>selected[id]),
+    [selected],
   );
   const allSelected = selectableRows.length > 0 && selectableRows.every(contact => selected[contact.id]);
 
@@ -212,7 +215,7 @@ function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
 
   const counts = meta?.counts;
   const categoryTabs = useMemo(() => mergeCategoryLists([...DEFAULT_CONTACT_CATEGORIES, ...(meta?.categories ?? customCategories)]), [meta?.categories, customCategories]);
-  const typeOptions = Array.from(new Set([...CONTACT_TYPE_OPTIONS.map(option => option.value), ...rows.flatMap(contact => contact.type ? [contact.type] : [])]));
+  const typeOptions = Array.from(new Set([...CONTACT_TYPE_OPTIONS.map(option => option.value), ...(meta?.typeOptions??rows.flatMap(contact => contact.type ? [contact.type] : []))]));
 
   const runBulkCategory = async () => {
     if (selectedIds.length === 0) return;
@@ -334,7 +337,7 @@ function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
           { id: "past", segment: "past-client" as const, label: "Past Clients", value: counts?.pastClient, icon: "verified_user" },
         ].map(kpi => <button key={kpi.id} type="button" className="contacts-metric-button" disabled={loading || Boolean(error)} onClick={() => openMetric(kpi.segment)} aria-label={`${kpi.label}: ${loading ? "loading" : kpi.value ?? "unavailable"}. Show all matching contacts`}><KpiCard id={kpi.id} label={kpi.label} value={loading ? "…" : kpi.value?.toLocaleString() ?? "—"} icon={kpi.icon} compact luxury /></button>)}
       </div>
-      <p className="contacts-metric-scope">Summary: all contacts in your workspace. Tabs below reflect the current filters.</p>
+      <p className="contacts-metric-scope">Summary: all contacts in your workspace. Tabs below reflect the current filters.{meta?.contactsLimit!=null ? ` Allowance: ${meta.total.toLocaleString()} of ${meta.contactsLimit.toLocaleString()} contacts.` : ""}</p>
       <div className="contacts-workspace">
         <div className="contacts-toolbar">
           <div className="contacts-stage-tabs" aria-label="Contact lifecycle">
@@ -350,7 +353,7 @@ function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
           <label>Category<select aria-label="Category" value={category} onChange={event => setCategory(event.target.value)}><option value="all">All</option>{categoryTabs.map(name => <option key={name} value={name}>{name}</option>)}</select></label>
           <label>Type<select aria-label="Type" value={typeFilter} onChange={event => updateFilter("type", event.target.value)}><option value="all">All</option>{typeOptions.map(type => <option key={type} value={type}>{type}</option>)}</select></label>
           <label>Stage<select aria-label="Stage" value={segment} onChange={event => setSegment(event.target.value as ContactSegment)}>{CONTACT_SEGMENT_TABS.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}</select></label>
-          <label>Source<select aria-label="Source" value={sourceFilter} onChange={event => updateFilter("source", event.target.value)}><option value="all">All</option>{Array.from(new Set(rows.flatMap(contact => contact.source ? [contact.source] : []))).sort().map(source => <option key={source} value={source}>{source}</option>)}</select></label>
+          <label>Source<select aria-label="Source" value={sourceFilter} onChange={event => updateFilter("source", event.target.value)}><option value="all">All</option>{(meta?.sourceOptions??Array.from(new Set(rows.flatMap(contact => contact.source ? [contact.source] : [])))).sort().map(source => <option key={source} value={source}>{source}</option>)}</select></label>
           <label>Compliance<select aria-label="Compliance" value={complianceFilter} onChange={event => updateFilter("compliance", event.target.value)}><option value="all">All</option><option value="valid">Consent Valid</option><option value="pending">Pending Review</option><option value="blocked">Blocked</option></select></label>
           <label>Last Activity<select aria-label="Last Activity — recorded outreach or engagement" value={activityFilter} onChange={event => updateFilter("activity", event.target.value)}><option value="all">Any time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="none">Not recorded</option></select></label>
           <label>Sort<select aria-label="Sort" value={sort} onChange={event => setSort(event.target.value as ContactSort)}><option value="name-asc">A–Z</option><option value="name-desc">Z–A</option><option value="recent">Newest</option></select></label>
@@ -603,10 +606,10 @@ function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
       </div>
       {pages > 1 ? <nav aria-label="Contacts pagination" className="flex items-center justify-between gap-3 px-4 py-3">
         <button type="button" disabled={page <= 1} onClick={() => updateFilter("page", String(page - 1))}>Previous</button>
-        <span>Page {page} of {pages} · {sortedRows.length} matching contacts</span>
+        <span>Page {page} of {pages} · {matching} matching contacts</span>
         <button type="button" disabled={page >= pages} onClick={() => updateFilter("page", String(page + 1))}>Next</button>
       </nav> : null}
-      <p role="status" className="contacts-view-count">{loading ? "Loading contact totals…" : error ? "Totals unavailable" : `Showing ${sortedRows.length ? (page - 1) * pageSize + 1 : 0}–${Math.min(page * pageSize, sortedRows.length)} of ${sortedRows.length} matching contacts · ${total} workspace contacts`}</p>
+      <p role="status" className="contacts-view-count">{loading ? "Loading contact totals…" : error ? "Totals unavailable" : `Showing ${matching ? (page - 1) * pageSize + 1 : 0}–${Math.min(page * pageSize, matching)} of ${matching} matching contacts · ${total} workspace contacts`}</p>
       {meta ? <p className="contacts-consent-summary">Consent validated: {loading ? "…" : validated} of {rows.length} loaded contacts · Blocked / DNC: {dncCount}</p> : null}
       </div>
       <details className="contacts-pulse-disclosure"><summary>Relationship Pulse <span>Signals, follow-ups, and existing outreach tools</span></summary>
@@ -626,7 +629,7 @@ function ContactManagementWorkspace({ ownerId }: { ownerId?: string }) {
 
       {headerQuery.trim() && contacts.length > 0 ? (
         <p className="text-[14px] text-taupe">
-          Showing {sortedRows.length} of {total} contacts matching &quot;{headerQuery}&quot;
+          Showing {matching} of {total} contacts matching &quot;{headerQuery}&quot;
         </p>
       ) : null}
 

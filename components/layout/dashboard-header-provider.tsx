@@ -151,7 +151,7 @@ export function DashboardHeaderProvider({
     }
     setSearching(true);
     try {
-      const res = await fetch(`/api/contacts?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/api/contacts/page?pageSize=6&search=${encodeURIComponent(q)}`);
       const data = (await res.json()) as { contacts?: ContactHit[] };
       if (attempt === searchAttempt.current) setContactHits((data.contacts ?? []).slice(0, 6));
     } catch {
