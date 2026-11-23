@@ -97,6 +97,12 @@ w.fetch = async (input, options = {}) => {
       k = w.__owner + ":" + b.campaignId,
       item = db[k];
     if (w.__delay) await new Promise((r) => setTimeout(r, w.__delay));
+    if (w.__mode === "invalidDraft")
+      return failure(
+        "Synthetic draft validation failed",
+        "validation_error",
+        400,
+      );
     if (w.__mode === "offline") throw Error("Synthetic network failure");
     if (w.__mode === "conflict")
       return failure("Newer revision exists", "revision_conflict", 409);

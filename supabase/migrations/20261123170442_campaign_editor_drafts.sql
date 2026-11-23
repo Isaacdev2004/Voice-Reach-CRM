@@ -28,7 +28,7 @@ revoke all on public.campaign_editor_drafts,public.campaign_editor_versions from
 grant select,insert,update on public.campaign_editor_drafts to service_role;
 grant select,insert on public.campaign_editor_versions to service_role;
 
-create function public.save_campaign_editor_draft(p_owner text,p_id uuid,p_expected integer,p_operation uuid,p_snapshot jsonb)
+create function public.save_campaign_editor_draft(p_owner text,p_id uuid,p_expected integer,p_operation uuid,p_snapshot jsonb,p_base_updated_at timestamptz default null)
 returns jsonb language plpgsql security invoker set search_path=public,pg_temp as $$
 declare d public.campaign_editor_drafts; c public.campaigns; v public.campaign_editor_versions; s jsonb; step_id uuid; ids uuid[]='{}'; r integer;
 begin
@@ -42,6 +42,7 @@ begin
     if v.campaign_id<>p_id or v.snapshot<>p_snapshot then raise exception 'idempotency_mismatch'; end if;
     return jsonb_build_object('campaignId',p_id,'revision',v.revision,'snapshot',v.snapshot,'savedAt',v.saved_at);
   end if;
+  if d.revision is null and c.id is not null and (p_base_updated_at is null or c.updated_at is distinct from p_base_updated_at) then raise exception 'revision_conflict'; end if;
   if coalesce(d.revision,0)<>p_expected then raise exception 'revision_conflict'; end if;
   if d.state is not null and d.state<>'draft' then raise exception 'draft_locked'; end if;
   if c.id is not null and (c.status<>'draft' or exists(select 1 from public.campaign_step_runs where campaign_id=p_id)) then raise exception 'revision_required'; end if;
@@ -126,6 +127,6 @@ end $$;
 create trigger protect_campaign_editor_campaign before update or delete on public.campaigns for each row execute function public.protect_campaign_editor_projection();
 create trigger protect_campaign_editor_steps before insert or update or delete on public.campaign_steps for each row execute function public.protect_campaign_editor_projection();
 revoke all on function public.protect_campaign_editor_projection() from public,anon,authenticated;
-revoke all on function public.save_campaign_editor_draft(text,uuid,integer,uuid,jsonb),public.claim_campaign_editor_activation(text,uuid,integer,uuid,jsonb),public.finish_campaign_editor_activation(text,uuid,uuid,jsonb,boolean) from public,anon,authenticated;
-grant execute on function public.save_campaign_editor_draft(text,uuid,integer,uuid,jsonb),public.claim_campaign_editor_activation(text,uuid,integer,uuid,jsonb),public.finish_campaign_editor_activation(text,uuid,uuid,jsonb,boolean) to service_role;
+revoke all on function public.save_campaign_editor_draft(text,uuid,integer,uuid,jsonb,timestamptz),public.claim_campaign_editor_activation(text,uuid,integer,uuid,jsonb),public.finish_campaign_editor_activation(text,uuid,uuid,jsonb,boolean) from public,anon,authenticated;
+grant execute on function public.save_campaign_editor_draft(text,uuid,integer,uuid,jsonb,timestamptz),public.claim_campaign_editor_activation(text,uuid,integer,uuid,jsonb),public.finish_campaign_editor_activation(text,uuid,uuid,jsonb,boolean) to service_role;
 commit;

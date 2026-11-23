@@ -50,14 +50,26 @@ grant select,insert,update on campaigns,campaign_steps,audit_logs to service_rol
       },
     ],
   };
-  const save = (owner, campaign, revision, operation, bp) =>
-    q("select save_campaign_editor_draft($1,$2,$3,$4,$5) result", [
+  const save = async (owner, campaign, revision, operation, bp) => {
+    const baseline =
+      revision === 0
+        ? ((
+            await q(
+              "select updated_at::text as value from campaigns where id=$1",
+              [campaign],
+            )
+          )[0]?.value ?? null)
+        : null;
+    return q("select save_campaign_editor_draft($1,$2,$3,$4,$5,$6) result", [
       owner,
       campaign,
       revision,
       operation,
       JSON.stringify(bp),
+      baseline,
     ]);
+  };
+
   await db.exec("set role service_role");
   let r = await save("A", id(1), 0, id(3), bp);
   ok(r[0].result.revision === 1);
@@ -229,13 +241,58 @@ grant select,insert,update on campaigns,campaign_steps,audit_logs to service_rol
     (await q("select name from campaigns where id=$1", [id(20)]))[0].name ===
       "Existing active",
   );
-  await q("insert into voice_assets(id,owner_id) values($1,'B')",[id(30)]);
-  await db.exec('set role service_role');
-  await denied('select save_campaign_editor_draft($1,$2,3,$3,$4)',['A',id(10),id(31),JSON.stringify({...bp,steps:[{...bp.steps[0],id:id(32),voiceAssetId:id(30)}]})]);
-  await save('A',id(40),0,id(41),{...bp,steps:[{...bp.steps[0],id:'template-step'}]});
-  const projected=(await q('select id from campaign_steps where campaign_id=$1',[id(40)]))[0].id;
-  await save('A',id(40),1,id(42),{...bp,name:'Next edit',steps:[{...bp.steps[0],id:'template-step'}]});
-  ok((await q('select id from campaign_steps where campaign_id=$1',[id(40)]))[0].id===projected);
+  await q("insert into voice_assets(id,owner_id) values($1,'B')", [id(30)]);
+  await db.exec("set role service_role");
+  await denied("select save_campaign_editor_draft($1,$2,3,$3,$4)", [
+    "A",
+    id(10),
+    id(31),
+    JSON.stringify({
+      ...bp,
+      steps: [{ ...bp.steps[0], id: id(32), voiceAssetId: id(30) }],
+    }),
+  ]);
+  await save("A", id(40), 0, id(41), {
+    ...bp,
+    steps: [{ ...bp.steps[0], id: "template-step" }],
+  });
+  const projected = (
+    await q("select id from campaign_steps where campaign_id=$1", [id(40)])
+  )[0].id;
+  await save("A", id(40), 1, id(42), {
+    ...bp,
+    name: "Next edit",
+    steps: [{ ...bp.steps[0], id: "template-step" }],
+  });
+  ok(
+    (await q("select id from campaign_steps where campaign_id=$1", [id(40)]))[0]
+      .id === projected,
+  );
+  await db.exec("reset role");
+  await q(
+    "insert into campaigns(id,owner_id,name,script_id,provider,status) values($1,'A','Transition baseline','original','mock','draft')",
+    [id(50)],
+  );
+  const baselineTime = (
+    await q("select updated_at::text value from campaigns where id=$1", [
+      id(50),
+    ])
+  )[0].value;
+  await q(
+    "update campaigns set name='Saved by legacy tab',updated_at=updated_at+interval '1 second' where id=$1",
+    [id(50)],
+  );
+  await denied("select save_campaign_editor_draft($1,$2,0,$3,$4,$5)", [
+    "A",
+    id(50),
+    id(51),
+    JSON.stringify({ ...bp, steps: [] }),
+    baselineTime,
+  ]);
+  ok(
+    (await q("select name from campaigns where id=$1", [id(50)]))[0].name ===
+      "Saved by legacy tab",
+  );
   await db.close();
   console.log(
     `PASS ${checks} isolated PostgreSQL checks: CAS, replay, ownership, retained step IDs, atomic rollback, history, activation locks, client denials. No hosted data.`,

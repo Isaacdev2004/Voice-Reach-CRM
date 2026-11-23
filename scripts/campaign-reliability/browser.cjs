@@ -167,6 +167,30 @@ const esbuild = require("esbuild");
       () => document.querySelector('[role="status"]').textContent === "Saved",
     );
     checks++;
+    await page.evaluate(() => (window.__mode = "invalidDraft"));
+    await page
+      .getByLabel("Campaign description", { exact: true })
+      .fill("Invalid draft — must remain editable");
+    await page.waitForFunction(
+      () =>
+        document.querySelector('[role="status"]').textContent === "Save Failed",
+    );
+    await page.evaluate(() => (window.__mode = "ok"));
+    await page
+      .getByLabel("Campaign description", { exact: true })
+      .fill("Corrected draft saves the latest text");
+    await page.getByRole("button", { name: "Retry Save Draft" }).click();
+    await page.waitForFunction(
+      () => document.querySelector('[role="status"]').textContent === "Saved",
+    );
+    ok(
+      await page.evaluate(() =>
+        Object.values(JSON.parse(localStorage.getItem("qa-server"))).some(
+          (x) =>
+            x.snapshot.description === "Corrected draft saves the latest text",
+        ),
+      ),
+    );
     await page.evaluate(() => (window.__mode = "conflict"));
     await page
       .getByLabel("Campaign name", { exact: true })

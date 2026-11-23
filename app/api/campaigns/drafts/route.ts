@@ -68,13 +68,17 @@ export const GET = withApiHandler(async (request: Request) => {
 const Body = z.object({
   campaignId: z.string().uuid(),
   expectedRevision: z.number().int().nonnegative(),
+  baseUpdatedAt: z.string().datetime({ offset: true }).nullable().optional(),
   operationId: z.string().uuid(),
   snapshot: DraftSnapshot,
 });
 export const POST = withApiHandler(async (request: Request) => {
   const owner = await requireUserId();
   if (Number(request.headers.get("content-length") || 0) > 1500000)
-    return apiError("Draft too large.", { status: 413 });
+    return apiError("Draft too large.", {
+      status: 413,
+      code: "draft_too_large",
+    });
   const reader = request.body?.getReader(),
     decoder = new TextDecoder();
   let text = "",
@@ -86,14 +90,20 @@ export const POST = withApiHandler(async (request: Request) => {
       size += chunk.value.byteLength;
       if (size > 1500000) {
         await reader.cancel();
-        return apiError("Draft too large.", { status: 413 });
+        return apiError("Draft too large.", {
+          status: 413,
+          code: "draft_too_large",
+        });
       }
       text += decoder.decode(chunk.value, { stream: true });
     }
     text += decoder.decode();
   }
   if (text.length > 1500000)
-    return apiError("Draft too large.", { status: 413 });
+    return apiError("Draft too large.", {
+      status: 413,
+      code: "draft_too_large",
+    });
   const b = Body.parse(JSON.parse(text));
   for (const step of b.snapshot.steps) {
     if (!step.voiceAssetId) continue;
@@ -111,11 +121,19 @@ export const POST = withApiHandler(async (request: Request) => {
     if (!voice.data)
       return apiError("Choose a recording from your own workspace.", {
         status: 400,
+        code: "draft_validation_error",
       });
   }
   for (const s of b.snapshot.steps)
     for (const a of s.attachments ?? [])
-      assertAttachmentOwnership(owner, a.storagePath);
+      try {
+        assertAttachmentOwnership(owner, a.storagePath);
+      } catch {
+        return apiError("Choose an attachment from your own workspace.", {
+          status: 400,
+          code: "draft_validation_error",
+        });
+      }
   const { data, error } = await supabaseAdmin.rpc(
     "save_campaign_editor_draft",
     {
@@ -124,6 +142,7 @@ export const POST = withApiHandler(async (request: Request) => {
       p_expected: b.expectedRevision,
       p_operation: b.operationId,
       p_snapshot: b.snapshot,
+      p_base_updated_at: b.baseUpdatedAt ?? null,
     },
   );
   if (error) {

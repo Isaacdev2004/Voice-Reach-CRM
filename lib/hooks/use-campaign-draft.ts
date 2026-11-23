@@ -19,6 +19,7 @@ export function useCampaignDraft(
   ready: boolean,
   campaign: CampaignDefinition,
   onLoad: (snapshot: CampaignDefinition) => void,
+  baseUpdatedAt?: string | null,
 ) {
   const [state, setState] = useState("Loading draft"),
     [error, setError] = useState(""),
@@ -178,6 +179,7 @@ export function useCampaignDraft(
         body: JSON.stringify({
           campaignId: id,
           expectedRevision: operation.expected,
+          baseUpdatedAt,
           operationId: operation.operationId,
           snapshot: operation.snapshot,
         }),
@@ -187,6 +189,15 @@ export function useCampaignDraft(
           setState("Save Failed");
           setError(response.error);
           if (response.code === "revision_conflict") blocked.current = true;
+          if (
+            [
+              "validation_error",
+              "draft_validation_error",
+              "draft_too_large",
+              "unauthorized",
+            ].includes(response.code ?? "")
+          )
+            pending.current = null;
         }
         throw Error(response.error);
       }
@@ -242,7 +253,7 @@ export function useCampaignDraft(
     // A previous ambiguous save may have completed while the user continued typing.
     if (draftFingerprint(latest.current) !== saved.current) return save();
     return result;
-  }, [owner, hydrated, hydrationKey, ready, id, key]);
+  }, [owner, hydrated, hydrationKey, ready, id, key, baseUpdatedAt]);
   useEffect(() => {
     if (!ready || hydrationKey !== key || !hydrated || !key || !dirty) return;
     try {

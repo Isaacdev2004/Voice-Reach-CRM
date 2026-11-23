@@ -59,6 +59,7 @@ export function CampaignBuilderPage() {
     userId,
   );
   const [newDraftId, setNewDraftId] = useState(() => crypto.randomUUID());
+  const [baseUpdatedAt, setBaseUpdatedAt] = useState<string | null>(null);
   const [baseReady, setBaseReady] = useState(!editId);
   const [activationKey, setActivationKey] = useState(() => crypto.randomUUID());
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -83,6 +84,7 @@ export function CampaignBuilderPage() {
     baseReady && boundOwner === userId,
     campaign,
     setCampaign,
+    baseUpdatedAt,
   );
   useEffect(() => {
     if (boundOwner === userId) return;
@@ -240,6 +242,7 @@ export function CampaignBuilderPage() {
           id: string;
           name: string;
           status: string;
+          updated_at?: string;
           script_id?: string;
           description?: string;
           audience?: string;
@@ -296,6 +299,7 @@ export function CampaignBuilderPage() {
           "Opened a separate draft revision. The original campaign and its history are unchanged.",
         );
       }
+      setBaseUpdatedAt(envelope.data.campaign.updated_at ?? null);
       setCampaign(loaded);
       setDbCampaignId(
         envelope.data.campaign.status === "draft" && !envelope.data.runs?.length
