@@ -8,7 +8,10 @@ export type SavedCampaignTemplate = CampaignDefinition & {
   dbCampaignId?: string;
 };
 
-export function saveTemplateLocally(campaign: CampaignDefinition, dbCampaignId?: string) {
+export function saveTemplateLocally(
+  campaign: CampaignDefinition,
+  dbCampaignId?: string,
+) {
   if (typeof window === "undefined") return;
   const existing: SavedCampaignTemplate[] = JSON.parse(
     localStorage.getItem(TEMPLATES_KEY) || "[]",
@@ -36,37 +39,45 @@ export async function saveCampaignBuilder(
   campaign: CampaignDefinition,
   campaignId?: string | null,
   activateOptions?: ActivateCampaignOptions,
+  saved?: { revision: number; key: string },
 ): Promise<CampaignBuilderResult> {
-  const envelope = await safeFetch<CampaignBuilderResult>("/api/campaigns/builder", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action,
-      campaign: {
-        id: campaign.id,
-        name: campaign.name,
-        description: campaign.description,
-        audience: campaign.audience,
-        durationDays: campaign.durationDays,
-        steps: campaign.steps,
-        goals: campaign.goals,
-      },
-      campaignId: campaignId ?? undefined,
-      contactIds:
-        action === "activate" &&
-        activateOptions &&
-        !activateOptions.enrollAllEligible &&
-        !activateOptions.category
-          ? activateOptions.contactIds
-          : undefined,
-      enrollAllEligible:
-        action === "activate" ? Boolean(activateOptions?.enrollAllEligible) : undefined,
-      category:
-        action === "activate" && activateOptions?.category
-          ? activateOptions.category
-          : undefined,
-    }),
-  });
+  const envelope = await safeFetch<CampaignBuilderResult>(
+    "/api/campaigns/builder",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action,
+        savedRevision: saved?.revision,
+        activationKey: saved?.key,
+        campaign: {
+          id: campaign.id,
+          name: campaign.name,
+          description: campaign.description,
+          audience: campaign.audience,
+          durationDays: campaign.durationDays,
+          steps: campaign.steps,
+          goals: campaign.goals,
+        },
+        campaignId: campaignId ?? undefined,
+        contactIds:
+          action === "activate" &&
+          activateOptions &&
+          !activateOptions.enrollAllEligible &&
+          !activateOptions.category
+            ? activateOptions.contactIds
+            : undefined,
+        enrollAllEligible:
+          action === "activate"
+            ? Boolean(activateOptions?.enrollAllEligible)
+            : undefined,
+        category:
+          action === "activate" && activateOptions?.category
+            ? activateOptions.category
+            : undefined,
+      }),
+    },
+  );
 
   if (envelope.success) return envelope.data;
   if (envelope.code === "no_eligible_contacts" && envelope.details) {

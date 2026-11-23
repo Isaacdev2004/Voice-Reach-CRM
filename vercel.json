@@ -12,7 +12,8 @@
       "fix/settings-brand-pdf-recovery": false,
       "feat/premium-assistant-workspace": false,
       "feat/notes-writing-studio": false,
-      "fix/workspace-contact-allowance": false
+      "fix/workspace-contact-allowance": false,
+      "fix/campaign-draft-reliability": false
     }
   },
   "crons": [
