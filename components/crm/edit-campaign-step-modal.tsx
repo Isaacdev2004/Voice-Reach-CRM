@@ -61,6 +61,7 @@ export function EditCampaignStepModal({
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const latestDraft = useRef<CampaignStep | null>(null);
 
   useEffect(() => {
     if (!open || !step) return;
@@ -83,21 +84,24 @@ export function EditCampaignStepModal({
       ? SMS_MMS_MIME_TYPES.join(",")
       : EMAIL_ATTACHMENT_MIME_TYPES.join(",");
 
-  const emitDraft = (patch: Partial<CampaignStep>) =>
-    onDraftChange?.({
-      ...step,
-      type,
-      title,
-      description,
-      dayLabel: `Day ${Math.max(1, day)}`,
-      delayMinutes:
-        `Day ${Math.max(1, day)}` === step.dayLabel
-          ? step.delayMinutes
-          : undefined,
-      timeLabel,
-      attachments,
-      ...patch,
-    });
+  latestDraft.current = {
+    ...step,
+    type,
+    title,
+    description,
+    dayLabel: `Day ${Math.max(1, day)}`,
+    delayMinutes:
+      `Day ${Math.max(1, day)}` === step.dayLabel
+        ? step.delayMinutes
+        : undefined,
+    timeLabel,
+    attachments,
+  };
+  const emitDraft = (patch: Partial<CampaignStep>) => {
+    const next = { ...latestDraft.current!, ...patch };
+    latestDraft.current = next;
+    onDraftChange?.(next);
+  };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (onDraftChange) {
@@ -145,10 +149,22 @@ export function EditCampaignStepModal({
         file,
         type === "sms" ? "sms" : "email",
       );
+      if (
+        latestDraft.current?.id !== step.id ||
+        latestDraft.current.type !== type
+      ) {
+        setUploadError(
+          "The step changed during upload. Review it before attaching that file.",
+        );
+        return;
+      }
       const next =
         type === "sms"
           ? [uploaded]
-          : [...attachments, uploaded].slice(0, EMAIL_MAX_ATTACHMENTS);
+          : [...(latestDraft.current.attachments ?? []), uploaded].slice(
+              0,
+              EMAIL_MAX_ATTACHMENTS,
+            );
       setAttachments(next);
       emitDraft({ attachments: next });
     } catch (err) {

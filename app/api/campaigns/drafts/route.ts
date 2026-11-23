@@ -75,7 +75,23 @@ export const POST = withApiHandler(async (request: Request) => {
   const owner = await requireUserId();
   if (Number(request.headers.get("content-length") || 0) > 1500000)
     return apiError("Draft too large.", { status: 413 });
-  const text = await request.text();
+  const reader = request.body?.getReader(),
+    decoder = new TextDecoder();
+  let text = "",
+    size = 0;
+  if (reader) {
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      size += chunk.value.byteLength;
+      if (size > 1500000) {
+        await reader.cancel();
+        return apiError("Draft too large.", { status: 413 });
+      }
+      text += decoder.decode(chunk.value, { stream: true });
+    }
+    text += decoder.decode();
+  }
   if (text.length > 1500000)
     return apiError("Draft too large.", { status: 413 });
   const b = Body.parse(JSON.parse(text));

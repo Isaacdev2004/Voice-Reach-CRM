@@ -204,6 +204,34 @@ const esbuild = require("esbuild");
           .textContent()
       ).includes("(3)"),
     );
+    await page.goto(origin + "/dashboard/campaigns?new=1");
+    await page.waitForFunction(
+      () => !document.querySelector("fieldset").disabled,
+    );
+    await page.evaluate(() => (window.__mode = "offline"));
+    await page
+      .getByLabel("Campaign name", { exact: true })
+      .fill("First save failed — recover after refresh");
+    await page.waitForFunction(
+      () =>
+        document.querySelector('[role="status"]').textContent === "Save Failed",
+    );
+    await page.reload();
+    await page
+      .getByRole("button", { name: "Restore local edits into this draft" })
+      .waitFor();
+    await page
+      .getByRole("button", { name: "Restore local edits into this draft" })
+      .click();
+    await page.waitForFunction(
+      () =>
+        document.querySelector('input[aria-label="Campaign name"]').value ===
+        "First save failed — recover after refresh",
+    );
+    await page.waitForFunction(
+      () => document.querySelector('[role="status"]').textContent === "Saved",
+    );
+    checks++;
     await page.goto(origin + "/dashboard/campaigns");
     await page.waitForFunction(
       () => !document.querySelector("fieldset").disabled,
@@ -314,12 +342,34 @@ const esbuild = require("esbuild");
         ),
       ),
     );
+    await page
+      .getByRole("dialog")
+      .locator("input[type=file]")
+      .setInputFiles({
+        name: "qa.txt",
+        mimeType: "text/plain",
+        buffer: Buffer.from("test"),
+      });
+    await page
+      .getByRole("dialog")
+      .locator("textarea")
+      .fill("Typing during upload must survive");
+    await page.waitForFunction(() =>
+      Object.values(JSON.parse(localStorage.getItem("qa-server"))).some((x) =>
+        x.snapshot.steps.some(
+          (s) =>
+            s.description === "Typing during upload must survive" &&
+            s.attachments?.length === 1,
+        ),
+      ),
+    );
+    checks++;
     await page.keyboard.press("Escape");
     ok(
       await page.evaluate(() =>
         Object.values(JSON.parse(localStorage.getItem("qa-server"))).some((x) =>
           x.snapshot.steps.some(
-            (s) => s.description === "Modal typing is saved before Done",
+            (s) => s.description === "Typing during upload must survive",
           ),
         ),
       ),

@@ -90,6 +90,11 @@ const esbuild = require("esbuild"),
     400,
   );
   checks++;
+  assert.equal(
+    (await POST(request({ ...b, padding: "x".repeat(1500001) }))).status,
+    413,
+  );
+  checks++;
   fs.unlinkSync(output);
   console.log(
     `PASS ${checks} actual route checks with synthetic auth/database: signed-out denial, session-derived owner, empty/incomplete draft saves, conflicts, safe errors and scoped reads.`,

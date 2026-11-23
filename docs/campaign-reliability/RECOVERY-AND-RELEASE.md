@@ -15,7 +15,7 @@ No browser tool/session is available to inspect the founder's Mac. Do not claim 
 3. Alternatively, review then run `scripts/campaign-reliability/browser-recovery.js` in that page's DevTools Console. It reads only that key and downloads a private JSON file. It makes no API requests and does not write/clear storage. Do not enable browser paste protections blindly; review the source first.
 4. Inspect the actual descriptions/messages and `savedAt` fields. An attachment or campaign title alone does not establish recovery. The legacy key was not account-scoped, so inspect privately and do not share other users' text.
 
-The new editor never reads, migrates or overwrites that legacy key. It uses account/draft/session-scoped recovery files, retains failed edits, and offers explicit restoration. Separate tab files avoid one tab overwriting another's recovery copy. Confirmed local saves are marked; no local files are automatically deleted. Storage can be unavailable, exhausted, cleared by the user or lost in private browsing; server revisions remain the primary durable source.
+The new editor never reads, migrates or overwrites that legacy key. It retains an account-scoped pointer so a new draft whose first save fails is discoverable after refresh. It uses account/draft/session-scoped recovery files, retains failed edits, and offers explicit restoration. Separate tab files avoid one tab overwriting another's recovery copy. Confirmed local saves are marked; no local files are automatically deleted. Storage can be unavailable, exhausted, cleared by the user or lost in private browsing; server revisions remain the primary durable source.
 
 ## Implementation
 

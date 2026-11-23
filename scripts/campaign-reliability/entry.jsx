@@ -25,10 +25,26 @@ w.fetch = async (input, options = {}) => {
   w.__requests.push({
     path: url.pathname,
     method,
-    body: options.body ? JSON.parse(options.body) : undefined,
+    body:
+      typeof options.body === "string" ? JSON.parse(options.body) : undefined,
   });
   if (w.__mode === "expired")
     return failure("Sign in required", "unauthorized", 401);
+  if (url.pathname === "/api/campaign-attachments/signed-upload")
+    return success({
+      attachment: {
+        id: "synthetic-file",
+        storagePath: w.__owner + "/attachments/qa.txt",
+        fileName: "qa.txt",
+        mimeType: "text/plain",
+        sizeBytes: 4,
+      },
+      signedUrl: location.origin + "/qa-upload",
+    });
+  if (url.pathname === "/qa-upload") {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return new Response(null, { status: 200 });
+  }
   if (url.pathname === "/api/voice-assets") return reply({ voiceAssets: [] });
   if (url.pathname === "/api/contacts/recipients")
     return reply({

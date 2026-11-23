@@ -94,6 +94,21 @@ export function CampaignBuilderPage() {
     setActivateOpen(false);
     setBoundOwner(userId);
   }, [userId, boundOwner, editId]);
+  const recoveryOwner = useRef<string | null>(null);
+  useEffect(() => {
+    if (!userId || recoveryOwner.current === userId) return;
+    recoveryOwner.current = userId;
+    if (editId || searchParams.get("new") || searchParams.get("premium"))
+      return;
+    try {
+      const pending = localStorage.getItem(
+        `myari:last-campaign-editor:${userId}`,
+      );
+      if (pending && /^[0-9a-f-]{36}$/i.test(pending)) setNewDraftId(pending);
+    } catch {
+      /* No storage is modified during recovery discovery. */
+    }
+  }, [userId, editId, searchParams]);
   const loadedEditorRef = useRef({ id: newDraftId, ready: baseReady });
   loadedEditorRef.current = { id: newDraftId, ready: baseReady };
   const draftDirtyRef = useRef(false);
@@ -153,8 +168,9 @@ export function CampaignBuilderPage() {
     setActivationKey(crypto.randomUUID());
     setCampaign(createBlankCampaign());
     setDbCampaignId(null);
+    router.replace("/dashboard/campaigns#campaign-builder", { scroll: false });
     setCampaignStatus("editing");
-  }, []);
+  }, [router]);
 
   const loadSampleTemplate = useCallback(
     (templateKey = "cold-lead-reengage") => {
@@ -172,12 +188,15 @@ export function CampaignBuilderPage() {
       if (!next) return;
       setCampaign(next);
       setDbCampaignId(null);
+      router.replace("/dashboard/campaigns#campaign-builder", {
+        scroll: false,
+      });
       setCampaignStatus("editing");
       showToast(
         `“${next.name}” template loaded - edit steps, then save or activate.`,
       );
     },
-    [],
+    [router],
   );
 
   useEffect(() => {

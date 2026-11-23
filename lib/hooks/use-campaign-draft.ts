@@ -259,13 +259,18 @@ export function useCampaignDraft(
         "Local recovery storage unavailable. Keep this tab open until the server save succeeds.",
       );
     }
+    try {
+      localStorage.setItem(`myari:last-campaign-editor:${owner}`, id);
+    } catch {
+      /* Recovery file remains intact. */
+    }
     if (blocked.current) return;
     setState("Unsaved changes");
     const timer = setTimeout(() => {
       void save().catch(() => {});
     }, 1200);
     return () => clearTimeout(timer);
-  }, [campaign, dirty, hydrated, hydrationKey, ready, key, save]);
+  }, [campaign, dirty, hydrated, hydrationKey, ready, key, save, owner, id]);
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
       if (dirty || busy.current) {
