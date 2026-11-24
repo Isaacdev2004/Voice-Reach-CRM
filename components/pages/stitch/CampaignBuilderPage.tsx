@@ -281,10 +281,10 @@ export function CampaignBuilderPage() {
           goals: envelope.data.campaign.goals ?? [],
         },
       );
-      loaded.steps = dbStepsToCampaignSteps(
+      loaded.steps = reorderSteps(dbStepsToCampaignSteps(
         envelope.data.steps,
         currentVoiceLookup.current,
-      );
+      ));
       if (
         envelope.data.campaign.status !== "draft" ||
         !!envelope.data.runs?.length
@@ -296,7 +296,7 @@ export function CampaignBuilderPage() {
         }));
         loaded.name += " (revision)";
         showToast(
-          "Opened a separate draft revision. The original campaign and its history are unchanged.",
+          "Opened a separate draft revision. Saving creates a new draft; the original campaign stays unchanged.",
         );
       }
       setBaseUpdatedAt(envelope.data.campaign.updated_at ?? null);

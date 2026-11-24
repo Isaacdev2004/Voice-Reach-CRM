@@ -1,3 +1,4 @@
+import { SUBSCRIBER_BRAND_PATHS } from "@/lib/messaging/subscriber-brands";
 import { FEATURE_PAGE_SLUGS, FEATURE_PAGES } from "@/lib/seo/feature-pages";
 import { RESOURCE_ARTICLE_SLUGS, RESOURCE_ARTICLES } from "@/lib/seo/resource-articles";
 
@@ -34,6 +35,7 @@ export const INDEXABLE_PATHS = [
   ...FEATURE_PATHS,
   ...RESOURCE_PATHS,
   ...LEGAL_PATHS,
+  ...SUBSCRIBER_BRAND_PATHS,
 ] as const;
 
 export type IndexablePath = (typeof INDEXABLE_PATHS)[number];

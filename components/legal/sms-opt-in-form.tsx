@@ -4,7 +4,12 @@ import Link from "next/link";
 import { useState } from "react";
 import { LEGAL_ENTITY } from "@/lib/legal/company";
 
-export function SmsOptInForm() {
+type SmsOptInFormProps = {
+  /** Message program / legal sender name shown in the disclosure. */
+  programName?: string;
+};
+
+export function SmsOptInForm({ programName = LEGAL_ENTITY }: SmsOptInFormProps) {
   const [agreed, setAgreed] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
 
@@ -20,7 +25,7 @@ export function SmsOptInForm() {
     >
       <h2 className="font-serif text-[22px] font-semibold text-ink">SMS opt-in</h2>
       <p>
-        Program: {LEGAL_ENTITY}. This box starts unchecked. No text is sent unless you check it
+        Program: {programName}. This box starts unchecked. No text is sent unless you check it
         and choose Save SMS consent.
       </p>
       <label className="block">
@@ -46,7 +51,7 @@ export function SmsOptInForm() {
           }}
         />
         <span>
-          I agree to receive SMS messages from {LEGAL_ENTITY} about appointments, listings, and
+          I agree to receive SMS messages from {programName} about appointments, listings, and
           follow-ups. Message frequency varies. Message and data rates may apply. Reply STOP to
           opt out. Reply HELP for help. See the{" "}
           <Link href="/privacy" className="text-rose-gold-deep underline">
