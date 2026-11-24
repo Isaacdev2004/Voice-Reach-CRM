@@ -2,6 +2,7 @@
 import { templateDraft } from "@/lib/notes/template-draft";
 import { useStudioLayout } from "@/components/notes/use-studio-layout";
 import Link from "next/link";
+import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -468,11 +469,11 @@ function NotesWorkspace({ owner }: { owner: string }) {
   );
   return (
     <div className="notes-premium notes-writing-studio" data-focus-mode={studio.focus}>
-      <header className="notes-studio-heading"><div><p>YOUR PRIVATE WRITING STUDIO</p><h1>Notes &amp; Strategy</h1><span>Space to think. Clarity for your next move.</span></div><div className="notes-studio-actions">
-        <button onClick={() => void open()}>Create New Note</button>
-        <button disabled={w.mode === "read-only"} onClick={() => setPanel("templates")}>Choose Template</button>
-        {emptyEditor && <button className={studio.focus ? "notes-primary" : ""} aria-pressed={studio.focus} onClick={studio.toggleFocus}>{studio.focus ? "Exit Focus Mode" : "Focus Mode"}</button>}
-      </div></header>
+      <header className="notes-studio-heading notes-studio-hero">
+        <Image src="/brand/heroes/notes-botanical-office.png" alt="A naturally lit coastal writing desk with limestone and greenery" fill sizes="(max-width: 700px) 100vw, 1400px" quality={75} priority/>
+        <div className="notes-studio-hero-copy"><p>NOTES &amp; STRATEGY</p><h1>Notes &amp; Strategy</h1><h2>Your ideas, plans and client strategy—all in one place.</h2><span>Capture your thoughts, organize your relationships, and turn your next great idea into action.</span></div>
+        {emptyEditor && <div className="notes-studio-actions"><button aria-pressed={studio.focus} onClick={studio.toggleFocus}>{studio.focus ? "Exit Focus Mode" : "Focus Mode"}</button></div>}
+      </header>
       <div className="notes-studio-edges" aria-label="Writing studio drawers">
         <button id="notes-toggle-library" aria-controls="notes-library-panel" aria-expanded={studio.library} onClick={() => studio.toggle("library")}><Icon name="view_sidebar"/>{studio.library ? "Hide Notes Library" : "My Notes Library"}</button>
         <span>{studio.focus ? "Focus Mode · your words, uninterrupted" : "Your note is the centerpiece"}</span>
@@ -734,7 +735,8 @@ function NotesWorkspace({ owner }: { owner: string }) {
                 </button>
               </div>
             </div>
-            <input
+            <textarea
+              rows={2}
               className="notes-title"
               aria-label="Note title"
               placeholder="Give your idea a title…"
@@ -899,10 +901,32 @@ function NotesWorkspace({ owner }: { owner: string }) {
               </span>
             </div>
           </header>
-          <div className="notes-format-toolbar">
-            <button disabled={w.mode === "read-only"} onClick={() => setPanel("templates")}>Templates</button>
+          <div className="notes-writing-actions" aria-label="Writing actions">
+            <button onClick={() => void open()}>New Note</button>
+            <button className="notes-primary" disabled={busy} onClick={() => void w.save()}>Save now</button>
+            <button disabled={w.mode === "read-only"} onClick={() => setPanel("templates")}>Choose Template</button>
             <button aria-pressed={studio.focus} onClick={studio.toggleFocus}>{studio.focus ? "Exit Focus Mode" : "Focus Mode"}</button>
-            <button aria-label="Bold" onClick={() => format("**", "**")}>
+            <button
+              disabled={!advanced}
+              aria-label="Dictate"
+              className="notes-dictate"
+              onClick={() => setPanel("dictation")}
+            >
+              <Icon name="mic" />
+              Dictate
+            </button>
+            <button
+              aria-label="AI Assist"
+              onClick={() => {
+                setAiSource(draft.body);
+                setPanel("ai");
+              }}
+            >
+              <Icon name="auto_awesome" />
+              AI Assist
+            </button>
+          </div>
+          <div className="notes-format-toolbar" aria-label="Text formatting">            <button aria-label="Bold" onClick={() => format("**", "**")}>
               <b>B</b>
             </button>
             <button aria-label="Italic" onClick={() => format("*", "*")}>
@@ -931,25 +955,6 @@ function NotesWorkspace({ owner }: { owner: string }) {
               }}
             >
               @
-            </button>
-            <button
-              disabled={!advanced}
-              aria-label="Dictate"
-              className="notes-dictate"
-              onClick={() => setPanel("dictation")}
-            >
-              <Icon name="mic" />
-              Dictate
-            </button>
-            <button
-              aria-label="AI Assist"
-              onClick={() => {
-                setAiSource(draft.body);
-                setPanel("ai");
-              }}
-            >
-              <Icon name="auto_awesome" />
-              AI Assist
             </button>
           </div>
           <div className="notes-editor-mode">
@@ -1032,9 +1037,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
             >
               Selection → task
             </button>
-            <button disabled={busy} onClick={() => void w.save()}>
-              Save now
-            </button>
+
             <button
               disabled={!draft.id}
               onClick={() => setPanel("delete")}
@@ -1054,7 +1057,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
           <div className="notes-drawer-heading"><div><span className="notes-studio-kicker">YOUR CONTEXTUAL WORKSPACE</span><h2>AI Realtor Planner</h2></div><button id="notes-close-planner" aria-label="Close AI Realtor Planner" onClick={() => studio.close("planner")}>×</button></div>
           <div className="notes-planner-actions"><button onClick={studio.expandPlanner}>{studio.expanded ? "Return to drawer" : "Expand planning view"}</button><button onClick={() => void open()}>Add Note</button><button disabled={!draft.body.trim()} onClick={() => {setAiSource(draft.body);setPanel("ai");}}>Review AI suggestions</button></div>
           <p className="notes-drawer-intro">Actual records and reviewable suggestions. Creating a task or campaign always requires your approval.</p>
-          <section className="notes-surface">
+          <section className="notes-planning-horizon">
             <RealtorPlanner
               readOnly={!advanced || emptyEditor}
               templatesAvailable={w.mode !== "read-only"}
@@ -1201,7 +1204,7 @@ function NotesWorkspace({ owner }: { owner: string }) {
                 >
                   <Icon name="auto_stories" />
                   <strong>{t[0]}</strong>
-                  <span>Use template →</span>
+                  <span className="notes-template-excerpt">{t[2].slice(0,180)}{t[2].length > 180 ? "…" : ""}</span><span>Use template →</span>
                 </button>
               ))}
               <button
