@@ -29,6 +29,7 @@ export const PUBLIC_ROUTE_PATTERNS = [
   "/sign-up(.*)",
   "/checkout(.*)",
   "/sms-consent",
+  "/b(.*)",
   "/privacy",
   "/terms",
   "/tcpa-consent",

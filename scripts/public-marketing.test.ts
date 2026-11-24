@@ -43,9 +43,13 @@ for (const href of INDEXABLE_PATHS) {
   assert.ok(
     existsSync(file) ||
       href.startsWith("/features/") ||
-      href.startsWith("/resources/"),
+      href.startsWith("/resources/") ||
+      href.startsWith("/b/"),
     `Missing route: ${href}`,
   );
+  if (href.startsWith("/b/")) {
+    assert.ok(existsSync("app/b/[slug]/page.tsx"), "Missing subscriber brand route");
+  }
 }
 console.log(
   `Public marketing: ${links.length} navigation/footer destinations and ${INDEXABLE_PATHS.length} indexable routes valid; metadata, image files, feature coverage and unchanged trial source verified.`,
