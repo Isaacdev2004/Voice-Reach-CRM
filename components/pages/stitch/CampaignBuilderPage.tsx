@@ -39,7 +39,7 @@ import type {
 } from "@/lib/crm/types";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Toast = { message: string; tone: "success" | "error" };
 
@@ -79,6 +79,8 @@ export function CampaignBuilderPage() {
     }
     return map;
   }, [voiceAssets]);
+  const voiceLookupRef = useRef(voiceLookup);
+  voiceLookupRef.current = voiceLookup;
 
   const durationDays = useMemo(
     () => campaignDurationFromSteps(campaign.steps),
@@ -170,7 +172,10 @@ export function CampaignBuilderPage() {
           goals: envelope.data.campaign.goals ?? [],
         },
       );
-      loaded.steps = dbStepsToCampaignSteps(envelope.data.steps, voiceLookup);
+      // Use ref so voice-asset reloads do not re-fetch and wipe in-progress edits.
+      loaded.steps = reorderSteps(
+        dbStepsToCampaignSteps(envelope.data.steps, voiceLookupRef.current),
+      );
       if (
         envelope.data.campaign.status !== "draft" ||
         !!envelope.data.runs?.length
@@ -178,7 +183,7 @@ export function CampaignBuilderPage() {
         loaded.id = `revision-${crypto.randomUUID()}`;
         loaded.name += " (revision)";
         showToast(
-          "Opened a separate draft revision. The original campaign and its history are unchanged.",
+          "Opened a separate draft revision. Saving creates a new draft; the original campaign stays unchanged.",
         );
       }
       setCampaign(loaded);
@@ -193,7 +198,7 @@ export function CampaignBuilderPage() {
     return () => {
       cancelled = true;
     };
-  }, [editId, resetToNewCampaign, router, searchParams, voiceLookup]);
+  }, [editId, resetToNewCampaign, router, searchParams]);
 
   useEffect(() => {
     if (!voiceLookup.size) return;
@@ -290,10 +295,9 @@ export function CampaignBuilderPage() {
       showToast(result.message || "Template saved successfully.");
     } catch (err) {
       saveTemplateLocally(campaign, dbCampaignId ?? undefined);
+      const detail = err instanceof Error ? err.message : "Cloud save failed";
       showToast(
-        err instanceof Error
-          ? `${err.message} - saved locally on this device.`
-          : "Saved locally on this device.",
+        `${detail} Cloud save failed — local backup only on this device (not shared library).`,
         "error",
       );
     } finally {
