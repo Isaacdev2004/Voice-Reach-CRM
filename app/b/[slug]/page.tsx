@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { LegalPageShell } from "@/components/legal/legal-page-shell";
 import { SmsOptInForm } from "@/components/legal/sms-opt-in-form";
 import { LEGAL_RELATED } from "@/lib/legal/links";
+import { BRAND_NAME } from "@/lib/brand";
 import {
   getSubscriberBrand,
   SUBSCRIBER_BRAND_SLUGS,
@@ -92,8 +93,8 @@ export default async function SubscriberBrandPage({ params }: PageProps) {
           </li>
           <li>
             <strong>Verbal consent:</strong> an agent may collect verbal opt-in on a recorded or
-            documented call. Consent date, source, and proof reference are stored in ARI before
-            any SMS is sent.
+            documented call. Consent date, source, and proof reference are stored in {BRAND_NAME}{" "}
+            before any SMS is sent.
           </li>
           <li>
             <strong>Written / lead-form consent:</strong> inbound leads from websites or partner
@@ -147,9 +148,9 @@ export default async function SubscriberBrandPage({ params }: PageProps) {
 
         <h2 className="pt-2 font-serif text-[22px] font-semibold text-ink">Record keeping</h2>
         <p>
-          ARI stores consent status, consent date, consent source, and proof reference on the
-          contact record. Campaigns will not enroll a contact for SMS unless consent is documented
-          as Yes with those fields completed. Platform privacy terms:{" "}
+          {BRAND_NAME} stores consent status, consent date, consent source, and proof reference on
+          the contact record. Campaigns will not enroll a contact for SMS unless consent is
+          documented as Yes with those fields completed. Platform privacy terms:{" "}
           <Link href="/privacy" className="text-rose-gold-deep underline">
             Privacy policy
           </Link>
