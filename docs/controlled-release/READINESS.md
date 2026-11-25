@@ -11,3 +11,11 @@ Disabled-infrastructure merge assessment: the new SMS transport replaces the leg
 Rollback: keep all durable suppressions, webhook receipts, sender assignments, audits and encrypted credentials; do not restore a shared-sender bypass. Disable managed feature/webhook access through verified controls or use a reviewed forward fix. Do not delete numbers, release subaccounts or remove compliance evidence. No outbound or provider changes were made.
 
 Keep #58 open until #64 equivalence is verified and the consolidated release is complete; then document its replacement before closure.
+
+## Disabled release compatibility — November 25 follow-up
+
+17 new actual-route/service checks PASS with both absent and false managed flags. The ISV database adapter deliberately throws on every query; disabled Setup GET/POST returns 404, managed inbound/delivery returns 503, prepareSms rejects, outbound authorization is paused, and the existing legacy webhook route is preserved. Zero database/provider calls occurred. This proves absent ISV tables do not themselves prevent an infrastructure-only release when all entry gates are verified off. It does not verify effective Production values or live legacy messaging.
+
+Required disabled runtime configuration: MANAGED_MESSAGING_SETUP_ENABLED=false, MANAGED_SMS_REGISTRATION_ENABLED=false, MANAGED_SMS_PILOT_ENABLED=false, MANAGED_SMS_WEBHOOKS_ENABLED=false and ALLOW_LIVE_OUTBOUND=false. Do not clear existing owner lists/credentials. Independent runtime inventory and repository approval verification remain necessary before merge. Provider A2P approval is required for activation, not for code that remains verifiably disabled.
+
+Read-only hosted preflight found inbound_communications and communication_suppressions absent in both staging and Production. The existing reviewed prerequisite is supabase/migrations/20261026020000_inbound_communications.sql; its grant/function scope requires explicit Production review rather than blind replay. This must precede the ISV schema before activation. A hosted rollback-only rehearsal was interrupted without an execution result; it is NOT PASS. The available read-only post-check showed no persistent ISV or prerequisite objects. No Production SQL was attempted.

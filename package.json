@@ -70,7 +70,7 @@
     "test:campaign-reliability": "node scripts/campaign-reliability/database.cjs && node scripts/campaign-reliability/api.cjs",
     "test:campaign-reliability-browser": "node scripts/campaign-reliability/browser.cjs",
     "test:managed-messaging": "node scripts/managed-messaging.test.cjs",
-    "test:isv": "node --import tsx scripts/isv-credentials.test.ts && node --import tsx scripts/a2p-readiness.test.ts && node scripts/isv-services.test.cjs",
+    "test:isv": "node --import tsx scripts/isv-credentials.test.ts && node --import tsx scripts/a2p-readiness.test.ts && node scripts/isv-services.test.cjs && node scripts/isv-disabled-release.test.cjs",
     "test:isv-db": "node scripts/isv-database.test.cjs",
     "test:isv-browser": "node scripts/isv-registration-browser.cjs"
   },
