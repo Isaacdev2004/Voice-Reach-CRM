@@ -1,0 +1,52 @@
+{
+  "main": "ce416dd3ef1a8b7c0585bbd5348ab8f605bcb4bd",
+  "reusedPR58": "1a5280e83f86a1740aa7620e93d61ef3196e4238",
+  "migration": "supabase/migrations/20261113201305_isv_sms_infrastructure.sql",
+  "migrationSha256": "e07661415fa2fe6c0c057ee4bb33240c0d8ff07c111daf9c685cc9f9768d15a3",
+  "hostedMigrationApplied": false,
+  "productionChanged": false,
+  "providerRequests": "Mocked only; no real SMS or registration operations",
+  "tests": {
+    "unitSuite": "PASS; full local suite plus targeted Assistant/delivery callback regressions; await final-head CI",
+    "managedMessaging": {
+      "result": "PASS",
+      "checks": 78
+    },
+    "isvServiceWebhookTransport": {
+      "result": "PASS",
+      "checks": 52
+    },
+    "pgliteDatabase": {
+      "result": "PASS",
+      "checks": 40
+    },
+    "browser": {
+      "result": "PASS",
+      "checks": 17,
+      "viewports": [
+        1440,
+        768,
+        390
+      ],
+      "externalRequests": 0,
+      "scope": "actual component, synthetic API"
+    },
+    "typeScript": "PASS",
+    "lint": "PASS; full lint has 0 errors, 7 existing warnings",
+    "security": "PASS",
+    "regressions": "PASS",
+    "build": "PASS; local webpack cache disabled and NODE_PATH supplied for temporary output directory; no tracked build config change",
+    "postgresMultiBackend": {
+      "result": "PASS on dfc5b13",
+      "runId": 43503634643,
+      "jobId": 132155537720,
+      "includes": "Early callback projection and cross-owner rejection; final head rerun pending"
+    }
+  },
+  "preview": {
+    "result": "BLOCKED",
+    "reason": "No branch-specific configuration returned; isolated database binding and keyring not established",
+    "deployed": false
+  },
+  "productionRecommendation": "NO-GO"
+}

@@ -1,0 +1,53 @@
+{
+  "baseline": "5ef2717567b2abd2c37e7283e8b1b87980f76078",
+  "branch": "feat/managed-trial-messaging",
+  "status": "PARTIAL_IMPLEMENTATION_NOT_LIVE",
+  "tests": {
+    "managedUnitAndServiceBoundary": {
+      "pass": 78,
+      "fail": 0
+    },
+    "browserComponent": {
+      "pass": 12,
+      "viewports": [
+        1440,
+        768,
+        390
+      ],
+      "externalRequests": 0,
+      "authentication": "synthetic boundary; not hosted authentication"
+    },
+    "fullExistingUnitSuite": "PASS after final-delivery-boundary change",
+    "typecheck": "PASS",
+    "security": "PASS",
+    "changedFilesLint": "PASS",
+    "existingGlobalLintWarnings": 7,
+    "build": "PASS on final source, including the cross-origin guard"
+  },
+  "implemented": [
+    "Owner-scoped questionnaire save/resume",
+    "Reject forged owner/provider fields and foreign origins",
+    "Read-only authoritative trial expiry recognition",
+    "Final live-provider boundary quota/subscription gate",
+    "Fail-closed readiness/segment policy; proposed allowance helpers only"
+  ],
+  "notImplementedOrNotVerified": [
+    "Provider provisioning worker and paid registration",
+    "Per-subaccount credential resolver and adapted inbound signatures",
+    "Durable sender assignment and atomic trial/spend ledger",
+    "Managed email reply routing/unsubscribe endpoints",
+    "Provider-supported real onboarding/send/reply/callback acceptance",
+    "Hosted Clerk/test Supabase acceptance"
+  ],
+  "safety": {
+    "productionChanges": false,
+    "deployed": false,
+    "sentMessages": false,
+    "billingChanges": false,
+    "providerPurchases": false,
+    "registrations": false,
+    "databaseMigrations": false,
+    "trialCapsChanged": false,
+    "gitAutomaticDeploymentDisabledForBranch": true
+  }
+}

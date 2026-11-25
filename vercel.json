@@ -13,7 +13,10 @@
       "feat/premium-assistant-workspace": false,
       "feat/notes-writing-studio": false,
       "fix/workspace-contact-allowance": false,
-      "fix/campaign-draft-reliability": false
+      "fix/campaign-draft-reliability": false,
+      "feat/managed-trial-messaging": false,
+      "feat/twilio-isv-pilot": false,
+      "release/isv-current-main": false
     }
   },
   "crons": [

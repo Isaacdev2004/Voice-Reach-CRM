@@ -1,0 +1,12 @@
+import {strict as assert} from 'node:assert';
+import {smsReadiness} from '../lib/messaging/registration-readiness';
+const reg={workspace:'A',business:'sender-A',brandSid:'synthetic-brand',campaignSid:'synthetic-campaign',messagingServiceSid:'synthetic-service',number:'+15555550101',status:'approved' as const,numberAssociated:true,verifiedAt:100};
+const consent={workspace:'A',business:'sender-A',campaignSid:'synthetic-campaign',phone:'+15555550102',purpose:'requested-demo',status:'granted' as const,source:'synthetic-form',disclosureVersion:'fixture-v1',capturedAt:100,suppressed:false};
+const req={workspace:'A',business:'sender-A',campaignSid:'synthetic-campaign',phone:'+15555550102',purpose:'requested-demo'};
+assert.equal(smsReadiness(reg,consent,req,200,1000).ready,true);
+for(const status of ['required','pending','rejected'] as const)assert.equal(smsReadiness({...reg,status},consent,req,200,1000).ready,false);
+for(const patch of [{workspace:'B'},{business:'sender-B'},{campaignSid:'other'},{purpose:'marketing'},{phone:'+15555550103'}])assert.equal(smsReadiness(reg,consent,{...req,...patch},200,1000).ready,false);
+for(const patch of [{status:'unknown' as const},{status:'revoked' as const},{suppressed:true},{disclosureVersion:''},{capturedAt:300}])assert.equal(smsReadiness(reg,{...consent,...patch},req,200,1000).ready,false);
+assert.equal(smsReadiness({...reg,numberAssociated:false},consent,req,200,1000).ready,false);
+assert.equal(smsReadiness(reg,consent,req,2000,1000).ready,false);
+console.log('PASS: synthetic registration rejection, association, tenant/sender/campaign/consent scope, STOP suppression, evidence and freshness gates. No provider requests.');
