@@ -1,0 +1,11 @@
+{
+  "result": "PASS",
+  "checks": 17,
+  "viewports": [
+    1440,
+    768,
+    390
+  ],
+  "externalRequests": 0,
+  "scope": "Actual component; synthetic API responses, no provider delivery or hosted authentication."
+}

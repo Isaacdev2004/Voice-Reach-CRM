@@ -33,7 +33,7 @@ function hasSlybroadcastEnv() {
 }
 
 function hasTwilioEnv() {
-  return Boolean(
+  return process.env.MANAGED_SMS_PILOT_ENABLED === "true" || Boolean(
     process.env.TWILIO_ACCOUNT_SID &&
     process.env.TWILIO_AUTH_TOKEN &&
     process.env.TWILIO_FROM_NUMBER,
