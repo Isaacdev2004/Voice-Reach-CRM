@@ -1,4 +1,7 @@
 "use client";
+import { draftFingerprint } from "@/lib/campaigns/draft-fingerprint";
+import { useAuth } from "@clerk/nextjs";
+import { useCampaignDraft } from "@/lib/hooks/use-campaign-draft";
 import { PREMIUM_CAMPAIGN_DRAFTS } from "@/lib/campaigns/premium-drafts";
 
 import { PersonalizedPreviewModal } from "@/components/campaigns/personalized-preview-modal";
@@ -20,10 +23,7 @@ import {
   dbStepsToCampaignSteps,
 } from "@/lib/crm/campaign-blueprint";
 import { useVoiceAssets } from "@/lib/hooks/use-voice-assets";
-import {
-  saveCampaignBuilder,
-  saveTemplateLocally,
-} from "@/lib/crm/campaign-storage";
+import { saveCampaignBuilder } from "@/lib/crm/campaign-storage";
 import {
   campaignDurationFromSteps,
   reorderSteps,
@@ -54,6 +54,15 @@ export function CampaignBuilderPage() {
   const [campaign, setCampaign] = useState<CampaignDefinition>(() =>
     createBlankCampaign(),
   );
+  const { userId } = useAuth();
+  const [boundOwner, setBoundOwner] = useState<string | null | undefined>(
+    userId,
+  );
+  const [newDraftId, setNewDraftId] = useState(() => crypto.randomUUID());
+  const [baseUpdatedAt, setBaseUpdatedAt] = useState<string | null>(null);
+  const [baseReady, setBaseReady] = useState(!editId);
+  const [activationKey, setActivationKey] = useState(() => crypto.randomUUID());
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [dbCampaignId, setDbCampaignId] = useState<string | null>(null);
   const [campaignStatus, setCampaignStatus] = useState<
     "editing" | "draft" | "queued"
@@ -69,6 +78,46 @@ export function CampaignBuilderPage() {
   const [voiceStep, setVoiceStep] = useState<CampaignStep | null>(null);
   const { assets: voiceAssets, loading: voiceAssetsLoading } = useVoiceAssets();
 
+  const draft = useCampaignDraft(
+    userId ?? undefined,
+    dbCampaignId ?? newDraftId,
+    baseReady && boundOwner === userId,
+    campaign,
+    setCampaign,
+    baseUpdatedAt,
+  );
+  useEffect(() => {
+    if (boundOwner === userId) return;
+    setCampaign(createBlankCampaign());
+    setDbCampaignId(null);
+    setNewDraftId(crypto.randomUUID());
+    setBaseReady(!editId);
+    setEditingStep(null);
+    setActivateOpen(false);
+    setBoundOwner(userId);
+  }, [userId, boundOwner, editId]);
+  const recoveryOwner = useRef<string | null>(null);
+  useEffect(() => {
+    if (!userId || recoveryOwner.current === userId) return;
+    recoveryOwner.current = userId;
+    if (editId || searchParams.get("new") || searchParams.get("premium"))
+      return;
+    try {
+      const pending = localStorage.getItem(
+        `myari:last-campaign-editor:${userId}`,
+      );
+      if (pending && /^[0-9a-f-]{36}$/i.test(pending)) setNewDraftId(pending);
+    } catch {
+      /* No storage is modified during recovery discovery. */
+    }
+  }, [userId, editId, searchParams]);
+  const loadedEditorRef = useRef({ id: newDraftId, ready: baseReady });
+  loadedEditorRef.current = { id: newDraftId, ready: baseReady };
+  const draftDirtyRef = useRef(false);
+  draftDirtyRef.current = draft.dirty;
+  const currentVoiceLookup = useRef(
+    new Map<string, { title: string; playbackUrl?: string | null }>(),
+  );
   const voiceLookup = useMemo(() => {
     const map = new Map<
       string,
@@ -79,8 +128,24 @@ export function CampaignBuilderPage() {
     }
     return map;
   }, [voiceAssets]);
-  const voiceLookupRef = useRef(voiceLookup);
-  voiceLookupRef.current = voiceLookup;
+
+  const displayedSteps = useMemo(
+    () =>
+      campaign.steps.map((step) => {
+        const asset = step.voiceAssetId
+          ? voiceLookup.get(step.voiceAssetId)
+          : null;
+        return asset
+          ? {
+              ...step,
+              voiceAssetTitle: asset.title,
+              voicePlaybackUrl: asset.playbackUrl ?? null,
+            }
+          : step;
+      }),
+    [campaign.steps, voiceLookup],
+  );
+  currentVoiceLookup.current = voiceLookup;
 
   const durationDays = useMemo(
     () => campaignDurationFromSteps(campaign.steps),
@@ -93,29 +158,67 @@ export function CampaignBuilderPage() {
   };
 
   const resetToNewCampaign = useCallback(() => {
+    if (
+      draftDirtyRef.current &&
+      !window.confirm(
+        "Discard unsaved editor changes? A local recovery copy is retained.",
+      )
+    )
+      return;
+    setNewDraftId(crypto.randomUUID());
+    setBaseReady(true);
+    setActivationKey(crypto.randomUUID());
     setCampaign(createBlankCampaign());
     setDbCampaignId(null);
+    router.replace("/dashboard/campaigns#campaign-builder", { scroll: false });
     setCampaignStatus("editing");
-  }, []);
+  }, [router]);
 
   const loadSampleTemplate = useCallback(
     (templateKey = "cold-lead-reengage") => {
+      if (
+        draftDirtyRef.current &&
+        !window.confirm(
+          "Replace this draft with a template? A local recovery copy is retained.",
+        )
+      )
+        return;
+      setNewDraftId(crypto.randomUUID());
+      setBaseReady(true);
+      setActivationKey(crypto.randomUUID());
       const next = instantiateTemplate(templateKey);
       if (!next) return;
       setCampaign(next);
       setDbCampaignId(null);
+      router.replace("/dashboard/campaigns#campaign-builder", {
+        scroll: false,
+      });
       setCampaignStatus("editing");
       showToast(
         `“${next.name}” template loaded - edit steps, then save or activate.`,
       );
     },
-    [],
+    [router],
   );
 
   useEffect(() => {
-    const premium=searchParams.get("premium");
-    const draft=premium?PREMIUM_CAMPAIGN_DRAFTS.find(d=>d.revisionKey===premium):null;
-    if(draft && !editId){setCampaign({...structuredClone(draft),id:`review-${crypto.randomUUID()}`,steps:draft.steps.map(s=>({...s,id:crypto.randomUUID()}))});setDbCampaignId(null);setCampaignStatus("editing");router.replace("/dashboard/campaigns#campaign-builder",{scroll:false});return;}
+    const premium = searchParams.get("premium");
+    const draft = premium
+      ? PREMIUM_CAMPAIGN_DRAFTS.find((d) => d.revisionKey === premium)
+      : null;
+    if (draft && !editId) {
+      setCampaign({
+        ...structuredClone(draft),
+        id: `review-${crypto.randomUUID()}`,
+        steps: draft.steps.map((s) => ({ ...s, id: crypto.randomUUID() })),
+      });
+      setDbCampaignId(null);
+      setCampaignStatus("editing");
+      router.replace("/dashboard/campaigns#campaign-builder", {
+        scroll: false,
+      });
+      return;
+    }
     if (searchParams.get("new") === "1") {
       resetToNewCampaign();
       router.replace("/dashboard/campaigns#campaign-builder", {
@@ -124,9 +227,14 @@ export function CampaignBuilderPage() {
       return;
     }
 
-    if (!editId) return;
+    if (
+      !editId ||
+      (editId === loadedEditorRef.current.id && loadedEditorRef.current.ready)
+    )
+      return;
 
     let cancelled = false;
+    setBaseReady(false);
     (async () => {
       setLoadingCampaign(true);
       const envelope = await safeFetch<{
@@ -134,6 +242,7 @@ export function CampaignBuilderPage() {
           id: string;
           name: string;
           status: string;
+          updated_at?: string;
           script_id?: string;
           description?: string;
           audience?: string;
@@ -172,20 +281,25 @@ export function CampaignBuilderPage() {
           goals: envelope.data.campaign.goals ?? [],
         },
       );
-      // Use ref so voice-asset reloads do not re-fetch and wipe in-progress edits.
-      loaded.steps = reorderSteps(
-        dbStepsToCampaignSteps(envelope.data.steps, voiceLookupRef.current),
-      );
+      loaded.steps = reorderSteps(dbStepsToCampaignSteps(
+        envelope.data.steps,
+        currentVoiceLookup.current,
+      ));
       if (
         envelope.data.campaign.status !== "draft" ||
         !!envelope.data.runs?.length
       ) {
         loaded.id = `revision-${crypto.randomUUID()}`;
+        loaded.steps = loaded.steps.map((step) => ({
+          ...step,
+          id: crypto.randomUUID(),
+        }));
         loaded.name += " (revision)";
         showToast(
           "Opened a separate draft revision. Saving creates a new draft; the original campaign stays unchanged.",
         );
       }
+      setBaseUpdatedAt(envelope.data.campaign.updated_at ?? null);
       setCampaign(loaded);
       setDbCampaignId(
         envelope.data.campaign.status === "draft" && !envelope.data.runs?.length
@@ -193,29 +307,13 @@ export function CampaignBuilderPage() {
           : null,
       );
       setCampaignStatus("draft");
+      setBaseReady(true);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [editId, resetToNewCampaign, router, searchParams]);
-
-  useEffect(() => {
-    if (!voiceLookup.size) return;
-    setCampaign((prev) => ({
-      ...prev,
-      steps: prev.steps.map((step) => {
-        if (!step.voiceAssetId) return step;
-        const meta = voiceLookup.get(step.voiceAssetId);
-        if (!meta) return step;
-        return {
-          ...step,
-          voiceAssetTitle: meta.title,
-          voicePlaybackUrl: meta.playbackUrl ?? null,
-        };
-      }),
-    }));
-  }, [voiceLookup]);
+  }, [editId, resetToNewCampaign, router, searchParams, userId]);
 
   const handleAddStep = useCallback(
     (step: CampaignStep) => {
@@ -276,28 +374,17 @@ export function CampaignBuilderPage() {
   };
 
   const handleSaveTemplate = async () => {
-    if (campaign.steps.length === 0) {
-      showToast("Add at least one step before saving.", "error");
-      return;
-    }
-
     setSavingTemplate(true);
     try {
-      const result = await saveCampaignBuilder(
-        "template",
-        campaign,
-        dbCampaignId,
-      );
-      setDbCampaignId(result.campaignId);
-      window.dispatchEvent(new Event("myari:campaigns-changed"));
+      await draft.save();
       setCampaignStatus("draft");
-      saveTemplateLocally(campaign, result.campaignId);
-      showToast(result.message || "Template saved successfully.");
-    } catch (err) {
-      saveTemplateLocally(campaign, dbCampaignId ?? undefined);
-      const detail = err instanceof Error ? err.message : "Cloud save failed";
+      window.dispatchEvent(new Event("myari:campaigns-changed"));
+      showToast("Draft saved to your workspace.");
+    } catch (error) {
       showToast(
-        `${detail} Cloud save failed — local backup only on this device (not shared library).`,
+        error instanceof Error
+          ? error.message
+          : "Draft save failed. Your edits are retained.",
         "error",
       );
     } finally {
@@ -312,13 +399,20 @@ export function CampaignBuilderPage() {
       return;
     }
 
+    if (activating) return;
     setActivating(true);
     try {
+      const saved = await draft.save();
+      if (draftFingerprint(saved.snapshot) !== draftFingerprint(campaign))
+        throw Error(
+          "The draft changed while saving. Review it and confirm activation again.",
+        );
       const result = await saveCampaignBuilder(
         "activate",
         campaign,
-        dbCampaignId,
+        dbCampaignId ?? newDraftId,
         options,
+        { revision: saved.revision, key: activationKey },
       );
       setDbCampaignId(result.campaignId);
       window.dispatchEvent(new Event("myari:campaigns-changed"));
@@ -338,12 +432,12 @@ export function CampaignBuilderPage() {
   const statusBadge =
     campaignStatus === "queued"
       ? { label: "Queued", className: "bg-sage-light text-emerald-muted" }
-      : campaignStatus === "draft"
+      : campaignStatus === "draft" && !draft.dirty && draft.state === "Saved"
         ? { label: "Draft saved", className: "bg-champagne text-taupe" }
         : null;
 
-  const liveCampaignHref = dbCampaignId
-    ? `/dashboard/campaigns/${dbCampaignId}`
+  const liveCampaignHref = draft.versions.length
+    ? `/dashboard/campaigns/${dbCampaignId ?? newDraftId}`
     : null;
 
   const handleVoiceSaved = (
@@ -367,271 +461,372 @@ export function CampaignBuilderPage() {
     showToast(message);
   };
 
+  if (!userId || boundOwner !== userId)
+    return <p role="status">Sign in to your campaign workspace.</p>;
+
   return (
     <div className={cn(DASHBOARD_PAGE_BODY, "space-y-8")}>
       {toast ? <AppToast message={toast.message} tone={toast.tone} /> : null}
 
-      <button
-        type="button"
-        className="cl-button"
-        disabled={!campaign.steps.length}
-        onClick={() => setPreviewOpen(true)}
+      <section
+        className="rounded-2xl border border-outline-variant/30 bg-ivory p-4"
+        aria-label="Draft persistence"
       >
-        Preview personalized messages
-      </button>
-      <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-taupe">
-              Campaign builder
-            </p>
-            {statusBadge ? (
-              <span
-                className={cn(
-                  "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-                  statusBadge.className,
-                )}
-              >
-                {statusBadge.label}
-              </span>
-            ) : null}
-            {loadingCampaign ? (
-              <span className="text-[12px] text-taupe">Loading campaign…</span>
-            ) : null}
-          </div>
-
-          <div className="mt-3 space-y-3">
-            <input
-              type="text"
-              value={campaign.name}
-              onChange={(e) =>
-                setCampaign((prev) => ({ ...prev, name: e.target.value }))
-              }
-              className={cn(
-                inputClass,
-                "font-serif text-[28px] font-semibold md:text-[32px]",
-              )}
-              aria-label="Campaign name"
-            />
-            <textarea
-              value={campaign.description}
-              onChange={(e) =>
-                setCampaign((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-              rows={2}
-              className={cn(
-                inputClass,
-                "resize-none text-[15px] text-slate-text",
-              )}
-              aria-label="Campaign description"
-            />
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={resetToNewCampaign}
-              className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/30 px-4 py-1.5 text-[13px] font-medium text-ink hover:bg-champagne"
-            >
-              <Icon name="add" className="text-[18px]" />
-              New campaign
+        <p role="status" aria-live="polite">
+          {draft.state}
+        </p>
+        {draft.error ? (
+          <p role="alert">
+            {draft.error}{" "}
+            <button type="button" onClick={() => void handleSaveTemplate()}>
+              Retry Save Draft
+            </button>{" "}
+            <button type="button" onClick={draft.reload}>
+              Reload server draft
             </button>
-            {PRODUCT_CAMPAIGN_TEMPLATES.map((tpl) => (
-              <button
-                key={tpl.templateKey}
-                type="button"
-                onClick={() => loadSampleTemplate(tpl.templateKey)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/30 px-4 py-1.5 text-[13px] font-medium text-taupe hover:bg-champagne"
-              >
-                <Icon name="content_copy" className="text-[18px]" />
-                {tpl.featured
-                  ? "Load: Cold lead re-engage"
-                  : `Load: ${tpl.name}`}
-              </button>
+          </p>
+        ) : null}
+        {draft.recovery ? (
+          <button type="button" onClick={draft.restoreLocal}>
+            Restore local edits into this draft
+          </button>
+        ) : null}
+        <button type="button" onClick={() => setHistoryOpen((v) => !v)}>
+          Version history ({draft.versions.length})
+        </button>
+        {historyOpen ? (
+          <ul>
+            {draft.versions.map((v) => (
+              <li key={v.revision}>
+                <button
+                  type="button"
+                  onClick={() => void draft.viewVersion(v.revision)}
+                >
+                  Version {v.revision} · {new Date(v.saved_at).toLocaleString()}
+                </button>
+              </li>
             ))}
+          </ul>
+        ) : null}
+        {historyOpen &&
+        draft.versions.length >= 100 &&
+        Math.min(...draft.versions.map((v) => v.revision)) > 0 ? (
+          <button type="button" onClick={() => void draft.loadOlder()}>
+            Load older versions
+          </button>
+        ) : null}
+        {draft.comparison ? (
+          <div>
+            <h2>Compare saved version with current draft</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <pre className="max-h-96 overflow-auto whitespace-pre-wrap">
+                {JSON.stringify(campaign, null, 2)}
+              </pre>
+              <pre className="max-h-96 overflow-auto whitespace-pre-wrap">
+                {JSON.stringify(draft.comparison, null, 2)}
+              </pre>
+            </div>
+            <button type="button" onClick={draft.restoreVersion}>
+              Restore as new revision
+            </button>
+            <button type="button" onClick={draft.dismissComparison}>
+              Cancel comparison
+            </button>
           </div>
+        ) : null}
+      </section>
+      <fieldset
+        disabled={!draft.hydrated || activating}
+        className="min-w-0 space-y-8 border-0 p-0"
+      >
+        <button
+          type="button"
+          className="cl-button"
+          disabled={!campaign.steps.length}
+          onClick={() => setPreviewOpen(true)}
+        >
+          Preview personalized messages
+        </button>
+        <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-taupe">
+                Campaign builder
+              </p>
+              {statusBadge ? (
+                <span
+                  className={cn(
+                    "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                    statusBadge.className,
+                  )}
+                >
+                  {statusBadge.label}
+                </span>
+              ) : null}
+              {loadingCampaign ? (
+                <span className="text-[12px] text-taupe">
+                  Loading campaign…
+                </span>
+              ) : null}
+            </div>
 
-          <div className="mt-4 flex flex-wrap items-end gap-4">
-            <label className="text-[13px] text-taupe">
-              <span className="mb-1 block font-medium text-ink">
-                Audience label
-              </span>
+            <div className="mt-3 space-y-3">
               <input
                 type="text"
-                value={campaign.audience}
+                value={campaign.name}
                 onChange={(e) =>
-                  setCampaign((prev) => ({ ...prev, audience: e.target.value }))
+                  setCampaign((prev) => ({ ...prev, name: e.target.value }))
                 }
-                className={cn(inputClass, "max-w-xs text-[14px]")}
+                className={cn(
+                  inputClass,
+                  "font-serif text-[28px] font-semibold md:text-[32px]",
+                )}
+                aria-label="Campaign name"
               />
-            </label>
-            <span className="flex items-center gap-2 pb-2 text-[14px] text-taupe">
-              <Icon name="schedule" className="text-[18px]" />~{durationDays}{" "}
-              days · {campaign.steps.length} steps
-            </span>
-          </div>
-        </div>
+              <textarea
+                value={campaign.description}
+                onChange={(e) =>
+                  setCampaign((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                rows={2}
+                className={cn(
+                  inputClass,
+                  "resize-none text-[15px] text-slate-text",
+                )}
+                aria-label="Campaign description"
+              />
+            </div>
 
-        <div className="flex flex-wrap items-start gap-4">
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <button
-              type="button"
-              onClick={handleSaveTemplate}
-              disabled={savingTemplate || activating || loadingCampaign}
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant/40 bg-ivory px-6 py-2.5 text-[14px] font-medium text-ink transition-colors hover:bg-champagne disabled:opacity-50"
-            >
-              <Icon name="bookmark" className="text-[18px]" />
-              {savingTemplate ? "Saving…" : "Save as template"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActivateOpen(true)}
-              disabled={
-                savingTemplate ||
-                activating ||
-                campaignStatus === "queued" ||
-                loadingCampaign
-              }
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-rose-gold px-6 py-2.5 text-[14px] font-medium text-ivory shadow-card transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
-              <Icon name="rocket_launch" className="text-[18px]" />
-              {campaignStatus === "queued"
-                ? "Campaign queued"
-                : "Activate campaign"}
-            </button>
-            {liveCampaignHref ? (
-              <Link
-                href={liveCampaignHref}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-gold/40 bg-rose-gold/10 px-6 py-2.5 text-[14px] font-medium text-rose-gold-deep transition-colors hover:bg-rose-gold/20"
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={resetToNewCampaign}
+                className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/30 px-4 py-1.5 text-[13px] font-medium text-ink hover:bg-champagne"
               >
-                Open campaign
-                <Icon name="arrow_forward" className="text-[18px]" />
-              </Link>
-            ) : null}
-          </div>
-        </div>
-      </header>
-
-      <section id="automation-sequence">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-serif text-[22px] font-semibold text-ink">
-              Automation sequence
-            </h2>
-            <p className="text-[14px] text-slate-text">
-              Add steps you want to send. Use merge fields like{" "}
-              <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
-                {"{{first_name}}"}
-              </code>
-              ,{" "}
-              <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
-                {"{{property_address}}"}
-              </code>
-              ,{" "}
-              <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
-                {"{{area}}"}
-              </code>
-              ,{" "}
-              <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
-                {"{{agent_name}}"}
-              </code>{" "}
-              - they autofill from the contact and your Settings. Don&apos;t
-              leave raw comps like [Comp1Price] in the copy unless you paste
-              real numbers first.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setAddStepOpen(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory shadow-sm transition-opacity hover:opacity-90"
-          >
-            <Icon name="add" className="text-[20px]" />
-            Add step
-          </button>
-        </div>
-        {campaign.steps.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-outline-variant/30 bg-cream/40 px-6 py-12 text-center">
-            <Icon
-              name="linear_scale"
-              className="mx-auto text-[36px] text-rose-gold-deep"
-            />
-            <p className="mt-3 font-medium text-ink">No steps yet</p>
-            <p className="mt-1 text-[14px] text-slate-text">
-              Add ringless voicemail, email, or SMS - skip AI video until you
-              need it.
-            </p>
-          </div>
-        ) : (
-          <CampaignFlow
-            steps={campaign.steps}
-            editable
-            onRemoveStep={handleRemoveStep}
-            onEditStep={(step) => setEditingStep(step)}
-            onChangeStepVoice={(step) => setVoiceStep(step)}
-          />
-        )}
-      </section>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <LuxuryCard padding="lg" className="lg:col-span-1">
-          <div className="mb-4 flex items-center gap-2">
-            <Icon name="track_changes" className="text-rose-gold-deep" />
-            <h3 className="font-serif text-[20px] font-semibold text-ink">
-              Campaign goals
-            </h3>
-          </div>
-          {campaign.goals.length > 0 ? (
-            <ul className="space-y-3">
-              {campaign.goals.map((goal) => (
-                <li
-                  key={goal}
-                  className="flex items-start gap-2 text-[14px] text-slate-text"
+                <Icon name="add" className="text-[18px]" />
+                New campaign
+              </button>
+              {PRODUCT_CAMPAIGN_TEMPLATES.map((tpl) => (
+                <button
+                  key={tpl.templateKey}
+                  type="button"
+                  onClick={() => loadSampleTemplate(tpl.templateKey)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-outline-variant/30 px-4 py-1.5 text-[13px] font-medium text-taupe hover:bg-champagne"
                 >
-                  <Icon
-                    name="check_circle"
-                    className="mt-0.5 shrink-0 text-emerald-muted"
-                  />
-                  {goal}
-                </li>
+                  <Icon name="content_copy" className="text-[18px]" />
+                  {tpl.featured
+                    ? "Load: Cold lead re-engage"
+                    : `Load: ${tpl.name}`}
+                </button>
               ))}
-            </ul>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-end gap-4">
+              <label className="text-[13px] text-taupe">
+                <span className="mb-1 block font-medium text-ink">
+                  Audience label
+                </span>
+                <input
+                  type="text"
+                  value={campaign.audience}
+                  onChange={(e) =>
+                    setCampaign((prev) => ({
+                      ...prev,
+                      audience: e.target.value,
+                    }))
+                  }
+                  className={cn(inputClass, "max-w-xs text-[14px]")}
+                />
+              </label>
+              <span className="flex items-center gap-2 pb-2 text-[14px] text-taupe">
+                <Icon name="schedule" className="text-[18px]" />~{durationDays}{" "}
+                days · {campaign.steps.length} steps
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              <button
+                type="button"
+                onClick={handleSaveTemplate}
+                disabled={
+                  savingTemplate ||
+                  activating ||
+                  loadingCampaign ||
+                  !draft.hydrated
+                }
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-outline-variant/40 bg-ivory px-6 py-2.5 text-[14px] font-medium text-ink transition-colors hover:bg-champagne disabled:opacity-50"
+              >
+                <Icon name="bookmark" className="text-[18px]" />
+                {savingTemplate ? "Saving…" : "Save Draft"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivateOpen(true)}
+                disabled={
+                  savingTemplate ||
+                  activating ||
+                  campaignStatus === "queued" ||
+                  loadingCampaign ||
+                  !draft.hydrated
+                }
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-rose-gold px-6 py-2.5 text-[14px] font-medium text-ivory shadow-card transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                <Icon name="rocket_launch" className="text-[18px]" />
+                {campaignStatus === "queued"
+                  ? "Campaign queued"
+                  : "Activate campaign"}
+              </button>
+              {liveCampaignHref ? (
+                <Link
+                  href={liveCampaignHref}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-gold/40 bg-rose-gold/10 px-6 py-2.5 text-[14px] font-medium text-rose-gold-deep transition-colors hover:bg-rose-gold/20"
+                >
+                  Open campaign
+                  <Icon name="arrow_forward" className="text-[18px]" />
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        </header>
+
+        <section id="automation-sequence">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-serif text-[22px] font-semibold text-ink">
+                Automation sequence
+              </h2>
+              <p className="text-[14px] text-slate-text">
+                Add steps you want to send. Use merge fields like{" "}
+                <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
+                  {"{{first_name}}"}
+                </code>
+                ,{" "}
+                <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
+                  {"{{property_address}}"}
+                </code>
+                ,{" "}
+                <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
+                  {"{{area}}"}
+                </code>
+                ,{" "}
+                <code className="rounded bg-champagne/80 px-1.5 py-0.5 text-[12px]">
+                  {"{{agent_name}}"}
+                </code>{" "}
+                - they autofill from the contact and your Settings. Don&apos;t
+                leave raw comps like [Comp1Price] in the copy unless you paste
+                real numbers first.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAddStepOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-rose-gold px-5 py-2.5 text-[14px] font-medium text-ivory shadow-sm transition-opacity hover:opacity-90"
+            >
+              <Icon name="add" className="text-[20px]" />
+              Add step
+            </button>
+          </div>
+          {campaign.steps.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-outline-variant/30 bg-cream/40 px-6 py-12 text-center">
+              <Icon
+                name="linear_scale"
+                className="mx-auto text-[36px] text-rose-gold-deep"
+              />
+              <p className="mt-3 font-medium text-ink">No steps yet</p>
+              <p className="mt-1 text-[14px] text-slate-text">
+                Add ringless voicemail, email, or SMS - skip AI video until you
+                need it.
+              </p>
+            </div>
           ) : (
-            <p className="text-[14px] text-taupe">
-              Optional - add goals in a future update.
-            </p>
+            <CampaignFlow
+              steps={campaign.steps}
+              editable
+              onRemoveStep={handleRemoveStep}
+              onEditStep={(step) => setEditingStep(step)}
+              onChangeStepVoice={(step) => setVoiceStep(step)}
+            />
           )}
-        </LuxuryCard>
+        </section>
 
-        <CampaignEditorStrip />
-      </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <LuxuryCard padding="lg" className="lg:col-span-1">
+            <div className="mb-4 flex items-center gap-2">
+              <Icon name="track_changes" className="text-rose-gold-deep" />
+              <h3 className="font-serif text-[20px] font-semibold text-ink">
+                Campaign goals
+              </h3>
+            </div>
+            {campaign.goals.length > 0 ? (
+              <ul className="space-y-3">
+                {campaign.goals.map((goal) => (
+                  <li
+                    key={goal}
+                    className="flex items-start gap-2 text-[14px] text-slate-text"
+                  >
+                    <Icon
+                      name="check_circle"
+                      className="mt-0.5 shrink-0 text-emerald-muted"
+                    />
+                    {goal}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-[14px] text-taupe">
+                Optional - add goals in a future update.
+              </p>
+            )}
+          </LuxuryCard>
 
-      {previewOpen ? (
-        <PersonalizedPreviewModal
-          open
-          onClose={() => setPreviewOpen(false)}
-          steps={campaign.steps}
+          <CampaignEditorStrip />
+        </div>
+
+        {previewOpen ? (
+          <PersonalizedPreviewModal
+            open
+            onClose={() => setPreviewOpen(false)}
+            steps={campaign.steps}
+          />
+        ) : null}
+        <AddCampaignStepModal
+          open={addStepOpen}
+          onClose={() => setAddStepOpen(false)}
+          existingSteps={campaign.steps}
+          onAdd={(step) => {
+            handleAddStep(step);
+            window.setTimeout(scrollToSequence, 150);
+          }}
         />
-      ) : null}
-      <AddCampaignStepModal
-        open={addStepOpen}
-        onClose={() => setAddStepOpen(false)}
-        existingSteps={campaign.steps}
-        onAdd={(step) => {
-          handleAddStep(step);
-          window.setTimeout(scrollToSequence, 150);
-        }}
-      />
 
-      <EditCampaignStepModal
-        open={Boolean(editingStep)}
-        step={editingStep}
-        onClose={() => setEditingStep(null)}
-        onSave={handleUpdateStep}
-      />
-
+        <EditCampaignStepModal
+          open={Boolean(editingStep)}
+          step={editingStep}
+          onClose={() => setEditingStep(null)}
+          onSave={handleUpdateStep}
+          onDraftChange={(updated) =>
+            setCampaign((previous) => {
+              const steps = previous.steps.map((step) =>
+                step.id === updated.id
+                  ? { ...updated, order: step.order }
+                  : step,
+              );
+              return {
+                ...previous,
+                steps,
+                durationDays: campaignDurationFromSteps(steps),
+              };
+            })
+          }
+          draftStatus={draft.state}
+          draftError={draft.error}
+        />
+      </fieldset>
       <ActivateCampaignModal
         open={activateOpen}
         onClose={() => setActivateOpen(false)}
@@ -644,7 +839,8 @@ export function CampaignBuilderPage() {
       <ChangeStepVoiceModal
         open={Boolean(voiceStep)}
         step={voiceStep}
-        campaignId={dbCampaignId}
+        campaignId={dbCampaignId ?? newDraftId}
+        draftOnly
         assets={voiceAssets}
         assetsLoading={voiceAssetsLoading}
         onClose={() => setVoiceStep(null)}

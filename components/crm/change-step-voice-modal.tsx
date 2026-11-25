@@ -15,6 +15,7 @@ type ChangeStepVoiceModalProps = {
   assets: VoiceAsset[];
   assetsLoading?: boolean;
   onClose: () => void;
+  draftOnly?: boolean;
   onSaved: (stepId: string, asset: VoiceAsset, message: string) => void;
 };
 
@@ -26,6 +27,7 @@ export function ChangeStepVoiceModal({
   assetsLoading,
   onClose,
   onSaved,
+  draftOnly = false,
 }: ChangeStepVoiceModalProps) {
   const [selectedId, setSelectedId] = useState("");
   const [saving, setSaving] = useState(false);
@@ -68,7 +70,7 @@ export function ChangeStepVoiceModal({
   };
 
   const handleSave = async () => {
-    if (!campaignId) {
+    if (!campaignId && !draftOnly) {
       setError(
         "Save the campaign as a template first, then you can assign a recording to this step.",
       );
@@ -90,6 +92,15 @@ export function ChangeStepVoiceModal({
       )
     )
       return;
+    if (draftOnly) {
+      onSaved(
+        step.id,
+        asset,
+        "Recording selected. Draft autosave will confirm persistence.",
+      );
+      onClose();
+      return;
+    }
     setSaving(true);
     setError(null);
     try {

@@ -64,6 +64,8 @@ const BlueprintSchema = z.object({
 });
 
 const BodySchema = z.object({
+  savedRevision: z.number().int().positive().optional(),
+  activationKey: z.string().uuid().optional(),
   action: z.enum(["template", "activate"]),
   campaign: BlueprintSchema,
   campaignId: z.string().uuid().optional(),
@@ -158,6 +160,49 @@ function guessDelay(step: { dayLabel?: string }): number {
 export const POST = withApiHandler(async (request: Request) => {
   const ownerId = await requireUserId();
   const body = BodySchema.parse(await request.json());
+  let managed: {
+    snapshot: unknown;
+    revision: number;
+    state: string;
+    activation_key: string | null;
+    activation_result: unknown;
+  } | null = null;
+  if (body.campaignId) {
+    const result = await supabaseAdmin
+      .from("campaign_editor_drafts")
+      .select("snapshot,revision,state,activation_key,activation_result")
+      .eq("owner_id", ownerId)
+      .eq("campaign_id", body.campaignId)
+      .maybeSingle();
+    // A managed request must never fall back to the legacy non-atomic writer.
+    if (result.error && body.savedRevision)
+      return apiError("Draft storage unavailable.", { status: 503 });
+    managed = result.data;
+    if (managed) {
+      if (
+        body.action !== "activate" ||
+        !body.activationKey ||
+        body.savedRevision !== managed.revision
+      )
+        return apiError("Save and review the latest draft before activation.", {
+          status: 409,
+          code: "revision_conflict",
+        });
+      if (
+        managed.state === "activated" &&
+        managed.activation_key === body.activationKey
+      )
+        return apiSuccess(managed.activation_result);
+      if (managed.state !== "draft")
+        return apiError(
+          "Activation is pending or blocked. Review its status before retrying; do not create another activation.",
+          { status: 409 },
+        );
+      body.campaign = BlueprintSchema.parse(managed.snapshot);
+    }
+  }
+  if (body.savedRevision && !managed)
+    return apiError("Saved draft not found.", { status: 404 });
   if (body.campaignId) {
     const { data: original, error } = await supabaseAdmin
       .from("campaigns")
@@ -317,6 +362,71 @@ export const POST = withApiHandler(async (request: Request) => {
     );
   }
 
+  if (managed && existingId && body.activationKey) {
+    const key = body.activationKey;
+    const claim = await supabaseAdmin.rpc("claim_campaign_editor_activation", {
+      p_owner: ownerId,
+      p_id: existingId,
+      p_revision: body.savedRevision,
+      p_key: key,
+      p_snapshot: managed.snapshot,
+    });
+    if (claim.error)
+      return apiError(
+        "The draft changed or activation is already pending. Nothing was reactivated.",
+        { status: 409 },
+      );
+    if (!claim.data?.claimed) return apiSuccess(claim.data);
+    try {
+      // Saved steps already exist atomically. Never delete/recreate them at activation.
+      const enrollment = await enrollContacts(ownerId, existingId, {
+        contactIds: enrollAllEligible || category ? undefined : contactIds,
+        category: category?.trim() || undefined,
+      });
+      if (!enrollment.enrolled)
+        throw new Error(
+          "No eligible contacts. The saved draft is retained; review consent and enrollment.",
+        );
+      const schedule = await scheduleStepRunsForCampaign(ownerId, existingId);
+      const result = {
+        campaignId: existingId,
+        status: "queued",
+        enrollment,
+        schedule,
+        message:
+          "Saved campaign revision queued. Live sending still requires its separate authorization.",
+      };
+      const done = await supabaseAdmin.rpc(
+        "finish_campaign_editor_activation",
+        {
+          p_owner: ownerId,
+          p_id: existingId,
+          p_key: key,
+          p_result: result,
+          p_success: true,
+        },
+      );
+      if (done.error)
+        throw new Error(
+          "Activation result could not be confirmed. Do not retry until status is reviewed.",
+        );
+      return apiSuccess(result);
+    } catch (error) {
+      await supabaseAdmin.rpc("finish_campaign_editor_activation", {
+        p_owner: ownerId,
+        p_id: existingId,
+        p_key: key,
+        p_result: { message: "Activation incomplete; review required." },
+        p_success: false,
+      });
+      return apiError(
+        error instanceof Error
+          ? error.message
+          : "Activation incomplete. Draft retained.",
+        { status: 503, code: "activation_review_required" },
+      );
+    }
+  }
   const record = await upsertCampaign(ownerId, blueprint, "queued", existingId);
   await persistSteps(ownerId, record.id, mapStepsToBlueprint(blueprint.steps));
   const enrollment = await enrollContacts(ownerId, record.id, {

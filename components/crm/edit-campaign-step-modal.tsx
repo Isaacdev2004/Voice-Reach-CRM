@@ -31,6 +31,9 @@ type EditCampaignStepModalProps = {
   open: boolean;
   step: CampaignStep | null;
   onClose: () => void;
+  onDraftChange?: (step: CampaignStep) => void;
+  draftStatus?: string;
+  draftError?: string;
   onSave: (step: CampaignStep) => void;
 };
 
@@ -45,6 +48,9 @@ export function EditCampaignStepModal({
   step,
   onClose,
   onSave,
+  onDraftChange,
+  draftStatus,
+  draftError,
 }: EditCampaignStepModalProps) {
   const [type, setType] = useState<CampaignStepType>("email");
   const [title, setTitle] = useState("");
@@ -55,6 +61,7 @@ export function EditCampaignStepModal({
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const latestDraft = useRef<CampaignStep | null>(null);
 
   useEffect(() => {
     if (!open || !step) return;
@@ -77,8 +84,31 @@ export function EditCampaignStepModal({
       ? SMS_MMS_MIME_TYPES.join(",")
       : EMAIL_ATTACHMENT_MIME_TYPES.join(",");
 
+  latestDraft.current = {
+    ...step,
+    type,
+    title,
+    description,
+    dayLabel: `Day ${Math.max(1, day)}`,
+    delayMinutes:
+      `Day ${Math.max(1, day)}` === step.dayLabel
+        ? step.delayMinutes
+        : undefined,
+    timeLabel,
+    attachments,
+  };
+  const emitDraft = (patch: Partial<CampaignStep>) => {
+    const next = { ...latestDraft.current!, ...patch };
+    latestDraft.current = next;
+    onDraftChange?.(next);
+  };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (onDraftChange) {
+      emitDraft({});
+      onClose();
+      return;
+    }
     if (!title.trim()) return;
     onSave({
       ...step,
@@ -119,11 +149,24 @@ export function EditCampaignStepModal({
         file,
         type === "sms" ? "sms" : "email",
       );
-      setAttachments((prev) =>
+      if (
+        latestDraft.current?.id !== step.id ||
+        latestDraft.current.type !== type
+      ) {
+        setUploadError(
+          "The step changed during upload. Review it before attaching that file.",
+        );
+        return;
+      }
+      const next =
         type === "sms"
           ? [uploaded]
-          : [...prev, uploaded].slice(0, EMAIL_MAX_ATTACHMENTS),
-      );
+          : [...(latestDraft.current.attachments ?? []), uploaded].slice(
+              0,
+              EMAIL_MAX_ATTACHMENTS,
+            );
+      setAttachments(next);
+      emitDraft({ attachments: next });
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -136,13 +179,18 @@ export function EditCampaignStepModal({
       open={open}
       onClose={onClose}
       title="Edit sequence step"
-      description="Update the message copy, channel, and timing. Save the campaign afterward to keep changes."
+      description={
+        onDraftChange
+          ? "Edits autosave to your campaign draft. Activation remains a separate confirmed action."
+          : "Update the message copy, channel, and timing. Save the campaign afterward to keep changes."
+      }
       icon="edit"
       size="lg"
       footer={
         <ModalFooterActions
           onCancel={onClose}
-          primaryLabel="Save step"
+          cancelLabel={onDraftChange ? "Close" : "Cancel"}
+          primaryLabel={onDraftChange ? "Done" : "Save step"}
           primaryType="submit"
           formId="edit-campaign-step-form"
         />
@@ -153,6 +201,12 @@ export function EditCampaignStepModal({
         onSubmit={handleSubmit}
         className="space-y-6"
       >
+        {draftStatus ? (
+          <p role="status" aria-live="polite">
+            {draftStatus}
+          </p>
+        ) : null}
+        {draftError ? <p role="alert">{draftError}</p> : null}
         <div>
           <p className={cn("mb-3 text-[13px] font-medium text-taupe")}>
             Touchpoint type
@@ -162,7 +216,10 @@ export function EditCampaignStepModal({
               <button
                 key={option.type}
                 type="button"
-                onClick={() => setType(option.type)}
+                onClick={() => {
+                  setType(option.type);
+                  emitDraft({ type: option.type });
+                }}
                 className={cn(
                   "flex flex-col items-center gap-2 rounded-xl border px-3 py-3 text-center transition-all",
                   type === option.type
@@ -186,7 +243,10 @@ export function EditCampaignStepModal({
           <input
             className={modalInputClass}
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              emitDraft({ title: e.target.value });
+            }}
             required
           />
         </ModalField>
@@ -203,7 +263,10 @@ export function EditCampaignStepModal({
           <textarea
             className={`${modalInputClass} min-h-[140px] resize-y py-3`}
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              emitDraft({ description: e.target.value });
+            }}
             rows={6}
             placeholder={
               type === "sms"
@@ -263,11 +326,13 @@ export function EditCampaignStepModal({
                     </span>
                     <button
                       type="button"
-                      onClick={() =>
-                        setAttachments((prev) =>
-                          prev.filter((a) => a.id !== file.id),
-                        )
-                      }
+                      onClick={() => {
+                        const next = attachments.filter(
+                          (a) => a.id !== file.id,
+                        );
+                        setAttachments(next);
+                        emitDraft({ attachments: next });
+                      }}
                       className="shrink-0 text-[12px] font-medium text-taupe hover:text-error"
                     >
                       Remove
@@ -290,14 +355,21 @@ export function EditCampaignStepModal({
               min={1}
               max={90}
               value={day}
-              onChange={(e) => setDay(Number.parseInt(e.target.value, 10) || 1)}
+              onChange={(e) => {
+                const next = Number.parseInt(e.target.value, 10) || 1;
+                setDay(next);
+                emitDraft({ dayLabel: `Day ${next}`, delayMinutes: undefined });
+              }}
             />
           </ModalField>
           <ModalField label="Send time">
             <input
               className={modalInputClass}
               value={timeLabel}
-              onChange={(e) => setTimeLabel(e.target.value)}
+              onChange={(e) => {
+                setTimeLabel(e.target.value);
+                emitDraft({ timeLabel: e.target.value });
+              }}
             />
           </ModalField>
         </div>
