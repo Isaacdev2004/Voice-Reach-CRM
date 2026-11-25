@@ -5,11 +5,14 @@ import {
   jsonBody,
 } from "@/lib/concierge/access";
 import { GET as verifyExistingSetup } from "@/app/api/settings/onboarding/route";
+import { loadCase, mutate } from "@/lib/concierge/store";
 import { z } from "zod";
-export const POST = conciergeHandler(async (request) => {
+export const POST = conciergeHandler(async (request, owner) => {
   z.object({ confirmed: z.literal(true) })
     .strict()
     .parse(await jsonBody(request));
+  const record = await loadCase(owner);
+  if (!record) throw new ConciergeError("Save your discovery first.");
   // Existing service verifies Twilio sender ownership and retrieves Google calendars.
   // This does not send messages, invite attendees, or test OpenAI generation.
   const r = await verifyExistingSetup(request, undefined);
@@ -22,6 +25,8 @@ export const POST = conciergeHandler(async (request) => {
   const done = (id: string) =>
     result.steps?.find((s: { id: string; done: boolean }) => s.id === id)
       ?.done === true;
+  const checkedAt = new Date().toISOString();
+  await mutate(owner, owner, crypto.randomUUID(), record.version, { milestones: { connectionReview: { checkedAt, sms: done("twilio"), calendar: done("google") } } }, "CONNECTIONS_VERIFIED");
   return apiOk({
     verifiedAt: new Date().toISOString(),
     sms: done("twilio")

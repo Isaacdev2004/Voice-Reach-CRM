@@ -13,7 +13,10 @@
       "feat/premium-assistant-workspace": false,
       "feat/notes-writing-studio": false,
       "fix/workspace-contact-allowance": false,
-      "fix/campaign-draft-reliability": false
+      "fix/campaign-draft-reliability": false,
+      "feat/concierge-pilot-readiness": false,
+      "feat/concierge-white-glove-ux": false,
+      "release/controlled-backlog": false
     }
   },
   "crons": [

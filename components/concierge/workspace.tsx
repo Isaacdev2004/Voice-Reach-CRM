@@ -1,6 +1,9 @@
 "use client";
+import { contactImportTemplate, downloadImportCsv, importErrorReport } from "@/lib/contacts/import-template";
+import type { summarizeImport } from "@/lib/concierge/import-review";
+import { journey, nextJourneyStep, journeyStatus } from "@/lib/concierge/journey";
 import { useUser } from "@clerk/nextjs";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAiAssistant } from "@/components/ai/ai-assistant-context";
 import {
@@ -12,6 +15,8 @@ import {
 import { readiness } from "@/lib/concierge/readiness";
 import { readApiResponse } from "@/lib/api-response";
 import type { CampaignStep } from "@/lib/crm/types";
+import { ConciergePhoto } from "./photo";
+import { orientationGuides } from "@/lib/concierge/orientation";
 import "./concierge.css";
 export async function conciergeRequest<T>(
   url: string,
@@ -36,6 +41,7 @@ type Snapshot = {
     integrationsVerified: boolean;
   };
   readiness: ReturnType<typeof readiness>;
+  staffSignoff?: { approved: boolean; reviewedAt: string | null };
   templates: {
     key: string;
     name: string;
@@ -49,20 +55,16 @@ type Snapshot = {
 };
 type Preview = {
   preview: { id: string; state: string; expires_at: string };
-  rows: { firstName: string; phone: string; email: string }[];
+  rows: { firstName: string; phone: string; email: string; _sourceRow?: string }[];
   errors: { row: number; error: string }[];
+  review?: ReturnType<typeof summarizeImport>;
   existingDuplicates?: number;
   message?: string;
 };
+const campaignPhotographs = ["campaign-library-interior.png","property-dining-room.png","dashboard-interior.jpg","notes-botanical-office.png","calendar-coastal-office.png","tasks-home-office.png","settings-office.png","financing-interior.png","activity-workspace.png","contacts.jpg","analytics.jpg","mortgage.jpg","tasks-coastal-office.png","calendar-home-office.png","voice-scripts-hero.png","campaigns.jpg","dashboard.jpg","notes.jpg"];
+const orientationPhotographs = {dashboard:"tasks-home-office.png",contacts:"dashboard-interior.jpg",campaigns:"campaign-library-interior.png",calendar:"calendar-home-office.png",tasks:"tasks-coastal-office.png",notes:"notes-botanical-office.png",reporting:"activity-workspace.png"};
 const initial = () => Discovery.parse({});
-const tabs = [
-  "Your business",
-  "Contact migration",
-  "Campaign concierge",
-  "Connections",
-  "Walkthroughs",
-  "Launch review",
-] as const;
+const tabs = journey.map(step => step.label);
 export function ConciergeWorkspace() {
   const {user,isLoaded}=useUser();
   return isLoaded&&user ? <SubscriberWorkspace key={user.id}/> : <div className="concierge"><p role="status">Sign in to your Concierge workspace.</p></div>;
@@ -75,6 +77,7 @@ function SubscriberWorkspace() {
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
     [csv, setCsv] = useState(""),
+    [csvFilename, setCsvFilename] = useState(""),
     [columns, setColumns] = useState<string[]>([]),
     [mapping, setMapping] = useState<Record<string, string>>({}),
     [privacy, setPrivacy] = useState(false),
@@ -93,12 +96,19 @@ function SubscriberWorkspace() {
         row_errors: { row: number; error: string }[];
       }[]
     >([]);
+  const guideHeading=useRef<HTMLHeadingElement>(null);
+  const [guide, setGuide] = useState<(typeof training)[number]["key"] | null>(null);
+  const [evidence,setEvidence] = useState<Record<string, boolean | null>>({});
+  useEffect(()=>{if(guide)guideHeading.current?.focus();},[guide]);
   const { openAssistant } = useAiAssistant();
   const refresh = useCallback(async (loadDiscovery = false) => {
     const next = await conciergeRequest<Snapshot>("/api/concierge");
     setData(next);
-    if (loadDiscovery && next.record)
-      setDiscovery(Discovery.parse(next.record.discovery));
+    if (loadDiscovery) {
+      if (next.record) setDiscovery(Discovery.parse(next.record.discovery));
+      const requested = new URLSearchParams(window.location.search).get("step");
+      if (requested) setTab((journey.find(step => step.key === requested) ?? nextJourneyStep(next.readiness.next?.key)).label);
+    }
     const jobs = await conciergeRequest<{ imports: typeof imports }>(
       "/api/concierge/import",
     );
@@ -137,6 +147,7 @@ function SubscriberWorkspace() {
   }
   async function chooseFile(file: File | undefined) {
     if (!file) return;
+    setCsv(""); setColumns([]); setCsvFilename(""); setPreview(null); setImportApproval(false); setPrivacy(false);
     if (!/\.csv$/i.test(file.name) || file.size > 1048576) {
       setError("Choose a UTF-8 .csv file no larger than 1 MB.");
       return;
@@ -148,6 +159,7 @@ function SubscriberWorkspace() {
         { action: "columns", csv: text },
       );
       setCsv(text);
+      setCsvFilename(file.name);
       setColumns(d.columns);
       setPreview(null);
       setImportApproval(false);
@@ -228,72 +240,30 @@ function SubscriberWorkspace() {
   const selected = data.templates.find((t) => t.key === campaign),
     milestones = data.record?.milestones ?? {};
   return (
-    <div className="concierge">
-      <header className="concierge-welcome">
-        <div>
-          <span className="concierge-eyebrow">A thoughtful beginning</span>
+    <div className="concierge concierge-subscriber" data-step={journey.find(step=>step.label===tab)?.key}>
+      <header className="concierge-welcome concierge-hero">
+        <div className="concierge-hero-copy">
+          <span className="concierge-eyebrow">Your business. Beautifully welcomed.</span>
           <h1>MyARI Concierge</h1>
-          <p>
-            Welcome to MyARI. Your business is unique. Your workspace should be,
-            too. Let’s make your follow-up effortless.
-          </p>
+          <p>A thoughtful beginning,<br/>a workspace that feels like you.</p>
+          <span className="concierge-hero-note">Personalize your business, bring your relationships over, and prepare your first follow-up. We’ll keep your place.</span>
+          <a href="#concierge-journey" className="concierge-hero-link">Your personal setup journey ↓</a>
         </div>
-        <div className="concierge-score">
-          <strong>{data.readiness.percent}%</strong>
-          <span>
-            {data.readiness.completed} of {data.readiness.total} milestones
-            reviewed
-          </span>
-          <progress
-            aria-label="Onboarding completion"
-            value={data.readiness.completed}
-            max={data.readiness.total}
-          />
-        </div>
+        <ConciergePhoto className="concierge-hero-photo" src="/brand/marketing/public-architectural-hero.webp" alt="Sunlit coastal architecture with stone, greenery and a water view" priority/>
       </header>
-      <section className="concierge-next">
-        <div>
-          <span>YOUR NEXT STEP</span>
-          <h2>
-            {data.readiness.next?.label ?? "Your setup review is complete"}
-          </h2>
-          <p>
-            {data.readiness.ready
-              ? "Readiness review does not activate campaigns. Review every recipient and permission in the campaign workspace."
-              : "Your Concierge keeps progress here, so you can return whenever you’re ready."}
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            const key = data.readiness.next?.key;
-            setTab(
-              key === "discovery"
-                ? "Your business"
-                : key === "migration"
-                  ? "Contact migration"
-                  : key === "campaign" || key === "review"
-                    ? "Campaign concierge"
-                    : key === "integrations"
-                      ? "Connections"
-                      : key === "training"
-                        ? "Walkthroughs"
-                        : "Launch review",
-            );
-          }}
-        >
-          Continue →
-        </button>
+      <section className="concierge-status-bar" aria-label="Onboarding status">
+        <div><strong>{data.readiness.completed} of {data.readiness.total} milestones reviewed</strong><progress aria-label="Onboarding completion" value={data.readiness.completed} max={data.readiness.total}/><small>Six journey steps group eight saved milestones. Independent manager signoff is separate.</small></div>
+        <div><span className="concierge-eyebrow">Current step · {journey.find(step=>step.label===tab)?.title}</span><p>Next: {data.readiness.next?.label ?? "Awaiting independent review"}</p></div>
+        <button onClick={()=>setTab(nextJourneyStep(data.readiness.next?.key).label)}>Continue →</button>
       </section>
-      <nav className="concierge-tabs" aria-label="Concierge sections">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            aria-current={t === tab ? "page" : undefined}
-            onClick={() => setTab(t)}
-          >
-            {t}
-          </button>
-        ))}
+      <nav id="concierge-journey" className="concierge-tabs concierge-journey" aria-label="Concierge sections">
+        {journey.map((step, index) => {
+          const done = step.checks.every(key => data.readiness.checks.find(check => check.key === key)?.done);
+          return <button key={step.key} aria-label={step.label} aria-current={step.label === tab ? "step" : undefined} onClick={() => setTab(step.label)}>
+            <span className="concierge-step-number" aria-hidden="true">{done ? "✓" : String(index + 1).padStart(2,"0")}</span>
+            <span><strong>{step.title}</strong><small>{step.detail}</small><small className="concierge-step-state">{journeyStatus(step.key,data.readiness.checks,milestones,data.facts,!!data.record?.discovery.agentName)}</small></span>
+          </button>;
+        })}
       </nav>
       {error && (
         <p className="concierge-error" role="alert">
@@ -307,6 +277,7 @@ function SubscriberWorkspace() {
       )}
       {tab === "Your business" && (
         <section id="discovery" className="concierge-card">
+          <span className="concierge-eyebrow">Your Business · Make it yours</span>
           <h2>Let’s get to know your business.</h2>
           <p>
             Answer a little now, or save and return later. These answers guide
@@ -318,6 +289,8 @@ function SubscriberWorkspace() {
               void run(() => save());
             }}
           >
+            <fieldset className="concierge-form-group"><legend><span>Your business, in a few thoughtful details</span></legend>
+            <p>Start with your name, primary market and goals. Everything else can wait.</p>
             <div className="concierge-grid">
               {(
                 [
@@ -410,6 +383,8 @@ function SubscriberWorkspace() {
                 </select>
               </label>
             </div>
+            </fieldset>
+            <fieldset className="concierge-form-group"><legend>What would a wonderful first month look like?</legend>
             <label>
               Your priority goals
               <textarea
@@ -419,6 +394,7 @@ function SubscriberWorkspace() {
                 }
               />
             </label>
+            </fieldset>
             <details>
               <summary>Personalize further — optional</summary>
               <div className="concierge-grid">
@@ -495,9 +471,10 @@ function SubscriberWorkspace() {
                 authorize marketing to imported contacts.
               </label>
             </details>
-            <button className="concierge-primary" disabled={busy}>
-              {busy ? "Saving…" : "Save my discovery"}
+            <button disabled={busy}>
+              {busy ? "Saving…" : "Save for Later"}
             </button>
+            <button className="concierge-primary" type="button" disabled={busy} onClick={()=>void run(async()=>{if(!discovery.agentName.trim()||!discovery.market.trim()||!discovery.goals.trim())throw new Error("Complete your name, primary market and goals before continuing. Your entries remain here.");await save();setTab(nextJourneyStep("migration").label);})}>Save &amp; Continue →</button>
           </form>
           <div className="concierge-preview">
             <h3>Your suggested setup</h3>
@@ -531,21 +508,29 @@ function SubscriberWorkspace() {
       )}
       {tab === "Contact migration" && (
         <section id="migration" className="concierge-card">
+          <span className="concierge-eyebrow">02 · Contact migration</span>
           <h2>Your relationships, carefully transferred.</h2>
           <p>
             CSV first. Up to 500 rows / 1 MB per import. Existing contacts are
             never overwritten. Imported contacts are marked consent Unknown and
             sending suppressed until you independently review their permissions.
           </p>
-          <label>
+          <div className="concierge-actions">
+            <button onClick={() => downloadImportCsv("myari-contacts-template.csv", contactImportTemplate())}>Download Blank CSV Template</button>
+            <button onClick={() => downloadImportCsv("myari-contacts-sample.csv", contactImportTemplate(true))}>Download Sample CSV</button>
+          </div>
+          <p>Required: firstName, phone. Optional: lastName, email, consent, source. Consent always imports as Unknown, regardless of the CSV value. The sample contains fictional contacts only.</p>
+          <label className="concierge-upload">
+            <span className="concierge-upload-symbol" aria-hidden="true">↥</span>
             Choose CSV
             <input
               type="file"
               accept=".csv,text/csv"
               disabled={busy}
-              onChange={(e) => void chooseFile(e.target.files?.[0])}
+              onChange={(e) => { setPreview(null); setImportApproval(false); const file = e.target.files?.[0]; e.target.value = ""; void chooseFile(file); }}
             />
           </label>
+          {csvFilename && <p>Selected CSV: {csvFilename}</p>}
           {columns.length > 0 && (
             <>
               <div className="concierge-grid">
@@ -610,12 +595,14 @@ function SubscriberWorkspace() {
           {preview && (
             <div className="concierge-preview">
               <h3>Review before importing</h3>
-              <p>
-                {preview.rows.length} valid rows · {preview.errors.length}{" "}
-                skipped ·{" "}
-                {preview.existingDuplicates ?? "Rechecked at confirmation"}{" "}
-                existing duplicates. Duplicates are skipped.
-              </p>
+              {preview.review ? <div role="status">
+                <h4>{preview.review.validNew} contacts ready to import</h4>
+                <p>{preview.review.totalRows} rows uploaded · {preview.review.possibleDuplicates} possible duplicates · {preview.review.invalidRows} rows need correction.</p>
+                <p>{preview.review.existingContactsUnchanged} existing contacts remain unchanged. Shared phone/email matches are possible duplicates, not confirmed identities; all are skipped. No merging or overwriting.</p>
+              </div> : <p>Duplicate checks are repeated at confirmation.</p>}
+              <p>Consent status: Unknown — sending suppressed. No campaign enrollment.</p>
+              <button onClick={() => downloadImportCsv("myari-import-errors.csv", importErrorReport(preview.review?.errors ?? preview.errors))}>Download error report</button>
+              <p>Correct any reported rows and choose the CSV again. Cancel leaves contacts unchanged.</p>
               <div className="concierge-table">
                 <table>
                   <thead>
@@ -623,14 +610,16 @@ function SubscriberWorkspace() {
                       <th>Name</th>
                       <th>Phone</th>
                       <th>Email</th>
+                      <th>Review</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {preview.rows.slice(0, 10).map((r, i) => (
+                    {preview.rows.map((r, i) => (
                       <tr key={i}>
                         <td>{r.firstName}</td>
                         <td>{r.phone}</td>
                         <td>{r.email}</td>
+                        <td>{preview.review?.errors.some(e => e.row === (Number(r._sourceRow) || i + 2)) ? "Possible duplicate — skipped" : "Valid new contact"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -638,7 +627,7 @@ function SubscriberWorkspace() {
               </div>
               <details>
                 <summary>Row error report</summary>
-                {preview.errors.map((e) => (
+                {(preview.review?.errors ?? preview.errors).map((e) => (
                   <p key={e.row}>
                     Row {e.row}: {e.error}
                   </p>
@@ -659,6 +648,7 @@ function SubscriberWorkspace() {
                   disabled={
                     busy ||
                     !importApproval ||
+                    preview.review?.validNew === 0 ||
                     preview.preview.state !== "preview"
                   }
                   onClick={() =>
@@ -672,6 +662,7 @@ function SubscriberWorkspace() {
                       });
                       setPreview(null);
                       setCsv("");
+                      setCsvFilename("");
                       setColumns([]);
                       await refresh();
                       setNotice(
@@ -748,7 +739,14 @@ function SubscriberWorkspace() {
             Review every message and personalization value. Saving creates a
             draft only.
           </p>
-          <label>
+          <div className="concierge-curated-grid" aria-label="Curated campaign recommendations">
+            {data.templates.map((template, index) => <article className={campaign === template.key ? "concierge-recommendation selected" : "concierge-recommendation"} key={template.key}>
+              <ConciergePhoto src={`/brand/heroes/${campaignPhotographs[index % campaignPhotographs.length]}`} alt={`${template.name} — approved MyARI architectural photography`} className="concierge-campaign-cover"/><div className="concierge-recommendation-copy">
+              <h3>{template.name}</h3><p>{template.description}</p><span>{template.steps.length} thoughtful steps · Draft only</span>
+              <button aria-label={`Preview Campaign: ${template.name}`} aria-pressed={campaign === template.key} onClick={() => {setCampaign(template.key); setCampaignApproval(false);}}>Preview Campaign<span className="sr-only">: {template.name}</span></button></div>
+            </article>)}
+          </div>
+          <label className="concierge-template-select">
             Campaign template
             <select
               value={campaign}
@@ -858,6 +856,7 @@ function SubscriberWorkspace() {
                   Calendar: result.calendar,
                   Assistant: result.assistant,
                 });
+                await refresh();
                 setNotice(
                   "Connection checks completed. No messages or invitations were sent.",
                 );
@@ -866,9 +865,11 @@ function SubscriberWorkspace() {
           >
             Verify supported connections
           </button>
-          <div className="concierge-grid">
+          <div className="concierge-grid concierge-integration-grid">
             {["Messaging", "Calendar", "Assistant"].map((name) => (
-              <article key={name}>
+              <article key={name} className="concierge-integration-card">
+                <ConciergePhoto className="concierge-connection-photo" src={name === "Calendar" ? "/brand/marketing/financing-desk.webp" : name === "Assistant" ? "/brand/heroes/notes-botanical-office.png" : "/brand/marketing/pricing-olive-office.webp"} alt={name === "Calendar" ? "A naturally lit planning desk" : name === "Assistant" ? "A refined architectural workspace" : "A coastal office for thoughtful communication"}/><div className="concierge-integration-copy">
+                <span className="concierge-eyebrow">{name === "Calendar" ? "Google Calendar" : name === "Assistant" ? "MyARI Assistant" : "Messaging providers"}</span>
                 <h3>{name}</h3>
                 <p>{integrationStatus[name] ?? "Verification pending"}</p>
                 <Link
@@ -881,7 +882,7 @@ function SubscriberWorkspace() {
                   }
                 >
                   Review secure setup →
-                </Link>
+                </Link></div>
               </article>
             ))}
           </div>
@@ -902,34 +903,28 @@ function SubscriberWorkspace() {
       {tab === "Walkthroughs" && (
         <section id="training" className="concierge-card">
           <h2>A little guidance, at your pace.</h2>
-          <div className="concierge-grid">
-            {training.map((t) => (
-              <article key={t.key}>
-                <h3>{t.name}</h3>
-                <p>{t.hint}</p>
-                <Link href={t.href}>Open workspace →</Link>
-                <label className="concierge-check">
-                  <input
-                    type="checkbox"
-                    disabled={busy}
-                    checked={milestones.training?.includes(t.key) ?? false}
-                    onChange={(e) =>
-                      void run(() =>
-                        save({
-                          training: e.target.checked
-                            ? [...(milestones.training ?? []), t.key]
-                            : (milestones.training ?? []).filter(
-                                (x) => x !== t.key,
-                              ),
-                        }),
-                      )
-                    }
-                  />
-                  I completed this walkthrough
-                </label>
-              </article>
-            ))}
+          <p>Choose an orientation before opening a workspace. These written guides explain supported actions, preserve your place, and distinguish saved evidence from your own confirmation.</p>
+          <div className="concierge-grid concierge-orientation">
+            {training.map((t) => <article key={t.key} className="concierge-orientation-card">
+              <ConciergePhoto className="concierge-orientation-photo" src={`/brand/heroes/${orientationPhotographs[t.key]}`} alt={`${t.name} — approved MyARI workspace photography`}/><div className="concierge-orientation-copy"><h3>{t.name}</h3><p>{t.hint}</p>
+              <p className="concierge-orientation-status">{milestones.training?.includes(t.key) ? "Orientation acknowledged" : "Not started"}</p>
+              <button aria-label={`Begin Orientation: ${t.name}`} onClick={() => {setGuide(t.key); void conciergeRequest<Record<string,boolean|null>>("/api/concierge/orientation").then(setEvidence).catch(()=>setEvidence({}));}}>Begin Orientation<span className="sr-only">: {t.name}</span></button></div>
+            </article>)}
           </div>
+          {guide && (() => {
+            const topic=training.find(t=>t.key===guide)!, content=orientationGuides[guide];
+            const verified = guide === "contacts" ? evidence.contacts : guide === "notes" ? evidence.contact_notes : guide === "tasks" ? evidence.tasks : guide === "campaigns" ? data.facts.campaignDraft : guide === "calendar" ? !!milestones.connectionReview?.calendar && Date.now()-Date.parse(milestones.connectionReview.checkedAt)<86400000 : undefined;
+            const needsEvidence=["contacts","notes","tasks","campaigns","calendar"].includes(guide);
+            return <section className="concierge-guided-panel" aria-label={`${topic.name} orientation`}>
+              <div className="concierge-guide-heading"><h3 ref={guideHeading} tabIndex={-1}>{topic.name}</h3><button onClick={()=>setGuide(null)} aria-label="Close orientation">×</button></div>
+              <p>{content.purpose} {content.benefit}</p><ol>{content.steps.map(step=><li key={step}>{step}</li>)}</ol>
+              <p><strong>Completion check:</strong> {content.evidence}</p>
+              <p role="status">{needsEvidence ? verified === true ? "Saved workspace evidence is available. Review the guide before confirming." : verified === false ? "Saved evidence is not yet available. Complete the supported action, then refresh the check." : "Evidence check unavailable. Retry before confirming." : "This orientation records your personal confirmation, not verified business activity."}</p>
+              <div className="concierge-actions"><Link href={topic.href} target="_blank" rel="noopener noreferrer">Open Full Workspace ↗</Link>
+              <button disabled={busy} onClick={()=>void run(async()=>{setEvidence(await conciergeRequest<Record<string,boolean|null>>("/api/concierge/orientation")); await refresh();})}>Refresh completion check</button></div>
+              <label className="concierge-check"><input type="checkbox" disabled={busy || (needsEvidence && verified !== true)} checked={milestones.training?.includes(guide)??false} onChange={e=>void run(()=>save({training:e.target.checked?[...new Set([...(milestones.training??[]),guide])]:(milestones.training??[]).filter(x=>x!==guide)}))}/>I completed this orientation and reviewed the available evidence</label>
+            </section>;
+          })()}
           <p>
             Financing Studio guidance is available in its workspace; saving
             partners requires verified database setup. Assistant walkthroughs
@@ -939,15 +934,17 @@ function SubscriberWorkspace() {
       )}
       {tab === "Launch review" && (
         <section id="review" className="concierge-card">
-          <h2>Your next chapter, reviewed.</h2>
+          <h2>You’re almost ready.</h2>
+          <p><strong>Subscriber checklist:</strong> your confirmations below are self-attestations.</p>
+          <p><strong>Human Concierge approval:</strong> {data.staffSignoff?.approved ? "Recorded for this case version" : "Pending manager review; checklist completion does not grant approval"}.</p>
+          <p>Voice Studio: {discovery.channels.includes("voicemail") ? "Manual review required: confirm owned, approved recording, script and provider. Script text alone is not a verified recording." : "Not selected in discovery; no voice readiness claimed."}</p>
+          {data.record?.milestones.connectionReview && <p>Last saved connection check: {new Date(data.record.milestones.connectionReview.checkedAt).toLocaleString()} · SMS {data.record.milestones.connectionReview.sms ? "ownership verified" : "unverified"} · Calendar {data.record.milestones.connectionReview.calendar ? "calendar retrieval verified" : "unverified"}. These checks are point-in-time evidence, not sending permission.</p>}
           <p>
             Current saved subscription: {data.subscription.plan} ·{" "}
             {data.subscription.status}. Concierge never changes your billing.
           </p>
           {data.readiness.checks.map((c) => (
-            <p key={c.key}>
-              {c.done ? "✓" : "○"} {c.label}
-            </p>
+            <div className="concierge-readiness-row" key={c.key}><span aria-hidden="true">{c.done ? "✓" : "○"}</span><span>{c.label}</span><strong>{c.key === "integrations" && milestones.integrationsNotApplicable && !data.facts.integrationsVerified ? "Intentionally skipped" : c.key === "migration" && milestones.importSkipped && !data.facts.imported ? "Intentionally skipped" : c.key === "integrations" && data.facts.integrationsVerified ? "Verified" : c.done ? "Reviewed" : "To review"}</strong></div>
           ))}
           {(
             ["stagesReviewed", "campaignReviewed", "launchReview"] as const
