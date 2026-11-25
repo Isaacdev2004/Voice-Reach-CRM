@@ -17,6 +17,7 @@ const root = path.resolve(__dirname, "..");
     bundle: true,
     write: false,
     jsx: "automatic",
+    loader: {".css":"empty"},
     tsconfig: path.join(root, "tsconfig.json"),
     define: { "process.env.NODE_ENV": '"development"' },
     alias: {

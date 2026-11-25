@@ -3,7 +3,7 @@ import { conciergeHandler, jsonBody } from "@/lib/concierge/access";
 import { CaseChange } from "@/lib/concierge/schema";
 import { loadCase, mutate, events } from "@/lib/concierge/store";
 import { caseFacts } from "@/lib/concierge/status";
-import { readiness } from "@/lib/concierge/readiness";
+import { readiness, staffSignoff } from "@/lib/concierge/readiness";
 import { PRODUCT_CAMPAIGN_TEMPLATES } from "@/lib/crm/campaign-templates";
 import { PREMIUM_CAMPAIGN_DRAFTS } from "@/lib/campaigns/premium-drafts";
 export const GET = conciergeHandler(async (_request, owner) => {
@@ -12,18 +12,14 @@ export const GET = conciergeHandler(async (_request, owner) => {
     caseFacts(owner),
     events(owner),
   ]);
-  const {
-    internal_note: _note,
-    assignee_id: _assignee,
-    ...subscriber
-  } = record ?? {};
   const specialty = record?.discovery.specialty;
   const category =
     specialty === "buyer" || specialty === "seller" ? specialty : null;
   return apiOk({
-    record: record ? subscriber : null,
+    record: record ? subscriberRecord(record) : null,
     ...status,
     readiness: readiness(record, status.facts),
+    staffSignoff: staffSignoff(record),
     history,
     templates: PREMIUM_CAMPAIGN_DRAFTS.filter((t) => {
       const source = PRODUCT_CAMPAIGN_TEMPLATES.find(
@@ -57,10 +53,10 @@ export const POST = conciergeHandler(async (request, owner) => {
     patch,
     b.discovery ? "DISCOVERY_SAVED" : "MILESTONES_REVIEWED",
   );
-  const {
-    internal_note: _note,
-    assignee_id: _assignee,
-    ...subscriber
-  } = record;
-  return apiOk({ record: subscriber });
+  return apiOk({ record: subscriberRecord(record) });
 });
+function subscriberRecord(record: import("@/lib/concierge/schema").CaseRecord) {
+  const { internal_note: _note, assignee_id: _assignee, ...subscriber } = record;
+  const { staffReview: _review, ...visibleMilestones } = subscriber.milestones;
+  return { ...subscriber, milestones: visibleMilestones };
+}
