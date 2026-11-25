@@ -13,7 +13,9 @@
       "feat/premium-assistant-workspace": false,
       "feat/notes-writing-studio": false,
       "fix/workspace-contact-allowance": false,
-      "fix/campaign-draft-reliability": false
+      "fix/campaign-draft-reliability": false,
+      "fix/dotloop-connection-security": false,
+      "release/dotloop-current-main": false
     }
   },
   "crons": [

@@ -1,29 +1,34 @@
-import { apiError, apiOk, withApiHandler } from "@/lib/api-response";
+import { apiError, apiOk } from "@/lib/api-response";
 import { requireUserId } from "@/lib/auth";
-import { writeAuditLog } from "@/lib/audit";
-import { deleteDotloopConnection, getDotloopConnection, isDotloopConfigured } from "@/lib/integrations/dotloop";
+import { disconnectDotloop, fetchDotloopAccountLabel, getDotloopStatus, getValidDotloopAccessToken } from "@/lib/integrations/dotloop";
+import { DotloopError } from "@/lib/integrations/dotloop-lifecycle";
 
-export const GET = withApiHandler(async () => {
-  const ownerId = await requireUserId();
-  const connection = await getDotloopConnection(ownerId);
-  return apiOk({
-    configured: isDotloopConfigured(),
-    connected: Boolean(connection),
-    accountLabel: connection?.account_label ?? null,
-    lastUpdated: connection?.updated_at ?? null,
-  });
-});
-
-export const DELETE = withApiHandler(async () => {
-  const ownerId = await requireUserId();
-  const { error } = await deleteDotloopConnection(ownerId);
-  if (error) return apiError(error.message, { status: 500 });
-  await writeAuditLog({
-    ownerId,
-    action: "DOTLOOP_DISCONNECTED",
-    entityType: "integration",
-    entityId: ownerId,
-    metadata: {},
-  }).catch(() => undefined);
-  return apiOk({ connected: false });
-});
+function safeError(err: unknown) {
+  if (err instanceof Error && err.message === "Unauthorized") return apiError("Sign in required", { status: 401 });
+  if (err instanceof DotloopError) return apiError("Dotloop authorization needs attention. Retry or reconnect from Settings.", { status: err.status, code: err.code });
+  return apiError("Dotloop is temporarily unavailable.", { status: 503, code: "dotloop_unavailable" });
+}
+function sameOrigin(request: Request) {
+  return request.headers.get("origin") === new URL(request.url).origin;
+}
+export async function GET() {
+  try { return apiOk(await getDotloopStatus(await requireUserId())); } catch (err) { return safeError(err); }
+}
+/** Explicit authenticated verification only. GET/status reads never refresh credentials. */
+export async function POST(request: Request) {
+  try {
+    const owner = await requireUserId();
+    if (!sameOrigin(request)) return apiError("Same-origin request required", { status: 403 });
+    await fetchDotloopAccountLabel(await getValidDotloopAccessToken(owner));
+    return apiOk({ ...(await getDotloopStatus(owner)), verified: true });
+  } catch (err) { return safeError(err); }
+}
+export async function DELETE(request: Request) {
+  try {
+    const owner = await requireUserId();
+    if (!sameOrigin(request)) return apiError("Same-origin request required", { status: 403 });
+    const outcome = await disconnectDotloop(owner);
+    return apiOk({ connected: false, state: outcome.pending ? "revocation_pending" : "disconnected", ...outcome },
+      { status: outcome.pending ? 202 : 200 });
+  } catch (err) { return safeError(err); }
+}
